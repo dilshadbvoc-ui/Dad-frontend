@@ -1,16 +1,15 @@
-import { useState } from 'react';
+import { AxiosError } from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { getMetaCampaigns, getMetaInsights, type MetaCampaign } from '@/services/adService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { RefreshCcw, ExternalLink, Pause, Play, AlertCircle } from 'lucide-react';
+import { RefreshCcw, ExternalLink, Plus, AlertCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 export default function AdsDashboard() {
-    const [activeTab, setActiveTab] = useState("overview");
 
     const { data: campaigns, isLoading: campaignsLoading, error: campaignsError, refetch: refetchCampaigns } = useQuery({
         queryKey: ['meta-campaigns'],
@@ -33,7 +32,7 @@ export default function AdsDashboard() {
                     <AlertDescription>
                         Failed to load Meta Ads data. Please check your integration settings and ensure your Access Token and Ad Account ID are correct.
                         <br />
-                        {(campaignsError as any).response?.data?.message || (campaignsError as Error).message}
+                        {(campaignsError as AxiosError<{ message: string }>).response?.data?.message || (campaignsError as Error).message}
                     </AlertDescription>
                 </Alert>
                 <div className="mt-4">
@@ -59,6 +58,10 @@ export default function AdsDashboard() {
                                 <Button variant="outline" size="sm" onClick={() => refetchCampaigns()}>
                                     <RefreshCcw className="h-4 w-4 mr-2" />
                                     Refresh
+                                </Button>
+                                <Button size="sm" onClick={() => window.open('https://adsmanager.facebook.com/ads/create', '_blank')}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Create Campaign
                                 </Button>
                                 <Button size="sm" onClick={() => window.open('https://adsmanager.facebook.com/', '_blank')}>
                                     <ExternalLink className="h-4 w-4 mr-2" />
