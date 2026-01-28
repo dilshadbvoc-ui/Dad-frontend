@@ -1,0 +1,186 @@
+import { useState } from "react"
+import { Link } from "react-router-dom"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { getUsers, inviteUser, updateUser, deactivateUser, type User, type InviteUserData } from "@/services/settingsService"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Badge } from "@/components/ui/badge"
+import { Plus, Users, MoreVertical, UserX, Edit } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { toast } from "sonner"
+
+export default function TeamSettingsPage() {
+    const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [selectedUser, setSelectedUser] = useState<User | null>(null)
+    const queryClient = useQueryClient()
+
+    // Get current user role from localStorage
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const currentUserRole = userInfo?.role || '';
+    const isAdmin = currentUserRole === 'admin' || currentUserRole === 'super_admin';
+
+    const { data, isLoading } = useQuery({
+        queryKey: ['users'],
+        queryFn: getUsers
+    })
+
+    const users = data?.users || []
+
+    const inviteMutation = useMutation({
+        mutationFn: (data: InviteUserData) => inviteUser(data),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setIsDialogOpen(false); toast.success('User invited') },
+        onError: () => toast.error('Failed to invite user')
+    })
+
+    const updateMutation = useMutation({
+        mutationFn: (data: Partial<User> & { id: string }) => updateUser(data.id, data),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setIsDialogOpen(false); toast.success('User updated') },
+        onError: () => toast.error('Failed to update user')
+    })
+
+    const deactivateMutation = useMutation({
+        mutationFn: (id: string) => deactivateUser(id),
+        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); toast.success('User deactivated') }
+    })
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        const formData = new FormData(e.currentTarget)
+        const quotaValue = formData.get('dailyLeadQuota') as string;
+        const userData = {
+            firstName: formData.get('firstName') as string,
+            lastName: formData.get('lastName') as string,
+            email: formData.get('email') as string,
+            position: formData.get('position') as string,
+            reportsTo: formData.get('reportsTo') === 'none' ? undefined : formData.get('reportsTo') as string,
+            password: formData.get('password') as string,
+            dailyLeadQuota: quotaValue ? parseInt(quotaValue) : null
+        }
+
+        if (selectedUser) {
+            updateMutation.mutate({ ...userData, id: selectedUser.id } as Partial<User> & { id: string })
+        } else {
+            inviteMutation.mutate(userData)
+        }
+    }
+
+    return (
+        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <div><h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Team</h1><p className="text-gray-500">Manage your team members</p></div>
+                            {isAdmin && (
+                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                                    <DialogTrigger asChild><Button onClick={() => setSelectedUser(null)} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"><Plus className="h-4 w-4 mr-2" />Add Member</Button></DialogTrigger>
+                                    <DialogContent>
+                                        <form onSubmit={handleSubmit}>
+                                            <DialogHeader>
+                                                <DialogTitle>{selectedUser ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
+                                                <DialogDescription>
+                                                    {selectedUser ? 'Modify user details, role, and password.' : 'Add a new member to your team.'}
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="grid gap-4 py-4">
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div><Label>First Name</Label><Input name="firstName" defaultValue={selectedUser?.firstName} required /></div>
+                                                    <div><Label>Last Name</Label><Input name="lastName" defaultValue={selectedUser?.lastName} required /></div>
+                                                </div>
+                                                <div><Label>Email</Label><Input name="email" type="email" defaultValue={selectedUser?.email} required /></div>
+                                                <div><Label>Job Title</Label><Input name="position" defaultValue={selectedUser?.position || ''} placeholder="e.g. Sales Manager" /></div>
+
+                                                <div>
+                                                    <Label>Reports To (Manager)</Label>
+                                                    <Select name="reportsTo" defaultValue={selectedUser?.reportsTo?.id || "none"}>
+                                                        <SelectTrigger><SelectValue placeholder="Select a manager" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="none">No Manager</SelectItem>
+                                                            {users.filter((u: User) => u.id !== selectedUser?.id).map((u: User) => (
+                                                                <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div><Label>Password</Label><Input name="password" type="password" placeholder={selectedUser ? "Leave empty to keep current" : "Leave empty to auto-generate"} /></div>
+
+                                                <div>
+                                                    <Label>Daily Lead Quota</Label>
+                                                    <Input
+                                                        name="dailyLeadQuota"
+                                                        type="number"
+                                                        min="0"
+                                                        defaultValue={selectedUser?.dailyLeadQuota ?? ''}
+                                                        placeholder="Leave empty for unlimited"
+                                                    />
+                                                    <p className="text-xs text-gray-500 mt-1">Max leads per day via auto-assignment (empty = unlimited)</p>
+                                                </div>
+                                            </div>
+                                            <DialogFooter>
+                                                <Button type="submit" isLoading={updateMutation.isPending || inviteMutation.isPending}>
+                                                    <Plus className="h-4 w-4 mr-2" />{selectedUser ? 'Save Changes' : 'Add Member'}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+                        </div>
+
+                        <Card>
+                            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Team Members ({users.length})</CardTitle></CardHeader>
+                            <CardContent>
+                                {isLoading ? (
+                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
+                                ) : users.length === 0 ? (
+                                    <div className="text-center py-12 text-gray-500"><Users className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No team members yet</p></div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        {users.map((user: User) => (
+                                            <div key={user.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                <div className="flex items-center gap-4">
+                                                    <Avatar className="h-10 w-10"><AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback></Avatar>
+                                                    <div>
+                                                        <Link to={`/users/${user.id}`} className="hover:underline font-semibold">{user.firstName} {user.lastName}</Link>
+                                                        <p className="text-sm text-gray-500">{user.email}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <Badge variant={user.isActive ? "default" : "secondary"}>{user.isActive ? 'Active' : 'Inactive'}</Badge>
+                                                    {user.dailyLeadQuota !== undefined && user.dailyLeadQuota !== null ? (
+                                                        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                                                            Quota: {user.dailyLeadQuota}
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="text-gray-500">No Quota</Badge>
+                                                    )}
+                                                    {user.userId && <Badge variant="outline" className="font-mono">{user.userId}</Badge>}
+                                                    {user.role && <Badge variant="outline">{user.role.name}</Badge>}
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsDialogOpen(true) }}><Edit className="h-4 w-4 mr-2" />Edit Details</DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-red-600" onClick={() => deactivateMutation.mutate(user.id)}><UserX className="h-4 w-4 mr-2" />Deactivate</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </CardContent>
+                        </Card>
+                    </div>
+                </main>
+            </div>
+        </div>
+    )
+}

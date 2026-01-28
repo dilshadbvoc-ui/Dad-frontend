@@ -1,0 +1,195 @@
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+@layer base {
+  :root {
+    /* Clean Grey Background */
+    --background: 0 0% 100%;
+    /* Dark Grey Text */
+    --foreground: 240 10% 4%;
+
+    /* White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 4%;
+
+    /* Popovers same as cards */
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 4%;
+
+    /* Vibrant Purple Primary */
+    --primary: 262 83% 58%;
+    /* White text on purple */
+    --primary-foreground: 210 40% 98%;
+
+    /* Soft Grey Secondary */
+    --secondary: 240 5% 96%;
+    --secondary-foreground: 240 6% 10%;
+
+    /* Muted Grey */
+    --muted: 240 5% 96%;
+    --muted-foreground: 240 4% 46%;
+
+    /* Accent (Hover states) - Light Purple hint */
+    --accent: 262 83% 97%;
+    --accent-foreground: 240 6% 10%;
+
+    /* Destructive - Red */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Light Grey Border */
+    --border: 240 6% 90%;
+    --input: 240 6% 90%;
+
+    /* Ring matches primary */
+    --ring: 262 83% 58%;
+
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    /* Deep Grey/Black Background */
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Light Purple for Dark Mode Primary */
+    --primary: 263 70% 50%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
+
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 263 70% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer components {
+
+  /* Simple Header Card */
+  .glass-card {
+    @apply bg-background border border-border shadow-sm;
+  }
+
+  /* Simple Gradient */
+  .gradient-ocean {
+    @apply bg-primary;
+  }
+
+  /* Static Background */
+  .ocean-animated {
+    @apply bg-slate-900;
+  }
+
+  /* Lightweight Button */
+  .btn-ocean {
+    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2;
+  }
+
+  /* Simple Card */
+  .card-ocean {
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm;
+  }
+
+  /* Simple Stat Card */
+  .stat-card-ocean {
+    @apply bg-card text-card-foreground rounded-lg border shadow-sm p-6;
+  }
+
+  /* Simple Badge */
+  .badge-ocean {
+    @apply inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2;
+    @apply border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  /* Simple Table Row */
+  .table-row-ocean {
+    @apply border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted;
+  }
+
+  /* Simple Input */
+  .input-ocean {
+    @apply flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  /* Simple Sidebar */
+  .sidebar-ocean {
+    @apply bg-card border-r h-full;
+  }
+
+  /* Simple Nav Item */
+  .nav-item-ocean {
+    @apply flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground;
+  }
+
+  .nav-item-ocean-active {
+    @apply bg-primary/10 text-primary;
+  }
+
+  /* Basic Utilities */
+  .scrollbar-ocean::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-ocean::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  .scrollbar-ocean::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/40;
+  }
+
+}
+
+@layer utilities {
+  .text-gradient-ocean {
+    @apply text-primary font-bold;
+  }
+
+  .fade-in {
+    /* Minimal fade in */
+    animation: fadeIn 0.2s ease-out forwards;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+}
