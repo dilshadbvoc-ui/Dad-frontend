@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
-  output   = "../src/generated/client"
+  provider      = "prisma-client-js"
+  output        = "../src/generated/client"
+  binaryTargets = ["native", "darwin-arm64"]
 }
 
 datasource db {
@@ -58,6 +59,7 @@ model Organisation {
   webForms          WebForm[]
   smsCampaigns      SMSCampaign[]
   whatsAppCampaigns WhatsAppCampaign[]
+  whatsAppMessages  WhatsAppMessage[]
   commissions       Commission[]
   landingPages      LandingPage[]
 }
@@ -130,6 +132,7 @@ model User {
   createdWebForms             WebForm[]              @relation("WebFormCreator")
   createdSMSCampaigns         SMSCampaign[]          @relation("SMSCampaignCreator")
   createdWhatsAppCampaigns    WhatsAppCampaign[]     @relation("WhatsAppCampaignCreator")
+  whatsAppMessages            WhatsAppMessage[]      @relation("WhatsAppMessageAgent")
   commissions                 Commission[]           @relation("UserCommission")
   createdCommissions          Commission[]           @relation("CommissionCreator")
   createdLandingPages         LandingPage[]          @relation("LandingPageCreator")
@@ -148,6 +151,7 @@ model Notification {
   relatedId       String?
   isRead          Boolean  @default(false)
   recipientId     String
+  organisationId  String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   recipient       User     @relation("NotificationRecipient", fields: [recipientId], references: [id])
@@ -193,6 +197,7 @@ model Lead {
   history            LeadHistory[]
   tasks              Task[]
   emailLists         EmailList[]     @relation("EmailListToLead")
+  whatsAppMessages   WhatsAppMessage[]
 
   @@index([organisationId])
   @@index([assignedToId])
@@ -267,6 +272,7 @@ model Contact {
   tasks          Task[]
   emailLists     EmailList[]     @relation("ContactToEmailList")
   opportunities  Opportunity[]   @relation("OpportunityContacts")
+  whatsAppMessages WhatsAppMessage[]
 
   @@index([organisationId])
   @@index([email])
@@ -309,7 +315,7 @@ model Product {
   sku            String?
   description    String?
   basePrice      Float
-  currency       String          @default("USD")
+  currency       String          @default("INR")
   taxRate        Float           @default(0)
   category       String?
   tags           String[]
@@ -499,6 +505,7 @@ model Campaign {
   scheduledAt    DateTime?
   sentAt         DateTime?
   stats          Json?
+  customFields   Json?
   emailListId    String?
   createdById    String?
   organisationId String
@@ -917,6 +924,8 @@ enum LeadSource {
   import
   api
   manual
+  whatsapp
+  meta_leadgen
 }
 
 enum LeadStatus {
@@ -1045,6 +1054,9 @@ model WhatsAppCampaign {
   status         String    @default("draft")
   scheduledAt    DateTime?
   sentAt         DateTime?
+  recipients     Json?
+  testNumber     String?
+  customFields   Json?
   stats          Json?
   organisationId String
   createdById    String?
@@ -1058,11 +1070,44 @@ model WhatsAppCampaign {
   @@index([organisationId])
 }
 
+model WhatsAppMessage {
+  id             String    @id @default(uuid())
+  conversationId String
+  phoneNumber    String
+  direction      String    // 'incoming' or 'outgoing'
+  messageType    String    @default("text") // 'text', 'image', 'document', 'audio', 'video', 'location', 'template', 'interactive'
+  content        Json?     // Flexible content storage
+  status         String    @default("pending") // 'pending', 'sent', 'delivered', 'read', 'failed'
+  waMessageId    String?   // WhatsApp message ID
+  errorCode      String?
+  errorMessage   String?
+  sentAt         DateTime?
+  deliveredAt    DateTime?
+  readAt         DateTime?
+  organisationId String
+  leadId         String?
+  contactId      String?
+  agentId        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  isDeleted      Boolean   @default(false)
+
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  lead           Lead?        @relation(fields: [leadId], references: [id])
+  contact        Contact?     @relation(fields: [contactId], references: [id])
+  agent          User?        @relation("WhatsAppMessageAgent", fields: [agentId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([leadId])
+  @@index([phoneNumber])
+  @@index([organisationId])
+}
+
 model Commission {
   id             String    @id @default(uuid())
   userId         String
   amount         Float
-  currency       String    @default("USD")
+  currency       String    @default("INR")
   status         String    @default("pending")
   type           String
   description    String?

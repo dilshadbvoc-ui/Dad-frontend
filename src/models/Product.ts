@@ -33,7 +33,7 @@ const productSchema = new Schema<IProduct>({
     description: String,
 
     basePrice: { type: Number, required: true },
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR' },
     taxRate: { type: Number, default: 0 },
 
     category: String,

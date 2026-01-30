@@ -41,7 +41,7 @@ const goalSchema = new Schema<IGoal>({
     targetValue: { type: Number, required: true },
     currentValue: { type: Number, default: 0 },
     unit: { type: String, default: 'count' },
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR' },
 
     period: {
         type: String,

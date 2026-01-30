@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { initSocket } from './socket';
+import { generalLimiter } from './middleware/rateLimiter';
 
 dotenv.config();
 
@@ -51,6 +52,7 @@ import pipelineRoutes from './routes/pipelineRoutes';
 import webFormRoutes from './routes/webFormRoutes';
 import smsCampaignRoutes from './routes/smsCampaignRoutes';
 import whatsAppCampaignRoutes from './routes/whatsAppCampaignRoutes';
+import whatsAppRoutes from './routes/whatsAppRoutes';
 import commissionRoutes from './routes/commissionRoutes';
 import landingPageRoutes from './routes/landingPageRoutes';
 import path from 'path';
@@ -75,6 +77,10 @@ console.log(`   PORT env: ${process.env.PORT}`);
 console.log('------------------------------------------------');
 
 app.use(compression()); // Enable gzip compression
+
+// Apply rate limiting
+app.use('/api/', generalLimiter);
+
 app.use(cors({
     origin: ['http://localhost:5173', 'https://dad-frontend-psi.vercel.app'],
     credentials: true,
@@ -154,7 +160,9 @@ app.use('/api/workflows', workflowRoutes);
 app.use('/api/pipelines', pipelineRoutes);
 app.use('/api/web-forms', webFormRoutes);
 app.use('/api/sms-campaigns', smsCampaignRoutes);
+// WhatsApp Campaigns (re-enabled after schema fix)
 app.use('/api/whatsapp-campaigns', whatsAppCampaignRoutes);
+app.use('/api/whatsapp', whatsAppRoutes);
 app.use('/api/commissions', commissionRoutes);
 app.use('/api/landing-pages', landingPageRoutes);
 app.use('/api/notifications', notificationRoutes);

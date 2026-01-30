@@ -88,7 +88,7 @@ export class QuotePdfService {
         doc.text(`Tax: ${quote.totalTax?.toFixed(2) || '0.00'}`, 400, currentY, { align: 'right' });
         currentY += 15;
         doc.font('Helvetica-Bold').fontSize(12);
-        doc.text(`Total: ${quote.grandTotal?.toFixed(2) || '0.00'} ${quote.currency || 'USD'}`, 400, currentY, { align: 'right' });
+        doc.text(`Total: ${quote.grandTotal?.toFixed(2) || '0.00'} ${quote.currency || 'INR'}`, 400, currentY, { align: 'right' });
 
         // -- Footer --
         doc.text(quote.termsAndConditions || '', 50, 700);

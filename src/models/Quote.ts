@@ -74,7 +74,7 @@ const quoteSchema = new Schema<IQuote>({
     totalDiscount: { type: Number, default: 0 },
     totalTax: { type: Number, default: 0 },
     grandTotal: { type: Number, required: true },
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR' },
 
     validUntil: { type: Date, required: true },
     paymentTerms: String,

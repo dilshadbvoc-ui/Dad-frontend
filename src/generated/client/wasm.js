@@ -176,6 +176,7 @@ exports.Prisma.NotificationScalarFieldEnum = {
   relatedId: 'relatedId',
   isRead: 'isRead',
   recipientId: 'recipientId',
+  organisationId: 'organisationId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -433,6 +434,7 @@ exports.Prisma.CampaignScalarFieldEnum = {
   scheduledAt: 'scheduledAt',
   sentAt: 'sentAt',
   stats: 'stats',
+  customFields: 'customFields',
   emailListId: 'emailListId',
   createdById: 'createdById',
   organisationId: 'organisationId',
@@ -829,9 +831,35 @@ exports.Prisma.WhatsAppCampaignScalarFieldEnum = {
   status: 'status',
   scheduledAt: 'scheduledAt',
   sentAt: 'sentAt',
+  recipients: 'recipients',
+  testNumber: 'testNumber',
+  customFields: 'customFields',
   stats: 'stats',
   organisationId: 'organisationId',
   createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isDeleted: 'isDeleted'
+};
+
+exports.Prisma.WhatsAppMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  phoneNumber: 'phoneNumber',
+  direction: 'direction',
+  messageType: 'messageType',
+  content: 'content',
+  status: 'status',
+  waMessageId: 'waMessageId',
+  errorCode: 'errorCode',
+  errorMessage: 'errorMessage',
+  sentAt: 'sentAt',
+  deliveredAt: 'deliveredAt',
+  readAt: 'readAt',
+  organisationId: 'organisationId',
+  leadId: 'leadId',
+  contactId: 'contactId',
+  agentId: 'agentId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isDeleted: 'isDeleted'
@@ -911,7 +939,9 @@ exports.LeadSource = exports.$Enums.LeadSource = {
   paid_ad: 'paid_ad',
   import: 'import',
   api: 'api',
-  manual: 'manual'
+  manual: 'manual',
+  whatsapp: 'whatsapp',
+  meta_leadgen: 'meta_leadgen'
 };
 
 exports.LeadStatus = exports.$Enums.LeadStatus = {
@@ -989,6 +1019,7 @@ exports.Prisma.ModelName = {
   WebForm: 'WebForm',
   SMSCampaign: 'SMSCampaign',
   WhatsAppCampaign: 'WhatsAppCampaign',
+  WhatsAppMessage: 'WhatsAppMessage',
   Commission: 'Commission',
   LandingPage: 'LandingPage'
 };

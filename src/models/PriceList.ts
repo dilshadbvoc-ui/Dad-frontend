@@ -25,7 +25,7 @@ const priceListSchema = new mongoose.Schema({
     }],
 
     // Applicability
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR' },
     regions: [{ type: String }],  // e.g., ['US', 'EU']
     customerTiers: [{ type: String }],  // e.g., ['enterprise', 'premium']
     specificAccounts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Account' }],

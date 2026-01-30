@@ -13,7 +13,7 @@ const commissionSchema = new mongoose.Schema({
 
     // Basic rate
     rate: { type: Number },  // Percentage or fixed amount
-    currency: { type: String, default: 'USD' },
+    currency: { type: String, default: 'INR' },
 
     // Tiered commission (for tiered type)
     tiers: [{

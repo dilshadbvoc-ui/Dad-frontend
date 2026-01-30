@@ -11,6 +11,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Organisation not found' });
         }
 
+        // Date ranges for trend calculation
+        const now = new Date();
+        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
         // Leads
         const totalLeads = await prisma.lead.count({
             where: { organisationId: orgId, isDeleted: false }
@@ -22,6 +28,24 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             where: { organisationId: orgId, isDeleted: false, status: 'converted' }
         });
 
+        // Leads trend (this month vs last month)
+        const leadsThisMonth = await prisma.lead.count({
+            where: { 
+                organisationId: orgId, 
+                isDeleted: false,
+                createdAt: { gte: thisMonth }
+            }
+        });
+        const leadsLastMonth = await prisma.lead.count({
+            where: { 
+                organisationId: orgId, 
+                isDeleted: false,
+                createdAt: { gte: lastMonth, lt: thisMonth }
+            }
+        });
+        const leadsTrend = leadsLastMonth > 0 ? 
+            Math.round(((leadsThisMonth - leadsLastMonth) / leadsLastMonth) * 100) : 0;
+
         // Opportunities
         const totalOpportunities = await prisma.opportunity.count({
             where: { organisationId: orgId }
@@ -29,6 +53,40 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const wonOpportunities = await prisma.opportunity.count({
             where: { organisationId: orgId, stage: 'closed_won' }
         });
+        const lostOpportunities = await prisma.opportunity.count({
+            where: { organisationId: orgId, stage: 'closed_lost' }
+        });
+
+        // Revenue calculation and trend
+        const revenueResult = await prisma.opportunity.aggregate({
+            where: { 
+                organisationId: orgId,
+                stage: 'closed_won'
+            },
+            _sum: { amount: true }
+        });
+        const totalRevenue = revenueResult._sum.amount || 0;
+
+        const revenueThisMonth = await prisma.opportunity.aggregate({
+            where: { 
+                organisationId: orgId,
+                stage: 'closed_won',
+                closeDate: { gte: thisMonth }
+            },
+            _sum: { amount: true }
+        });
+        const revenueLastMonth = await prisma.opportunity.aggregate({
+            where: { 
+                organisationId: orgId,
+                stage: 'closed_won',
+                closeDate: { gte: lastMonth, lt: thisMonth }
+            },
+            _sum: { amount: true }
+        });
+        const revThisMonth = revenueThisMonth._sum.amount || 0;
+        const revLastMonth = revenueLastMonth._sum.amount || 0;
+        const revenueTrend = revLastMonth > 0 ? 
+            Math.round(((revThisMonth - revLastMonth) / revLastMonth) * 100) : 0;
 
         // Pipeline Value (Sum of amount) - Prisma aggregate
         const pipelineResult = await prisma.opportunity.aggregate({
@@ -36,6 +94,39 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             _sum: { amount: true }
         });
         const pipelineValue = pipelineResult._sum.amount || 0;
+
+        // Win rate trend
+        const wonThisMonth = await prisma.opportunity.count({
+            where: { 
+                organisationId: orgId, 
+                stage: 'closed_won',
+                closeDate: { gte: thisMonth }
+            }
+        });
+        const totalThisMonth = await prisma.opportunity.count({
+            where: { 
+                organisationId: orgId,
+                closeDate: { gte: thisMonth }
+            }
+        });
+        const wonLastMonth = await prisma.opportunity.count({
+            where: { 
+                organisationId: orgId, 
+                stage: 'closed_won',
+                closeDate: { gte: lastMonth, lt: thisMonth }
+            }
+        });
+        const totalLastMonth = await prisma.opportunity.count({
+            where: { 
+                organisationId: orgId,
+                closeDate: { gte: lastMonth, lt: thisMonth }
+            }
+        });
+
+        const winRateThisMonth = totalThisMonth > 0 ? (wonThisMonth / totalThisMonth) * 100 : 0;
+        const winRateLastMonth = totalLastMonth > 0 ? (wonLastMonth / totalLastMonth) * 100 : 0;
+        const winRateTrend = winRateLastMonth > 0 ? 
+            Math.round(winRateThisMonth - winRateLastMonth) : 0;
 
         // Contacts
         const totalContacts = await prisma.contact.count({
@@ -51,12 +142,19 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             // Flat structure
             totalLeads,
             activeOpportunities: totalOpportunities,
-            salesRevenue: pipelineValue,
+            salesRevenue: totalRevenue,
             winRate: totalOpportunities > 0 ? Math.round((wonOpportunities / totalOpportunities) * 100) : 0,
+
+            // Trends
+            trends: {
+                revenue: revenueTrend,
+                leads: leadsTrend,
+                winRate: winRateTrend
+            },
 
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
-            opportunities: { total: totalOpportunities, value: pipelineValue, won: wonOpportunities },
+            opportunities: { total: totalOpportunities, value: pipelineValue, won: wonOpportunities, lost: lostOpportunities },
             contacts: { total: totalContacts },
             accounts: { total: totalAccounts }
         });
@@ -294,12 +392,24 @@ export const getAiInsights = async (req: Request, res: Response) => {
             });
         }
 
-        // 3. High Value Deal Alert
+        // 3. High Value Deal Alert - Calculate dynamic threshold based on average deal size
+        const avgDealResult = await prisma.opportunity.aggregate({
+            where: {
+                organisationId: orgId,
+                stage: { notIn: ['closed_won', 'closed_lost'] },
+                amount: { gt: 0 }
+            },
+            _avg: { amount: true }
+        });
+        
+        const avgDealSize = avgDealResult._avg.amount || 5000;
+        const highValueThreshold = avgDealSize * 2; // Deals worth 2x average are considered high value
+
         const highValueDeals = await prisma.opportunity.findMany({
             where: {
                 organisationId: orgId,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
-                amount: { gt: 10000 } // Arbitrary threshold, could be dynamic based on avg
+                amount: { gt: highValueThreshold }
             },
             take: 2,
             orderBy: { amount: 'desc' },

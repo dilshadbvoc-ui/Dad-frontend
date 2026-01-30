@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
-import { Prisma } from '../generated/client';
+import { SalesTargetService } from '../services/SalesTargetService';
 
 // Helper: Get direct reports of a user
 const getDirectReports = async (userId: string): Promise<any[]> => {
@@ -380,9 +380,6 @@ export const recalculateProgress = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-
-        // Import service
-        const { SalesTargetService } = await import('../services/SalesTargetService');
 
         if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
 
