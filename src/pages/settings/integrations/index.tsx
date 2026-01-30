@@ -2,13 +2,13 @@ import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Button } from "@/components/ui/button"
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Webhook, Slack, MessageSquare, CheckCircle2, Phone } from "lucide-react"
+import { Webhook, Slack, MessageSquare, CheckCircle2, Phone, MessageCircle } from "lucide-react"
 import { getOrganisation } from "@/services/settingsService"
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog"
 import { Badge } from "@/components/ui/badge"
 
 export default function IntegrationsSettingsPage() {
-    const [configOpen, setConfigOpen] = useState<'meta' | 'slack' | 'twilio' | null>(null)
+    const [configOpen, setConfigOpen] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | null>(null)
 
     const { data: organisation, isLoading } = useQuery({
         queryKey: ['organisation'],
@@ -39,15 +39,36 @@ export default function IntegrationsSettingsPage() {
                                                 <MessageSquare className="h-6 w-6 text-blue-600" />
                                             </div>
                                             <div>
-                                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2">
                                                     <CardTitle className="text-base">Meta (Facebook/Instagram)</CardTitle>
                                                     {integrations.meta?.connected && <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 hover:bg-green-100"><CheckCircle2 className="w-3 h-3 mr-1" />Connected</Badge>}
                                                 </div>
-                                                <CardDescription>Sync leads from Facebook Forms</CardDescription>
+                                                <CardDescription>Sync leads from Facebook Forms and manage ads</CardDescription>
                                             </div>
                                         </div>
                                         <Button variant="outline" onClick={() => setConfigOpen('meta')}>
                                             {integrations.meta?.connected ? 'Manage' : 'Connect'}
+                                        </Button>
+                                    </CardHeader>
+                                </Card>
+
+                                {/* WhatsApp Integration */}
+                                <Card>
+                                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                        <div className="flex items-center gap-4">
+                                            <div className="h-10 w-10 rounded-lg bg-green-100 flex items-center justify-center">
+                                                <MessageCircle className="h-6 w-6 text-green-600" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <CardTitle className="text-base">WhatsApp Business</CardTitle>
+                                                    {integrations.whatsapp?.connected && <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 hover:bg-green-100"><CheckCircle2 className="w-3 h-3 mr-1" />Connected</Badge>}
+                                                </div>
+                                                <CardDescription>Send and receive WhatsApp messages</CardDescription>
+                                            </div>
+                                        </div>
+                                        <Button variant="outline" onClick={() => setConfigOpen('whatsapp')}>
+                                            {integrations.whatsapp?.connected ? 'Manage' : 'Connect'}
                                         </Button>
                                     </CardHeader>
                                 </Card>

@@ -31,6 +31,11 @@ interface DashboardStats {
     activeOpportunities: number;
     salesRevenue: number;
     winRate: number;
+    trends?: {
+        revenue: number;
+        leads: number;
+        winRate: number;
+    };
 }
 
 interface SalesDataPoint {
@@ -140,8 +145,17 @@ export default function AnalyticsPage() {
                                         {stats ? formatCurrency(stats.salesRevenue) : '-'}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                                        <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
-                                        <span className="text-green-600 font-medium">+12%</span> from last month
+                                        {(stats?.trends?.revenue ?? 0) >= 0 ? (
+                                            <>
+                                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                                                <span className="text-green-600 font-medium">+{stats?.trends?.revenue || 0}%</span> from last month
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
+                                                <span className="text-red-500 font-medium">{stats?.trends?.revenue || 0}%</span> from last month
+                                            </>
+                                        )}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -156,7 +170,7 @@ export default function AnalyticsPage() {
                                         {stats?.activeOpportunities || '-'}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        Worth {formatCurrency(stats?.activeOpportunities ? stats.activeOpportunities * 5000 : 0)} estimated
+                                        Worth {formatCurrency(stats?.salesRevenue || 0)} estimated
                                     </p>
                                 </CardContent>
                             </Card>
@@ -171,8 +185,17 @@ export default function AnalyticsPage() {
                                         {stats?.winRate || 0}%
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                                        <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
-                                        <span className="text-green-600 font-medium">+2.1%</span> vs industry avg
+                                        {(stats?.trends?.winRate ?? 0) >= 0 ? (
+                                            <>
+                                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                                                <span className="text-green-600 font-medium">+{stats?.trends?.winRate || 0}%</span> vs last month
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
+                                                <span className="text-red-500 font-medium">{stats?.trends?.winRate || 0}%</span> vs last month
+                                            </>
+                                        )}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -187,8 +210,17 @@ export default function AnalyticsPage() {
                                         {stats?.totalLeads || '-'}
                                     </div>
                                     <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                                        <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
-                                        <span className="text-red-500 font-medium">-4%</span> from last week
+                                        {(stats?.trends?.leads ?? 0) >= 0 ? (
+                                            <>
+                                                <ArrowUpRight className="h-3 w-3 text-green-500 mr-1" />
+                                                <span className="text-green-600 font-medium">+{stats?.trends?.leads || 0}%</span> from last month
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ArrowDownRight className="h-3 w-3 text-red-500 mr-1" />
+                                                <span className="text-red-500 font-medium">{stats?.trends?.leads || 0}%</span> from last month
+                                            </>
+                                        )}
                                     </p>
                                 </CardContent>
                             </Card>
@@ -298,7 +330,7 @@ export default function AnalyticsPage() {
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-medium text-foreground">{formatCurrency(lead.leadScore * 150)}</p>
+                                                    <p className="text-sm font-medium text-foreground">{formatCurrency((lead.leadScore || 0) * 1000)}</p>
                                                     <p className="text-xs text-muted-foreground">Est. Value</p>
                                                 </div>
                                             </div>

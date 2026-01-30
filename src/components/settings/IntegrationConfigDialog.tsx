@@ -34,7 +34,7 @@ interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -93,13 +93,17 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
         ? 'Meta Integration'
         : integrationType === 'slack'
             ? 'Slack Integration'
-            : 'Twilio Integration'
+            : integrationType === 'twilio'
+                ? 'Twilio Integration'
+                : 'WhatsApp Integration'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
         : integrationType === 'slack'
             ? 'Connect Slack to receive notifications.'
-            : 'Connect Twilio account for cloud telephony.'
+            : integrationType === 'twilio'
+                ? 'Connect Twilio account for cloud telephony.'
+                : 'Connect WhatsApp Business API for messaging.'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -184,6 +188,28 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         </FormItem>
                                     )}
                                 />
+                            </>
+                        )}
+
+                        {/* Fields for WhatsApp */}
+                        {integrationType === 'whatsapp' && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="accessToken"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Access Token</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Enter WhatsApp Access Token" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                System User Access Token from Meta Business.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="phoneNumberId"
@@ -191,7 +217,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Phone Number ID</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Meta Phone Number ID" {...field} />
+                                                <Input placeholder="WhatsApp Phone Number ID" {...field} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 From WhatsApp Business Platform &gt; API Setup.
@@ -205,10 +231,90 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                     name="wabaId"
                                     render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>WABA ID (Optional)</FormLabel>
+                                            <FormLabel>WABA ID</FormLabel>
                                             <FormControl>
                                                 <Input placeholder="WhatsApp Business Account ID" {...field} />
                                             </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for templates and advanced features.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="appId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>App ID (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Meta App ID" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="appSecret"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>App Secret (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Meta App Secret" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
+
+                        {/* Fields for Meta - Updated to remove WhatsApp fields */}
+                        {integrationType === 'meta' && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="pageId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Page ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter Facebook Page ID" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="accessToken"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Access Token</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Enter User Access Token" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Token from Meta Business Suite.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="adAccountId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Ad Account ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="act_..." {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Meta Ad Account ID (starts with act_).
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
@@ -312,7 +418,34 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                             </>
                         )}
 
-                        <DialogFooter>
+                        <DialogFooter className="flex justify-between sm:justify-between">
+                            {((integrationType === 'meta' && isConnected) || (integrationType === 'whatsapp' && isConnected)) && (
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    onClick={async () => {
+                                        try {
+                                            if (integrationType === 'meta') {
+                                                const { testMetaConnection } = await import("@/services/adService");
+                                                const result = await testMetaConnection();
+                                                if (result.success) {
+                                                    toast.success(`Connected to: ${result.accountName} (${result.status})`);
+                                                }
+                                            } else if (integrationType === 'whatsapp') {
+                                                const { testWhatsAppConnection } = await import("@/services/whatsAppService");
+                                                const result = await testWhatsAppConnection();
+                                                if (result.success) {
+                                                    toast.success(`Connected to: ${result.verifiedName} (${result.phoneNumber})`);
+                                                }
+                                            }
+                                        } catch (error: any) {
+                                            toast.error("Connection failed: " + (error.response?.data?.message || error.message));
+                                        }
+                                    }}
+                                >
+                                    Test Connection
+                                </Button>
+                            )}
                             <Button type="submit" disabled={mutation.isPending}>
                                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                                 Save Changes

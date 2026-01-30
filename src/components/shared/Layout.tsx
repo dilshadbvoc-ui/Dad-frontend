@@ -8,12 +8,20 @@ import { ViolationAlert } from "@/components/shared/ViolationAlert";
 
 import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const isDashboard = location.pathname === '/dashboard';
+    const [collapsed, setCollapsed] = useState(() => {
+        const saved = localStorage.getItem('sidebar-collapsed');
+        return saved === 'true';
+    });
+
+    useEffect(() => {
+        localStorage.setItem('sidebar-collapsed', String(collapsed));
+    }, [collapsed]);
 
     useEffect(() => {
         interface CallUpdateData {
@@ -46,8 +54,8 @@ export default function Layout() {
     }, []);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
-            <Sidebar />
+        <div className="flex h-screen overflow-hidden bg-[#F3F4F6]">
+            <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Header />
                 <main className="flex-1 overflow-y-auto">

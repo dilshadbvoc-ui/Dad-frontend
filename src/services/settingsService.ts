@@ -47,6 +47,8 @@ export interface IntegrationSettings {
     adAccountId?: string;
     phoneNumberId?: string;
     wabaId?: string;
+    appId?: string;
+    appSecret?: string;
     channelId?: string;
     accountSid?: string;
     authToken?: string;

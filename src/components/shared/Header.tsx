@@ -18,7 +18,7 @@ export function Header({ className }: { className?: string }) {
     const navigate = useNavigate()
 
     return (
-        <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-4 border-b bg-background px-6 shadow-sm", className)}>
+        <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-4 bg-[#F3F4F6] px-6", className)}>
             <div className="flex items-center lg:hidden mr-2">
                 <Sheet>
                     <SheetTrigger asChild>
@@ -29,7 +29,7 @@ export function Header({ className }: { className?: string }) {
                     <SheetContent side="left" className="p-0 w-72 border-r bg-card">
                         <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                         <SheetDescription className="sr-only">Main navigation menu</SheetDescription>
-                        <SidebarContent />
+                        <SidebarContent isCollapsed={false} setIsCollapsed={() => {}} />
                     </SheetContent>
                 </Sheet>
             </div>

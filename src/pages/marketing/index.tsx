@@ -1,6 +1,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { EmailCampaigns } from "./components/EmailCampaigns"
 import { MetaCampaigns } from "./components/MetaCampaigns"
+import { WhatsAppCampaigns } from "./components/WhatsAppCampaigns"
 
 export default function MarketingPage() {
     return (
@@ -21,6 +22,9 @@ export default function MarketingPage() {
                                 <TabsTrigger value="meta" className="rounded-lg data-[state=active]:bg-[#1877F2]/10 data-[state=active]:text-[#1877F2]">
                                     Meta Ads
                                 </TabsTrigger>
+                                <TabsTrigger value="whatsapp" className="rounded-lg data-[state=active]:bg-[#25D366]/10 data-[state=active]:text-[#25D366]">
+                                    WhatsApp
+                                </TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="email" className="outline-none">
@@ -29,6 +33,10 @@ export default function MarketingPage() {
 
                             <TabsContent value="meta" className="outline-none">
                                 <MetaCampaigns />
+                            </TabsContent>
+
+                            <TabsContent value="whatsapp" className="outline-none">
+                                <WhatsAppCampaigns />
                             </TabsContent>
                         </Tabs>
                     </div>

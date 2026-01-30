@@ -6,12 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, TrendingUp, Users, DollarSign, Target, BarChart3, PieChart as PieIcon, Filter } from "lucide-react"
+import { Download, TrendingUp, Users, DollarSign, Target, BarChart3, PieChart as PieIcon, Filter, Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { api } from "@/services/api"
 import { getUsers } from "@/services/settingsService"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts'
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function ReportsPage() {
     const [dateRange, setDateRange] = useState({ start: '', end: '' })
@@ -107,62 +107,146 @@ export default function ReportsPage() {
         window.open(`${api.defaults.baseURL}/reports/export/${type}`, '_blank')
     }
 
+    const formatCurrency = (amount: number) => {
+        return new Intl.NumberFormat('en-IN', { 
+            style: 'currency', 
+            currency: 'INR', 
+            maximumFractionDigits: 0 
+        }).format(amount);
+    };
+
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-gray-950 dark:to-slate-900">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-                    <div className="space-y-6">
-                        <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Reports & Analytics</h1>
-                            <p className="text-gray-500">Comprehensive insights and performance metrics</p>
+                    <div className="space-y-8">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+                                    Reports & Analytics
+                                </h1>
+                                <p className="text-slate-600 dark:text-slate-400 mt-2">Comprehensive insights and performance metrics for your business</p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 shadow-sm border">
+                                    <Calendar className="h-4 w-4 text-slate-500" />
+                                    <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                                        {new Date().toLocaleDateString('en-IN', { 
+                                            month: 'long', 
+                                            day: 'numeric', 
+                                            year: 'numeric' 
+                                        })}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
 
-                        <Tabs defaultValue="leads" className="space-y-4">
-                            <TabsList>
-                                <TabsTrigger value="leads">Leads Report</TabsTrigger>
-                                <TabsTrigger value="performance">User Performance</TabsTrigger>
-                                <TabsTrigger value="sales">Sales Book</TabsTrigger>
+                        <Tabs defaultValue="leads" className="space-y-6">
+                            <TabsList className="grid w-full grid-cols-3 bg-white dark:bg-gray-900 shadow-sm border">
+                                <TabsTrigger value="leads" className="data-[state=active]:bg-blue-500 data-[state=active]:text-white">
+                                    <Users className="mr-2 h-4 w-4" />
+                                    Leads Report
+                                </TabsTrigger>
+                                <TabsTrigger value="performance" className="data-[state=active]:bg-green-500 data-[state=active]:text-white">
+                                    <Target className="mr-2 h-4 w-4" />
+                                    User Performance
+                                </TabsTrigger>
+                                <TabsTrigger value="sales" className="data-[state=active]:bg-purple-500 data-[state=active]:text-white">
+                                    <DollarSign className="mr-2 h-4 w-4" />
+                                    Sales Book
+                                </TabsTrigger>
                             </TabsList>
 
                             {/* LEADS REPORT TAB */}
                             <TabsContent value="leads" className="space-y-4">
                                 {/* Visualizations Row */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <Card>
-                                        <CardHeader><CardTitle className="text-sm font-medium">Leads by Stage</CardTitle></CardHeader>
-                                        <CardContent className="h-[300px]">
+                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                                    <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/20 dark:to-indigo-900/10 border-blue-200 dark:border-blue-800 shadow-lg">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                                                <PieIcon className="h-5 w-5" />
+                                                Leads by Stage
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="h-[350px]">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <PieChart>
                                                     <Pie
                                                         data={leadsByStageData}
                                                         cx="50%"
                                                         cy="50%"
-                                                        innerRadius={60}
-                                                        outerRadius={80}
+                                                        innerRadius={70}
+                                                        outerRadius={120}
                                                         fill="#8884d8"
-                                                        paddingAngle={5}
+                                                        paddingAngle={3}
                                                         dataKey="value"
                                                     >
                                                         {leadsByStageData.map((entry, index) => (
                                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                         ))}
                                                     </Pie>
-                                                    <Tooltip />
-                                                    <Legend />
+                                                    <Tooltip 
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                            borderRadius: '12px',
+                                                            border: 'none',
+                                                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                                                        }}
+                                                    />
+                                                    <Legend 
+                                                        verticalAlign="bottom" 
+                                                        height={36}
+                                                        iconType="circle"
+                                                    />
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         </CardContent>
                                     </Card>
-                                    <Card>
-                                        <CardHeader><CardTitle className="text-sm font-medium">Leads by Status</CardTitle></CardHeader>
-                                        <CardContent className="h-[300px]">
+                                    <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/20 dark:to-emerald-900/10 border-green-200 dark:border-green-800 shadow-lg">
+                                        <CardHeader>
+                                            <CardTitle className="text-lg font-semibold text-green-800 dark:text-green-200 flex items-center gap-2">
+                                                <BarChart3 className="h-5 w-5" />
+                                                Leads by Status
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="h-[350px]">
                                             <ResponsiveContainer width="100%" height="100%">
                                                 <BarChart data={leadsByStatusData}>
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                                                    <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                                                    <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                                                    <Tooltip cursor={{ fill: 'transparent' }} />
-                                                    <Bar dataKey="value" fill="#00C49F" radius={[4, 4, 0, 0]} />
+                                                    <defs>
+                                                        <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3}/>
+                                                        </linearGradient>
+                                                    </defs>
+                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                                                    <XAxis 
+                                                        dataKey="name" 
+                                                        fontSize={12} 
+                                                        tickLine={false} 
+                                                        axisLine={false}
+                                                        tick={{ fill: '#6b7280' }}
+                                                    />
+                                                    <YAxis 
+                                                        fontSize={12} 
+                                                        tickLine={false} 
+                                                        axisLine={false}
+                                                        tick={{ fill: '#6b7280' }}
+                                                    />
+                                                    <Tooltip 
+                                                        cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
+                                                        contentStyle={{
+                                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                            borderRadius: '12px',
+                                                            border: 'none',
+                                                            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
+                                                        }}
+                                                    />
+                                                    <Bar 
+                                                        dataKey="value" 
+                                                        fill="url(#colorBar)" 
+                                                        radius={[8, 8, 0, 0]}
+                                                        maxBarSize={60}
+                                                    />
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </CardContent>
@@ -340,7 +424,7 @@ export default function ReportsPage() {
                                             <LineChart data={salesTrendData}>
                                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                                 <XAxis dataKey="date" fontSize={12} tickLine={false} axisLine={false} />
-                                                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `$${value}`} />
+                                                <YAxis fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${(value / 1000)}K`} />
                                                 <Tooltip />
                                                 <Line type="monotone" dataKey="amount" stroke="#8884d8" strokeWidth={2} dot={false} />
                                             </LineChart>
@@ -373,23 +457,56 @@ export default function ReportsPage() {
                                     </CardHeader>
                                     <CardContent>
                                         {/* Sales Summary */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                                            <Card className="bg-green-50 dark:bg-green-950/20 border-none">
-                                                <CardContent className="p-4 flex items-center gap-3">
-                                                    <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full"><DollarSign className="w-5 h-5 text-green-600" /></div>
-                                                    <div><p className="text-sm font-medium text-green-600">Total Revenue</p><p className="text-2xl font-bold">${salesData?.summary?.totalValue?.toLocaleString() || 0}</p></div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                            <Card className="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-950/20 dark:to-emerald-900/10 border-green-200 dark:border-green-800 shadow-lg">
+                                                <CardContent className="p-6 flex items-center gap-4">
+                                                    <div className="bg-green-500 p-3 rounded-full shadow-lg">
+                                                        <DollarSign className="w-6 h-6 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-green-700 dark:text-green-300">Total Revenue</p>
+                                                        <p className="text-3xl font-bold text-green-800 dark:text-green-200">
+                                                            {formatCurrency(salesData?.summary?.totalValue || 0)}
+                                                        </p>
+                                                        <p className="text-xs text-green-600 dark:text-green-400 flex items-center mt-1">
+                                                            <ArrowUpRight className="h-3 w-3 mr-1" />
+                                                            Closed deals revenue
+                                                        </p>
+                                                    </div>
                                                 </CardContent>
                                             </Card>
-                                            <Card className="bg-purple-50 dark:bg-purple-950/20 border-none">
-                                                <CardContent className="p-4 flex items-center gap-3">
-                                                    <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full"><Target className="w-5 h-5 text-purple-600" /></div>
-                                                    <div><p className="text-sm font-medium text-purple-600">Deals Closed</p><p className="text-2xl font-bold">{salesData?.summary?.totalDeals || 0}</p></div>
+                                            <Card className="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-950/20 dark:to-violet-900/10 border-purple-200 dark:border-purple-800 shadow-lg">
+                                                <CardContent className="p-6 flex items-center gap-4">
+                                                    <div className="bg-purple-500 p-3 rounded-full shadow-lg">
+                                                        <Target className="w-6 h-6 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Deals Closed</p>
+                                                        <p className="text-3xl font-bold text-purple-800 dark:text-purple-200">
+                                                            {salesData?.summary?.totalDeals || 0}
+                                                        </p>
+                                                        <p className="text-xs text-purple-600 dark:text-purple-400 flex items-center mt-1">
+                                                            <ArrowUpRight className="h-3 w-3 mr-1" />
+                                                            Successfully closed
+                                                        </p>
+                                                    </div>
                                                 </CardContent>
                                             </Card>
-                                            <Card className="bg-orange-50 dark:bg-orange-950/20 border-none">
-                                                <CardContent className="p-4 flex items-center gap-3">
-                                                    <div className="bg-orange-100 dark:bg-orange-900/50 p-2 rounded-full"><TrendingUp className="w-5 h-5 text-orange-600" /></div>
-                                                    <div><p className="text-sm font-medium text-orange-600">Avg Deal Size</p><p className="text-2xl font-bold">${salesData?.summary?.averageDealSize?.toLocaleString(undefined, { maximumFractionDigits: 0 }) || 0}</p></div>
+                                            <Card className="bg-gradient-to-br from-orange-50 to-amber-100 dark:from-orange-950/20 dark:to-amber-900/10 border-orange-200 dark:border-orange-800 shadow-lg">
+                                                <CardContent className="p-6 flex items-center gap-4">
+                                                    <div className="bg-orange-500 p-3 rounded-full shadow-lg">
+                                                        <TrendingUp className="w-6 h-6 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-orange-700 dark:text-orange-300">Avg Deal Size</p>
+                                                        <p className="text-3xl font-bold text-orange-800 dark:text-orange-200">
+                                                            {formatCurrency(salesData?.summary?.averageDealSize || 0)}
+                                                        </p>
+                                                        <p className="text-xs text-orange-600 dark:text-orange-400 flex items-center mt-1">
+                                                            <ArrowUpRight className="h-3 w-3 mr-1" />
+                                                            Average per deal
+                                                        </p>
+                                                    </div>
                                                 </CardContent>
                                             </Card>
                                         </div>
@@ -416,7 +533,7 @@ export default function ReportsPage() {
                                                                 <TableCell className="font-medium">{sale.name}</TableCell>
                                                                 <TableCell>{sale.account}</TableCell>
                                                                 <TableCell>{sale.owner}</TableCell>
-                                                                <TableCell className="text-right font-bold text-green-600">${sale.amount?.toLocaleString()}</TableCell>
+                                                                <TableCell className="text-right font-bold text-green-600">{formatCurrency(sale.amount || 0)}</TableCell>
                                                                 <TableCell className="text-right">{new Date(sale.closedAt).toLocaleDateString()}</TableCell>
                                                             </TableRow>
                                                         ))

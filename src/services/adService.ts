@@ -66,3 +66,8 @@ export const getMetaInsights = async (level: 'campaign' | 'adset' | 'ad' | 'acco
     const response = await api.get('/ads/meta/insights', { params: { level } });
     return response.data;
 };
+
+export const testMetaConnection = async () => {
+    const response = await api.post('/ads/meta/test');
+    return response.data;
+};
