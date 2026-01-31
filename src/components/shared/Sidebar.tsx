@@ -26,6 +26,7 @@ import {
     ShieldCheck,
     ChevronLeft,
     ChevronRight,
+    MessageSquare,
 } from "lucide-react";
 import { memo, useState } from "react";
 import {
@@ -125,6 +126,11 @@ const sidebarItems = [
         title: "Communications",
         href: "/communications",
         icon: Phone,
+    },
+    {
+        title: "WhatsApp Inbox",
+        href: "/whatsapp/inbox",
+        icon: MessageSquare,
     },
     {
         title: "Call Logs",

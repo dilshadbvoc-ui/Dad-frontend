@@ -33,6 +33,7 @@ import SupportPage from './pages/support';
 import GoalsPage from './pages/goals';
 import SalesTargetsPage from './pages/sales-targets';
 import ReportsPage from './pages/reports';
+import WhatsAppInbox from './pages/WhatsAppInbox';
 
 // Settings sub-pages
 import ProfileSettingsPage from './pages/settings/profile';
@@ -115,6 +116,7 @@ function AppContent() {
           <Route path="/marketing/ads" element={<AdsDashboard />} />
           <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
           <Route path="/communications" element={<CommunicationsPage />} />
+          <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
           <Route path="/calls" element={<CallsPage />} />
           <Route path="/calendar" element={<CalendarPage />} />
           <Route path="/tasks" element={<TasksPage />} />
