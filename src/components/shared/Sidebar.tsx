@@ -242,12 +242,50 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 {/* Navigation */}
                 <nav className="relative flex-1 overflow-y-auto py-6 px-3 scrollbar-ocean overflow-x-hidden">
                     <div className="space-y-1">
+                        {/* Super Admin Dashboard Link - Always show at top for Super Admins */}
+                        {isSuperAdmin && (
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Link
+                                        to="/super-admin"
+                                        className={cn(
+                                            "relative flex items-center gap-4 rounded-r-full py-3 text-sm font-medium transition-all duration-200",
+                                            pathname.startsWith('/super-admin')
+                                                ? "text-[#4ADE80] bg-gradient-to-r from-[#4ADE80]/10 to-transparent"
+                                                : "text-gray-400 hover:text-white hover:bg-white/5",
+                                            isCollapsed ? "justify-center px-0 rounded-full mx-auto w-10 h-10" : "px-4"
+                                        )}
+                                    >
+                                        {pathname.startsWith('/super-admin') && !isCollapsed && (
+                                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-[#4ADE80] rounded-r-full" />
+                                        )}
+                                        <ShieldCheck className={cn(
+                                            "h-5 w-5 transition-colors shrink-0",
+                                            pathname.startsWith('/super-admin') ? "text-[#4ADE80]" : "text-gray-500 group-hover:text-white"
+                                        )} />
+                                        {!isCollapsed && <span className="truncate">Super Admin</span>}
+                                    </Link>
+                                </TooltipTrigger>
+                                {isCollapsed && (
+                                    <TooltipContent className="bg-[#2E3344] text-white border-gray-700">
+                                        Super Admin
+                                    </TooltipContent>
+                                )}
+                            </Tooltip>
+                        )}
+
                         {sidebarItems.filter(item => {
+                            // Super Admin Logic: Hide everything except Settings
+                            if (user?.role === 'super_admin') {
+                                return item.title === "Settings";
+                            }
+
+                            // Normal User Logic
                             if (item.title === "Hierarchy") {
-                                return user?.role === 'admin' || user?.role === 'super_admin';
+                                return user?.role === 'admin';
                             }
                             if (item.title === "Settings") {
-                                return user?.role === 'admin' || user?.role === 'super_admin';
+                                return true;
                             }
                             return true;
                         }).map((item, index) => {
@@ -293,33 +331,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     </div>
                 </nav>
 
-                {isSuperAdmin && (
-                    <div className="px-4 py-2 space-y-1 relative mb-2">
-                        {isCollapsed ? (
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link
-                                        to="/super-admin"
-                                        className="flex items-center justify-center rounded-lg h-10 w-10 text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/20 hover:bg-[#4ADE80]/20 transition-all mx-auto"
-                                    >
-                                        <ShieldCheck className="h-5 w-5" />
-                                    </Link>
-                                </TooltipTrigger>
-                                <TooltipContent className="bg-[#2E3344] text-white border-gray-700">
-                                    Super Admin
-                                </TooltipContent>
-                            </Tooltip>
-                        ) : (
-                            <Link
-                                to="/super-admin"
-                                className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-[#4ADE80] bg-[#4ADE80]/10 border border-[#4ADE80]/20 hover:bg-[#4ADE80]/20 transition-all"
-                            >
-                                <ShieldCheck className="h-5 w-5" />
-                                Super Admin
-                            </Link>
-                        )}
-                    </div>
-                )}
+
 
                 {/* Footer */}
                 <div className="relative p-4 border-t border-gray-700/50 mt-auto">

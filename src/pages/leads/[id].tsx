@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { LogCallDialog } from "@/components/LogCallDialog"
 import { ConvertLeadDialog } from "@/components/ConvertLeadDialog"
 import { EditLeadDialog } from "@/components/shared/EditLeadDialog"
@@ -21,20 +20,9 @@ import { useState } from "react"
 import { toast } from "sonner"
 import { format, formatDistanceToNow } from "date-fns"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
+import TimelineFeed from "@/components/shared/TimelineFeed"
 
-interface Interaction {
-    id: string
-    type: string
-    direction?: string
-    subject: string
-    description?: string
-    date: string
-    duration?: number
-    recordingUrl?: string
-    recordingDuration?: number
-    callStatus?: string
-    createdAt?: string
-}
+
 
 const DraggableActivity = ({ type, icon: Icon, label, onDragStart, onClick }: { type: string; icon: React.ElementType; label: string; onDragStart: (e: React.DragEvent, type: string) => void; onClick: (type: string) => void }) => (
     <div
@@ -96,17 +84,7 @@ export default function LeadDetailPage() {
         enabled: id !== 'new'
     })
 
-    const { data: tasks } = useQuery({
-        queryKey: ['tasks', id],
-        queryFn: async () => (await api.get(`/tasks?relatedTo=${id}`)).data.tasks,
-        enabled: id !== 'new'
-    })
 
-    const { data: interactions } = useQuery({
-        queryKey: ['interactions', id],
-        queryFn: async () => (await api.get(`/interactions/leads/${id}/interactions`)).data,
-        enabled: id !== 'new'
-    })
 
     if (leadLoading) return <div className="p-8 space-y-4"><Skeleton className="h-12 w-1/3" /><Skeleton className="h-64 w-full" /></div>
     if (!lead) return <div className="p-8">Lead not found</div>
@@ -152,11 +130,7 @@ export default function LeadDetailPage() {
 
     // Unified Activity List
     // We normalize data to a common structure: { _id, type, date, subject, description, ...meta }
-    const timelineItems = [
-        ...(calls?.map((c: { id: string; date: string; createdAt: string }) => ({ ...c, activityType: 'Call', date: c.date || c.createdAt })) || []),
-        ...(tasks?.map((t: { id: string; createdAt: string; subject: string; description: string }) => ({ ...t, activityType: 'Task', date: t.createdAt, subject: t.subject, description: t.description })) || []),
-        ...(interactions?.filter((i: Interaction) => i.type !== 'call').map((i: Interaction) => ({ ...i, activityType: i.type, date: i.date || i.createdAt })) || [])
-    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
 
     const initiateCall = async (phone: string) => {
         if (!phone) return toast.error("No phone number available")
@@ -294,63 +268,7 @@ export default function LeadDetailPage() {
                             </Card>
 
                             <div className="space-y-4">
-                                {timelineItems.length === 0 ? (
-                                    <Card><CardContent className="p-8 text-center text-muted-foreground">No activities recorded yet</CardContent></Card>
-                                ) : (
-                                    timelineItems.map((item: {
-                                        id: string;
-                                        activityType: string;
-                                        date: string;
-                                        subject?: string;
-                                        type?: string;
-                                        description?: string;
-                                        duration?: number;
-                                        recordingUrl?: string;
-                                        recordingDuration?: number;
-                                        priority?: string;
-                                        dueDate?: string
-                                    }) => (
-                                        <Card key={item.id}>
-                                            <CardContent className="p-4 relative">
-                                                <div className="absolute left-6 top-10 bottom-0 w-px bg-gray-200 dark:bg-gray-800 -z-10" />
-                                                <div className="flex items-start justify-between mb-3">
-                                                    <div className="flex items-start gap-3">
-                                                        <div className={`mt-0.5 p-2 rounded-full z-10 ring-4 ring-white dark:ring-gray-950 ${item.activityType === 'Call' ? 'bg-blue-100 text-blue-600' :
-                                                            item.activityType === 'Task' ? 'bg-orange-100 text-orange-600' :
-                                                                item.activityType === 'Note' ? 'bg-yellow-100 text-yellow-600' :
-                                                                    'bg-gray-100 text-gray-600'
-                                                            }`}>
-                                                            {item.activityType === 'Call' && <Phone className="h-4 w-4" />}
-                                                            {item.activityType === 'Task' && <CheckSquare className="h-4 w-4" />}
-                                                            {item.activityType === 'Note' && <MessageSquare className="h-4 w-4" />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-medium">{item.subject || item.type}</p>
-                                                            <div className="flex flex-col gap-0.5">
-                                                                <p className="text-xs text-muted-foreground" title={format(new Date(item.date), "PPpp")}>
-                                                                    {formatDistanceToNow(new Date(item.date), { addSuffix: true })} • {item.activityType}
-                                                                </p>
-                                                                {item.activityType === 'Task' && item.dueDate && (
-                                                                    <p className="text-xs text-orange-600/80 font-medium">
-                                                                        Due: {format(new Date(item.dueDate), "PP")}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                    {item.duration && <Badge variant="outline">{Math.round(item.duration)} mins</Badge>}
-                                                    {item.priority && <Badge variant={item.priority === 'High' ? 'destructive' : 'secondary'}>{item.priority}</Badge>}
-                                                </div>
-                                                <div className="ml-11">
-                                                    {item.description && <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 bg-gray-50 dark:bg-gray-900/50 p-2 rounded">{item.description}</p>}
-                                                    {item.recordingUrl && (
-                                                        <div className="mt-2"><CallRecordingPlayer recordingUrl={item.recordingUrl} duration={item.recordingDuration} /></div>
-                                                    )}
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-                                    ))
-                                )}
+                                {id && <TimelineFeed type="lead" id={id} />}
                             </div>
                         </TabsContent>
 

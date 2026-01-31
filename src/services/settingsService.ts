@@ -54,6 +54,10 @@ export interface IntegrationSettings {
     authToken?: string;
     phoneNumber?: string;
     forwardTo?: string;
+    // SSO Fields
+    entryPoint?: string;
+    issuer?: string;
+    cert?: string;
 }
 
 export interface OrganisationUpdateData {
@@ -63,6 +67,7 @@ export interface OrganisationUpdateData {
     contactPhone?: string;
     address?: string;
     integrations?: Record<string, IntegrationSettings>;
+    ssoConfig?: IntegrationSettings;
 }
 
 export const getUsers = async () => {

@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, Mail, Phone, Building, Briefcase, Pencil } from "lucide-react"
 import { useState } from "react"
 import { EditContactDialog } from "@/components/shared/EditContactDialog"
+import TimelineFeed from "@/components/shared/TimelineFeed"
 
 export default function ContactDetailPage() {
     const { id } = useParams()
@@ -64,13 +65,10 @@ export default function ContactDetailPage() {
                     </CardContent>
                 </Card>
 
-                {/* Placeholder for interactions/timeline */}
-                <Card>
-                    <CardHeader><CardTitle>Activity</CardTitle></CardHeader>
-                    <CardContent>
-                        <p className="text-muted-foreground">No recent activity.</p>
-                    </CardContent>
-                </Card>
+                {/* Timeline Feed */}
+                <div className="md:col-span-2 lg:col-span-1">
+                    {id && <TimelineFeed type="contact" id={id} />}
+                </div>
             </div>
 
             <EditContactDialog

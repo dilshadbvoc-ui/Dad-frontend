@@ -3,6 +3,9 @@ import { useQuery } from '@tanstack/react-query';
 import { getDashboardStats, getSalesChartData, getSalesForecast, getLeadSourceAnalytics } from '@/services/analyticsService';
 import { AchievementNotification } from '@/components/AchievementNotification';
 import { DailyBriefingDialog } from '@/components/DailyBriefingDialog';
+import { RecentActivityWidget } from '@/components/dashboard/RecentActivityWidget';
+import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget';
+import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import {
     Card,
     CardContent,
@@ -179,6 +182,11 @@ export default function Dashboard() {
                     </CardContent>
                 </Card>
 
+                {/* Top Performers Widget - New */}
+                <Card className="col-span-3 border-0 shadow-sm min-w-0 rounded-3xl bg-white overflow-hidden">
+                    <TopPerformersWidget />
+                </Card>
+
                 {/* Lead Sources Pie Chart */}
                 <Card className="col-span-3 border-0 shadow-sm min-w-0 rounded-3xl bg-[#ECFDF5] overflow-hidden">
                     <CardHeader>
@@ -235,6 +243,16 @@ export default function Dashboard() {
                         )}
                     </CardContent>
                 </Card>
+
+                {/* Recent Activity - New */}
+                <div className="col-span-3">
+                    <RecentActivityWidget />
+                </div>
+
+                {/* License Usage - New */}
+                <div className="col-span-1">
+                    <LicenseUsageWidget />
+                </div>
             </div>
         </div>
     );

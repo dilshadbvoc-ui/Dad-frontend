@@ -2,6 +2,7 @@ import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getCheckIns, type CheckIn } from "@/services/checkInService"
 import { getUsers } from "@/services/settingsService"
+import MapComponent from "@/components/common/MapComponent"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -29,13 +30,13 @@ export default function FieldForcePage() {
     // Calculate productivity metrics based on actual data
     const productivityMetrics = useMemo(() => {
         if (checkIns.length === 0 || users.length === 0) return { score: 0, activeUsers: 0, inTransit: 0 }
-        
+
         const activeUsers = checkIns.filter((c: any) => c.type === 'check_in').length
         const totalUsers = users.filter((u: any) => u.role === 'sales_rep' || u.role === 'field_agent').length
         const inTransit = Math.floor(activeUsers * 0.3) // Estimate 30% in transit
-        
+
         const score = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
-        
+
         return { score, activeUsers, inTransit }
     }, [checkIns, users])
 
@@ -51,11 +52,25 @@ export default function FieldForcePage() {
                     id: user.id,
                     name: `${user.firstName} ${user.lastName}`,
                     status,
-                    location: userCheckIn?.location || 'Unknown',
+                    location: userCheckIn?.location?.address || 'Unknown',
+                    latitude: userCheckIn?.location?.latitude,
+                    longitude: userCheckIn?.location?.longitude,
                     time: userCheckIn ? format(new Date(userCheckIn.createdAt), 'HH:mm') : '--:--'
                 }
             })
     }, [users, checkIns])
+
+    const mapMarkers = useMemo(() => {
+        return teamActivity
+            .filter((m: any) => m.latitude && m.longitude)
+            .map((m: any) => ({
+                id: m.id,
+                position: [m.latitude, m.longitude] as [number, number],
+                title: m.name,
+                description: m.location,
+                status: m.status
+            }))
+    }, [teamActivity])
 
     const getStatusBadge = (status: string) => {
         switch (status) {
@@ -89,13 +104,11 @@ export default function FieldForcePage() {
                         </div>
 
                         <div className="grid gap-6 lg:grid-cols-3">
-                            {/* Map Placeholder */}
+                            {/* Map View */}
                             <Card className="lg:col-span-2">
                                 <CardHeader><CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-blue-500" />Live Team Locations</CardTitle><CardDescription>Real-time tracking of your field team</CardDescription></CardHeader>
-                                <CardContent>
-                                    <div className="h-[400px] rounded-xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-950/30 dark:to-purple-950/30 flex items-center justify-center border border-dashed border-gray-300">
-                                        <div className="text-center"><MapPin className="h-12 w-12 text-gray-400 mx-auto mb-4" /><h3 className="font-medium">Map View</h3><p className="text-sm text-gray-500">Integrate with Google Maps or Mapbox</p></div>
-                                    </div>
+                                <CardContent className="p-0 h-[400px]">
+                                    <MapComponent markers={mapMarkers} className="h-full w-full rounded-b-xl" />
                                 </CardContent>
                             </Card>
 

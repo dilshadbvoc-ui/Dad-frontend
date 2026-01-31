@@ -15,7 +15,9 @@ import {
     ArrowRight,
     Shield,
     Upload,
-    Phone
+    Phone,
+    CreditCard,
+    FileText
 } from "lucide-react"
 
 const settingsSections = [
@@ -102,6 +104,20 @@ const settingsSections = [
         href: "/settings/call-recording",
         icon: Phone,
         gradient: "from-emerald-500 to-teal-600"
+    },
+    {
+        title: "Billing & Subscription",
+        description: "Manage plans, invoices, and payment methods",
+        href: "/settings/billing",
+        icon: CreditCard,
+        gradient: "from-yellow-400 to-orange-500"
+    },
+    {
+        title: "Audit Logs",
+        description: "View system activity and security logs",
+        href: "/settings/audit-logs",
+        icon: FileText,
+        gradient: "from-slate-500 to-slate-600"
     },
 ]
 

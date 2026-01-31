@@ -7,6 +7,7 @@ export interface Opportunity {
     stage: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
     probability: number;
     closeDate?: string;
+    leadSource?: string;
     account: {
         _id: string;
         name: string;
@@ -21,8 +22,10 @@ export interface Opportunity {
         firstName: string;
         lastName: string;
         email: string;
+        profileImage?: string;
     };
     createdAt: string;
+    updatedAt: string;
 }
 
 export interface OpportunityQueryParams {

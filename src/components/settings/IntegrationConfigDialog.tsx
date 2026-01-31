@@ -34,7 +34,7 @@ interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -71,13 +71,17 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
 
     const mutation = useMutation({
         mutationFn: (data: IntegrationSettings) => {
+            if (integrationType === 'sso') {
+                // For SSO, we save to ssoConfig root field
+                return updateOrganisation({ ssoConfig: data })
+            }
             const updatePayload: { integrations: Record<string, IntegrationSettings> } = { integrations: {} }
             updatePayload.integrations[integrationType] = data
             return updateOrganisation(updatePayload)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["organisation"] })
-            toast.success(`${integrationType === 'meta' ? 'Meta' : 'Slack'} settings updated`)
+            toast.success(`${integrationType.toUpperCase()} settings updated`)
             finalOnOpenChange?.(false)
         },
         onError: (error: AxiosError<{ message: string }>) => {
@@ -95,7 +99,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
             ? 'Slack Integration'
             : integrationType === 'twilio'
                 ? 'Twilio Integration'
-                : 'WhatsApp Integration'
+                : integrationType === 'whatsapp'
+                    ? 'WhatsApp Integration'
+                    : 'Single Sign-On (SAML)'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -103,7 +109,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
             ? 'Connect Slack to receive notifications.'
             : integrationType === 'twilio'
                 ? 'Connect Twilio account for cloud telephony.'
-                : 'Connect WhatsApp Business API for messaging.'
+                : integrationType === 'whatsapp'
+                    ? 'Connect WhatsApp Business API.'
+                    : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -112,7 +120,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                     {children}
                 </DialogTrigger>
             )}
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
                     <DialogTitle>{title}</DialogTitle>
                     <DialogDescription>{description}</DialogDescription>
@@ -127,7 +135,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                     <div className="space-y-0.5">
                                         <FormLabel className="text-base">Enable Integration</FormLabel>
                                         <FormDescription>
-                                            Turn on to start syncing.
+                                            Turn on to activate.
                                         </FormDescription>
                                     </div>
                                     <FormControl>
@@ -139,6 +147,66 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                 </FormItem>
                             )}
                         />
+
+                        {/* Fields for SSO */}
+                        {integrationType === 'sso' && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="entryPoint"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>IDP Entry Point (SSO URL)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="https://idp.example.com/sso/saml" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Login URL provided by your Identity Provider.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="issuer"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Issuer (Entity ID)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="mern-crm" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Audience URI / Entity ID configured in IDP. Default: mern-crm
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="cert"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Identity Provider Certificate</FormLabel>
+                                            <FormControl>
+                                                <div className="relative">
+                                                    <textarea
+                                                        className="flex min-h-[100px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                                                        placeholder="-----BEGIN CERTIFICATE-----..."
+                                                        {...field}
+                                                    />
+                                                </div>
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                X.509 Certificate (PEM format) from your IDP.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
 
                         {/* Fields for Meta */}
                         {integrationType === 'meta' && isConnected && (
@@ -183,6 +251,39 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Meta Ad Account ID (starts with act_).
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <FormField
+                                    control={form.control}
+                                    name="appId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>App ID (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Meta App ID" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for token exchange. Overrides system default.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="appSecret"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>App Secret (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Meta App Secret" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for token exchange. Overrides system default.
                                             </FormDescription>
                                             <FormMessage />
                                         </FormItem>

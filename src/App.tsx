@@ -1,8 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { syncToken } from './utils/mobileBridge';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
 
@@ -51,13 +52,19 @@ import CreateWorkflowPage from './pages/automation/new';
 import WorkflowDetailPage from './pages/automation/WorkflowDetail';
 import AnalyticsPage from './pages/reports/analytics';
 
-import IntegrationsSettingsPage from './pages/settings/integrations';
+import IntegrationsSettingsPage from './pages/settings/Integrations';
 import NotificationsSettingsPage from './pages/settings/notifications';
 import ImportPage from './pages/settings/import';
 import DeveloperSettingsPage from './pages/settings/developer';
 import CallRecordingSettingsPage from './pages/settings/call-recording';
+import BillingSettingsPage from './pages/settings/Billing';
+import AuditLogsPage from './pages/settings/audit-logs';
 import CallsPage from './pages/calls';
 
+
+import SSOCallback from './pages/SSOCallback';
+
+const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -91,6 +98,8 @@ function AppContent() {
     <Router>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
+        <Route path="/sso-callback" element={<SSOCallback />} />
         <Route path="/register" element={<Register />} />
 
         <Route element={<Layout />}>
@@ -142,9 +151,11 @@ function AppContent() {
           <Route path="/settings/import" element={<ImportPage />} />
           <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
           <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
+          <Route path="/settings/billing" element={<BillingSettingsPage />} />
+          <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
         </Route>
 
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
       </Routes>
     </Router>
   );

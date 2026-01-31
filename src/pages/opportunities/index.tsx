@@ -3,12 +3,16 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getOpportunities } from "@/services/opportunityService"
 import { Button } from "@/components/ui/button"
-
+import { KanbanBoard } from "./KanbanBoard"
 
 import {
     Target,
     Filter,
-    Download
+    Download,
+    LayoutList,
+    LayoutGrid,
+    Users,
+    User
 } from "lucide-react"
 
 import { useState } from "react"
@@ -16,13 +20,24 @@ import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
 
 export default function OpportunitiesPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false)
+    const [viewMode, setViewMode] = useState<'list' | 'board'>('board') // Default to board for better UX
+    const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')
+
+    // Get current user (simple implementation)
+    const userInfo = localStorage.getItem('userInfo');
+    const currentUser = userInfo ? JSON.parse(userInfo) : null;
+
     const { data, isLoading, isError } = useQuery({
         queryKey: ['opportunities'],
         queryFn: () => getOpportunities(),
         refetchInterval: 5000,
     })
 
-    const opportunities = data?.opportunities || []
+    const allOpportunities = data?.opportunities || []
+
+    const filteredOpportunities = filterMode === 'mine' && currentUser
+        ? allOpportunities.filter((opp: any) => opp.owner?.id === currentUser.id || opp.ownerId === currentUser.id)
+        : allOpportunities;
 
     if (isError) {
         return (
@@ -43,11 +58,51 @@ export default function OpportunitiesPage() {
                     <p className="text-gray-500 mt-1">Track your deals and sales pipeline.</p>
                 </div>
                 <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="rounded-xl">
+                    <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mr-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilterMode('all')}
+                            className={`rounded-lg h-8 px-2 text-xs font-medium ${filterMode === 'all' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500'}`}
+                        >
+                            <Users className="h-3.5 w-3.5 mr-1.5" />
+                            Team
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setFilterMode('mine')}
+                            className={`rounded-lg h-8 px-2 text-xs font-medium ${filterMode === 'mine' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500'}`}
+                        >
+                            <User className="h-3.5 w-3.5 mr-1.5" />
+                            My Deals
+                        </Button>
+                    </div>
+
+                    <div className="hidden md:flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mr-2">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode('list')}
+                            className={`rounded-lg h-8 px-2 ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                        >
+                            <LayoutList className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setViewMode('board')}
+                            className={`rounded-lg h-8 px-2 ${viewMode === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                        >
+                            <LayoutGrid className="h-4 w-4" />
+                        </Button>
+                    </div>
+
+                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
                         <Filter className="h-4 w-4 mr-2" />
                         Filter
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded-xl">
+                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
                         <Download className="h-4 w-4 mr-2" />
                         Export
                     </Button>
@@ -66,8 +121,12 @@ export default function OpportunitiesPage() {
                     </div>
                 </div>
             ) : (
-                <div className="rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <DataTable columns={columns} data={opportunities} searchKey="name" />
+                <div className={viewMode === 'list' ? "rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden" : ""}>
+                    {viewMode === 'list' ? (
+                        <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
+                    ) : (
+                        <KanbanBoard opportunities={filteredOpportunities} />
+                    )}
                 </div>
             )}
 
