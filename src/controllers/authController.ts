@@ -4,6 +4,7 @@ import prisma from '../config/prisma';
 import generateToken from '../utils/generateToken';
 import bcrypt from 'bcryptjs';
 import { UserRole } from '../generated/client';
+import { logAudit } from '../utils/auditLogger';
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
@@ -38,6 +39,19 @@ export const authUser = async (req: Request, res: Response) => {
             if (!user.isActive) {
                 res.status(401).json({ message: 'User account is deactivated' });
                 return;
+            }
+
+            if (user.organisationId) {
+                // Fire and forget audit log
+                logAudit({
+                    action: 'LOGIN',
+                    entity: 'User',
+                    entityId: user.id,
+                    actorId: user.id,
+                    organisationId: user.organisationId,
+                    ipAddress: req.ip,
+                    userAgent: req.headers['user-agent']
+                });
             }
 
             res.json({
@@ -76,7 +90,11 @@ export const registerUser = async (req: Request, res: Response) => {
             return;
         }
 
-        // 1. Create Organisation
+        // Find default plan (e.g., 'Starter' or 'Trial')
+        const defaultPlan = await prisma.subscriptionPlan.findFirst({
+            where: { name: 'Starter' } // Ensure 'Starter' exists in seed
+        });
+
         const slug = companyName.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Math.random().toString(36).substr(2, 4);
 
         // Transaction to ensure atomicity
@@ -88,7 +106,8 @@ export const registerUser = async (req: Request, res: Response) => {
                     domain: email.split('@')[1] || 'unknown.com',
                     status: 'active',
                     subscription: {
-                        status: 'trial',
+                        status: 'active', // Should be active if on free plan? or trial?
+                        planId: defaultPlan?.id,
                         startDate: new Date(),
                         autoRenew: false
                     },
@@ -111,7 +130,7 @@ export const registerUser = async (req: Request, res: Response) => {
                     lastName,
                     email,
                     password: hashedPassword,
-                    role: UserRole.super_admin,
+                    role: UserRole.admin, // Downgrade from super_admin to admin for tenant creators
                     organisationId: org.id,
                     userId: generatedUserId,
                     isActive: true

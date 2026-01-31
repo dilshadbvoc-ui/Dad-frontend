@@ -4,6 +4,8 @@ import { getOrgId, getSubordinateIds } from '../utils/hierarchyUtils';
 import { DistributionService } from '../services/DistributionService';
 import { WorkflowEngine } from '../services/WorkflowEngine';
 import { LeadSource, LeadStatus } from '../generated/client';
+// Dynamic import used for OpenAI to avoid startup errors if missing
+
 
 
 // GET /api/leads
@@ -131,6 +133,10 @@ export const createLead = async (req: Request, res: Response) => {
             import('../services/WebhookService').then(({ WebhookService }) => {
                 WebhookService.triggerEvent('lead.created', lead, orgId).catch(console.error);
             });
+            // AI Scoring
+            import('../services/LeadScoringService').then(({ LeadScoringService }) => {
+                LeadScoringService.scoreLead(lead.id).catch(console.error);
+            });
         } catch (workflowErr) {
             console.error('WorkflowEngine error:', workflowErr);
             // Don't fail the request if workflow fails
@@ -225,6 +231,14 @@ export const updateLead = async (req: Request, res: Response) => {
         import('../services/WebhookService').then(({ WebhookService }) => {
             WebhookService.triggerEvent('lead.updated', lead, lead.organisationId).catch(console.error);
         });
+
+        // AI Scoring Trigger (if relevant fields changed)
+        if (updates.jobTitle || updates.company || updates.email || updates.phone) {
+            import('../services/LeadScoringService').then(({ LeadScoringService }) => {
+                LeadScoringService.scoreLead(leadId).catch(console.error);
+            });
+        }
+
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
     }
@@ -573,6 +587,37 @@ export const getPendingFollowUpsCount = async (req: Request, res: Response) => {
 
         const count = await prisma.lead.count({ where });
         res.json({ count });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const generateAIResponse = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const { context } = req.body; // e.g. "Draft an intro email"
+
+        const lead = await prisma.lead.findUnique({ where: { id } });
+        if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+        // Lazy load OpenAI
+        const { OpenAI } = await import('openai');
+        if (!process.env.OPENAI_API_KEY) {
+            return res.json({ draft: `[Mock AI Draft]\n\nHi ${lead.firstName},\n\nI noticed you work at ${lead.company}. We'd love to chat.\n\nBest,\n[Your Name]` });
+        }
+
+        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+        const completion = await openai.chat.completions.create({
+            model: "gpt-3.5-turbo",
+            messages: [
+                { role: "system", content: "You are a helpful sales assistant. Draft a short, professional email." },
+                { role: "user", content: `Lead: ${lead.firstName} ${lead.lastName} from ${lead.company}. Title: ${lead.jobTitle}. Context: ${context || 'Introduction'}` }
+            ],
+        });
+
+        res.json({ draft: completion.choices[0].message.content });
+
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }

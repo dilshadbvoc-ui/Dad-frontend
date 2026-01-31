@@ -1,5 +1,6 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
+import jwt from 'jsonwebtoken';
 
 export const initSocket = (httpServer: HttpServer) => {
     const io = new SocketIOServer(httpServer, {
@@ -10,11 +11,37 @@ export const initSocket = (httpServer: HttpServer) => {
         }
     });
 
-    io.on('connection', (socket) => {
-        console.log(`Socket connected: ${socket.id}`);
+    ioInstance = io;
 
-        // User joins their personal room (using their User ID)
-        socket.on('join_room', (userId) => {
+    io.use((socket, next) => {
+        const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return next(new Error('Authentication error: No token provided'));
+        }
+        try {
+            // @ts-ignore
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_change_this');
+            // @ts-ignore
+            socket.userId = decoded.id; // Store userId on socket
+            next();
+        } catch (err) {
+            next(new Error('Authentication error: Invalid token'));
+        }
+    });
+
+    io.on('connection', (socket) => {
+        // @ts-ignore
+        const userId = socket.userId;
+        console.log(`Socket connected: ${socket.id} (User: ${userId})`);
+
+        // Automatically join user room
+        if (userId) {
+            socket.join(userId);
+            console.log(`User ${userId} auto-joined room ${userId}`);
+        }
+
+        // User joins their personal room (custom manual join if needed)
+        socket.on('join_room', (room) => {
             if (userId) {
                 console.log(`User ${userId} joining room ${userId}`);
                 socket.join(userId);
@@ -117,4 +144,16 @@ export const initSocket = (httpServer: HttpServer) => {
     });
 
     return io;
+};
+
+let ioInstance: SocketIOServer | null = null;
+
+export const getIO = () => {
+    if (!ioInstance) {
+        // This relies on initSocket setting it, which we should do
+        // Since initSocket returns io, we can't easily capture it inside here unless we assign it.
+        // Let's modify initSocket to assign to ioInstance.
+        return null;
+    }
+    return ioInstance;
 };

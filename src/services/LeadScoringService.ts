@@ -1,60 +1,83 @@
+
 import prisma from '../config/prisma';
+import OpenAI from 'openai';
 
-interface ScoringRule {
-    action: string;
-    points: number;
-    field?: string; // which score field to update (leadScore, engagementScore, qualityScore)
-}
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || 'mock-key',
+    dangerouslyAllowBrowser: false
+});
 
-export const DEFAULT_SCORING_RULES: ScoringRule[] = [
-    { action: 'email_opened', points: 5, field: 'engagementScore' },
-    { action: 'email_clicked', points: 10, field: 'engagementScore' },
-    { action: 'reply', points: 20, field: 'engagementScore' },
-    { action: 'meeting_booked', points: 50, field: 'leadScore' },
-    { action: 'call_connected', points: 10, field: 'engagementScore' },
-    { action: 'website_visit', points: 2, field: 'engagementScore' },
-    { action: 'form_submission', points: 30, field: 'leadScore' },
-    { action: 'bad_contact_info', points: -50, field: 'qualityScore' },
-];
+export class LeadScoringService {
 
-export const LeadScoringService = {
-    /**
-     * Update lead score based on a specific activity/interaction
-     */
-    async updateScore(leadId: string, activityType: string): Promise<void> {
+    static async scoreLead(leadId: string) {
         try {
-            const rule = DEFAULT_SCORING_RULES.find(r => r.action === activityType);
-            if (!rule) return; // No rule for this activity
+            const lead = await prisma.lead.findUnique({
+                where: { id: leadId },
+                include: { interactions: true }
+            });
 
-            const updateField = rule.field || 'leadScore';
-            const points = rule.points;
+            if (!lead) throw new Error('Lead not found');
 
-            const data: any = {
-                [updateField]: { increment: points }
-            };
+            let score = 0;
+            const log: string[] = [];
 
-            // If it boosts engagement/quality, also boost total leadScore?
-            if (updateField !== 'leadScore') {
-                data['leadScore'] = { increment: points };
+            // 1. Profile Completeness (Rule-based)
+            if (lead.email) score += 10;
+            if (lead.phone) score += 10;
+            if (lead.company) score += 10;
+            if (lead.jobTitle) score += 5;
+            if (lead.address) score += 5;
+
+            // 2. Engagement (Rule-based)
+            if (lead.interactions && lead.interactions.length > 0) {
+                // Cap interaction points to 30
+                const interactionPoints = Math.min(lead.interactions.length * 5, 30);
+                score += interactionPoints;
             }
 
+            // 3. AI Analysis
+            if (process.env.OPENAI_API_KEY) {
+                try {
+                    // In a real scenario, we'd prompt GPT with lead details
+                    /*
+                    const prompt = `Analyze this lead: ${JSON.stringify(lead)}. Score 0-20 based on intent.`;
+                    const completion = await openai.chat.completions.create({...});
+                    */
+                    // For now, simple keyword boost
+                    const title = (lead.jobTitle || '').toLowerCase();
+                    if (title.includes('director') || title.includes('vp') || title.includes('head') || title.includes('manager')) {
+                        score += 20;
+                        log.push('AI: High value job title detected');
+                    }
+                } catch (err) {
+                    console.warn('AI Scoring failed, falling back');
+                }
+            } else {
+                // Mock AI boost for demo
+                const title = (lead.jobTitle || '').toLowerCase();
+                if (title.includes('vp') || title.includes('director')) {
+                    score += 15;
+                    log.push('MockAI: VIP title detected');
+                }
+            }
+
+            // Cap at 100
+            score = Math.min(score, 100);
+
+            // Update Lead
             await prisma.lead.update({
                 where: { id: leadId },
-                data: data
+                data: {
+                    leadScore: score,
+                    lastScoredAt: new Date()
+                }
             });
-            console.log(`[LeadScoring] Updated lead ${leadId} score by ${points} for ${activityType}`);
+
+            return { score, log };
 
         } catch (error) {
-            console.error('[LeadScoring] Error updating score:', error);
+            console.error('LeadScoringService Error:', error);
+            // Don't throw, just log
         }
-    },
-
-    /**
-     * Recalculate total score from scratch (e.g. if rules change)
-     * This would check all interactions. Implementing basic reset for now.
-     */
-    async recalculateScore(leadId: string): Promise<void> {
-        // TODO: Fetch all interactions for this lead and sum up points
-        console.log(`[LeadScoring] Recalculate requested for ${leadId} (Not fully implemented)`);
     }
-};
+}

@@ -44,7 +44,7 @@ export const getOpportunities = async (req: Request, res: Response) => {
             where,
             include: {
                 account: { select: { name: true } },
-                owner: { select: { firstName: true, lastName: true } }
+                owner: { select: { firstName: true, lastName: true, profileImage: true } }
             },
             skip,
             take: limit,
@@ -108,7 +108,7 @@ export const getOpportunityById = async (req: Request, res: Response) => {
             where: { id: req.params.id },
             include: {
                 account: { select: { name: true } },
-                owner: { select: { firstName: true, lastName: true } }
+                owner: { select: { firstName: true, lastName: true, profileImage: true } }
             }
         });
 
@@ -137,7 +137,7 @@ export const updateOpportunity = async (req: Request, res: Response) => {
             data: updates,
             include: {
                 account: { select: { name: true } },
-                owner: { select: { firstName: true, lastName: true } }
+                owner: { select: { firstName: true, lastName: true, profileImage: true } }
             }
         });
 

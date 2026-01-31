@@ -10,6 +10,52 @@ const seed = async () => {
         console.log('Connecting to PostgreSQL via Prisma...');
         await prisma.$connect();
 
+        // 1. Seed Subscription Plans
+        const plans = [
+            {
+                name: 'Starter',
+                description: 'Perfect for small teams getting started.',
+                price: 29,
+                durationDays: 30,
+                maxUsers: 5,
+                maxLeads: 1000,
+                maxContacts: 2500,
+                maxStorage: 5000, // 5GB
+                features: ['Basic CRM', 'Email Integration', '5 Users']
+            },
+            {
+                name: 'Pro',
+                description: 'For growing businesses needing automation.',
+                price: 79,
+                durationDays: 30,
+                maxUsers: 15,
+                maxLeads: 10000,
+                maxContacts: 25000,
+                maxStorage: 20000, // 20GB
+                features: ['Advanced Workflows', 'Sales Automation', '15 Users', 'Priority Support']
+            },
+            {
+                name: 'Enterprise',
+                description: 'Unlimited power for large organizations.',
+                price: 299,
+                durationDays: 30,
+                maxUsers: 100,
+                maxLeads: 100000,
+                maxContacts: 100000,
+                maxStorage: 100000, // 100GB
+                features: ['Unlimited Users', 'Dedicated Account Manager', 'Custom API Limits', 'SSO']
+            }
+        ];
+
+        for (const plan of plans) {
+            await prisma.subscriptionPlan.upsert({
+                where: { name: plan.name },
+                update: plan,
+                create: plan
+            });
+        }
+        console.log('Seeded Subscription Plans');
+
         // Create Default Organisation
         let org = await prisma.organisation.findFirst({ where: { slug: 'demo-corp' } });
         if (!org) {

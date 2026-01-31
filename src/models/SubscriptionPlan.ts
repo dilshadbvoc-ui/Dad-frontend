@@ -9,6 +9,9 @@ export interface ISubscriptionPlan extends Document {
     currency: 'USD' | 'INR';
     durationDays: number;
     maxUsers: number;
+    maxLeads: number;
+    maxContacts: number;
+    maxStorage: number; // MB
     isActive: boolean;
 }
 
@@ -21,6 +24,9 @@ const subscriptionPlanSchema = new Schema<ISubscriptionPlan>({
     currency: { type: String, enum: ['USD', 'INR'], default: 'INR' },
     durationDays: { type: Number, required: true },
     maxUsers: { type: Number, default: 1 },
+    maxLeads: { type: Number, default: 100 },
+    maxContacts: { type: Number, default: 500 },
+    maxStorage: { type: Number, default: 1024 }, // in MB
     isActive: { type: Boolean, default: true }
 }, {
     timestamps: true,

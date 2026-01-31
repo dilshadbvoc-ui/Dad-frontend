@@ -30,20 +30,20 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Leads trend (this month vs last month)
         const leadsThisMonth = await prisma.lead.count({
-            where: { 
-                organisationId: orgId, 
+            where: {
+                organisationId: orgId,
                 isDeleted: false,
                 createdAt: { gte: thisMonth }
             }
         });
         const leadsLastMonth = await prisma.lead.count({
-            where: { 
-                organisationId: orgId, 
+            where: {
+                organisationId: orgId,
                 isDeleted: false,
                 createdAt: { gte: lastMonth, lt: thisMonth }
             }
         });
-        const leadsTrend = leadsLastMonth > 0 ? 
+        const leadsTrend = leadsLastMonth > 0 ?
             Math.round(((leadsThisMonth - leadsLastMonth) / leadsLastMonth) * 100) : 0;
 
         // Opportunities
@@ -59,7 +59,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Revenue calculation and trend
         const revenueResult = await prisma.opportunity.aggregate({
-            where: { 
+            where: {
                 organisationId: orgId,
                 stage: 'closed_won'
             },
@@ -68,7 +68,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const totalRevenue = revenueResult._sum.amount || 0;
 
         const revenueThisMonth = await prisma.opportunity.aggregate({
-            where: { 
+            where: {
                 organisationId: orgId,
                 stage: 'closed_won',
                 closeDate: { gte: thisMonth }
@@ -76,7 +76,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             _sum: { amount: true }
         });
         const revenueLastMonth = await prisma.opportunity.aggregate({
-            where: { 
+            where: {
                 organisationId: orgId,
                 stage: 'closed_won',
                 closeDate: { gte: lastMonth, lt: thisMonth }
@@ -85,7 +85,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         });
         const revThisMonth = revenueThisMonth._sum.amount || 0;
         const revLastMonth = revenueLastMonth._sum.amount || 0;
-        const revenueTrend = revLastMonth > 0 ? 
+        const revenueTrend = revLastMonth > 0 ?
             Math.round(((revThisMonth - revLastMonth) / revLastMonth) * 100) : 0;
 
         // Pipeline Value (Sum of amount) - Prisma aggregate
@@ -97,27 +97,27 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Win rate trend
         const wonThisMonth = await prisma.opportunity.count({
-            where: { 
-                organisationId: orgId, 
+            where: {
+                organisationId: orgId,
                 stage: 'closed_won',
                 closeDate: { gte: thisMonth }
             }
         });
         const totalThisMonth = await prisma.opportunity.count({
-            where: { 
+            where: {
                 organisationId: orgId,
                 closeDate: { gte: thisMonth }
             }
         });
         const wonLastMonth = await prisma.opportunity.count({
-            where: { 
-                organisationId: orgId, 
+            where: {
+                organisationId: orgId,
                 stage: 'closed_won',
                 closeDate: { gte: lastMonth, lt: thisMonth }
             }
         });
         const totalLastMonth = await prisma.opportunity.count({
-            where: { 
+            where: {
                 organisationId: orgId,
                 closeDate: { gte: lastMonth, lt: thisMonth }
             }
@@ -125,7 +125,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         const winRateThisMonth = totalThisMonth > 0 ? (wonThisMonth / totalThisMonth) * 100 : 0;
         const winRateLastMonth = totalLastMonth > 0 ? (wonLastMonth / totalLastMonth) * 100 : 0;
-        const winRateTrend = winRateLastMonth > 0 ? 
+        const winRateTrend = winRateLastMonth > 0 ?
             Math.round(winRateThisMonth - winRateLastMonth) : 0;
 
         // Contacts
@@ -401,7 +401,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
             },
             _avg: { amount: true }
         });
-        
+
         const avgDealSize = avgDealResult._avg.amount || 5000;
         const highValueThreshold = avgDealSize * 2; // Deals worth 2x average are considered high value
 
@@ -439,6 +439,51 @@ export const getAiInsights = async (req: Request, res: Response) => {
         res.json(insights);
     } catch (error) {
         console.error('getAiInsights Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const getTopPerformers = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        if (!orgId) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+
+        const topUsers = await prisma.user.findMany({
+            where: {
+                organisationId: orgId,
+                isActive: true
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+                profileImage: true,
+                ownedOpportunities: {
+                    where: { stage: 'closed_won' },
+                    select: { amount: true }
+                }
+            }
+        });
+
+        const leaderboard = topUsers.map(u => ({
+            id: u.id,
+            name: `${u.firstName} ${u.lastName}`,
+            email: u.email,
+            image: u.profileImage,
+            totalRevenue: u.ownedOpportunities.reduce((sum, opp) => sum + (opp.amount || 0), 0),
+            dealsWon: u.ownedOpportunities.length
+        }))
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 5);
+
+        res.json(leaderboard);
+    } catch (error) {
+        console.error('getTopPerformers Error:', error);
         res.status(500).json({ message: (error as Error).message });
     }
 };

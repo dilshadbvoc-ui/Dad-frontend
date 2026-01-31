@@ -88,3 +88,11 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
         return;
     }
 };
+
+export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+        next();
+    } else {
+        res.status(403).json({ message: 'Not authorized as an admin' });
+    }
+};

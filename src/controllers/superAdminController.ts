@@ -36,7 +36,7 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
 // Create new organisation (Super Admin or Registration)
 export const createOrganisation = async (req: Request, res: Response) => {
     try {
-        const { name, slug, contactEmail, planId } = req.body;
+        const { name, slug, contactEmail, planId, firstName, lastName, password } = req.body;
 
         // Check if slug is unique
         const existingOrg = await prisma.organisation.findUnique({ where: { slug } });
@@ -44,42 +44,71 @@ export const createOrganisation = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Organisation slug already exists' });
         }
 
-        // Create organisation
-        const organisation = await prisma.organisation.create({
-            data: {
-                name,
-                slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
-                contactEmail,
-                status: 'active',
-                subscription: {
-                    status: 'trial',
-                    startDate: new Date().toISOString(),
-                    endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
-                }
-            }
-        });
-
-        // If plan specified, create license
-        if (planId) {
-            const plan = await prisma.subscriptionPlan.findUnique({ where: { id: planId } });
-            if (plan) {
-                const endDate = new Date();
-                endDate.setDate(endDate.getDate() + plan.durationDays);
-
-                await prisma.license.create({
-                    data: {
-                        organisation: { connect: { id: organisation.id } },
-                        plan: { connect: { id: planId } },
-                        status: 'trial',
-                        startDate: new Date(),
-                        endDate,
-                        maxUsers: plan.maxUsers
-                    }
-                });
-            }
+        // Check if user email exists
+        const existingUser = await prisma.user.findUnique({ where: { email: contactEmail } });
+        if (existingUser) {
+            return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        res.status(201).json(organisation);
+        // Lazy load bcrypt
+        const bcrypt = await import('bcryptjs');
+        const hashedPassword = await bcrypt.hash(password || 'Welcome123', 10);
+
+        // Transaction to ensure atomicity
+        const result = await prisma.$transaction(async (tx) => {
+            // 1. Create Organisation
+            const organisation = await tx.organisation.create({
+                data: {
+                    name,
+                    slug: slug || name.toLowerCase().replace(/\s+/g, '-'),
+                    contactEmail,
+                    status: 'active',
+                    subscription: {
+                        status: 'trial',
+                        startDate: new Date().toISOString(),
+                        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+                    }
+                }
+            });
+
+            // 2. Create Admin User
+            const user = await tx.user.create({
+                data: {
+                    firstName: firstName || 'Admin',
+                    lastName: lastName || 'User',
+                    email: contactEmail,
+                    password: hashedPassword,
+                    role: 'admin',
+                    organisationId: organisation.id,
+                    isActive: true
+                }
+            });
+
+            // 3. Create License (if plan)
+            if (planId) {
+                const plan = await tx.subscriptionPlan.findUnique({ where: { id: planId } });
+                if (plan) {
+                    const endDate = new Date();
+                    endDate.setDate(endDate.getDate() + plan.durationDays);
+
+                    await tx.license.create({
+                        data: {
+                            organisationId: organisation.id,
+                            planId: planId,
+                            status: 'trial',
+                            startDate: new Date(),
+                            endDate,
+                            maxUsers: plan.maxUsers,
+                            activatedById: user.id
+                        }
+                    });
+                }
+            }
+
+            return { organisation, tempPassword: password || 'Welcome123' };
+        });
+
+        res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
     }
@@ -183,21 +212,53 @@ export const getOrganisationStats = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const [totalOrgs, activeOrgs, suspendedOrgs, totalUsers, totalLicenses] = await Promise.all([
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
+
+        const [totalOrgs, activeOrgs, suspendedOrgs, totalUsers, activeLicenses, newOrgsLast30Days, revenue] = await Promise.all([
             prisma.organisation.count(),
             prisma.organisation.count({ where: { status: 'active' } }),
             prisma.organisation.count({ where: { status: 'suspended' } }),
             prisma.user.count({ where: { isActive: true } }),
-            prisma.license.count({ where: { status: 'active' } })
+            prisma.license.count({ where: { status: 'active' } }),
+            prisma.organisation.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
+            // Calculate revenue from active licenses
+            prisma.license.findMany({
+                where: { status: 'active' },
+                include: { plan: true }
+            })
         ]);
 
+        const totalRevenue = revenue.reduce((acc, license) => acc + (license.plan?.price || 0), 0);
+
+        // Group by Plan
+        const planDistribution = await prisma.license.groupBy({
+            by: ['planId'],
+            where: { status: 'active' },
+            _count: { id: true }
+        });
+
+        // Fetch plan names
+        const planIds = planDistribution.map(p => p.planId).filter(id => id !== null) as string[];
+        const plans = await prisma.subscriptionPlan.findMany({ where: { id: { in: planIds } } });
+        const planMap = new Map(plans.map(p => [p.id, p.name]));
+
+        const planStats = planDistribution.map(p => ({
+            name: planMap.get(p.planId!) || 'Unknown',
+            count: p._count.id
+        }));
+
         res.json({
-            totalOrganisations: totalOrgs,
-            activeOrganisations: activeOrgs,
-            trialOrganisations: 0, // Would need JSON query for subscription.status
-            suspendedOrganisations: suspendedOrgs,
-            totalUsers,
-            activeLicenses: totalLicenses
+            overview: {
+                totalOrganisations: totalOrgs,
+                activeOrganisations: activeOrgs,
+                newOrganisations: newOrgsLast30Days,
+                suspendedOrganisations: suspendedOrgs,
+                totalUsers,
+                activeLicenses,
+                totalRevenue
+            },
+            planDistribution: planStats
         });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

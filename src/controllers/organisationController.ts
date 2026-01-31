@@ -159,7 +159,10 @@ export const updateOrganisation = async (req: Request, res: Response) => {
         if (data.integrations?.meta?.accessToken && data.integrations?.meta?.connected) {
             try {
                 const { metaService } = require('../services/MetaService');
-                const longLivedToken = await metaService.exchangeForLongLivedToken(data.integrations.meta.accessToken);
+                const longLivedToken = await metaService.exchangeForLongLivedToken(
+                    data.integrations.meta.accessToken,
+                    data.integrations.meta
+                );
                 data.integrations.meta.accessToken = longLivedToken;
             } catch (error) {
                 console.error('Error exchanging Meta token:', error);
@@ -242,10 +245,8 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'You cannot delete your own organisation' });
         }
 
-        // Delete all users in this org first (due to foreign key constraints)
-        await prisma.user.deleteMany({ where: { organisationId: orgId } });
-
         // Delete the organisation
+        // User and other related data will be deleted via onDelete: Cascade relations
         await prisma.organisation.delete({ where: { id: orgId } });
 
         res.json({ message: 'Organisation and associated data deleted' });

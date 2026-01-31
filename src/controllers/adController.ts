@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { metaService } from '../services/MetaService';
-import { MetaIntegrationService } from '../services/MetaIntegrationService-simple';
+import { MetaIntegrationService } from '../services/MetaIntegrationService';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
 
@@ -98,9 +98,9 @@ export const syncCampaigns = async (req: AuthRequest, res: Response) => {
         if (!orgId) return res.status(400).json({ message: 'No organisation found' });
 
         const campaigns = await MetaIntegrationService.syncCampaigns(orgId);
-        res.json({ 
+        res.json({
             message: `Successfully synced ${campaigns.length} campaigns`,
-            campaigns 
+            campaigns
         });
     } catch (error: any) {
         console.error('Error in syncCampaigns:', error);

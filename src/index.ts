@@ -62,9 +62,25 @@ import path from 'path';
 import compression from 'compression';
 
 import { initCronJobs } from './services/cronService';
+import session from 'express-session';
+import passport from 'passport';
+import { setupPassport } from './services/SSOService';
 
 const app = express();
 const httpServer = createServer(app);
+
+// Initialize Passport/SSO
+setupPassport();
+
+app.use(session({
+    secret: process.env.JWT_SECRET || 'secret_sso_key',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set true if https
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Start Cron Jobs
 initCronJobs();
@@ -142,6 +158,9 @@ app.use('/api/calls', callRoutes);
 app.use('/api/call-settings', callSettingsRoutes);
 app.use('/api/telephony', telephonyRoutes);
 
+import syncRoutes from './routes/syncRoutes';
+app.use('/api/sync', syncRoutes);
+
 // Operations
 app.use('/api/calendar', eventRoutes);
 app.use('/api/tasks', taskRoutes);
@@ -184,6 +203,18 @@ app.use('/api/api-keys', apiKeyRoutes);
 app.use('/api/plans', subscriptionPlanRoutes);
 app.use('/api/licenses', licenseRoutes);
 app.use('/api/super-admin', superAdminRoutes);
+
+import auditRoutes from './routes/auditRoutes';
+app.use('/api/audit-logs', auditRoutes);
+
+import timelineRoutes from './routes/timelineRoutes';
+app.use('/api/timeline', timelineRoutes);
+
+import apiRoutes from './routes/apiRoutes';
+app.use('/api/v1', apiRoutes);
+
+import stripeRoutes from './routes/stripeRoutes';
+app.use('/api/stripe', stripeRoutes);
 
 // Debug Routes
 import debugRoutes from './routes/debugRoutes';

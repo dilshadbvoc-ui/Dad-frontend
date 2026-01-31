@@ -3,6 +3,8 @@ import axios from 'axios';
 interface MetaConfig {
     accessToken: string;
     adAccountId: string;
+    appId?: string;
+    appSecret?: string;
 }
 
 export class MetaService {
@@ -10,7 +12,7 @@ export class MetaService {
 
     async makeRequest(endpoint: string, accessToken: string, params: any = {}, retries: number = 3) {
         let lastError: any;
-        
+
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
                 const response = await axios.get(`${this.baseUrl}/${endpoint}`, {
@@ -24,12 +26,12 @@ export class MetaService {
             } catch (error: any) {
                 lastError = error;
                 console.error(`Meta API Error (attempt ${attempt}/${retries}):`, error.response?.data || error.message);
-                
+
                 // Don't retry on client errors (4xx) except rate limiting
                 if (error.response?.status >= 400 && error.response?.status < 500 && error.response?.status !== 429) {
                     break;
                 }
-                
+
                 // Wait before retrying (exponential backoff)
                 if (attempt < retries) {
                     const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
@@ -37,17 +39,29 @@ export class MetaService {
                 }
             }
         }
-        
-        throw new Error(lastError.response?.data?.error?.message || 'Failed to fetch data from Meta API');
+
+        const errorMsg = lastError?.response?.data?.error?.message || lastError?.message || 'Failed to fetch data from Meta API';
+        const errorType = lastError?.response?.data?.error?.type;
+        const errorCode = lastError?.response?.data?.error?.code;
+        const errorSubcode = lastError?.response?.data?.error?.error_subcode;
+
+        console.error(`[MetaService] Final Error: ${errorMsg} (Type: ${errorType}, Code: ${errorCode}, Subcode: ${errorSubcode})`);
+
+        if (errorCode === 190) { // OAuth Error
+            throw new Error(`Invalid or expired Meta Access Token. Please reconnect your account. (Code: 190, Subcode: ${errorSubcode})`);
+        }
+
+        throw new Error(errorMsg);
     }
 
-    async exchangeForLongLivedToken(shortLivedToken: string): Promise<string> {
+    async exchangeForLongLivedToken(shortLivedToken: string, config?: MetaConfig): Promise<string> {
         try {
-            const appId = process.env.META_APP_ID;
-            const appSecret = process.env.META_APP_SECRET;
+            // Prefer config values (from DB), fallback to env vars (system default)
+            const appId = config?.appId || process.env.META_APP_ID;
+            const appSecret = config?.appSecret || process.env.META_APP_SECRET;
 
             if (!appId || !appSecret) {
-                console.warn('Meta App ID or Secret not configured, skipping token exchange');
+                console.warn('Meta App ID or Secret not configured (neither in DB nor ENV), skipping token exchange');
                 return shortLivedToken;
             }
 

@@ -5,7 +5,8 @@ import {
     getTopLeads,
     getSalesForecast,
     getLeadSourceAnalytics,
-    getAiInsights
+    getAiInsights,
+    getTopPerformers
 } from '../controllers/analyticsController';
 import { protect } from '../middleware/authMiddleware';
 
@@ -17,6 +18,7 @@ router.get('/top-leads', protect, getTopLeads);
 router.get('/forecast', protect, getSalesForecast);
 router.get('/lead-sources', protect, getLeadSourceAnalytics);
 router.get('/insights', protect, getAiInsights);
+router.get('/top-performers', protect, getTopPerformers);
 router.get('/overview', protect, getDashboardStats); // Alias for reports page
 
 export default router;

@@ -141,7 +141,8 @@ exports.Prisma.OrganisationScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdBy: 'createdBy',
-  upsellConfig: 'upsellConfig'
+  upsellConfig: 'upsellConfig',
+  ssoConfig: 'ssoConfig'
 };
 
 exports.Prisma.UserScalarFieldEnum = {
@@ -195,6 +196,7 @@ exports.Prisma.LeadScalarFieldEnum = {
   leadScore: 'leadScore',
   engagementScore: 'engagementScore',
   qualityScore: 'qualityScore',
+  lastScoredAt: 'lastScoredAt',
   status: 'status',
   stage: 'stage',
   customFields: 'customFields',
@@ -524,6 +526,9 @@ exports.Prisma.SubscriptionPlanScalarFieldEnum = {
   currency: 'currency',
   durationDays: 'durationDays',
   maxUsers: 'maxUsers',
+  maxLeads: 'maxLeads',
+  maxContacts: 'maxContacts',
+  maxStorage: 'maxStorage',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -899,6 +904,19 @@ exports.Prisma.LandingPageScalarFieldEnum = {
   isDeleted: 'isDeleted'
 };
 
+exports.Prisma.AuditLogScalarFieldEnum = {
+  id: 'id',
+  action: 'action',
+  entity: 'entity',
+  entityId: 'entityId',
+  actorId: 'actorId',
+  details: 'details',
+  ipAddress: 'ipAddress',
+  userAgent: 'userAgent',
+  organisationId: 'organisationId',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1021,7 +1039,8 @@ exports.Prisma.ModelName = {
   WhatsAppCampaign: 'WhatsAppCampaign',
   WhatsAppMessage: 'WhatsAppMessage',
   Commission: 'Commission',
-  LandingPage: 'LandingPage'
+  LandingPage: 'LandingPage',
+  AuditLog: 'AuditLog'
 };
 
 /**

@@ -29,6 +29,7 @@ model Organisation {
   updatedAt         DateTime           @updatedAt
   createdBy         String?
   upsellConfig      Json?
+  ssoConfig         Json?
   accounts          Account[]
   apiKeys           ApiKey[]
   assignmentRules   AssignmentRule[]
@@ -62,6 +63,7 @@ model Organisation {
   whatsAppMessages  WhatsAppMessage[]
   commissions       Commission[]
   landingPages      LandingPage[]
+  auditLogs         AuditLog[]
 }
 
 model User {
@@ -136,6 +138,7 @@ model User {
   commissions                 Commission[]           @relation("UserCommission")
   createdCommissions          Commission[]           @relation("CommissionCreator")
   createdLandingPages         LandingPage[]          @relation("LandingPageCreator")
+  auditLogs                   AuditLog[]             @relation("AuditActor")
 
   @@index([organisationId])
   @@index([email])
@@ -171,6 +174,7 @@ model Lead {
   leadScore          Int               @default(0)
   engagementScore    Int               @default(0)
   qualityScore       Int               @default(0)
+  lastScoredAt       DateTime?
   status             LeadStatus        @default(new)
   stage              String?
   customFields       Json?
@@ -604,6 +608,9 @@ model SubscriptionPlan {
   currency     String    @default("INR")
   durationDays Int
   maxUsers     Int       @default(1)
+  maxLeads     Int       @default(100)
+  maxContacts  Int       @default(500)
+  maxStorage   Int       @default(1000) // MB
   isActive     Boolean   @default(true)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -1148,4 +1155,26 @@ model LandingPage {
 
   @@index([organisationId])
   @@index([slug])
+}
+
+model AuditLog {
+  id             String   @id @default(uuid())
+  action         String // CREATE, UPDATE, DELETE, LOGIN, LOGIN_FAILED, EXPORT
+  entity         String // Lead, Contact, User, Settings, etc.
+  entityId       String?
+  actorId        String? // User who performed the action
+  details        Json? // { old: ..., new: ..., metadata: ... }
+  ipAddress      String?
+  userAgent      String?
+  organisationId String
+  createdAt      DateTime @default(now())
+
+  organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("AuditActor", fields: [actorId], references: [id])
+
+  @@index([organisationId])
+  @@index([entity])
+  @@index([action])
+  @@index([createdAt])
+  @@index([actorId])
 }
