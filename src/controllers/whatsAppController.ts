@@ -23,10 +23,10 @@ export const getWhatsAppConfig = async (req: AuthRequest) => {
     if (!org) throw new Error('Organisation not found');
 
     const integrations = org.integrations as any;
-    
+
     // Check for dedicated WhatsApp config first
     let whatsappConfig = integrations?.whatsapp;
-    
+
     // Fallback to meta config for backward compatibility
     if (!whatsappConfig?.connected && integrations?.meta?.phoneNumberId) {
         whatsappConfig = {
@@ -48,21 +48,21 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     try {
         // Validate required fields
         const { to, message, type = 'text' } = req.body;
-        
+
         if (!to) {
             return res.status(400).json({ message: 'Phone number (to) is required' });
         }
-        
+
         // Validate phone number format
         const phoneRegex = /^\+[1-9]\d{1,14}$/;
         if (!phoneRegex.test(to)) {
             return res.status(400).json({ message: 'Phone number must be in international format (+1234567890)' });
         }
-        
+
         if (type === 'text' && !message) {
             return res.status(400).json({ message: 'Message text is required for text messages' });
         }
-        
+
         if (type === 'template' && !req.body.templateName) {
             return res.status(400).json({ message: 'Template name is required for template messages' });
         }
@@ -71,7 +71,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
         const sanitizedMessage = message ? message.trim().substring(0, 4096) : undefined;
 
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,
@@ -89,7 +89,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
         // Log the message to database
         const user = req.user;
         const orgId = getOrgId(user);
-        
+
         if (orgId) {
             await prisma.whatsAppMessage.create({
                 data: {
@@ -159,10 +159,81 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
     }
 };
 
+export const getConversations = async (req: AuthRequest, res: Response) => {
+    try {
+        const user = req.user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'No organisation found' });
+
+        // 1. Get unique phone numbers (conversations)
+        const conversations = await prisma.whatsAppMessage.groupBy({
+            by: ['phoneNumber'],
+            where: {
+                organisationId: orgId,
+                isDeleted: false
+            },
+            _max: {
+                createdAt: true
+            },
+            orderBy: {
+                _max: {
+                    createdAt: 'desc'
+                }
+            }
+        });
+
+        // 2. Fetch details for each conversation (latest message, contact info)
+        const conversationDetails = await Promise.all(conversations.map(async (conv) => {
+            const lastMessage = await prisma.whatsAppMessage.findFirst({
+                where: {
+                    organisationId: orgId,
+                    phoneNumber: conv.phoneNumber,
+                    createdAt: conv._max.createdAt!
+                },
+                include: {
+                    lead: { select: { firstName: true, lastName: true } },
+                    contact: { select: { firstName: true, lastName: true } }
+                }
+            });
+
+            // Determine display name
+            let displayName = conv.phoneNumber;
+            if (lastMessage?.contact) {
+                displayName = `${lastMessage.contact.firstName} ${lastMessage.contact.lastName}`;
+            } else if (lastMessage?.lead) {
+                displayName = `${lastMessage.lead.firstName} ${lastMessage.lead.lastName}`;
+            }
+
+            // Count unread messages (incoming and status != read, though status on incoming is usually 'delivered')
+            // "read" status is usually for outgoing messages being read by recipient.
+            // For incoming messages, we might need a separate 'isRead' flag or similar, 
+            // but for now let's just count incoming messages.
+            // Actually, let's assume 'delivered' incoming messages are unread if we had a way to track that.
+            // Since we don't have a clear 'isRead' on incoming messages in the schema shown (status is generic),
+            // we will skip unread count for now or implement a basic one.
+
+            return {
+                phoneNumber: conv.phoneNumber,
+                lastMessage: lastMessage?.content,
+                lastMessageAt: lastMessage?.createdAt,
+                displayName: displayName.trim(),
+                leadId: lastMessage?.leadId,
+                contactId: lastMessage?.contactId,
+                messageType: lastMessage?.messageType
+            };
+        }));
+
+        res.json(conversationDetails);
+    } catch (error: any) {
+        console.error('Error in getConversations:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 export const testConnection = async (req: AuthRequest, res: Response) => {
     try {
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,
@@ -189,7 +260,7 @@ export const testConnection = async (req: AuthRequest, res: Response) => {
 export const getTemplates = async (req: AuthRequest, res: Response) => {
     try {
         const config = await getWhatsAppConfig(req);
-        
+
         if (!config.wabaId) {
             return res.status(400).json({ message: 'WABA ID required to fetch templates' });
         }
@@ -214,7 +285,7 @@ export const getTemplates = async (req: AuthRequest, res: Response) => {
 export const createTemplate = async (req: AuthRequest, res: Response) => {
     try {
         const config = await getWhatsAppConfig(req);
-        
+
         if (!config.wabaId) {
             return res.status(400).json({ message: 'WABA ID required to create templates' });
         }
@@ -236,13 +307,13 @@ export const createTemplate = async (req: AuthRequest, res: Response) => {
 export const sendMediaMessage = async (req: AuthRequest, res: Response) => {
     try {
         const { to, mediaType, mediaId, caption, filename } = req.body;
-        
+
         if (!to || !mediaType || !mediaId) {
             return res.status(400).json({ message: 'Phone number, media type, and media ID are required' });
         }
 
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,
@@ -254,7 +325,7 @@ export const sendMediaMessage = async (req: AuthRequest, res: Response) => {
         // Log the message to database
         const user = req.user;
         const orgId = getOrgId(user);
-        
+
         if (orgId) {
             await prisma.whatsAppMessage.create({
                 data: {
@@ -286,13 +357,13 @@ export const sendMediaMessage = async (req: AuthRequest, res: Response) => {
 export const getMessageStatus = async (req: AuthRequest, res: Response) => {
     try {
         const { messageId } = req.params;
-        
+
         if (!messageId) {
             return res.status(400).json({ message: 'Message ID is required' });
         }
 
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,
@@ -310,13 +381,13 @@ export const getMessageStatus = async (req: AuthRequest, res: Response) => {
 export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
     try {
         const { messageId } = req.body;
-        
+
         if (!messageId) {
             return res.status(400).json({ message: 'Message ID is required' });
         }
 
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,
@@ -334,13 +405,13 @@ export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
 export const getConversationAnalytics = async (req: AuthRequest, res: Response) => {
     try {
         const { startDate, endDate } = req.query;
-        
+
         if (!startDate || !endDate) {
             return res.status(400).json({ message: 'Start date and end date are required' });
         }
 
         const config = await getWhatsAppConfig(req);
-        
+
         const whatsAppService = new WhatsAppService({
             accessToken: config.accessToken,
             phoneNumberId: config.phoneNumberId,

@@ -3,6 +3,7 @@ import { protect } from '../middleware/authMiddleware';
 import {
     sendMessage,
     getMessages,
+    getConversations,
     testConnection,
     getTemplates,
     createTemplate,
@@ -26,6 +27,7 @@ const router = express.Router();
 // WhatsApp messaging endpoints with rate limiting and validation
 router.post('/send', protect, whatsappLimiter, validate(whatsappMessageSchema), sendMessage as any);
 router.post('/send-media', protect, whatsappLimiter, validate(whatsappMediaMessageSchema), sendMediaMessage as any);
+router.get('/conversations', protect, whatsappLimiter, getConversations as any);
 router.get('/messages', protect, whatsappLimiter, getMessages as any);
 router.get('/messages/statistics', protect, whatsappLimiter, getMessageStatistics as any);
 router.get('/messages/:messageId/status', protect, whatsappLimiter, getMessageStatus as any);
