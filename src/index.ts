@@ -47,6 +47,7 @@ import callSettingsRoutes from './routes/callSettingsRoutes';
 import reportRoutes from './routes/reportRoutes';
 import importRoutes from './routes/importRoutes';
 import searchRoutes from './routes/searchRoutes';
+import bulkRoutes from './routes/bulkRoutes';
 import adRoutes from './routes/adRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
 import webFormRoutes from './routes/webFormRoutes';
@@ -139,6 +140,7 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/search', searchRoutes);
+app.use('/api/bulk', bulkRoutes);
 app.use('/api/profile', profileRoutes);
 
 // Sales
