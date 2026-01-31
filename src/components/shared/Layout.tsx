@@ -1,7 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Header } from './Header';
 import { ViolationAlert } from "@/components/shared/ViolationAlert";
@@ -18,10 +18,27 @@ export default function Layout() {
         const saved = localStorage.getItem('sidebar-collapsed');
         return saved === 'true';
     });
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', String(collapsed));
     }, [collapsed]);
+
+    // Close mobile menu when route changes
+    useEffect(() => {
+        setMobileMenuOpen(false);
+    }, [location.pathname]);
+
+    // Close mobile menu on escape key
+    useEffect(() => {
+        const handleEscape = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setMobileMenuOpen(false);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+        return () => document.removeEventListener('keydown', handleEscape);
+    }, []);
 
     useEffect(() => {
         interface CallUpdateData {
@@ -55,12 +72,48 @@ export default function Layout() {
 
     return (
         <div className="flex h-screen overflow-hidden bg-[#F3F4F6]">
-            <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+
+            {/* Desktop Sidebar */}
+            <div className="hidden lg:block">
+                <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
+            </div>
+
+            {/* Mobile Sidebar */}
+            <div className={cn(
+                "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden",
+                mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+            )}>
+                <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+            </div>
+
             <div className="flex-1 flex flex-col overflow-hidden">
-                <Header />
+                {/* Enhanced Header with Mobile Menu Button */}
+                <div className="flex items-center justify-between lg:justify-end bg-white border-b border-slate-200 px-4 py-3 lg:px-6">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="lg:hidden p-2"
+                    >
+                        {mobileMenuOpen ? (
+                            <X className="h-5 w-5" />
+                        ) : (
+                            <Menu className="h-5 w-5" />
+                        )}
+                    </Button>
+                    <Header />
+                </div>
+
                 <main className="flex-1 overflow-y-auto">
                     {!isDashboard && (
-                        <div className="container mx-auto px-6 py-4 pb-0">
+                        <div className="container mx-auto px-4 py-3 pb-0 lg:px-6 lg:py-4">
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -74,7 +127,10 @@ export default function Layout() {
                             </Button>
                         </div>
                     )}
-                    <div className={cn("container mx-auto p-4 md:p-6 pt-4", isDashboard && "md:pt-6")}>
+                    <div className={cn(
+                        "container mx-auto p-4 lg:p-6", 
+                        isDashboard ? "lg:pt-6" : "pt-2 lg:pt-4"
+                    )}>
                         <Outlet />
                     </div>
                 </main>
