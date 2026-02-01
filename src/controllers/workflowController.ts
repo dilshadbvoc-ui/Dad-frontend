@@ -159,7 +159,7 @@ export const runWorkflow = async (req: Request, res: Response) => {
         }
 
         const { WorkflowEngine } = await import('../services/WorkflowEngine');
-        await WorkflowEngine.executeActions(workflow, entityData);
+        await WorkflowEngine.executeActions(workflow, entityData, workflow.organisationId);
 
         res.json({
             message: 'Workflow executed successfully',

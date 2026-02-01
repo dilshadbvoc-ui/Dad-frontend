@@ -110,7 +110,9 @@ export const syncCampaigns = async (req: AuthRequest, res: Response) => {
 
 export const getCampaignInsights = async (req: AuthRequest, res: Response) => {
     try {
-        res.json({ message: 'Campaign insights endpoint - not implemented yet' });
+        const config = await getMetaConfig(req);
+        const insights = await metaService.getInsights(config, 'campaign');
+        res.json(insights);
     } catch (error: any) {
         console.error('Error in getCampaignInsights:', error);
         res.status(500).json({ message: error.message });
@@ -119,7 +121,9 @@ export const getCampaignInsights = async (req: AuthRequest, res: Response) => {
 
 export const getAccountInsights = async (req: AuthRequest, res: Response) => {
     try {
-        res.json({ message: 'Account insights endpoint - not implemented yet' });
+        const config = await getMetaConfig(req);
+        const insights = await metaService.getInsights(config, 'account');
+        res.json(insights);
     } catch (error: any) {
         console.error('Error in getAccountInsights:', error);
         res.status(500).json({ message: error.message });

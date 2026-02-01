@@ -197,6 +197,14 @@ export const markReadSchema = Joi.object({
     })
 });
 
+// Mark conversation as read validation schema
+export const markConversationReadSchema = Joi.object({
+    phoneNumber: Joi.string().pattern(phoneRegex).required().messages({
+        'string.pattern.base': 'Phone number must be in international format (+1234567890)',
+        'any.required': 'Phone number is required'
+    })
+});
+
 // Generic validation middleware
 export const validate = (schema: Joi.ObjectSchema) => {
     return (req: Request, res: Response, next: NextFunction) => {
@@ -231,7 +239,7 @@ export const validatePhoneNumber = (phone: string): boolean => {
 // Sanitize input to prevent XSS
 export const sanitizeInput = (input: string): string => {
     if (typeof input !== 'string') return input;
-    
+
     return input
         .replace(/[<>]/g, '') // Remove potential HTML tags
         .trim() // Remove leading/trailing whitespace

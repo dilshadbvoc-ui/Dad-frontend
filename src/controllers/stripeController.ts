@@ -23,13 +23,15 @@ export const createPortalSession = async (req: Request, res: Response) => {
     try {
         const { organisationId } = req.body;
 
-        // Find organisation to get customer ID (Not implemented yet in model, but placeholder logic)
-        // const org = await Organisation.findById(organisationId);
-        // if (!org || !org.subscription.stripeCustomerId) ...
+        const org = await Organisation.findById(organisationId);
+        if (!org || !org.subscription?.stripeCustomerId) {
+            return res.status(404).json({ message: 'Organisation or Stripe Customer ID not found' });
+        }
 
-        // For now, mock error or need to update Organisation model first
-        res.status(501).json({ message: 'Portal not implemented yet' });
+        const session = await StripeService.createPortalSession(org.subscription.stripeCustomerId);
+        res.json({ url: session.url });
     } catch (error) {
+        console.error('Error creating portal session:', error);
         res.status(500).json({ message: 'Internal server error' });
     }
 };

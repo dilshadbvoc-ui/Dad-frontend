@@ -111,6 +111,12 @@ export const createLead = async (req: Request, res: Response) => {
         // Extract assignedTo before spreading
         const { assignedTo, ...restBody } = req.body;
 
+        // Custom Field Validation
+        if (req.body.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Lead', orgId, req.body.customFields);
+        }
+
         // Create
         const lead = await prisma.lead.create({
             data: {
@@ -136,6 +142,13 @@ export const createLead = async (req: Request, res: Response) => {
             // AI Scoring
             import('../services/LeadScoringService').then(({ LeadScoringService }) => {
                 LeadScoringService.scoreLead(lead.id).catch(console.error);
+            });
+            // Goal Automation
+            import('../services/GoalService').then(({ GoalService }) => {
+                const assignedId = lead.assignedToId;
+                if (assignedId) {
+                    GoalService.updateProgressForUser(assignedId, 'leads').catch(console.error);
+                }
             });
         } catch (workflowErr) {
             console.error('WorkflowEngine error:', workflowErr);
@@ -215,6 +228,11 @@ export const updateLead = async (req: Request, res: Response) => {
                     organisationId: currentLead.organisationId
                 }
             });
+        }
+
+        if (updates.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Lead', currentLead.organisationId, updates.customFields);
         }
 
         const [lead] = await prisma.$transaction([

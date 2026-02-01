@@ -41,7 +41,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         if (!data?.assignedToId) {
           return ResponseHandler.validationError(res, 'assignedToId is required for assign action');
         }
-        
+
         result = await prisma.lead.updateMany({
           where: {
             id: { in: leadIds },
@@ -60,7 +60,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         if (!data?.status) {
           return ResponseHandler.validationError(res, 'status is required for update-status action');
         }
-        
+
         result = await prisma.lead.updateMany({
           where: {
             id: { in: leadIds },
@@ -75,7 +75,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         message = `${result.count} leads status updated successfully`;
         break;
 
-      case 'add-tags':
+      case 'add-tags': {
         if (!data?.tags || !Array.isArray(data.tags)) {
           return ResponseHandler.validationError(res, 'tags array is required for add-tags action');
         }
@@ -94,10 +94,10 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         const updatePromises = leadsWithTags.map(lead => {
           const existingTags = lead.tags || [];
           const newTags = [...new Set([...existingTags, ...data.tags])]; // Remove duplicates
-          
+
           return prisma.lead.update({
             where: { id: lead.id },
-            data: { 
+            data: {
               tags: newTags,
               updatedAt: new Date()
             }
@@ -107,8 +107,9 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         await Promise.all(updatePromises);
         message = `Tags added to ${leadsWithTags.length} leads successfully`;
         break;
+      }
 
-      case 'send-email':
+      case 'send-email': {
         if (!data?.subject || !data?.content) {
           return ResponseHandler.validationError(res, 'subject and content are required for send-email action');
         }
@@ -134,7 +135,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
               .replace(/\{fullName\}/g, `${lead.firstName} ${lead.lastName}`);
 
             await EmailService.sendEmail(lead.email!, data.subject, personalizedContent);
-            
+
             // Log interaction
             await prisma.interaction.create({
               data: {
@@ -159,8 +160,9 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
 
         message = `Email sending initiated for ${leadsWithEmail.length} leads`;
         break;
+      }
 
-      case 'send-whatsapp':
+      case 'send-whatsapp': {
         if (!data?.message) {
           return ResponseHandler.validationError(res, 'message is required for send-whatsapp action');
         }
@@ -184,10 +186,10 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
               .replace(/\{lastName\}/g, lead.lastName)
               .replace(/\{fullName\}/g, `${lead.firstName} ${lead.lastName}`);
 
-            await WhatsAppService.getClientForOrg(organisationId)?.then(client => 
+            await WhatsAppService.getClientForOrg(organisationId)?.then(client =>
               client?.sendTextMessage(lead.phone!, personalizedMessage)
             );
-            
+
             // Log interaction
             await prisma.interaction.create({
               data: {
@@ -212,6 +214,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
 
         message = `WhatsApp messages sending initiated for ${leadsWithPhone.length} leads`;
         break;
+      }
 
       case 'delete':
         result = await prisma.lead.updateMany({
@@ -228,7 +231,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         message = `${result.count} leads deleted successfully`;
         break;
 
-      case 'export':
+      case 'export': {
         // Get leads data for export
         const exportLeads = await prisma.lead.findMany({
           where: {
@@ -261,6 +264,7 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
           filename: `leads_export_${new Date().toISOString().split('T')[0]}.csv`,
           count: exportData.length
         }, 'Export data prepared successfully');
+      }
 
       default:
         return ResponseHandler.validationError(res, `Unsupported action: ${action}`);
@@ -301,7 +305,7 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
         if (!data?.ownerId) {
           return ResponseHandler.validationError(res, 'ownerId is required for assign-owner action');
         }
-        
+
         result = await prisma.contact.updateMany({
           where: {
             id: { in: contactIds },
@@ -315,7 +319,7 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
         message = `${result.count} contacts assigned successfully`;
         break;
 
-      case 'add-to-campaign':
+      case 'add-to-campaign': {
         if (!data?.campaignId) {
           return ResponseHandler.validationError(res, 'campaignId is required for add-to-campaign action');
         }
@@ -353,6 +357,7 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
 
         message = `${contactsToAdd.length} contacts added to campaign successfully`;
         break;
+      }
 
       case 'delete':
         result = await prisma.contact.deleteMany({
@@ -364,7 +369,7 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
         message = `${result.count} contacts deleted successfully`;
         break;
 
-      case 'export':
+      case 'export': {
         const exportContacts = await prisma.contact.findMany({
           where: {
             id: { in: contactIds },
@@ -393,6 +398,7 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
           filename: `contacts_export_${new Date().toISOString().split('T')[0]}.csv`,
           count: exportData.length
         }, 'Export data prepared successfully');
+      }
 
       default:
         return ResponseHandler.validationError(res, `Unsupported action: ${action}`);
@@ -433,7 +439,7 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
         if (!data?.stage) {
           return ResponseHandler.validationError(res, 'stage is required for update-stage action');
         }
-        
+
         result = await prisma.opportunity.updateMany({
           where: {
             id: { in: opportunityIds },
@@ -452,7 +458,7 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
         if (!data?.ownerId) {
           return ResponseHandler.validationError(res, 'ownerId is required for assign-owner action');
         }
-        
+
         result = await prisma.opportunity.updateMany({
           where: {
             id: { in: opportunityIds },
@@ -476,7 +482,7 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
         message = `${result.count} opportunities deleted successfully`;
         break;
 
-      case 'export':
+      case 'export': {
         const exportOpportunities = await prisma.opportunity.findMany({
           where: {
             id: { in: opportunityIds },
@@ -506,6 +512,7 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
           filename: `opportunities_export_${new Date().toISOString().split('T')[0]}.csv`,
           count: exportData.length
         }, 'Export data prepared successfully');
+      }
 
       default:
         return ResponseHandler.validationError(res, `Unsupported action: ${action}`);

@@ -16,7 +16,8 @@ const organisationSchema = new mongoose.Schema({
         },
         startDate: { type: Date },
         endDate: { type: Date },
-        autoRenew: { type: Boolean, default: false }
+        autoRenew: { type: Boolean, default: false },
+        stripeCustomerId: { type: String }
     },
 
     // Contact Info

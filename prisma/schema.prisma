@@ -64,6 +64,7 @@ model Organisation {
   commissions       Commission[]
   landingPages      LandingPage[]
   auditLogs         AuditLog[]
+  queueItems        WorkflowQueue[]
 }
 
 model User {
@@ -75,6 +76,7 @@ model User {
   password                    String
   role                        UserRole               @default(sales_rep)
   position                    String?
+  phone                       String?
   profileImage                String?                // URL to profile image
   isPlaceholder               Boolean                @default(false)
   isActive                    Boolean                @default(true)
@@ -539,6 +541,24 @@ model Workflow {
   updatedAt      DateTime     @updatedAt
   createdBy      User?        @relation("WorkflowCreator", fields: [createdById], references: [id])
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  queueItems     WorkflowQueue[]
+}
+
+model WorkflowQueue {
+  id              String   @id @default(uuid())
+  workflowId      String
+  entityId        String
+  organisationId  String
+  nextActionIndex Int
+  executeAt       DateTime
+  status          String   @default("pending")
+  data            Json?
+  
+  workflow        Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([executeAt, status])
+  @@index([organisationId])
 }
 
 model WorkflowRule {
@@ -698,6 +718,7 @@ model SalesTarget {
 model Goal {
   id                 String       @id @default(uuid())
   description        String?
+  type               String       @default("manual") // manual, revenue, leads, calls
   targetValue        Float
   currentValue       Float        @default(0)
   period             String
@@ -1095,6 +1116,7 @@ model WhatsAppMessage {
   leadId         String?
   contactId      String?
   agentId        String?
+  isReadByAgent  Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
   isDeleted      Boolean   @default(false)

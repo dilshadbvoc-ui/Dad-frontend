@@ -12,7 +12,7 @@ export const validateEmail = (email: string): boolean => {
 export const validatePhone = (phone: string): boolean => {
     // International phone number format
     const phoneRegex = /^[+]?[1-9]\d{1,14}$/;
-    return phoneRegex.test(phone.replace(/[\s\-\(\)]/g, ''));
+    return phoneRegex.test(phone.replace(/[\s()-]/g, ''));
 };
 
 export const validateRequired = (value: any): boolean => {
@@ -43,15 +43,15 @@ export const validateDate = (value: any): boolean => {
 export const validatePagination = (req: Request, res: Response, next: NextFunction) => {
     const page = parseInt(req.query.page as string || '1');
     const limit = parseInt(req.query.limit as string || '20');
-    
+
     if (page < 1 || page > 1000) {
         return res.status(400).json({ message: 'Page must be between 1 and 1000' });
     }
-    
+
     if (limit < 1 || limit > 100) {
         return res.status(400).json({ message: 'Limit must be between 1 and 100' });
     }
-    
+
     req.query.page = page.toString();
     req.query.limit = limit.toString();
     next();
@@ -73,7 +73,7 @@ export const sanitizeString = (input: string): string => {
  */
 export const sanitizeObject = (obj: any, allowedFields: string[]): any => {
     const sanitized: any = {};
-    
+
     for (const field of allowedFields) {
         if (obj[field] !== undefined) {
             if (typeof obj[field] === 'string') {
@@ -83,7 +83,7 @@ export const sanitizeObject = (obj: any, allowedFields: string[]): any => {
             }
         }
     }
-    
+
     return sanitized;
 };
 

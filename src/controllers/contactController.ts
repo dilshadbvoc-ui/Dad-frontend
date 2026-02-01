@@ -107,6 +107,12 @@ export const createContact = async (req: Request, res: Response) => {
             contactData.account = { connect: { id: req.body.account } };
         }
 
+        // Custom Field Validation
+        if (req.body.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Contact', orgId, req.body.customFields);
+        }
+
         const contact = await prisma.contact.create({
             data: contactData
         });
@@ -151,6 +157,15 @@ export const updateContact = async (req: Request, res: Response) => {
         // Actually Prisma update accepts `account: { connect: ... }`. 
         // If updates.account is "ID_STRING", passing it as `account: "ID_STRING"` to Prisma Update will fail.
         // So the remapping above is correct.
+
+        // Fetch first to get Org ID for validation
+        const currentContact = await prisma.contact.findUnique({ where: { id: contactId } });
+        if (!currentContact) return res.status(404).json({ message: 'Contact not found' });
+
+        if (updates.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Contact', currentContact.organisationId, updates.customFields);
+        }
 
         const contact = await prisma.contact.update({
             where: { id: contactId },

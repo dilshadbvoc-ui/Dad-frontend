@@ -1,4 +1,5 @@
 import prisma from '../config/prisma';
+import { getIO } from '../socket';
 
 export const WhatsAppIntegrationService = {
     /**
@@ -15,12 +16,12 @@ export const WhatsAppIntegrationService = {
                         for (const change of entry.changes) {
                             if (change.field === 'messages') {
                                 const value = change.value;
-                                
+
                                 // Handle incoming messages
                                 if (value.messages) {
                                     await this.processMessage(value);
                                 }
-                                
+
                                 // Handle message status updates
                                 if (value.statuses) {
                                     await this.processStatusUpdate(value);
@@ -37,7 +38,7 @@ export const WhatsAppIntegrationService = {
 
     async processMessage(value: any) {
         const { messages, contacts, metadata } = value;
-        
+
         if (!messages || messages.length === 0) return;
 
         console.log(`[WhatsAppWebhook] Processing messages for phone: ${metadata.phone_number_id}`);
@@ -54,7 +55,7 @@ export const WhatsAppIntegrationService = {
             return orgs.filter(org => {
                 const integrations = org.integrations as any;
                 return (integrations?.whatsapp?.phoneNumberId === metadata.phone_number_id) ||
-                       (integrations?.meta?.phoneNumberId === metadata.phone_number_id);
+                    (integrations?.meta?.phoneNumberId === metadata.phone_number_id);
             });
         }).catch(() => []);
 
@@ -137,7 +138,7 @@ export const WhatsAppIntegrationService = {
             }).then(async (contact) => {
                 // Since Prisma JSON queries are limited, we'll do a secondary filter
                 if (!contact) return null;
-                
+
                 // For now, we'll create a simple search - in production you might want to use raw SQL
                 const allContacts = await prisma.contact.findMany({
                     where: {
@@ -148,13 +149,13 @@ export const WhatsAppIntegrationService = {
                         phones: true
                     }
                 });
-                
+
                 return allContacts.find(contact => {
                     const phones = contact.phones as any;
                     if (Array.isArray(phones)) {
                         return phones.some(phone => phone.includes(message.from));
                     } else if (typeof phones === 'object' && phones !== null) {
-                        return Object.values(phones).some(phone => 
+                        return Object.values(phones).some(phone =>
                             typeof phone === 'string' && phone.includes(message.from)
                         );
                     }
@@ -175,7 +176,8 @@ export const WhatsAppIntegrationService = {
                     deliveredAt: new Date(parseInt(message.timestamp) * 1000),
                     organisationId,
                     leadId: lead?.id,
-                    contactId: contactRecord?.id
+                    contactId: contactRecord?.id,
+                    isReadByAgent: false
                 }
             });
 
@@ -200,6 +202,15 @@ export const WhatsAppIntegrationService = {
             }
 
             console.log(`[WhatsAppWebhook] Saved incoming message from ${message.from}`);
+
+            // Real-time socket notification
+            const io = getIO();
+            if (io) {
+                io.to(`org:${organisationId}`).emit('whatsapp_message_received', {
+                    message: messageRecord,
+                    phoneNumber: message.from
+                });
+            }
         } catch (error) {
             console.error('[WhatsAppWebhook] Error saving message:', error);
         }
@@ -210,7 +221,7 @@ export const WhatsAppIntegrationService = {
      */
     async processStatusUpdate(value: any) {
         const { statuses } = value;
-        
+
         if (!statuses || statuses.length === 0) return;
 
         for (const status of statuses) {
@@ -240,19 +251,42 @@ export const WhatsAppIntegrationService = {
                 if (updatedMessage.count > 0) {
                     // Import CampaignProcessor here to avoid circular dependency
                     const { CampaignProcessor } = await import('./CampaignProcessor');
-                    
+
                     // Find the message to get its ID for campaign stats update
                     const message = await prisma.whatsAppMessage.findFirst({
                         where: { waMessageId: status.id },
                         select: { id: true }
                     });
-                    
+
                     if (message) {
                         await CampaignProcessor.updateCampaignStats(message.id, status.status);
+
+                        // Emit socket event for status update
+                        const io = getIO();
+                        if (io) {
+                            // Find the full message to get organisationId
+                            const fullMessage = await prisma.whatsAppMessage.findUnique({
+                                where: { id: message.id },
+                                select: { organisationId: true, phoneNumber: true }
+                            });
+
+                            if (fullMessage) {
+                                io.to(`org:${fullMessage.organisationId}`).emit('whatsapp_status_update', {
+                                    messageId: status.id, // WhatsApp ID
+                                    dbMessageId: message.id, // Database ID
+                                    status: status.status,
+                                    phoneNumber: fullMessage.phoneNumber
+                                });
+                            }
+                        }
                     }
                 }
 
                 console.log(`[WhatsAppWebhook] Updated message ${status.id} status to ${status.status}`);
+
+                // Real-time socket notification for status update
+                // Note: To emit to the correct org, we need to find the message first 
+                // (which we already do below for campaign stats)
             } catch (error) {
                 console.error('[WhatsAppWebhook] Error updating message status:', error);
             }
@@ -268,7 +302,7 @@ export const WhatsAppIntegrationService = {
         const challenge = req.query['hub.challenge'];
 
         const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-        
+
         if (!VERIFY_TOKEN) {
             console.error('[WhatsAppWebhook] WHATSAPP_VERIFY_TOKEN not configured');
             return res.sendStatus(500);

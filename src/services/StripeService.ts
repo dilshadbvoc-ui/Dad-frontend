@@ -86,8 +86,7 @@ export const StripeService = {
                 'subscription.status': 'active',
                 'subscription.plan': planId,
                 'subscription.startDate': new Date(),
-                // 'subscription.stripeCustomerId': session.customer 
-                // We need to add stripeCustomerId to Organisation model!
+                'subscription.stripeCustomerId': session.customer
             });
         }
     }

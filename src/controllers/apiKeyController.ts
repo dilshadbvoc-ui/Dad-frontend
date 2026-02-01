@@ -19,14 +19,21 @@ export const getApiKeys = async (req: Request, res: Response) => {
             select: {
                 id: true,
                 name: true,
-                keyPrefix: true, // Show prefix only
+                keyPrefix: true,
                 status: true,
                 createdAt: true,
                 permissions: true
             }
         });
 
-        res.json({ apiKeys });
+        // Map for frontend compatibility
+        const mappedKeys = apiKeys.map(k => ({
+            ...k,
+            isActive: k.status === 'active',
+            firstEight: k.keyPrefix
+        }));
+
+        res.json({ apiKeys: mappedKeys });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }

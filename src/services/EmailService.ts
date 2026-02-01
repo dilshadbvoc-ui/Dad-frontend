@@ -1,19 +1,13 @@
 import nodemailer from 'nodemailer';
 
-// TODO: Move to env vars
-// const SMTP_HOST = process.env.SMTP_HOST || 'smtp.example.com';
-// const SMTP_PORT = Number(process.env.SMTP_PORT) || 587;
-// const SMTP_USER = process.env.SMTP_USER || 'user';
-// const SMTP_PASS = process.env.SMTP_PASS || 'pass';
-
-// For local dev/demo, we can use Ethereal or just log
-// To make it functional, one should configure real SMTP
 const transporter = nodemailer.createTransport({
-    // host: SMTP_HOST,
-    // port: SMTP_PORT,
-    // secure: false, 
-    // auth: { user: SMTP_USER, pass: SMTP_PASS }
-    jsonTransport: true // For logging transport instead of real sending if no config
+    host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: false,
+    auth: {
+        user: process.env.SMTP_USER || 'ethereal_user',
+        pass: process.env.SMTP_PASS || 'ethereal_pass'
+    }
 });
 
 export const EmailService = {

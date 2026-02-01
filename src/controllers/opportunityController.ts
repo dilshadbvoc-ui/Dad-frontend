@@ -87,6 +87,12 @@ export const createOpportunity = async (req: Request, res: Response) => {
             account: { connect: { id: req.body.account } }
         };
 
+        // Custom Field Validation
+        if (req.body.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Opportunity', orgId, req.body.customFields);
+        }
+
         const opportunity = await prisma.opportunity.create({
             data: opportunityData
         });
@@ -132,6 +138,15 @@ export const updateOpportunity = async (req: Request, res: Response) => {
             updates.owner = { connect: { id: updates.owner } };
         }
 
+        // Fetch first for validation and existence
+        const currentOpp = await prisma.opportunity.findUnique({ where: { id: oppId } });
+        if (!currentOpp) return res.status(404).json({ message: 'Opportunity not found' });
+
+        if (updates.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Opportunity', currentOpp.organisationId, updates.customFields);
+        }
+
         const opportunity = await prisma.opportunity.update({
             where: { id: oppId },
             data: updates,
@@ -149,6 +164,11 @@ export const updateOpportunity = async (req: Request, res: Response) => {
                 });
             }).catch(err => {
                 console.error('Failed to load SalesTargetService:', err);
+            });
+
+            // Goal Automation
+            import('../services/GoalService').then(({ GoalService }) => {
+                GoalService.updateProgressForUser(opportunity.ownerId!, 'revenue').catch(console.error);
             });
         }
 

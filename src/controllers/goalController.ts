@@ -73,6 +73,7 @@ export const createGoal = async (req: Request, res: Response) => {
         const goal = await prisma.goal.create({
             data: {
                 description: req.body.description || undefined,
+                type: req.body.type || 'manual',
                 targetValue: req.body.targetValue,
                 currentValue: req.body.currentValue || 0,
                 period: req.body.period,
@@ -84,6 +85,12 @@ export const createGoal = async (req: Request, res: Response) => {
                 assignedToId: req.body.assignedToId || user.id
             }
         });
+
+        // Initial progress update if not manual
+        if (goal.type !== 'manual') {
+            const { GoalService } = await import('../services/GoalService');
+            await GoalService.updateProgressForUser(goal.assignedToId, goal.type);
+        }
 
         res.status(201).json(goal);
     } catch (error) {
@@ -139,6 +146,26 @@ export const deleteGoal = async (req: Request, res: Response) => {
         if ((error as any).code === 'P2025') {
             return res.status(404).json({ message: 'Goal not found' });
         }
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const recalculateGoal = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+        const goal = await prisma.goal.findUnique({ where: { id } });
+        if (!goal) return res.status(404).json({ message: 'Goal not found' });
+
+        if (goal.type === 'manual') {
+            return res.status(400).json({ message: 'Cannot automatically recalculate manual goals' });
+        }
+
+        const { GoalService } = await import('../services/GoalService');
+        await GoalService.updateProgressForUser(goal.assignedToId, goal.type);
+
+        const updatedGoal = await prisma.goal.findUnique({ where: { id } });
+        res.json(updatedGoal);
+    } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }
 };

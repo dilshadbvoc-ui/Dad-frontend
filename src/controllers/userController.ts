@@ -221,11 +221,74 @@ export const updateUser = async (req: Request, res: Response) => {
     }
 };
 
+// POST /api/users
+export const createUser = async (req: Request, res: Response) => {
+    try {
+        const { email, password, role, firstName, lastName, organisationId } = req.body;
+        const currentUser = (req as any).user;
+
+        // Determine Org ID
+        let targetOrgId = organisationId;
+        if (currentUser.role !== 'super_admin') {
+            targetOrgId = getOrgId(currentUser);
+        }
+
+        if (!targetOrgId) {
+            return res.status(400).json({ message: 'Organisation ID is required' });
+        }
+
+        // 1. License Check (User Limit)
+        if (currentUser.role !== 'super_admin') {
+            const { LicenseEnforcementService } = await import('../services/LicenseEnforcementService');
+            await LicenseEnforcementService.checkLimits(targetOrgId, 'users');
+        }
+
+        // 2. Email duplication check
+        const existingUser = await prisma.user.findUnique({ where: { email } });
+        if (existingUser) {
+            return res.status(409).json({ message: 'User with this email already exists' });
+        }
+
+        const hashedPassword = await bcrypt.hash(password, 10);
+
+        const newUser = await prisma.user.create({
+            data: {
+                email,
+                password: hashedPassword,
+                role: role || 'sales_rep',
+                firstName,
+                lastName,
+                organisationId: targetOrgId,
+                isActive: true, // Default to active
+                // If currentUser is non-admin creating a user, maybe set reportsTo?
+                reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined)
+            }
+        });
+
+        // 3. Update Organisation Counter (Optional, if using userIdCounter)
+        // await prisma.organisation.update({ where: { id: targetOrgId }, data: { userIdCounter: { increment: 1 } } });
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _, ...userWithoutPassword } = newUser;
+        res.status(201).json(userWithoutPassword);
+
+    } catch (error) {
+        console.error('createUser Error:', error);
+        res.status(400).json({ message: (error as Error).message });
+    }
+};
+
 export const inviteUser = async (req: Request, res: Response) => {
     try {
         const { email, firstName, lastName, role, organisationId, position, reportsTo, password } = req.body;
         const currentUser = (req as any).user;
+        const orgId = getOrgId(currentUser) || organisationId;
 
+        // 1. License Check
+        const { LicenseEnforcementService } = await import('../services/LicenseEnforcementService');
+        await LicenseEnforcementService.checkLimits(orgId, 'users');
+
+        // Check if user exists
         if (currentUser.role !== 'super_admin' && currentUser.role !== 'admin') {
             return res.status(403).json({ message: 'Only administrators can invite users' });
         }

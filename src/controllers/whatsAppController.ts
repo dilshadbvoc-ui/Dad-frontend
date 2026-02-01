@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { WhatsAppService } from '../services/WhatsAppService';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { getIO } from '../socket';
 
 // Type extension for Request to include user
 interface AuthRequest extends Request {
@@ -99,7 +100,9 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
                     messageType: type,
                     content: {
                         text: type === 'text' ? sanitizedMessage : undefined,
-                        templateName: type === 'template' ? req.body.templateName : undefined
+                        templateName: type === 'template' ? req.body.templateName : undefined,
+                        language: type === 'template' ? req.body.languageCode : undefined,
+                        components: type === 'template' ? req.body.components : undefined
                     },
                     status: 'sent',
                     waMessageId: result.messages?.[0]?.id,
@@ -108,6 +111,29 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
                     agentId: user?.id
                 }
             });
+
+            // Real-time socket notification for outgoing message
+            const io = getIO();
+            if (io && orgId) {
+                io.to(`org:${orgId}`).emit('whatsapp_message_received', {
+                    message: {
+                        phoneNumber: to,
+                        direction: 'outgoing',
+                        messageType: type,
+                        content: {
+                            text: type === 'text' ? sanitizedMessage : undefined,
+                            templateName: type === 'template' ? req.body.templateName : undefined,
+                            language: type === 'template' ? req.body.languageCode : undefined,
+                            components: type === 'template' ? req.body.components : undefined
+                        },
+                        status: 'sent',
+                        sentAt: new Date(),
+                        organisationId: orgId,
+                        agentId: user?.id
+                    },
+                    phoneNumber: to
+                });
+            }
         }
 
         res.json({ success: true, result });
@@ -204,13 +230,16 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
                 displayName = `${lastMessage.lead.firstName} ${lastMessage.lead.lastName}`;
             }
 
-            // Count unread messages (incoming and status != read, though status on incoming is usually 'delivered')
-            // "read" status is usually for outgoing messages being read by recipient.
-            // For incoming messages, we might need a separate 'isRead' flag or similar, 
-            // but for now let's just count incoming messages.
-            // Actually, let's assume 'delivered' incoming messages are unread if we had a way to track that.
-            // Since we don't have a clear 'isRead' on incoming messages in the schema shown (status is generic),
-            // we will skip unread count for now or implement a basic one.
+            // Count unread messages for this specific conversation
+            const unreadCount = await prisma.whatsAppMessage.count({
+                where: {
+                    organisationId: orgId,
+                    phoneNumber: conv.phoneNumber,
+                    direction: 'incoming',
+                    isReadByAgent: false,
+                    isDeleted: false
+                }
+            });
 
             return {
                 phoneNumber: conv.phoneNumber,
@@ -219,7 +248,8 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
                 displayName: displayName.trim(),
                 leadId: lastMessage?.leadId,
                 contactId: lastMessage?.contactId,
-                messageType: lastMessage?.messageType
+                messageType: lastMessage?.messageType,
+                unreadCount
             };
         }));
 
@@ -381,6 +411,12 @@ export const getMessageStatus = async (req: AuthRequest, res: Response) => {
 export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
     try {
         const { messageId } = req.body;
+        const user = req.user;
+        const orgId = getOrgId(user);
+
+        if (!orgId) {
+            return res.status(400).json({ message: 'No organisation found' });
+        }
 
         if (!messageId) {
             return res.status(400).json({ message: 'Message ID is required' });
@@ -394,10 +430,60 @@ export const markMessageAsRead = async (req: AuthRequest, res: Response) => {
             wabaId: config.wabaId
         });
 
+        // Update internal database
+        await prisma.whatsAppMessage.updateMany({
+            where: {
+                waMessageId: messageId as string,
+                organisationId: orgId as string
+            },
+            data: {
+                isReadByAgent: true
+            }
+        });
+
         const result = await whatsAppService.markMessageAsRead(messageId);
         res.json({ success: true, result });
     } catch (error: any) {
         console.error('Error in markMessageAsRead:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const markConversationAsRead = async (req: AuthRequest, res: Response) => {
+    try {
+        const { phoneNumber } = req.body;
+        const user = req.user;
+        const orgId = getOrgId(user);
+
+        if (!phoneNumber) {
+            return res.status(400).json({ message: 'Phone number is required' });
+        }
+
+        if (!orgId) return res.status(400).json({ message: 'No organisation found' });
+
+        await prisma.whatsAppMessage.updateMany({
+            where: {
+                organisationId: orgId,
+                phoneNumber,
+                direction: 'incoming',
+                isReadByAgent: false
+            },
+            data: {
+                isReadByAgent: true
+            }
+        });
+
+        // Notify via socket to refresh conversation list in other tabs
+        const io = getIO();
+        if (io) {
+            io.to(`org:${orgId}`).emit('whatsapp_conversation_read', {
+                phoneNumber
+            });
+        }
+
+        res.json({ success: true });
+    } catch (error: any) {
+        console.error('Error in markConversationAsRead:', error);
         res.status(500).json({ message: error.message });
     }
 };
@@ -505,6 +591,33 @@ export const getMessageStatistics = async (req: AuthRequest, res: Response) => {
         });
     } catch (error: any) {
         console.error('Error in getMessageStatistics:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const getMedia = async (req: AuthRequest, res: Response) => {
+    try {
+        const { mediaId } = req.params;
+        if (!mediaId) {
+            return res.status(400).json({ message: 'Media ID is required' });
+        }
+
+        const config = await getWhatsAppConfig(req);
+        const whatsAppService = new WhatsAppService({
+            accessToken: config.accessToken,
+            phoneNumberId: config.phoneNumberId,
+            wabaId: config.wabaId
+        });
+
+        // 1. Get media URL
+        const mediaUrl = await whatsAppService.getMediaUrl(mediaId);
+
+        // 2. Download/Proxy media
+        const mediaStream = await whatsAppService.downloadMedia(mediaUrl);
+
+        mediaStream.pipe(res);
+    } catch (error: any) {
+        console.error('Error in getMedia:', error);
         res.status(500).json({ message: error.message });
     }
 };

@@ -23,6 +23,8 @@ export const initSocket = (httpServer: HttpServer) => {
             const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_change_this');
             // @ts-ignore
             socket.userId = decoded.id; // Store userId on socket
+            // @ts-ignore
+            socket.organisationId = decoded.organisationId; // Store organisationId on socket
             next();
         } catch (err) {
             next(new Error('Authentication error: Invalid token'));
@@ -37,6 +39,12 @@ export const initSocket = (httpServer: HttpServer) => {
         // Automatically join user room
         if (userId) {
             socket.join(userId);
+            // @ts-ignore
+            const organisationId = socket.organisationId;
+            if (organisationId) {
+                socket.join(`org:${organisationId}`);
+                console.log(`User ${userId} auto-joined room org:${organisationId}`);
+            }
             console.log(`User ${userId} auto-joined room ${userId}`);
         }
 
@@ -138,8 +146,41 @@ export const initSocket = (httpServer: HttpServer) => {
             }
         });
 
+        // Collaboration: User joins a specific resource (e.g., Lead page)
+        socket.on('join_collaboration', (data) => {
+            const { resourceId } = data;
+            if (userId && resourceId) {
+                socket.join(`collaboration:${resourceId}`);
+                console.log(`User ${userId} joined collaboration on ${resourceId}`);
+
+                // Fetch all users currently in this resource room
+                // Note: We'll broadcast a 'presence_update' to the room
+                io.to(`collaboration:${resourceId}`).emit('presence_update', {
+                    resourceId,
+                    action: 'join',
+                    userId,
+                    socketId: socket.id
+                });
+            }
+        });
+
+        socket.on('leave_collaboration', (data) => {
+            const { resourceId } = data;
+            if (userId && resourceId) {
+                socket.leave(`collaboration:${resourceId}`);
+                io.to(`collaboration:${resourceId}`).emit('presence_update', {
+                    resourceId,
+                    action: 'leave',
+                    userId,
+                    socketId: socket.id
+                });
+            }
+        });
+
         socket.on('disconnect', () => {
             console.log(`Socket disconnected: ${socket.id}`);
+            // Note: In a production app, we would ideally track which rooms the user was in
+            // and emit 'leave' events for all of them. For now, simple disconnect log.
         });
     });
 

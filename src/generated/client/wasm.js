@@ -154,6 +154,7 @@ exports.Prisma.UserScalarFieldEnum = {
   password: 'password',
   role: 'role',
   position: 'position',
+  phone: 'phone',
   profileImage: 'profileImage',
   isPlaceholder: 'isPlaceholder',
   isActive: 'isActive',
@@ -463,6 +464,17 @@ exports.Prisma.WorkflowScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.WorkflowQueueScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  entityId: 'entityId',
+  organisationId: 'organisationId',
+  nextActionIndex: 'nextActionIndex',
+  executeAt: 'executeAt',
+  status: 'status',
+  data: 'data'
+};
+
 exports.Prisma.WorkflowRuleScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -602,6 +614,7 @@ exports.Prisma.SalesTargetScalarFieldEnum = {
 exports.Prisma.GoalScalarFieldEnum = {
   id: 'id',
   description: 'description',
+  type: 'type',
   targetValue: 'targetValue',
   currentValue: 'currentValue',
   period: 'period',
@@ -865,6 +878,7 @@ exports.Prisma.WhatsAppMessageScalarFieldEnum = {
   leadId: 'leadId',
   contactId: 'contactId',
   agentId: 'agentId',
+  isReadByAgent: 'isReadByAgent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   isDeleted: 'isDeleted'
@@ -1015,6 +1029,7 @@ exports.Prisma.ModelName = {
   EmailList: 'EmailList',
   Campaign: 'Campaign',
   Workflow: 'Workflow',
+  WorkflowQueue: 'WorkflowQueue',
   WorkflowRule: 'WorkflowRule',
   DocumentTemplate: 'DocumentTemplate',
   SMSTemplate: 'SMSTemplate',

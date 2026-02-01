@@ -254,3 +254,46 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
         res.status(500).json({ message: (error as Error).message });
     }
 };
+
+export const sendTestReport = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(404).json({ message: 'Organisation not found' });
+
+        const org = await prisma.organisation.findFirst({
+            where: { id: orgId },
+            include: {
+                users: {
+                    where: { id: user.id }
+                }
+            }
+        });
+
+        if (!org) return res.status(404).json({ message: 'Organisation not found' });
+
+        const { ReportingService } = await import('../services/ReportingService');
+        const { WhatsAppService } = await import('../services/WhatsAppService');
+
+        const stats = await ReportingService.getDailyStats(orgId);
+        const report = ReportingService.formatWhatsAppReport(stats, org.name);
+
+        const targetPhone = org.users[0]?.phone || org.contactPhone;
+
+        if (!targetPhone) {
+            return res.status(400).json({ message: 'No phone number configured for report' });
+        }
+
+        const waClient = await WhatsAppService.getClientForOrg(orgId);
+        if (!waClient) {
+            return res.status(400).json({ message: 'WhatsApp not connected for this organisation' });
+        }
+
+        await waClient.sendTextMessage(targetPhone, report);
+
+        res.json({ message: `Test report sent to ${targetPhone}`, stats });
+    } catch (error) {
+        console.error('sendTestReport Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
