@@ -25,17 +25,19 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createAssignmentRule, type CreateAssignmentRuleData } from "@/services/assignmentRuleService"
+import { createAssignmentRule, updateAssignmentRule, type CreateAssignmentRuleData, type AssignmentRule } from "@/services/assignmentRuleService"
 import { useQuery } from "@tanstack/react-query"
 import { getUsers } from "@/services/settingsService"
+import { useEffect } from "react"
 
 interface AssignmentRuleDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
+    rule?: AssignmentRule
 }
 
-export function AssignmentRuleDialog({ children, open, onOpenChange }: AssignmentRuleDialogProps) {
+export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: AssignmentRuleDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
     const isControlled = open !== undefined
 
@@ -68,21 +70,60 @@ export function AssignmentRuleDialog({ children, open, onOpenChange }: Assignmen
         }
     })
 
+    useEffect(() => {
+        if (rule) {
+            form.reset({
+                name: rule.name,
+                description: rule.description,
+                entity: rule.entity,
+                distributionType: rule.distributionType,
+                criteria: rule.criteria.length ? rule.criteria : [{ field: "source", operator: "equals", value: "" }],
+                assignTo: rule.assignTo,
+                priority: rule.priority,
+                isActive: rule.isActive,
+                enableRotation: rule.enableRotation || false,
+                timeLimitMinutes: rule.timeLimitMinutes || 60,
+                rotationType: rule.rotationType || 'random',
+                rotationPool: rule.rotationPool || []
+            })
+        } else {
+            form.reset({
+                name: "",
+                description: "",
+                entity: "Lead",
+                distributionType: "specific_user",
+                criteria: [{ field: "source", operator: "equals", value: "" }],
+                assignTo: { type: 'user', value: '', users: [] },
+                priority: 1,
+                isActive: true,
+                enableRotation: false,
+                timeLimitMinutes: 60,
+                rotationType: 'random',
+                rotationPool: []
+            })
+        }
+    }, [rule, finalOpen, form])
+
     const { fields, append, remove } = useFieldArray({
         control: form.control,
         name: "criteria"
     })
 
     const mutation = useMutation({
-        mutationFn: createAssignmentRule,
+        mutationFn: (values: CreateAssignmentRuleData) => {
+            if (rule) {
+                return updateAssignmentRule(rule.id, values)
+            }
+            return createAssignmentRule(values)
+        },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["assignment-rules"] })
-            toast.success("Rule created successfully")
+            toast.success(rule ? "Rule updated successfully" : "Rule created successfully")
             finalOnOpenChange?.(false)
             form.reset()
         },
         onError: (error: any) => {
-            toast.error(error.response?.data?.message || "Failed to create rule")
+            toast.error(error.response?.data?.message || `Failed to ${rule ? 'update' : 'create'} rule`)
         },
     })
 
@@ -99,7 +140,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange }: Assignmen
             )}
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>Create Assignment Rule</DialogTitle>
+                    <DialogTitle>{rule ? 'Edit Assignment Rule' : 'Create Assignment Rule'}</DialogTitle>
                     <DialogDescription>
                         Define criteria to automatically assign leads.
                     </DialogDescription>
@@ -368,12 +409,12 @@ export function AssignmentRuleDialog({ children, open, onOpenChange }: Assignmen
                         <DialogFooter>
                             <Button type="submit" disabled={mutation.isPending}>
                                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Create Rule
+                                {rule ? 'Update Rule' : 'Create Rule'}
                             </Button>
                         </DialogFooter>
                     </form>
                 </Form>
             </DialogContent>
-        </Dialog>
+        </Dialog >
     )
 }

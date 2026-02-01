@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, UserPlus, Trash2 } from "lucide-react"
+import { Users, UserPlus, Trash2, Pencil } from "lucide-react"
 import { AssignmentRuleDialog } from "@/components/shared/AssignmentRuleDialog"
 import { getAssignmentRules, deleteAssignmentRule, type AssignmentRule } from "@/services/assignmentRuleService"
 import { Badge } from "@/components/ui/badge"
@@ -24,10 +24,22 @@ export default function AssignmentRulesPage() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: ['assignment-rules'] }),
     })
 
+    const [selectedRule, setSelectedRule] = useState<AssignmentRule | undefined>(undefined)
+
     const handleDelete = (id: string) => {
         if (confirm("Are you sure you want to delete this rule?")) {
             deleteMutation.mutate(id)
         }
+    }
+
+    const handleEdit = (rule: AssignmentRule) => {
+        setSelectedRule(rule)
+        setIsCreateOpen(true)
+    }
+
+    const handleCreate = () => {
+        setSelectedRule(undefined)
+        setIsCreateOpen(true)
     }
 
     return (
@@ -40,7 +52,7 @@ export default function AssignmentRulesPage() {
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Assignment Rules</h1>
                                 <p className="text-gray-500">Manage how records are automatically assigned to users.</p>
                             </div>
-                            <Button onClick={() => setIsCreateOpen(true)}>
+                            <Button onClick={handleCreate}>
                                 <UserPlus className="h-4 w-4 mr-2" />
                                 Create Rule
                             </Button>
@@ -57,7 +69,7 @@ export default function AssignmentRulesPage() {
                                 ) : !rules || rules.length === 0 ? (
                                     <div className="text-center py-10 text-gray-500">
                                         <p>No assignment rules configured.</p>
-                                        <Button variant="outline" className="mt-4" onClick={() => setIsCreateOpen(true)}>
+                                        <Button variant="outline" className="mt-4" onClick={handleCreate}>
                                             <UserPlus className="h-4 w-4 mr-2" />
                                             Create Rule
                                         </Button>
@@ -84,6 +96,9 @@ export default function AssignmentRulesPage() {
                                                         <span className="text-gray-500">Assign to: </span>
                                                         <Badge variant="outline">{rule.assignTo.type === 'user' ? 'User' : 'Queue'}</Badge>
                                                     </div>
+                                                    <Button variant="ghost" size="icon" onClick={() => handleEdit(rule)}>
+                                                        <Pencil className="h-4 w-4 text-blue-500" />
+                                                    </Button>
                                                     <Button variant="ghost" size="icon" onClick={() => handleDelete(rule.id)}>
                                                         <Trash2 className="h-4 w-4 text-red-500" />
                                                     </Button>
@@ -98,7 +113,11 @@ export default function AssignmentRulesPage() {
                 </main>
             </div>
 
-            <AssignmentRuleDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+            <AssignmentRuleDialog
+                open={isCreateOpen}
+                onOpenChange={setIsCreateOpen}
+                rule={selectedRule}
+            />
         </div>
     )
 }
