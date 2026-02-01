@@ -21,6 +21,7 @@ import { toast } from "sonner"
 import { format, formatDistanceToNow } from "date-fns"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
+import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 
 
 
@@ -159,6 +160,7 @@ export default function LeadDetailPage() {
                 <div>
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         {lead.firstName} {lead.lastName}
+                        {id && <CollaborationBadge resourceId={`leads/${id}`} />}
                         <Button variant="outline" size="sm" onClick={() => setIsSetFollowUpOpen(true)}>
                             <Calendar className="h-4 w-4 mr-2" />
                             Set Follow-up

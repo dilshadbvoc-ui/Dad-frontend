@@ -82,7 +82,7 @@ export default function AccountDetailPage() {
                             {account.contacts && account.contacts.length > 0 ? (
                                 <ul className="space-y-2">
                                     {account.contacts.map((contact: { id: string; firstName: string; lastName: string; email: string }) => (
-                                        <li key={contact.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onClick={() => navigate(`/contacts`)}> {/* TODO: Go to contact detail */}
+                                        <li key={contact.id} className="flex justify-between items-center p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer" onClick={() => navigate(`/contacts/${contact.id}`)}>
                                             <span>{contact.firstName} {contact.lastName}</span>
                                             <span className="text-sm text-muted-foreground">{contact.email}</span>
                                         </li>

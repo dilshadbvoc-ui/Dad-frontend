@@ -91,7 +91,21 @@ export default function OrganisationSettingsPage() {
                                         <Input name="address" defaultValue={org?.address} placeholder="123 Business St, City, Country" />
                                     </div>
 
-                                    <div className="flex justify-end pt-4">
+                                    <div className="flex justify-end gap-3 pt-4">
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={async () => {
+                                                try {
+                                                    await axios.post('/api/organisation/send-test-report')
+                                                    toast.success('Test report sent successfully')
+                                                } catch (err: any) {
+                                                    toast.error(err.response?.data?.message || 'Failed to send test report')
+                                                }
+                                            }}
+                                        >
+                                            Send Daily Report Now
+                                        </Button>
                                         <Button type="submit" disabled={updateMutation.isPending}>Save Changes</Button>
                                     </div>
                                 </form>

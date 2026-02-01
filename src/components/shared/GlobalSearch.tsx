@@ -50,7 +50,7 @@ export function GlobalSearch() {
 
     const handleSearch = (value: string) => {
         setQuery(value)
-        
+
         if (value.length < 1) {
             setResults([])
             setSuggestions([])
@@ -63,7 +63,7 @@ export function GlobalSearch() {
         if (value.length >= 1 && value.length < 2) {
             setShowSuggestions(true)
             setShowResults(false)
-            
+
             if (suggestionTimeout.current) {
                 clearTimeout(suggestionTimeout.current)
             }
@@ -71,7 +71,8 @@ export function GlobalSearch() {
             suggestionTimeout.current = setTimeout(async () => {
                 try {
                     const response = await api.get(`/search/suggestions?q=${encodeURIComponent(value)}`)
-                    setSuggestions(response.data.suggestions || [])
+                    const searchData = response.data.data || response.data;
+                    setSuggestions(searchData.suggestions || [])
                 } catch (error) {
                     console.error("Suggestions failed", error)
                     setSuggestions([])
@@ -92,8 +93,8 @@ export function GlobalSearch() {
         searchTimeout.current = setTimeout(async () => {
             try {
                 const response = await api.get(`/search/global?q=${encodeURIComponent(value)}&limit=20`)
-                const data: SearchResponse = response.data
-                setResults(data.results || [])
+                const searchData = response.data.data || response.data;
+                setResults(searchData.results || [])
             } catch (error) {
                 console.error("Search failed", error)
                 setResults([])
@@ -142,7 +143,7 @@ export function GlobalSearch() {
         const now = new Date()
         const diffTime = Math.abs(now.getTime() - date.getTime())
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        
+
         if (diffDays === 1) return 'Yesterday'
         if (diffDays < 7) return `${diffDays} days ago`
         if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`

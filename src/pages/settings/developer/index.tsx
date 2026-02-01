@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
-import { Copy, Plus, Trash2, Globe, Key, AlertCircle, Loader2 } from "lucide-react"
+import { Copy, Plus, Trash2, Globe, Key, AlertCircle, Loader2, FileText, Check, Code } from "lucide-react"
 import { format } from "date-fns"
 
 import { Button } from "@/components/ui/button"
@@ -61,6 +61,7 @@ export default function DeveloperSettingsPage() {
                             <TabsList>
                                 <TabsTrigger value="api-keys" className="flex items-center gap-2"><Key className="w-4 h-4" /> API Keys</TabsTrigger>
                                 <TabsTrigger value="webhooks" className="flex items-center gap-2"><Globe className="w-4 h-4" /> Webhooks</TabsTrigger>
+                                <TabsTrigger value="docs" className="flex items-center gap-2"><FileText className="w-4 h-4" /> API Documentation</TabsTrigger>
                             </TabsList>
 
                             <TabsContent value="api-keys" className="space-y-4">
@@ -69,6 +70,10 @@ export default function DeveloperSettingsPage() {
 
                             <TabsContent value="webhooks" className="space-y-4">
                                 <WebhooksTab />
+                            </TabsContent>
+
+                            <TabsContent value="docs" className="space-y-4">
+                                <DocsTab />
                             </TabsContent>
                         </Tabs>
                     </div>
@@ -359,5 +364,167 @@ function WebhooksTab() {
                 )}
             </CardContent>
         </Card>
+    )
+}
+function DocsTab() {
+    const baseUrl = window.location.origin.replace(':5173', ':5000') // Adjust for dev/prod
+    const apiEndpoint = `${baseUrl}/api/v1/leads`
+
+    const curlExample = `curl -X POST ${apiEndpoint} \\
+  -H "Content-Type: application/json" \\
+  -H "X-API-KEY: YOUR_API_KEY" \\
+  -d '{
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "john@example.com",
+    "phone": "9876543210",
+    "company": "Acme Inc",
+    "message": "Interested in your services",
+    "source": "website"
+  }'`
+
+    const jsExample = `fetch("${apiEndpoint}", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-KEY": "YOUR_API_KEY"
+  },
+  body: JSON.stringify({
+    firstName: "John",
+    lastName: "Doe",
+    email: "john@example.com",
+    phone: "9876543210",
+    company: "Acme Inc",
+    message: "Interested in your services",
+    source: "website"
+  })
+})
+.then(response => response.json())
+.then(data => console.log("Success:", data))
+.catch(error => console.error("Error:", error));`
+
+    const [copied, setCopied] = useState<string | null>(null)
+
+    const copyToClipboard = (text: string, id: string) => {
+        navigator.clipboard.writeText(text)
+        setCopied(id)
+        setTimeout(() => setCopied(null), 2000)
+        toast.success("Copied to clipboard")
+    }
+
+    return (
+        <div className="grid gap-6">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Code className="w-5 h-5 text-blue-500" /> Website Integration (Inbound Leads)</CardTitle>
+                    <CardDescription>Use this endpoint to push leads from your website forms directly into the CRM.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <div className="space-y-2">
+                        <Label>Endpoint URL</Label>
+                        <div className="flex items-center gap-2">
+                            <Input value={apiEndpoint} readOnly className="bg-gray-50 font-mono text-sm" />
+                            <Button size="icon" variant="outline" onClick={() => copyToClipboard(apiEndpoint, 'url')}>
+                                {copied === 'url' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                            </Button>
+                        </div>
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label>cURL Example</Label>
+                                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(curlExample, 'curl')}>
+                                    {copied === 'curl' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                                    Copy
+                                </Button>
+                            </div>
+                            <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-xs font-mono">
+                                {curlExample}
+                            </pre>
+                        </div>
+
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between">
+                                <Label>JavaScript (Fetch) Example</Label>
+                                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(jsExample, 'js')}>
+                                    {copied === 'js' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
+                                    Copy
+                                </Button>
+                            </div>
+                            <pre className="p-4 bg-gray-900 text-gray-100 rounded-lg overflow-x-auto text-xs font-mono">
+                                {jsExample}
+                            </pre>
+                        </div>
+                    </div>
+
+                    <div className="p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-lg">
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-300 flex items-center gap-2 mb-1 text-sm">
+                            <AlertCircle className="w-4 h-4" /> Important Notes
+                        </h4>
+                        <ul className="text-sm text-blue-700 dark:text-blue-400 list-disc list-inside space-y-1">
+                            <li>Replace <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">YOUR_API_KEY</code> with a key from the API Keys tab.</li>
+                            <li>Requests must include the <code className="bg-blue-100 dark:bg-blue-800 px-1 rounded">X-API-KEY</code> header.</li>
+                            <li>The CRM will automatically perform duplicate checks and trigger workflows.</li>
+                        </ul>
+                    </div>
+                </CardContent>
+            </Card>
+
+            <Card>
+                <CardHeader>
+                    <CardTitle>Field Mapping</CardTitle>
+                    <CardDescription>The following fields are accepted by the Leads API.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>Field</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Description</TableHead>
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">firstName</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>First name of the lead (Required)</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">lastName</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Last name of the lead</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">email</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Email address (Required if no phone)</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">phone</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Phone number (Required if no email)</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">company</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Company name</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">message</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Message or inquiry content</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">source</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Source label (e.g., "website", "landing_page")</TableCell>
+                            </TableRow>
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
+        </div>
     )
 }

@@ -1,14 +1,19 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../../services/api';
 import { format } from 'date-fns';
+import { useSocket } from '../../contexts/SocketContext';
+import MediaPreview from './MediaPreview';
+import TemplatePicker from './TemplatePicker';
 
 interface Message {
     id: string;
+    waMessageId?: string;
     direction: 'incoming' | 'outgoing';
     messageType: string;
     content: any;
     status: string;
     createdAt: string;
+    isReadByAgent?: boolean;
 }
 
 interface ChatWindowProps {
@@ -20,33 +25,84 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [sending, setSending] = useState(false);
+    const [showTemplatePicker, setShowTemplatePicker] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const [loading, setLoading] = useState(true);
+    const { socket } = useSocket();
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async (showLoading = false) => {
+        if (showLoading) setLoading(true);
         try {
             const response = await api.get('/whatsapp/messages', {
-                params: { phoneNumber, limit: 50 }
+                params: { phoneNumber, limit: 100 }
             });
             // Reverse so oldest is top
             setMessages(response.data.reverse());
         } catch (error) {
             console.error('Failed to load messages', error);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
-    };
+    }, [phoneNumber]);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    useEffect(() => {
-        setLoading(true);
-        fetchMessages();
-        const interval = setInterval(fetchMessages, 10000); // Poll every 10s
-        return () => clearInterval(interval);
+    const markAsRead = useCallback(async () => {
+        try {
+            await api.post('/whatsapp/messages/mark-conversation-read', { phoneNumber });
+        } catch (error) {
+            console.error('Failed to mark conversation as read', error);
+        }
     }, [phoneNumber]);
+
+    useEffect(() => {
+        fetchMessages(true);
+        markAsRead();
+
+        // Polling as a fallback (longer interval)
+        const interval = setInterval(() => fetchMessages(false), 60000);
+
+        // Socket listeners
+        if (socket) {
+            const handleNewMessage = (data: { message: Message, phoneNumber: string }) => {
+                console.log('Received new message via socket:', data);
+                if (data.phoneNumber === phoneNumber) {
+                    setMessages(prev => {
+                        // Check if message already exists (prevent duplicates from sending + listener)
+                        if (prev.find(m => m.id === data.message.id)) return prev;
+                        return [...prev, data.message];
+                    });
+                    // Auto-mark as read if we are looking at this chat
+                    markAsRead();
+                }
+            };
+
+            const handleStatusUpdate = (data: { messageId: string, dbMessageId: string, status: string, phoneNumber: string }) => {
+                console.log('Received status update via socket:', data);
+                if (data.phoneNumber === phoneNumber) {
+                    setMessages(prev => prev.map(m => {
+                        if (m.id === data.dbMessageId) {
+                            return { ...m, status: data.status };
+                        }
+                        return m;
+                    }));
+                }
+            };
+
+            socket.on('whatsapp_message_received', handleNewMessage);
+            socket.on('whatsapp_status_update', handleStatusUpdate);
+
+            return () => {
+                clearInterval(interval);
+                socket.off('whatsapp_message_received', handleNewMessage);
+                socket.off('whatsapp_status_update', handleStatusUpdate);
+            };
+        }
+
+        return () => clearInterval(interval);
+    }, [phoneNumber, socket, fetchMessages, markAsRead]);
 
     useEffect(() => {
         setTimeout(scrollToBottom, 100);
@@ -54,7 +110,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
 
     const handleSend = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!newMessage.trim()) return;
+        if (!newMessage.trim() || sending) return;
 
         setSending(true);
         try {
@@ -65,7 +121,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                 messageType: 'text',
                 content: { text: newMessage },
                 status: 'sending',
-                createdAt: new Date().toISOString()
+                createdAt: new Date().toISOString(),
+                isReadByAgent: true
             };
             setMessages(prev => [...prev, tempMessage]);
             setNewMessage('');
@@ -80,7 +137,57 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
             fetchMessages();
         } catch (error) {
             console.error('Failed to send message', error);
-            // Could show error toast here
+        } finally {
+            setSending(false);
+        }
+    };
+
+    const handleTemplateSelect = async (template: any, variables: Record<string, string>) => {
+        try {
+            setSending(true);
+            setShowTemplatePicker(false);
+
+            // Convert variables record to components array for backend
+            const bodyParameters = Object.keys(variables).map(v => ({
+                type: 'text',
+                text: variables[v]
+            }));
+
+            const components: any[] = [];
+            if (bodyParameters.length > 0) {
+                components.push({
+                    type: 'body',
+                    parameters: bodyParameters
+                });
+            }
+
+            // optimistic update
+            const tempMessage: Message = {
+                id: `temp-${Date.now()}`,
+                direction: 'outgoing',
+                messageType: 'template',
+                content: {
+                    templateName: template.name,
+                    language: template.language,
+                    variables
+                },
+                status: 'sending',
+                createdAt: new Date().toISOString(),
+                isReadByAgent: true
+            };
+            setMessages(prev => [...prev, tempMessage]);
+
+            await api.post('/whatsapp/send', {
+                to: phoneNumber,
+                type: 'template',
+                templateName: template.name,
+                languageCode: template.language,
+                components: components
+            });
+
+            fetchMessages();
+        } catch (error) {
+            console.error('Failed to send template', error);
         } finally {
             setSending(false);
         }
@@ -106,43 +213,85 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                         <span className="text-xs text-green-600 block leading-tight">WhatsApp</span>
                     </div>
                 </div>
-                <div>
-                    {/* Actions like Call, info etc */}
+                <div className="hidden md:block">
+                    <button onClick={() => fetchMessages(true)} className="p-2 text-gray-500 hover:text-gray-700 rounded-full hover:bg-gray-200 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 2.303A7 7 0 0010.63 2.31M4.68 5.68A7 7 0 002.31 10.63m4.385-4.385l-.01.01m0-1.667v1.667h1.667m10.133 10.133A7 7 0 0016.023 22.5m-5.393-22.5a7 7 0 01-5.393 2.222m5.393 15.185v-1.667h-1.667m1.667 1.667L10.63 21.69a7 7 0 005.393-2.222" />
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            {/* Messages Area - Background pattern could be added here */}
-            <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2 bg-opacity-10 bg-repeat bg-[url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png')]">
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
                 {loading && messages.length === 0 ? (
-                    <div className="flex justify-center mt-10">
-                        <div className="w-8 h-8 border-4 border-gray-300 border-t-green-500 rounded-full animate-spin"></div>
+                    <div className="flex-1 flex items-center justify-center">
+                        <div className="w-8 h-8 border-4 border-green-200 border-t-green-600 rounded-full animate-spin"></div>
                     </div>
-                ) : messages.map((msg) => (
-                    <div
-                        key={msg.id}
-                        className={`flex w-full ${msg.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}
-                    >
-                        <div
-                            className={`max-w-[70%] rounded-lg p-2.5 px-3 shadow-sm relative ${msg.direction === 'outgoing'
-                                ? 'bg-[#d9fdd3] rounded-tr-none'
-                                : 'bg-white rounded-tl-none'
-                                }`}
-                        >
+                ) : messages.length === 0 ? (
+                    <div className="flex-1 flex flex-col items-center justify-center text-gray-500">
+                        <p className="bg-white/80 px-4 py-2 rounded-full text-xs shadow-sm mb-4 uppercase font-medium tracking-wider">No messages yet</p>
+                        <p className="text-sm">Send a template or text to start chatting!</p>
+                    </div>
+                ) : messages.map((msg, idx) => (
+                    <div key={msg.id} className={`flex flex-col ${msg.direction === 'outgoing' ? 'items-end' : 'items-start'}`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] rounded-lg p-2.5 shadow-sm relative ${msg.direction === 'outgoing' ? 'bg-[#d9fdd3] rounded-tr-none' : 'bg-white rounded-tl-none'}`}>
                             {/* Message Content */}
-                            <div className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap break-words">
-                                {msg.messageType === 'text' && (msg.content?.text || '')}
+                            <div className="text-sm text-gray-800 break-words leading-relaxed whitespace-pre-wrap">
+                                {msg.messageType === 'text' && msg.content?.text}
+
                                 {msg.messageType === 'template' && (
-                                    <div className="italic text-gray-600">
-                                        Template: {msg.content?.templateName}
+                                    <div className="space-y-1">
+                                        <div className="flex items-center gap-1.5 text-[10px] text-green-700 font-bold uppercase tracking-wider mb-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
+                                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4.13-5.69z" clipRule="evenodd" />
+                                            </svg>
+                                            Template: {msg.content?.templateName?.replace(/_/g, ' ')}
+                                        </div>
+                                        {/* Since we don't store the full body of the template, we show the template name and some variables if available */}
+                                        {msg.content?.components?.[0]?.parameters ? (
+                                            <div className="mt-2 space-y-1">
+                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-tight">Variables:</p>
+                                                <div className="flex flex-wrap gap-1">
+                                                    {msg.content.components[0].parameters.map((p: any, i: number) => (
+                                                        <span key={i} className="px-1.5 py-0.5 bg-green-100 text-green-800 text-[10px] rounded border border-green-200">
+                                                            {i + 1}: {p.text}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <p className="italic text-gray-500 text-xs">Approved template message sent.</p>
+                                        )}
                                     </div>
                                 )}
+
                                 {msg.messageType === 'image' && (
-                                    <div className="text-gray-500 italic flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
-                                        </svg>
-                                        Image (Media ID: {msg.content?.mediaId})
-                                    </div>
+                                    <MediaPreview
+                                        mediaId={msg.content?.mediaId}
+                                        type="image"
+                                        caption={msg.content?.caption}
+                                    />
+                                )}
+                                {msg.messageType === 'video' && (
+                                    <MediaPreview
+                                        mediaId={msg.content?.mediaId}
+                                        type="video"
+                                        caption={msg.content?.caption}
+                                    />
+                                )}
+                                {msg.messageType === 'audio' && (
+                                    <MediaPreview
+                                        mediaId={msg.content?.mediaId}
+                                        type="audio"
+                                    />
+                                )}
+                                {msg.messageType === 'document' && (
+                                    <MediaPreview
+                                        mediaId={msg.content?.mediaId}
+                                        type="document"
+                                        filename={msg.content?.filename}
+                                    />
                                 )}
                             </div>
 
@@ -172,11 +321,23 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
 
             {/* Input Area */}
             <form onSubmit={handleSend} className="bg-white p-3 px-4 border-t border-gray-200 flex gap-2 items-end">
-                <button type="button" className="p-2 text-gray-500 hover:text-gray-600 rounded-full hover:bg-gray-100 mb-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </button>
+                <div className="flex gap-1">
+                    <button type="button" className="p-2 text-gray-500 hover:text-gray-600 rounded-full hover:bg-gray-100 mb-1" title="Attach">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setShowTemplatePicker(true)}
+                        className="p-2 text-green-600 hover:text-green-700 rounded-full hover:bg-green-50 mb-1"
+                        title="Send Template"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m.75 12l3 3m0 0l3-3m-3 3v-6m-1.5-9H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                        </svg>
+                    </button>
+                </div>
                 <div className="flex-1 bg-white rounded-lg border border-gray-200 focus-within:ring-1 focus-within:ring-green-500 focus-within:border-green-500 p-2">
                     <textarea
                         className="w-full max-h-32 min-h-[40px] border-none outline-none resize-none text-sm"
@@ -206,6 +367,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                     )}
                 </button>
             </form>
+
+            {showTemplatePicker && (
+                <TemplatePicker
+                    onClose={() => setShowTemplatePicker(false)}
+                    onSelect={handleTemplateSelect}
+                />
+            )}
         </div>
     );
 };

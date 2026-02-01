@@ -119,6 +119,13 @@ const settingsSections = [
         icon: FileText,
         gradient: "from-slate-500 to-slate-600"
     },
+    {
+        title: "Developer / API",
+        description: "Connect your website or other tools via API and Webhooks",
+        href: "/settings/developer",
+        icon: Shield,
+        gradient: "from-blue-600 to-indigo-700"
+    },
 ]
 
 export default function SettingsPage() {

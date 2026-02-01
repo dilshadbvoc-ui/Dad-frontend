@@ -7,8 +7,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { format } from "date-fns"
 import { Phone, Mail, Users, MessageSquare } from "lucide-react"
 
+import { LogInteractionDialog } from "@/components/Communications/LogInteractionDialog";
+import { useQueryClient } from "@tanstack/react-query";
+
 export default function CommunicationsPage() {
     const [filterType, setFilterType] = useState<string>("")
+    const [interactionDialogOpen, setInteractionDialogOpen] = useState(false);
+    const queryClient = useQueryClient();
 
     const { data: interactionsData, isLoading, isError } = useQuery({
         queryKey: ['interactions', filterType],
@@ -51,9 +56,16 @@ export default function CommunicationsPage() {
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Communications Hub</h1>
                                 <p className="text-gray-500 mt-1">Central feed of all customer interactions.</p>
                             </div>
-                            {/* <LogInteractionDialog /> TODO: Implement Dialog */}
-                            <Button>Log Interaction</Button>
+                            <Button onClick={() => setInteractionDialogOpen(true)}>Log Interaction</Button>
                         </div>
+                        <LogInteractionDialog
+                            open={interactionDialogOpen}
+                            onOpenChange={setInteractionDialogOpen}
+                            onSuccess={() => {
+                                // Invalidate queries to refresh list
+                                queryClient.invalidateQueries({ queryKey: ['interactions'] });
+                            }}
+                        />
 
                         <div className="flex space-x-2">
                             <Button variant={filterType === "" ? "default" : "outline"} size="sm" onClick={() => setFilterType("")} className="rounded-full">All</Button>
@@ -120,7 +132,7 @@ export default function CommunicationsPage() {
                         </div>
                     </div>
                 </main>
-            </div>
-        </div>
+            </div >
+        </div >
     )
 }

@@ -179,7 +179,11 @@ export default function SalesTargetsPage() {
     const teamTargets = teamTargetsData?.targets || []
     const subordinates = subordinatesData?.subordinates || []
 
-    const targetTree = useMemo(() => buildTargetTree(teamTargets), [teamTargets])
+    const targetTree = useMemo(() => {
+        return buildTargetTree(teamTargetsData?.targets || []);
+    }, [teamTargetsData?.targets]);
+
+    const [now] = useState<number>(() => Date.now()); // Fallback to current time, but useState initializer is only once per mount
 
     const assignMutation = useMutation({
         mutationFn: (data: AssignTargetInput) => assignTarget(data),
@@ -399,7 +403,7 @@ export default function SalesTargetsPage() {
                                                     const percent = target.targetValue > 0
                                                         ? Math.round((target.achievedValue / target.targetValue) * 100)
                                                         : 0;
-                                                    const daysLeft = Math.ceil((new Date(target.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                                                    const daysLeft = Math.ceil((new Date(target.endDate).getTime() - now) / (1000 * 60 * 60 * 24));
 
                                                     return (
                                                         <div key={target.id} className="p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-gray-800/50">

@@ -5,6 +5,7 @@ import { ChevronLeft, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Header } from './Header';
 import { ViolationAlert } from "@/components/shared/ViolationAlert";
+import { CommandCenter } from "@/components/shared/CommandCenter";
 
 import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
@@ -74,7 +75,7 @@ export default function Layout() {
         <div className="flex h-screen overflow-hidden bg-[#F3F4F6]">
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
-                <div 
+                <div
                     className="fixed inset-0 bg-black/50 z-40 lg:hidden"
                     onClick={() => setMobileMenuOpen(false)}
                 />
@@ -90,7 +91,7 @@ export default function Layout() {
                 "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden",
                 mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <Sidebar isCollapsed={false} setIsCollapsed={() => {}} />
+                <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
             </div>
 
             <div className="flex-1 flex flex-col overflow-hidden">
@@ -128,7 +129,7 @@ export default function Layout() {
                         </div>
                     )}
                     <div className={cn(
-                        "container mx-auto p-4 lg:p-6", 
+                        "container mx-auto p-4 lg:p-6",
                         isDashboard ? "lg:pt-6" : "pt-2 lg:pt-4"
                     )}>
                         <Outlet />
@@ -136,6 +137,7 @@ export default function Layout() {
                 </main>
             </div>
             <ViolationAlert />
+            <CommandCenter />
         </div>
     );
 }

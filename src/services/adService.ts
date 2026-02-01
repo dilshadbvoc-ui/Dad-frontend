@@ -19,7 +19,7 @@ export interface MetaAdSet {
     lifetime_budget?: string;
     start_time?: string;
     end_time?: string;
-    targeting?: any;
+    targeting?: Record<string, unknown>;
 }
 
 export interface MetaAd {
@@ -44,7 +44,7 @@ export interface MetaInsights {
     ctr: string;
     unique_clicks: string;
     reach: string;
-    actions: any;
+    actions?: Array<Record<string, unknown>>;
 }
 
 export const getMetaCampaigns = async () => {

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../../services/api';
 import { formatDistanceToNow } from 'date-fns';
+import { useSocket } from '../../contexts/SocketContext';
 
 interface Conversation {
     phoneNumber: string;
@@ -8,6 +9,7 @@ interface Conversation {
     lastMessage: any;
     lastMessageAt: string;
     messageType: string;
+    unreadCount?: number;
 }
 
 interface ConversationListProps {
@@ -19,25 +21,74 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
     const [conversations, setConversations] = useState<Conversation[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const { socket } = useSocket();
 
-    const fetchConversations = async () => {
+    const fetchConversations = useCallback(async (showLoading = false) => {
+        if (showLoading) setLoading(true);
         try {
             const response = await api.get('/whatsapp/conversations');
             setConversations(response.data);
         } catch (error) {
             console.error('Failed to load conversations', error);
         } finally {
-            setLoading(false);
+            if (showLoading) setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
-        fetchConversations();
+        fetchConversations(true);
 
-        // Poll for new messages every 30 seconds
-        const interval = setInterval(fetchConversations, 30000);
+        // Polling as a fallback (longer interval)
+        const interval = setInterval(() => fetchConversations(false), 60000);
+
+        // Socket listener
+        if (socket) {
+            const handleNewMessage = (data: { message: any, phoneNumber: string }) => {
+                console.log('ConversationList: Received new message via socket:', data);
+
+                setConversations(prev => {
+                    const existingIdx = prev.findIndex(c => c.phoneNumber === data.phoneNumber);
+
+                    if (existingIdx > -1) {
+                        // Update existing conversation
+                        const updated = [...prev];
+                        const conversation = { ...updated[existingIdx] };
+
+                        conversation.lastMessage = data.message.content;
+                        conversation.lastMessageAt = data.message.sentAt || data.message.createdAt;
+                        conversation.messageType = data.message.messageType;
+
+                        updated.splice(existingIdx, 1);
+                        return [conversation, ...updated];
+                    } else {
+                        // New conversation (refresh the whole list to get display name etc.)
+                        fetchConversations(false);
+                        return prev;
+                    }
+                });
+            };
+
+            socket.on('whatsapp_message_received', handleNewMessage);
+
+            socket.on('whatsapp_conversation_read', (data: { phoneNumber: string }) => {
+                console.log('ConversationList: Received read notification via socket:', data);
+                setConversations(prev => prev.map(c => {
+                    if (c.phoneNumber === data.phoneNumber) {
+                        return { ...c, unreadCount: 0 };
+                    }
+                    return c;
+                }));
+            });
+
+            return () => {
+                clearInterval(interval);
+                socket.off('whatsapp_message_received', handleNewMessage);
+                socket.off('whatsapp_conversation_read');
+            };
+        }
+
         return () => clearInterval(interval);
-    }, []);
+    }, [socket, fetchConversations]);
 
     const filteredConversations = conversations.filter(c =>
         c.displayName.toLowerCase().includes(search.toLowerCase()) ||
@@ -106,14 +157,21 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
                                             {conv.displayName}
                                         </h3>
                                         {conv.lastMessageAt && (
-                                            <span className="text-xs text-gray-400 shrink-0">
+                                            <span className={`text-[10px] shrink-0 ${conv.unreadCount && conv.unreadCount > 0 ? 'text-green-600 font-semibold' : 'text-gray-400'}`}>
                                                 {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }).replace('about ', '')}
                                             </span>
                                         )}
                                     </div>
-                                    <p className="text-xs text-gray-500 truncate">
-                                        {getMessagePreview(conv)}
-                                    </p>
+                                    <div className="flex justify-between items-center gap-2">
+                                        <p className={`text-xs truncate flex-1 ${conv.unreadCount && conv.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                                            {getMessagePreview(conv)}
+                                        </p>
+                                        {conv.unreadCount && conv.unreadCount > 0 ? (
+                                            <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                                                {conv.unreadCount}
+                                            </span>
+                                        ) : null}
+                                    </div>
                                 </div>
                             </div>
                         ))}

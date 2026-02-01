@@ -9,12 +9,14 @@ import Layout from './components/shared/Layout';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
+import { SocketProvider } from './contexts/SocketContext';
 
 import LeadsPage from './pages/leads';
 import CreateLeadPage from './pages/leads/new';
 import LeadDetailPage from './pages/leads/[id]';
 import UserProfilePage from './pages/users/[id]';
 import ContactsPage from './pages/contacts';
+import ContactDetailPage from './pages/contacts/[id]';
 import AccountsPage from './pages/accounts';
 import AccountDetailPage from './pages/accounts/[id]';
 import OpportunitiesPage from './pages/opportunities';
@@ -96,70 +98,74 @@ function AppContent() {
   }, []);
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
-        <Route path="/sso-callback" element={<SSOCallback />} />
-        <Route path="/register" element={<Register />} />
+    <SocketProvider>
+      <Router>
+        <Routes>
+          {/* ... existing routes ... */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
+          <Route path="/sso-callback" element={<SSOCallback />} />
+          <Route path="/register" element={<Register />} />
 
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/leads" element={<LeadsPage />} />
-          <Route path="/leads/new" element={<CreateLeadPage />} />
-          <Route path="/leads/:id" element={<LeadDetailPage />} />
-          <Route path="/contacts" element={<ContactsPage />} />
-          <Route path="/accounts" element={<AccountsPage />} />
-          <Route path="/accounts/:id" element={<AccountDetailPage />} />
-          <Route path="/opportunities" element={<OpportunitiesPage />} />
-          <Route path="/marketing" element={<MarketingPage />} />
-          <Route path="/marketing/ads" element={<AdsDashboard />} />
-          <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
-          <Route path="/communications" element={<CommunicationsPage />} />
-          <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
-          <Route path="/calls" element={<CallsPage />} />
-          <Route path="/calendar" element={<CalendarPage />} />
-          <Route path="/tasks" element={<TasksPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/ai-writer" element={<AiWriterPage />} />
-          <Route path="/analytics" element={<AnalyticsPage />} />
-          <Route path="/users/:id" element={<UserProfilePage />} />
-          <Route path="/organisation/hierarchy" element={<HierarchyPage />} />
-          <Route path="/settings/profile" element={<ProfileSettingsPage />} />
-          <Route path="/settings/team" element={<TeamSettingsPage />} />
-          <Route path="/settings/roles" element={<RolesSettingsPage />} />
-          <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
-          <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
-          <Route path="/automation" element={<AutomationPage />} />
-          <Route path="/automation/new" element={<CreateWorkflowPage />} />
-          <Route path="/automation/:id" element={<WorkflowDetailPage />} />
-          <Route path="/workflows" element={<WorkflowsPage />} />
-          <Route path="/products" element={<ProductsPage />} />
-          <Route path="/quotes" element={<QuotesPage />} />
-          <Route path="/field-force" element={<FieldForcePage />} />
-          <Route path="/support" element={<SupportPage />} />
-          <Route path="/goals" element={<GoalsPage />} />
-          <Route path="/sales-targets" element={<SalesTargetsPage />} />
-          <Route path="/reports" element={<ReportsPage />} />
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/leads" element={<LeadsPage />} />
+            <Route path="/leads/new" element={<CreateLeadPage />} />
+            <Route path="/leads/:id" element={<LeadDetailPage />} />
+            <Route path="/contacts" element={<ContactsPage />} />
+            <Route path="/contacts/:id" element={<ContactDetailPage />} />
+            <Route path="/accounts" element={<AccountsPage />} />
+            <Route path="/accounts/:id" element={<AccountDetailPage />} />
+            <Route path="/opportunities" element={<OpportunitiesPage />} />
+            <Route path="/marketing" element={<MarketingPage />} />
+            <Route path="/marketing/ads" element={<AdsDashboard />} />
+            <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
+            <Route path="/communications" element={<CommunicationsPage />} />
+            <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
+            <Route path="/calls" element={<CallsPage />} />
+            <Route path="/calendar" element={<CalendarPage />} />
+            <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/ai-writer" element={<AiWriterPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
+            <Route path="/users/:id" element={<UserProfilePage />} />
+            <Route path="/organisation/hierarchy" element={<HierarchyPage />} />
+            <Route path="/settings/profile" element={<ProfileSettingsPage />} />
+            <Route path="/settings/team" element={<TeamSettingsPage />} />
+            <Route path="/settings/roles" element={<RolesSettingsPage />} />
+            <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
+            <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
+            <Route path="/automation" element={<AutomationPage />} />
+            <Route path="/automation/new" element={<CreateWorkflowPage />} />
+            <Route path="/automation/:id" element={<WorkflowDetailPage />} />
+            <Route path="/workflows" element={<WorkflowsPage />} />
+            <Route path="/products" element={<ProductsPage />} />
+            <Route path="/quotes" element={<QuotesPage />} />
+            <Route path="/field-force" element={<FieldForcePage />} />
+            <Route path="/support" element={<SupportPage />} />
+            <Route path="/goals" element={<GoalsPage />} />
+            <Route path="/sales-targets" element={<SalesTargetsPage />} />
+            <Route path="/reports" element={<ReportsPage />} />
 
-          {/* Super Admin & Organisation Settings */}
-          <Route path="/super-admin" element={<SuperAdminDashboard />} />
-          <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
-          <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
-          <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
-          <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
-          <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
-          <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
-          <Route path="/settings/import" element={<ImportPage />} />
-          <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
-          <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
-          <Route path="/settings/billing" element={<BillingSettingsPage />} />
-          <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
-        </Route>
+            {/* Super Admin & Organisation Settings */}
+            <Route path="/super-admin" element={<SuperAdminDashboard />} />
+            <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
+            <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
+            <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
+            <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
+            <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
+            <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
+            <Route path="/settings/import" element={<ImportPage />} />
+            <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
+            <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
+            <Route path="/settings/billing" element={<BillingSettingsPage />} />
+            <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
+          </Route>
 
-        <Route path="/" element={<LandingPage />} />
-      </Routes>
-    </Router>
+          <Route path="/" element={<LandingPage />} />
+        </Routes>
+      </Router>
+    </SocketProvider>
   );
 }
 

@@ -44,7 +44,7 @@ export interface WhatsAppMessage {
         firstName: string;
         lastName: string;
         email?: string;
-        phones?: any;
+        phones?: string[];
     };
 }
 
@@ -54,7 +54,7 @@ export interface WhatsAppTemplate {
     status: string;
     category: string;
     language: string;
-    components: any[];
+    components: Array<Record<string, unknown>>;
 }
 
 export interface SendMessageRequest {
@@ -63,7 +63,7 @@ export interface SendMessageRequest {
     type?: 'text' | 'template';
     templateName?: string;
     languageCode?: string;
-    components?: any[];
+    components?: Array<Record<string, unknown>>;
 }
 
 export const sendWhatsAppMessage = async (data: SendMessageRequest) => {
