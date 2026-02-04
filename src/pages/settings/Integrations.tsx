@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWebhooks, createWebhook, deleteWebhook, toggleWebhook } from "@/services/webhookService";
+import { getOrganisation } from "@/services/settingsService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -33,6 +34,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 
 const EVENTS = [
     "contact.created",
@@ -46,6 +48,16 @@ export default function IntegrationsPage() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
     const [newWebhook, setNewWebhook] = useState({ url: "", event: "" });
+    const [isMetaDialogOpen, setIsMetaDialogOpen] = useState(false);
+    const [isWhatsAppDialogOpen, setIsWhatsAppDialogOpen] = useState(false);
+
+    // Fetch Organisation for integration settings
+    const { data: orgData } = useQuery({
+        queryKey: ['organisation'],
+        queryFn: getOrganisation
+    });
+
+    const integrations = orgData?.integrations || {};
 
     // Fetch Webhooks
     const { data: webhooks = [], isLoading } = useQuery({
@@ -112,22 +124,70 @@ export default function IntegrationsPage() {
                         Native Integrations
                     </h2>
 
+                    {/* Meta Ads Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                             <div className="space-y-1">
-                                <CardTitle className="text-base">WhatsApp / Meta</CardTitle>
-                                <CardDescription>Connect WhatsApp Business API</CardDescription>
+                                <CardTitle className="text-base">Meta Ads</CardTitle>
+                                <CardDescription>Connect Facebook & Instagram Ads</CardDescription>
                             </div>
-                            <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-300">
-                                Connected
+                            <Badge
+                                variant="default"
+                                className={integrations.meta?.connected
+                                    ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+                                    : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                                }
+                            >
+                                {integrations.meta?.connected ? 'Connected' : 'Not Connected'}
                             </Badge>
                         </CardHeader>
                         <CardContent>
                             <div className="text-sm text-gray-500 mt-2">
-                                Sync interactions and campaigns with Meta services using the Cloud API.
+                                Sync Meta Ad campaigns and view performance analytics.
                             </div>
                             <div className="mt-4 flex justify-end">
-                                <Button variant="outline" size="sm">Configure</Button>
+                                <IntegrationConfigDialog
+                                    integrationType="meta"
+                                    initialValues={integrations.meta || {}}
+                                    open={isMetaDialogOpen}
+                                    onOpenChange={setIsMetaDialogOpen}
+                                >
+                                    <Button variant="outline" size="sm">Configure</Button>
+                                </IntegrationConfigDialog>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* WhatsApp Card */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+                            <div className="space-y-1">
+                                <CardTitle className="text-base">WhatsApp Business</CardTitle>
+                                <CardDescription>Connect WhatsApp Business API</CardDescription>
+                            </div>
+                            <Badge
+                                variant="default"
+                                className={integrations.whatsapp?.connected
+                                    ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
+                                    : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
+                                }
+                            >
+                                {integrations.whatsapp?.connected ? 'Connected' : 'Not Connected'}
+                            </Badge>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-sm text-gray-500 mt-2">
+                                Send WhatsApp messages and manage campaigns using Cloud API.
+                            </div>
+                            <div className="mt-4 flex justify-end">
+                                <IntegrationConfigDialog
+                                    integrationType="whatsapp"
+                                    initialValues={integrations.whatsapp || {}}
+                                    open={isWhatsAppDialogOpen}
+                                    onOpenChange={setIsWhatsAppDialogOpen}
+                                >
+                                    <Button variant="outline" size="sm">Configure</Button>
+                                </IntegrationConfigDialog>
                             </div>
                         </CardContent>
                     </Card>
