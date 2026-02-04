@@ -108,10 +108,10 @@ export default function ReportsPage() {
     }
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', { 
-            style: 'currency', 
-            currency: 'INR', 
-            maximumFractionDigits: 0 
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
         }).format(amount);
     };
 
@@ -131,10 +131,10 @@ export default function ReportsPage() {
                                 <div className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 shadow-sm border">
                                     <Calendar className="h-4 w-4 text-slate-500" />
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                        {new Date().toLocaleDateString('en-IN', { 
-                                            month: 'long', 
-                                            day: 'numeric', 
-                                            year: 'numeric' 
+                                        {new Date().toLocaleDateString('en-IN', {
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric'
                                         })}
                                     </span>
                                 </div>
@@ -185,7 +185,7 @@ export default function ReportsPage() {
                                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                         ))}
                                                     </Pie>
-                                                    <Tooltip 
+                                                    <Tooltip
                                                         contentStyle={{
                                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                                             borderRadius: '12px',
@@ -193,8 +193,8 @@ export default function ReportsPage() {
                                                             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
                                                         }}
                                                     />
-                                                    <Legend 
-                                                        verticalAlign="bottom" 
+                                                    <Legend
+                                                        verticalAlign="bottom"
                                                         height={36}
                                                         iconType="circle"
                                                     />
@@ -214,25 +214,25 @@ export default function ReportsPage() {
                                                 <BarChart data={leadsByStatusData}>
                                                     <defs>
                                                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3}/>
+                                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3} />
                                                         </linearGradient>
                                                     </defs>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                                                    <XAxis 
-                                                        dataKey="name" 
-                                                        fontSize={12} 
-                                                        tickLine={false} 
+                                                    <XAxis
+                                                        dataKey="name"
+                                                        fontSize={12}
+                                                        tickLine={false}
                                                         axisLine={false}
                                                         tick={{ fill: '#6b7280' }}
                                                     />
-                                                    <YAxis 
-                                                        fontSize={12} 
-                                                        tickLine={false} 
+                                                    <YAxis
+                                                        fontSize={12}
+                                                        tickLine={false}
                                                         axisLine={false}
                                                         tick={{ fill: '#6b7280' }}
                                                     />
-                                                    <Tooltip 
+                                                    <Tooltip
                                                         cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
                                                         contentStyle={{
                                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -241,9 +241,9 @@ export default function ReportsPage() {
                                                             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
                                                         }}
                                                     />
-                                                    <Bar 
-                                                        dataKey="value" 
-                                                        fill="url(#colorBar)" 
+                                                    <Bar
+                                                        dataKey="value"
+                                                        fill="url(#colorBar)"
                                                         radius={[8, 8, 0, 0]}
                                                         maxBarSize={60}
                                                     />
@@ -397,7 +397,9 @@ export default function ReportsPage() {
                                                 <TableBody>
                                                     {perfLoading ? (
                                                         <TableRow><TableCell colSpan={7} className="text-center py-8">Loading...</TableCell></TableRow>
-                                                    ) : performanceData?.performance?.map((item: any) => (
+                                                    ) : !performanceData?.performance || performanceData.performance.length === 0 ? (
+                                                        <TableRow><TableCell colSpan={7} className="text-center py-8 text-gray-500">No performance data available</TableCell></TableRow>
+                                                    ) : performanceData.performance.map((item: any) => (
                                                         <TableRow key={item.user.id}>
                                                             <TableCell className="font-medium">{item.user.name}</TableCell>
                                                             <TableCell className="capitalize">{item.user.role}</TableCell>
