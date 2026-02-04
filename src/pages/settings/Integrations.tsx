@@ -124,12 +124,12 @@ export default function IntegrationsPage() {
                         Native Integrations
                     </h2>
 
-                    {/* Meta Ads Card */}
+                    {/* Meta / WhatsApp OAuth Card */}
                     <Card>
                         <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
                             <div className="space-y-1">
-                                <CardTitle className="text-base">Meta Ads</CardTitle>
-                                <CardDescription>Connect Facebook & Instagram Ads</CardDescription>
+                                <CardTitle className="text-base">Meta / WhatsApp</CardTitle>
+                                <CardDescription>Connect Facebook Ads & WhatsApp Business</CardDescription>
                             </div>
                             <Badge
                                 variant="default"
@@ -142,53 +142,60 @@ export default function IntegrationsPage() {
                             </Badge>
                         </CardHeader>
                         <CardContent>
-                            <div className="text-sm text-gray-500 mt-2">
-                                Sync Meta Ad campaigns and view performance analytics.
-                            </div>
-                            <div className="mt-4 flex justify-end">
-                                <IntegrationConfigDialog
-                                    integrationType="meta"
-                                    initialValues={integrations.meta || {}}
-                                    open={isMetaDialogOpen}
-                                    onOpenChange={setIsMetaDialogOpen}
-                                >
-                                    <Button variant="outline" size="sm">Configure</Button>
-                                </IntegrationConfigDialog>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    {/* WhatsApp Card */}
-                    <Card>
-                        <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                            <div className="space-y-1">
-                                <CardTitle className="text-base">WhatsApp Business</CardTitle>
-                                <CardDescription>Connect WhatsApp Business API</CardDescription>
-                            </div>
-                            <Badge
-                                variant="default"
-                                className={integrations.whatsapp?.connected
-                                    ? "bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900 dark:text-green-300"
-                                    : "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300"
-                                }
-                            >
-                                {integrations.whatsapp?.connected ? 'Connected' : 'Not Connected'}
-                            </Badge>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-sm text-gray-500 mt-2">
-                                Send WhatsApp messages and manage campaigns using Cloud API.
-                            </div>
-                            <div className="mt-4 flex justify-end">
-                                <IntegrationConfigDialog
-                                    integrationType="whatsapp"
-                                    initialValues={integrations.whatsapp || {}}
-                                    open={isWhatsAppDialogOpen}
-                                    onOpenChange={setIsWhatsAppDialogOpen}
-                                >
-                                    <Button variant="outline" size="sm">Configure</Button>
-                                </IntegrationConfigDialog>
-                            </div>
+                            {integrations.meta?.connected ? (
+                                <div className="space-y-3">
+                                    <div className="text-sm text-gray-500">
+                                        <p><strong>Ad Account:</strong> {integrations.meta?.adAccountName || 'N/A'}</p>
+                                        <p><strong>Page:</strong> {integrations.meta?.pageName || 'N/A'}</p>
+                                        {integrations.whatsapp?.connected && (
+                                            <p className="text-green-600"><strong>WhatsApp:</strong> Connected ✓</p>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-2 justify-end">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/meta/auth`}
+                                        >
+                                            Reconnect
+                                        </Button>
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            onClick={async () => {
+                                                try {
+                                                    const { api } = await import('@/services/api');
+                                                    await api.post('/meta/disconnect', { type: 'both' });
+                                                    queryClient.invalidateQueries({ queryKey: ['organisation'] });
+                                                    toast.success('Disconnected from Meta');
+                                                } catch (error: any) {
+                                                    toast.error(error.response?.data?.message || 'Failed to disconnect');
+                                                }
+                                            }}
+                                        >
+                                            Disconnect
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    <div className="text-sm text-gray-500">
+                                        Connect your Facebook account to sync Meta Ads and WhatsApp Business.
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <Button
+                                            className="bg-[#1877F2] hover:bg-[#166FE5] text-white"
+                                            size="sm"
+                                            onClick={() => window.location.href = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/meta/auth`}
+                                        >
+                                            <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                                            </svg>
+                                            Connect with Facebook
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
 
