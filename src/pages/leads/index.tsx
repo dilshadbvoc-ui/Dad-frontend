@@ -204,7 +204,7 @@ export default function LeadsPage() {
                 <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950 dark:to-orange-900 border-orange-200 dark:border-orange-800 rounded-xl overflow-hidden p-3">
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Todo</p>
+                            <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Total</p>
                             <p className="text-2xl font-bold text-orange-900 dark:text-orange-100">{isLoading ? "..." : pendingFollowUps}</p>
                         </div>
                         <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400 opacity-50" />

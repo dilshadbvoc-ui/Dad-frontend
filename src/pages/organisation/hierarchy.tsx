@@ -241,7 +241,7 @@ export default function HierarchyPage() {
             return [];
         }
         const result = buildTree(users);
-        console.log('useMemo: tree result:', result);
+
         return result;
     }, [users]);
 

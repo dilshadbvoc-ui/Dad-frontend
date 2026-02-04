@@ -29,7 +29,7 @@ export default function CalendarPage() {
     endOfWeek.setDate(startOfWeek.getDate() + 6) // 6 days later (Sun-Sat)
     endOfWeek.setHours(23, 59, 59, 999) // End of day
 
-    console.log('Calendar date range:', { start: startOfWeek.toISOString(), end: endOfWeek.toISOString() })
+
 
     const { data: eventsData, isLoading } = useQuery({
         queryKey: ['calendar-events', startOfWeek.toISOString()],
@@ -37,7 +37,7 @@ export default function CalendarPage() {
     })
 
     const events = eventsData?.events || [];
-    console.log('Loaded events:', events.length, events)
+
 
     const createMutation = useMutation({
         mutationFn: (data: CreateEventData) => createEvent(data),

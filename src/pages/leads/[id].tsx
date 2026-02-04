@@ -22,6 +22,7 @@ import { format, formatDistanceToNow } from "date-fns"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
+import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 
 
 
@@ -56,8 +57,9 @@ export default function LeadDetailPage() {
     const [isScheduleMeetingOpen, setIsScheduleMeetingOpen] = useState(false)
     const [isConvertOpen, setIsConvertOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
-    const [isAssignOpen, setIsAssignOpen] = useState(false)
-    const [isSetFollowUpOpen, setIsSetFollowUpOpen] = useState(false)
+    const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+    const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false)
     const [dragOver, setDragOver] = useState(false)
     const queryClient = useQueryClient()
 
@@ -80,7 +82,7 @@ export default function LeadDetailPage() {
         }
     })
 
-    const { data: calls } = useQuery({
+    const { data: calls, refetch } = useQuery({
         queryKey: ['calls', id],
         queryFn: async () => (await api.get(`/calls/lead/${id}`)).data,
         enabled: id !== 'new'
@@ -175,7 +177,7 @@ export default function LeadDetailPage() {
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         {lead.firstName} {lead.lastName}
                         {id && <CollaborationBadge resourceId={`leads/${id}`} />}
-                        <Button variant="outline" size="sm" onClick={() => setIsSetFollowUpOpen(true)}>
+                        <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)}>
                             <Calendar className="h-4 w-4 mr-2" />
                             Set Follow-up
                         </Button>
@@ -183,9 +185,13 @@ export default function LeadDetailPage() {
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setIsAssignOpen(true)}>
+                        <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)}>
                             <UserPlus className="h-4 w-4 mr-2" />
                             Assign
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
+                            <Mail className="w-4 h-4 mr-2" />
+                            Email
                         </Button>
                         <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setIsConvertOpen(true)} disabled={lead.status === 'converted'}>
                             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -314,8 +320,8 @@ export default function LeadDetailPage() {
             {lead && (
                 <>
                     <SetFollowUpDialog
-                        open={isSetFollowUpOpen}
-                        onOpenChange={setIsSetFollowUpOpen}
+                        open={followUpDialogOpen}
+                        onOpenChange={setFollowUpDialogOpen}
                         leadId={lead.id}
                         currentDate={lead.nextFollowUp}
                         onSuccess={() => {
@@ -370,7 +376,17 @@ export default function LeadDetailPage() {
             )}
 
             {lead && <EditLeadDialog open={isEditOpen} onOpenChange={setIsEditOpen} lead={lead} />}
-            {lead && <AssignLeadDialog open={isAssignOpen} onOpenChange={setIsAssignOpen} lead={lead} />}
+            {lead && <AssignLeadDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} lead={lead} />}
+            <EmailComposeDialog
+                open={emailDialogOpen}
+                onOpenChange={setEmailDialogOpen}
+                leadId={lead.id}
+                leadEmail={lead.email}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ['lead-timeline', lead.id] })
+                }}
+            />
+
         </div>
     )
 }

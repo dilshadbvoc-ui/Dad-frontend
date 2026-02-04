@@ -29,6 +29,13 @@ export default function BillingSettingsPage() {
     const plans = data?.plans || [];
 
     useEffect(() => {
+        if (plans.length > 0 && currentPlanId) {
+            const plan = plans.find((p: SubscriptionPlan) => p.id === currentPlanId);
+            if (plan) setCurrentPlanName(plan.name);
+        }
+    }, [plans, currentPlanId]);
+
+    useEffect(() => {
         if (searchParams.get('success')) {
             toast.success('Subscription updated successfully!');
         }

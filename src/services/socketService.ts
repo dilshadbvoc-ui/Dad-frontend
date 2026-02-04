@@ -15,7 +15,7 @@ class SocketService {
             });
 
             this.socket.on('connect', () => {
-                console.log('Socket connected');
+
                 this.socket?.emit('join_room', userId);
             });
         }

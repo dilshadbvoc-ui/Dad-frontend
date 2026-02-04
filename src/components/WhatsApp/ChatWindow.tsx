@@ -140,6 +140,44 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
         }
     };
 
+    const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || sending) return;
+
+        setSending(true);
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // 1. Upload to WhatsApp/Meta
+            const uploadRes = await api.post('/whatsapp/upload-media', formData, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+
+            const mediaId = uploadRes.data.id;
+            const mediaType = file.type.split('/')[0];
+            const type = (mediaType === 'image' || mediaType === 'video' || mediaType === 'audio')
+                ? mediaType
+                : 'document';
+
+            // 2. Send Media Message
+            await api.post('/whatsapp/send-media', {
+                to: phoneNumber,
+                mediaType: type,
+                mediaId,
+                filename: file.name,
+                caption: ''
+            });
+
+            fetchMessages();
+        } catch (error) {
+            console.error('Failed to upload/send media', error);
+        } finally {
+            setSending(false);
+            if (e.target) e.target.value = '';
+        }
+    };
+
     const handleTemplateSelect = async (template: any, variables: Record<string, string>) => {
         try {
             setSending(true);
@@ -320,11 +358,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
             {/* Input Area */}
             <form onSubmit={handleSend} className="bg-white p-3 px-4 border-t border-gray-200 flex gap-2 items-end">
                 <div className="flex gap-1">
-                    <button type="button" className="p-2 text-gray-500 hover:text-gray-600 rounded-full hover:bg-gray-100 mb-1" title="Attach">
+                    <label className="p-2 text-gray-500 hover:text-gray-600 rounded-full hover:bg-gray-100 mb-1 cursor-pointer" title="Attach">
+                        <input type="file" className="hidden" onChange={handleMediaUpload} disabled={sending} />
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                         </svg>
-                    </button>
+                    </label>
                     <button
                         type="button"
                         onClick={() => setShowTemplatePicker(true)}

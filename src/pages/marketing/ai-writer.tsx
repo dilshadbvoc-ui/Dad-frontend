@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sparkles, Copy, Check } from "lucide-react";
 import { toast } from "sonner";
+import { api } from "@/services/api";
 
 export default function AiWriterPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -17,25 +18,30 @@ export default function AiWriterPage() {
         tone: "professional"
     });
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         if (!formData.topic) {
             toast.error("Please enter a topic");
             return;
         }
 
         setIsLoading(true);
-        // Mock API call
-        setTimeout(() => {
-            const mockResponses: Record<string, string> = {
-                email: `Subject: ${formData.topic}\n\nDear Client,\n\nWe are excited to share updates regarding ${formData.topic}. Our team has been working hard to deliver the best results for you.\n\nBest regards,\nThe Team`,
-                social: `🚀 Exciting news about ${formData.topic}! We're exploring new ways to help you succeed. #Growth #Innovation #${formData.topic.split(' ')[0]}`,
-                blog: `Title: The Future of ${formData.topic}\n\nIn today's rapidly evolving landscape, understanding ${formData.topic} is more important than ever. Here are three key takeaways to keep in mind...`
-            };
+        setIsLoading(true);
 
-            setGeneratedContent(mockResponses[formData.type] || mockResponses['email']);
+        try {
+            const response = await api.post('/ai/generate', formData);
+
+            if (response.data?.data?.content) {
+                setGeneratedContent(response.data.data.content);
+                toast.success(response.data.data.isMock ? "Content generated (Mock Mode)" : "Content generated successfully!");
+            } else {
+                toast.error("Failed to generate content");
+            }
+        } catch (error: any) {
+            console.error('AI Generation Error:', error);
+            toast.error(error.response?.data?.message || "Something went wrong");
+        } finally {
             setIsLoading(false);
-            toast.success("Content generated successfully!");
-        }, 1500);
+        }
     };
 
     const copyToClipboard = () => {

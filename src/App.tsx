@@ -3,6 +3,8 @@ import { Suspense, lazy, useEffect } from 'react';
 import { syncToken } from './utils/mobileBridge';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
@@ -113,6 +115,8 @@ function AppContent() {
           <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
           <Route path="/sso-callback" element={<SSOCallback />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
