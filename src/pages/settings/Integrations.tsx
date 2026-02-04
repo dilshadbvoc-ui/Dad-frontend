@@ -16,7 +16,8 @@ import {
     CheckCircle2,
     AlertCircle,
     Activity,
-    Box
+    Box,
+    Copy
 } from "lucide-react";
 import {
     Dialog,
@@ -183,6 +184,33 @@ export default function IntegrationsPage() {
                                         >
                                             Disconnect
                                         </Button>
+                                    </div>
+
+                                    {/* Webhook Info */}
+                                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-md border border-blue-200 dark:border-blue-800">
+                                        <p className="text-xs font-semibold text-blue-800 dark:text-blue-300 mb-1 flex items-center">
+                                            <Webhook className="w-3 h-3 mr-1" /> Webhook Configuration
+                                        </p>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] text-gray-500">To sync leads in real-time, add this to Meta Developer Portal:</p>
+                                            <div className="flex items-center justify-between gap-1 overflow-hidden">
+                                                <code className="text-[10px] bg-white dark:bg-gray-900 px-1 py-0.5 rounded border truncate flex-1">
+                                                    {`${import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5001')}/api/meta/webhook`}
+                                                </code>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-5 w-5"
+                                                    onClick={() => {
+                                                        const url = `${import.meta.env.VITE_API_URL || window.location.origin.replace(':5173', ':5001')}/api/meta/webhook`;
+                                                        navigator.clipboard.writeText(url);
+                                                        toast.success("URL copied");
+                                                    }}
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ) : (
