@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
+import { API_URL } from '@/config';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+const SOCKET_URL = API_URL;
 
 class SocketService {
     private socket: Socket | null = null;
@@ -14,7 +15,7 @@ class SocketService {
             });
 
             this.socket.on('connect', () => {
-                console.log('Socket connected');
+
                 this.socket?.emit('join_room', userId);
             });
         }
@@ -27,11 +28,11 @@ class SocketService {
         }
     }
 
-    emit(event: string, data: any) {
+    emit<T = any>(event: string, data: T) {
         this.socket?.emit(event, data);
     }
 
-    on(event: string, callback: (data: any) => void) {
+    on<T = any>(event: string, callback: (data: T) => void) {
         this.socket?.on(event, callback);
     }
 

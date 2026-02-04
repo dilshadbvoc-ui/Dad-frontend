@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { socketService } from '@/services/socketService';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -38,7 +38,7 @@ export function CollaborationBadge({ resourceId }: { resourceId: string }) {
             }
         };
 
-        socketService.on('presence_update', handlePresence);
+        socketService.on<PresenceData>('presence_update', (data) => handlePresence(data));
 
         return () => {
             socketService.emit('leave_collaboration', { resourceId });
