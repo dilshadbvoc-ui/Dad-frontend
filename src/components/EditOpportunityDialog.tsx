@@ -33,6 +33,7 @@ export interface Opportunity {
     stage: string
     probability: number
     closeDate?: string
+    type?: 'NEW_BUSINESS' | 'UPSALE'
 }
 
 interface EditOpportunityDialogProps {
@@ -48,6 +49,7 @@ interface EditOpportunityFormData {
     stage: string
     probability: number
     closeDate: string
+    type: 'NEW_BUSINESS' | 'UPSALE'
 }
 
 export function EditOpportunityDialog({ children, open, onOpenChange, opportunity }: EditOpportunityDialogProps) {
@@ -66,6 +68,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
             stage: opportunity.stage || "prospecting",
             probability: opportunity.probability || 10,
             closeDate: opportunity.closeDate ? new Date(opportunity.closeDate).toISOString().split('T')[0] : "",
+            type: opportunity.type || 'NEW_BUSINESS',
         },
     })
 
@@ -77,6 +80,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                 stage: opportunity.stage || "prospecting",
                 probability: opportunity.probability || 10,
                 closeDate: opportunity.closeDate ? new Date(opportunity.closeDate).toISOString().split('T')[0] : "",
+                type: opportunity.type || 'NEW_BUSINESS',
             })
         }
     }, [opportunity, form])
@@ -205,6 +209,28 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                                     <FormControl>
                                         <Input type="date" {...field} />
                                     </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        <FormField
+                            control={form.control}
+                            name="type"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Opportunity Type</FormLabel>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                        <FormControl>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select type" />
+                                            </SelectTrigger>
+                                        </FormControl>
+                                        <SelectContent>
+                                            <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                            <SelectItem value="UPSALE">Upsale</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     <FormMessage />
                                 </FormItem>
                             )}

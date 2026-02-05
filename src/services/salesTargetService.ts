@@ -29,20 +29,22 @@ export interface SalesTarget {
     };
     productId?: string | null;
     metric: 'revenue' | 'units';
+    scope?: 'INDIVIDUAL' | 'HIERARCHY';
+    opportunityType?: 'NEW_BUSINESS' | 'UPSALE' | null;
 }
 
 export interface DailyAchievement {
     hasTarget: boolean;
-    showNotification?: boolean;
+    showNotification: boolean;
     target?: {
-        id: string;
+        _id: string;
         targetValue: number;
         achievedValue: number;
         achievementPercent: number;
         period: string;
         daysRemaining: number;
         amountRemaining: number;
-    };
+    }
 }
 
 export interface Subordinate {
@@ -57,6 +59,7 @@ export interface AssignTargetInput {
     period: 'monthly' | 'quarterly' | 'yearly';
     productId?: string;
     metric?: 'revenue' | 'units';
+    scope?: 'INDIVIDUAL' | 'HIERARCHY';
 }
 
 export interface UpdateTargetInput {

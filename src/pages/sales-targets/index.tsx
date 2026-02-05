@@ -129,6 +129,11 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
                                         {node.product.name}
                                     </Badge>
                                 )}
+                                {node.opportunityType && (
+                                    <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 text-purple-700">
+                                        {node.opportunityType.replace('_', ' ')}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -172,12 +177,34 @@ export default function SalesTargetsPage() {
     const [targetValue, setTargetValue] = useState("")
     const [period, setPeriod] = useState<"monthly" | "quarterly" | "yearly">("monthly")
 
+    // New State for Enhanced Targeting
+    const [metric, setMetric] = useState<'revenue' | 'units'>('revenue')
+    const [scope, setScope] = useState<'INDIVIDUAL' | 'HIERARCHY'>('HIERARCHY')
+    const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
+    const [opportunityType, setOpportunityType] = useState<'NEW_BUSINESS' | 'UPSALE' | 'ALL'>('ALL')
+
     // Edit State
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [editingTarget, setEditingTarget] = useState<SalesTarget | null>(null)
     const [editValue, setEditValue] = useState("")
 
     const queryClient = useQueryClient()
+
+    // Fetch Products for dropdown
+    // Assuming we can use /api/products directly or need a service method.
+    // Using inline fetch or similar approach to previous files
+    const { data: productsData } = useQuery({
+        queryKey: ['products'],
+        queryFn: async () => {
+            // We need to import api here or use existing pattern. 
+            // To avoid import issues, I will try to use the api imported in other files if available,
+            // but index.tsx doesn't import 'api'.
+            // I'll assume 'api' can be imported from @/services/api
+            const { api } = await import('@/services/api')
+            return (await api.get('/products')).data
+        }
+    })
+    const products = productsData || []
 
     const { data: myTargetsData, isLoading: isLoadingMy } = useQuery({
         queryKey: ['sales-targets', 'my'],
@@ -254,7 +281,11 @@ export default function SalesTargetsPage() {
         assignMutation.mutate({
             assignToUserId: selectedSubordinate,
             targetValue: parseFloat(targetValue),
-            period
+            period,
+            metric,
+            scope,
+            productId: selectedProductId === 'ALL' ? undefined : selectedProductId,
+            opportunityType: opportunityType === 'ALL' ? undefined : opportunityType
         })
     }
 
@@ -340,12 +371,74 @@ export default function SalesTargetsPage() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <Label>Target Amount (₹)</Label>
+                                                    <Label>Measure By</Label>
+                                                    <Select value={metric} onValueChange={(v) => setMetric(v as 'revenue' | 'units')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="revenue">Revenue Amount (₹)</SelectItem>
+                                                            <SelectItem value="units">Product Units (Qty)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Target Scope</Label>
+                                                    <Select value={scope} onValueChange={(v) => setScope(v as 'INDIVIDUAL' | 'HIERARCHY')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="HIERARCHY">Team Hierarchy (Rollup)</SelectItem>
+                                                            <SelectItem value="INDIVIDUAL">Individual Only</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <p className="text-[11px] text-muted-foreground mt-1">
+                                                        {scope === 'HIERARCHY'
+                                                            ? "Target includes sales from the user + their team."
+                                                            : "Target counts ONLY the user's personal sales."}
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Product (Optional)</Label>
+                                                    <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="All Products (General Target)" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="ALL">All Products (General Target)</SelectItem>
+                                                            {products.map((product: any) => (
+                                                                <SelectItem key={product.id} value={product.id}>
+                                                                    {product.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Opportunity Type (Optional)</Label>
+                                                    <Select value={opportunityType} onValueChange={(v) => setOpportunityType(v as 'NEW_BUSINESS' | 'UPSALE' | 'ALL')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="ALL">All Types</SelectItem>
+                                                            <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                                            <SelectItem value="UPSALE">Upsale</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>{metric === 'revenue' ? 'Target Amount (₹)' : 'Target Units (Qty)'}</Label>
                                                     <Input
                                                         type="number"
                                                         value={targetValue}
                                                         onChange={(e) => setTargetValue(e.target.value)}
-                                                        placeholder="e.g. 100000"
+                                                        placeholder={metric === 'revenue' ? "e.g. 100000" : "e.g. 50"}
                                                         required
                                                     />
                                                 </div>

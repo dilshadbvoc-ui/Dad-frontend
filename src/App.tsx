@@ -13,6 +13,7 @@ import PrivacyPolicy from './pages/PrivacyPolicy';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { SocketProvider } from './contexts/SocketContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import LeadsPage from './pages/leads';
 import CreateLeadPage from './pages/leads/new';
@@ -191,21 +192,23 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-      <Toaster
-        position="bottom-right"
-        expand={true}
-        richColors
-        closeButton
-        duration={4000}
-        toastOptions={{
-          style: {
-            borderRadius: '12px',
-          },
-        }}
-      />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+        <Toaster
+          position="bottom-right"
+          expand={true}
+          richColors
+          closeButton
+          duration={4000}
+          toastOptions={{
+            style: {
+              borderRadius: '12px',
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

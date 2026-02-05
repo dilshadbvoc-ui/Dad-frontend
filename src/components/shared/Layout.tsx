@@ -76,7 +76,7 @@ export default function Layout() {
     }, []);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#0f172a]">
+        <div className="flex h-screen overflow-hidden bg-background">
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
                 <div
@@ -100,7 +100,7 @@ export default function Layout() {
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 {/* Standardized Header Container */}
-                <div className="flex items-center justify-between lg:justify-end bg-[#1e1b4b] border-b border-indigo-900/50 px-4 h-16 shadow-md shadow-indigo-900/10 shrink-0">
+                <div className="flex items-center justify-between lg:justify-end bg-card border-b border-border px-4 h-16 shadow-md shadow-black/5 shrink-0">
                     <Button
                         variant="ghost"
                         size="sm"

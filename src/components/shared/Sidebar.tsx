@@ -157,12 +157,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     return (
         <TooltipProvider>
             <div className={cn(
-                "flex flex-col h-full bg-[#1e1b4b] text-white transition-all duration-300 border-r border-indigo-900/50", // Dark Indigo bg
+                "flex flex-col h-full bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-text))] transition-all duration-300 border-r border-[hsl(var(--sidebar-border))]",
                 isCollapsed ? "w-20" : "w-64"
             )}>
                 {/* Logo & Toggle */}
                 <div className={cn(
-                    "relative flex h-16 items-center border-b border-indigo-900/50",
+                    "relative flex h-16 items-center border-b border-[hsl(var(--sidebar-border))]",
                     isCollapsed ? "justify-center px-0" : "justify-between px-4"
                 )}>
                     <Link to="/dashboard" className="flex items-center gap-3 group">
@@ -268,7 +268,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-indigo-900/50 bg-[#1e1b4b]">
+                <div className="p-4 border-t border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-bg))]">
                     {isCollapsed ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -303,7 +303,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarProps & { className?: string }) {
     return (
         <div className={cn(
-            "hidden lg:flex lg:flex-col bg-[#1e1b4b] relative h-screen transition-all duration-300",
+            "hidden lg:flex lg:flex-col bg-[hsl(var(--sidebar-bg))] relative h-screen transition-all duration-300",
             isCollapsed ? "w-20" : "w-64",
             className
         )}>

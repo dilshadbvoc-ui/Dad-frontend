@@ -3,52 +3,54 @@
 
 @layer base {
   :root {
-    /* Deep Indigo Background */
-    --background: 240 10% 4%;
-    /* White Text */
-    --foreground: 0 0% 98%;
+    /* Light Mode - Clean Professional */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
-    /* Dark Indigo Cards */
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
+    /* White Cards */
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    /* Popovers same as cards */
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
+    /* Popovers */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Vibrant Indigo Primary (Matches Sidebar) */
+    /* Indigo Primary */
     --primary: 243 75% 59%;
-    /* White text on indigo */
-    --primary-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Dark Secondary */
-    --secondary: 240 4% 16%;
-    --secondary-foreground: 0 0% 98%;
+    /* Light Secondary */
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    /* Muted Indigo */
-    --muted: 240 4% 16%;
-    --muted-foreground: 240 5% 65%;
+    /* Muted */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
-    /* Accent (Hover states) */
-    --accent: 240 4% 16%;
-    --accent-foreground: 0 0% 98%;
+    /* Accent */
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 47% 11%;
 
-    /* Destructive - Red */
+    /* Destructive */
     --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    /* Indigo Border */
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-
-    /* Ring matches primary */
+    /* Borders */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 243 75% 59%;
 
     --radius: 0.75rem;
+
+    /* Sidebar - Light mode uses a softer indigo */
+    --sidebar-bg: 224 71% 97%;
+    --sidebar-text: 222 47% 11%;
+    --sidebar-active: 243 75% 59%;
+    --sidebar-border: 214 32% 91%;
   }
 
   .dark {
-    /* Deep Grey/Black Background */
+    /* Dark Mode - Deep Indigo */
     --background: 240 10% 4%;
     --foreground: 0 0% 98%;
 
@@ -58,7 +60,6 @@
     --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
 
-    /* Light Indigo for Dark Mode Primary */
     --primary: 243 70% 50%;
     --primary-foreground: 0 0% 98%;
 
@@ -77,6 +78,12 @@
     --border: 240 4% 16%;
     --input: 240 4% 16%;
     --ring: 263 70% 50%;
+
+    /* Sidebar - Dark mode deep indigo */
+    --sidebar-bg: 243 47% 20%;
+    --sidebar-text: 0 0% 98%;
+    --sidebar-active: 243 75% 59%;
+    --sidebar-border: 243 47% 25%;
   }
 }
 

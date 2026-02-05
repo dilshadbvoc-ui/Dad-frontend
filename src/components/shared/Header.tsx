@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom"
-import { Settings, Zap } from "lucide-react"
+import { Settings, Zap, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     Tooltip,
@@ -11,6 +11,7 @@ import { GlobalSearch } from "./GlobalSearch"
 import { NotificationPopover } from "./NotificationPopover"
 import { QuickAddLeadDialog } from "./QuickAddLeadDialog"
 import { cn } from "@/lib/utils"
+import { useTheme } from "@/contexts/ThemeContext"
 
 import {
     DropdownMenu,
@@ -25,6 +26,7 @@ import { User, LogOut } from "lucide-react"
 
 export function Header({ className }: { className?: string }) {
     const navigate = useNavigate()
+    const { theme, setTheme, resolvedTheme } = useTheme()
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userInitials = userInfo.name
@@ -60,6 +62,25 @@ export function Header({ className }: { className?: string }) {
                     {/* Notifications */}
                     <NotificationPopover />
 
+                    {/* Theme Toggle */}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                                className="text-foreground/70 hover:text-foreground"
+                            >
+                                {resolvedTheme === 'dark' ? (
+                                    <Sun className="h-5 w-5" />
+                                ) : (
+                                    <Moon className="h-5 w-5" />
+                                )}
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>{resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
+                    </Tooltip>
+
                     {/* Settings */}
                     <Tooltip>
                         <TooltipTrigger asChild>
@@ -68,7 +89,7 @@ export function Header({ className }: { className?: string }) {
                                 size="icon"
                                 onClick={() => navigate('/settings')}
                             >
-                                <Settings className="h-5 w-5 text-indigo-100/70 hover:text-white" />
+                                <Settings className="h-5 w-5 text-foreground/70 hover:text-foreground" />
                             </Button>
                         </TooltipTrigger>
                         <TooltipContent>Settings</TooltipContent>
@@ -77,40 +98,40 @@ export function Header({ className }: { className?: string }) {
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-indigo-500 hover:ring-offset-2">
-                            <Avatar className="h-9 w-9 border border-indigo-900/50">
+                        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2">
+                            <Avatar className="h-9 w-9 border border-border">
                                 <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
-                                <AvatarFallback className="bg-indigo-600 text-white text-xs font-bold">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                                     {userInitials}
                                 </AvatarFallback>
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-56 bg-[#1e1b4b] border-indigo-900/50 text-indigo-100" align="end" forceMount>
+                    <DropdownMenuContent className="w-56 bg-popover border-border text-popover-foreground" align="end" forceMount>
                         <DropdownMenuLabel className="font-normal">
                             <div className="flex flex-col space-y-1">
-                                <p className="text-sm font-semibold leading-none text-white">{userInfo.name}</p>
-                                <p className="text-xs leading-none text-indigo-300/60">{userInfo.email}</p>
+                                <p className="text-sm font-semibold leading-none text-foreground">{userInfo.name}</p>
+                                <p className="text-xs leading-none text-muted-foreground">{userInfo.email}</p>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator className="bg-indigo-900/50" />
+                        <DropdownMenuSeparator className="bg-border" />
                         <DropdownMenuItem
-                            className="focus:bg-indigo-500 focus:text-white cursor-pointer"
+                            className="focus:bg-accent focus:text-accent-foreground cursor-pointer"
                             onClick={() => navigate(`/users/${userInfo.id || userInfo._id}`)}
                         >
                             <User className="mr-2 h-4 w-4" />
                             <span>View Profile</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className="focus:bg-indigo-500 focus:text-white cursor-pointer"
+                            className="focus:bg-accent focus:text-accent-foreground cursor-pointer"
                             onClick={() => navigate('/settings')}
                         >
                             <Settings className="mr-2 h-4 w-4" />
                             <span>Settings</span>
                         </DropdownMenuItem>
-                        <DropdownMenuSeparator className="bg-indigo-900/50" />
+                        <DropdownMenuSeparator className="bg-border" />
                         <DropdownMenuItem
-                            className="focus:bg-red-500/10 focus:text-red-400 text-red-400 cursor-pointer"
+                            className="focus:bg-destructive/10 focus:text-destructive text-destructive cursor-pointer"
                             onClick={handleLogout}
                         >
                             <LogOut className="mr-2 h-4 w-4" />

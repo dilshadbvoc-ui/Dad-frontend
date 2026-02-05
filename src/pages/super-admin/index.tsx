@@ -415,7 +415,7 @@ export default function SuperAdminDashboard() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Contact Phone</Label>
-                                        <Input name="phone" defaultValue={selectedOrg?.contactPhone} placeholder="+91 XXXXX XXXXX" />
+                                        <Input name="phone" defaultValue={selectedOrg?.contactPhone} placeholder="+91 98765 43210" />
                                     </div>
                                     <div className="space-y-2">
                                         <Label>Address</Label>

@@ -22,6 +22,7 @@ import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 import { EmailComposeDialog } from "@/components/EmailComposeDialog"
+import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
 
 
 
@@ -59,6 +60,7 @@ export default function LeadDetailPage() {
     const [assignDialogOpen, setAssignDialogOpen] = useState(false)
     const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+    const [productDialogOpen, setProductDialogOpen] = useState(false)
     const [dragOver, setDragOver] = useState(false)
     const queryClient = useQueryClient()
 
@@ -216,7 +218,14 @@ export default function LeadDetailPage() {
                             <SelectItem value="Lost">Lost</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Badge>{lead.status}</Badge>
+                    <div className="flex flex-col items-end">
+                        <Badge>{lead.status}</Badge>
+                        {lead.potentialValue > 0 && (
+                            <span className="text-xs font-semibold text-green-600 mt-1">
+                                Value: ${lead.potentialValue.toLocaleString()}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -244,8 +253,30 @@ export default function LeadDetailPage() {
                                     </span>
                                 </div>
                             )}
+
                             <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName}</Link> : 'Unassigned'}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+
+                            <div className="pt-2 border-t">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-semibold text-sm">Products Interested</span>
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setProductDialogOpen(true)}>
+                                        <Pencil className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                                {lead.products && lead.products.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {lead.products.map((kp: any) => (
+                                            <div key={kp.productId} className="text-sm flex justify-between">
+                                                <span>{kp.product?.name} <span className="text-muted-foreground text-xs">x{kp.quantity}</span></span>
+                                                <span className="font-medium">${(kp.price * kp.quantity).toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">No products selected</span>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -385,6 +416,15 @@ export default function LeadDetailPage() {
                     queryClient.invalidateQueries({ queryKey: ['lead-timeline', lead.id] })
                 }}
             />
+            {lead && (
+                <AddProductToLeadDialog
+                    open={productDialogOpen}
+                    onOpenChange={setProductDialogOpen}
+                    leadId={lead.id}
+                    currentProducts={lead.products}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
+                />
+            )}
 
         </div>
     )
