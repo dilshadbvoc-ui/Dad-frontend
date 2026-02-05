@@ -117,6 +117,26 @@ const Login = () => {
                         </div>
                     </form>
                 </CardContent>
+                {/* DEBUG SECTION */}
+                <div className="p-4 border-t bg-gray-100 dark:bg-gray-900 text-xs text-gray-500 font-mono break-all">
+                    <p><strong>Debug Info:</strong></p>
+                    <p>API URL: {api.defaults.baseURL}</p>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 h-6 text-xs"
+                        onClick={async () => {
+                            try {
+                                const res = await api.get('/public/health'); // Try a public route
+                                alert(`Health Check: ${res.status} OK`);
+                            } catch (e: any) {
+                                alert(`Health Check Failed: ${e.message} \nStatus: ${e.response?.status}`);
+                            }
+                        }}
+                    >
+                        Test Connection
+                    </Button>
+                </div>
             </Card>
         </div >
     );
