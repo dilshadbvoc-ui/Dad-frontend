@@ -113,7 +113,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="firstName"
@@ -204,30 +204,62 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 </FormItem>
                             )}
                         />
-                        <FormField
-                            control={form.control}
-                            name="assignedTo"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Assign To</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                        <FormControl>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select user (Optional)" />
-                                            </SelectTrigger>
-                                        </FormControl>
-                                        <SelectContent>
-                                            {users.map((user: { id: string; firstName: string; lastName: string }) => (
-                                                <SelectItem key={user.id} value={user.id}>
-                                                    {user.firstName} {user.lastName}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <FormField
+                                control={form.control}
+                                name="source"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Source</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select source" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="manual">Manual</SelectItem>
+                                                <SelectItem value="website">Website</SelectItem>
+                                                <SelectItem value="referral">Referral</SelectItem>
+                                                <SelectItem value="cold_call">Cold Call</SelectItem>
+                                                <SelectItem value="social_media">Social Media</SelectItem>
+                                                <SelectItem value="email_campaign">Email Campaign</SelectItem>
+                                                <SelectItem value="meta_ads">Meta Ads</SelectItem>
+                                                <SelectItem value="google_ads">Google Ads</SelectItem>
+                                                <SelectItem value="import">Bulk Import</SelectItem>
+                                                <SelectItem value="other">Other</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="assignedTo"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Assign To</FormLabel>
+                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select user (Optional)" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="unassigned">Unassigned</SelectItem>
+                                                {users.map((user: { id: string; firstName: string; lastName: string }) => (
+                                                    <SelectItem key={user.id} value={user.id}>
+                                                        {user.firstName} {user.lastName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        </div>
                         <DialogFooter>
                             <Button type="submit" isLoading={mutation.isPending}>
                                 Create Lead

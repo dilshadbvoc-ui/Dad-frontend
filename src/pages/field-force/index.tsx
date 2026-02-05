@@ -11,8 +11,51 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { MapPin, Clock, CheckCircle, Navigation, TrendingUp, Activity } from "lucide-react"
 import { format } from "date-fns"
 
+import { toast } from "sonner"
+import { createCheckIn } from "@/services/checkInService"
+import { useQueryClient } from "@tanstack/react-query"
+
 export default function FieldForcePage() {
     const [selectedDate] = useState(new Date())
+    const [checkingIn, setCheckingIn] = useState(false)
+    const queryClient = useQueryClient()
+
+    const handleCheckIn = () => {
+        setCheckingIn(true)
+        if (!navigator.geolocation) {
+            toast.error("Geolocation is not supported by your browser")
+            setCheckingIn(false)
+            return
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords
+                    await createCheckIn({
+                        type: 'check_in',
+                        location: {
+                            latitude,
+                            longitude,
+                            address: 'Fetching address...' // Backend should handle reverse geocoding ideally
+                        }
+                    })
+                    toast.success("Checked in successfully!")
+                    queryClient.invalidateQueries({ queryKey: ['checkins'] })
+                } catch (error) {
+                    console.error(error)
+                    toast.error("Failed to check in")
+                } finally {
+                    setCheckingIn(false)
+                }
+            },
+            (error) => {
+                console.error(error)
+                toast.error("Unable to retrieve your location")
+                setCheckingIn(false)
+            }
+        )
+    }
 
     const { data: checkInsData, isLoading } = useQuery({
         queryKey: ['checkins', selectedDate.toISOString()],
@@ -24,15 +67,15 @@ export default function FieldForcePage() {
         queryFn: getUsers
     })
 
-    const checkIns = checkInsData?.checkIns || []
-    const users = usersData?.users || []
+    const checkIns = useMemo(() => checkInsData?.checkIns || [], [checkInsData]);
+    const users = useMemo(() => usersData?.users || [], [usersData]);
 
     // Calculate productivity metrics based on actual data
     const productivityMetrics = useMemo(() => {
         if (checkIns.length === 0 || users.length === 0) return { score: 0, activeUsers: 0, inTransit: 0 }
 
-        const activeUsers = checkIns.filter((c: any) => c.type === 'check_in').length
-        const totalUsers = users.filter((u: any) => u.role === 'sales_rep' || u.role === 'field_agent').length
+        const activeUsers = checkIns.filter((c: { type: string }) => c.type === 'check_in').length
+        const totalUsers = users.filter((u: { role: string }) => u.role === 'sales_rep' || u.role === 'field_agent').length
         const inTransit = Math.floor(activeUsers * 0.3) // Estimate 30% in transit
 
         const score = totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0
@@ -43,10 +86,10 @@ export default function FieldForcePage() {
     // Create team activity from actual users and check-ins
     const teamActivity = useMemo(() => {
         return users
-            .filter((u: any) => u.role === 'sales_rep' || u.role === 'field_agent')
+            .filter((u: { role: string }) => u.role === 'sales_rep' || u.role === 'field_agent')
             .slice(0, 10) // Show max 10 for UI
-            .map((user: any) => {
-                const userCheckIn = checkIns.find((c: any) => c.userId === user.id)
+            .map((user: { id: string, firstName: string, lastName: string }) => {
+                const userCheckIn = checkIns.find((c: { userId: string }) => c.userId === user.id)
                 const status = userCheckIn ? 'checked_in' : 'offline'
                 return {
                     id: user.id,
@@ -62,8 +105,8 @@ export default function FieldForcePage() {
 
     const mapMarkers = useMemo(() => {
         return teamActivity
-            .filter((m: any) => m.latitude && m.longitude)
-            .map((m: any) => ({
+            .filter((m: { latitude?: number, longitude?: number }) => m.latitude && m.longitude)
+            .map((m: { id: string, name: string, location: string, status: string, latitude: number, longitude: number }) => ({
                 id: m.id,
                 position: [m.latitude, m.longitude] as [number, number],
                 title: m.name,
@@ -92,7 +135,17 @@ export default function FieldForcePage() {
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Field Force</h1>
                                 <p className="text-gray-500 mt-1">Track your field sales team activities</p>
                             </div>
-                            <Button variant="outline"><Clock className="h-4 w-4 mr-2" />Check-in History</Button>
+                            <div className="flex gap-2">
+                                <Button
+                                    onClick={handleCheckIn}
+                                    disabled={checkingIn}
+                                    className="bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-900/20"
+                                >
+                                    {checkingIn ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+                                    Check In Now
+                                </Button>
+                                <Button variant="outline"><Clock className="h-4 w-4 mr-2" />History</Button>
+                            </div>
                         </div>
 
                         {/* Stats */}
@@ -123,7 +176,7 @@ export default function FieldForcePage() {
                                                 <p>No field team members found</p>
                                             </div>
                                         ) : (
-                                            teamActivity.map((member: any) => (
+                                            teamActivity.map((member: { id: string, name: string, location: string, status: string, time: string }) => (
                                                 <div key={member.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50">
                                                     <div className="relative">
                                                         <Avatar className="h-10 w-10"><AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-sm">{member.name.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback></Avatar>

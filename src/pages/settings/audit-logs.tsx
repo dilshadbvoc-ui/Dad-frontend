@@ -29,7 +29,7 @@ export default function AuditLogsPage() {
     const { data, isLoading } = useQuery({
         queryKey: ['audit-logs', page, actionFilter],
         queryFn: async () => {
-            const params: any = { page, limit: 20 };
+            const params: Record<string, string | number> = { page, limit: 20 };
             if (actionFilter !== 'all') params.action = actionFilter;
 
             const res = await api.get('/audit-logs', { params });
@@ -96,7 +96,7 @@ export default function AuditLogsPage() {
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
-                                            logs.map((log: any) => (
+                                            logs.map((log: { id: string, createdAt: string, actor?: { firstName: string, lastName: string }, action: string, entity: string, entityId?: string, details: Record<string, unknown>, ipAddress?: string }) => (
                                                 <TableRow key={log.id}>
                                                     <TableCell className="whitespace-nowrap">
                                                         {format(new Date(log.createdAt), 'MMM d, yyyy HH:mm:ss')}
@@ -106,9 +106,9 @@ export default function AuditLogsPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${log.action === 'DELETE' ? 'bg-red-100 text-red-800' :
-                                                                log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
-                                                                    log.action === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
-                                                                        'bg-gray-100 text-gray-800'
+                                                            log.action === 'CREATE' ? 'bg-green-100 text-green-800' :
+                                                                log.action === 'UPDATE' ? 'bg-blue-100 text-blue-800' :
+                                                                    'bg-gray-100 text-gray-800'
                                                             }`}>
                                                             {log.action}
                                                         </span>

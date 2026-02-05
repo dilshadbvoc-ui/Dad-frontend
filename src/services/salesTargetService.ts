@@ -23,20 +23,28 @@ export interface SalesTarget {
     status: 'active' | 'completed' | 'missed';
     autoDistributed: boolean;
     createdAt: string;
+    product?: {
+        id: string;
+        name: string;
+    };
+    productId?: string | null;
+    metric: 'revenue' | 'units';
+    scope?: 'INDIVIDUAL' | 'HIERARCHY';
+    opportunityType?: 'NEW_BUSINESS' | 'UPSALE' | null;
 }
 
 export interface DailyAchievement {
     hasTarget: boolean;
-    showNotification?: boolean;
+    showNotification: boolean;
     target?: {
-        id: string;
+        _id: string;
         targetValue: number;
         achievedValue: number;
         achievementPercent: number;
         period: string;
         daysRemaining: number;
         amountRemaining: number;
-    };
+    }
 }
 
 export interface Subordinate {
@@ -49,6 +57,16 @@ export interface AssignTargetInput {
     assignToUserId: string;
     targetValue: number;
     period: 'monthly' | 'quarterly' | 'yearly';
+    productId?: string;
+    metric?: 'revenue' | 'units';
+    scope?: 'INDIVIDUAL' | 'HIERARCHY';
+}
+
+export interface UpdateTargetInput {
+    targetValue?: number;
+    period?: 'monthly' | 'quarterly' | 'yearly';
+    productId?: string | null;
+    metric?: 'revenue' | 'units';
 }
 
 export const getMyTargets = async (): Promise<{ targets: SalesTarget[] }> => {
@@ -78,6 +96,11 @@ export const getSubordinates = async (): Promise<{ subordinates: Subordinate[] }
 
 export const assignTarget = async (data: AssignTargetInput): Promise<{ message: string; target: SalesTarget }> => {
     const response = await api.post('/sales-targets', data);
+    return response.data;
+};
+
+export const updateTarget = async (id: string, data: UpdateTargetInput): Promise<{ message: string; target: SalesTarget }> => {
+    const response = await api.put(`/sales-targets/${id}`, data);
     return response.data;
 };
 

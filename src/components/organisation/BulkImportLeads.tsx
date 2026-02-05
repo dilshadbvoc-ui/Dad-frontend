@@ -1,7 +1,7 @@
 
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { importLeads } from "@/services/leadService"
+import { importLeads, type CreateLeadData } from "@/services/leadService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -11,7 +11,7 @@ import { toast } from "sonner"
 export function BulkImportLeads() {
     const [file, setFile] = useState<File | null>(null)
     const [previewCount, setPreviewCount] = useState<number>(0)
-    const [parsedData, setParsedData] = useState<any[]>([])
+    const [parsedData, setParsedData] = useState<CreateLeadData[]>([])
     const [error, setError] = useState<string | null>(null)
 
     const queryClient = useQueryClient()
@@ -25,7 +25,7 @@ export function BulkImportLeads() {
             setPreviewCount(0)
             queryClient.invalidateQueries({ queryKey: ['leads'] })
         },
-        onError: (err: any) => {
+        onError: (err: { message: string }) => {
             toast.error(err.message || 'Failed to import leads')
             setError(err.message || 'Failed to import leads')
         }
@@ -58,7 +58,7 @@ export function BulkImportLeads() {
         }
     }
 
-    const parseCSV = (text: string) => {
+    const parseCSV = (text: string): CreateLeadData[] => {
         const lines = text.split('\n')
         if (lines.length < 2) return []
 
@@ -74,19 +74,21 @@ export function BulkImportLeads() {
 
             if (currentLine.length < headers.length) continue
 
-            const obj: any = {}
+            const obj: Partial<CreateLeadData> = {}
             for (let j = 0; j < headers.length; j++) {
                 // Remove potential quotes
                 let val = currentLine[j]?.trim()
                 if (val && val.startsWith('"') && val.endsWith('"')) {
                     val = val.substring(1, val.length - 1)
                 }
-                obj[headers[j]] = val
+                (obj as Record<string, unknown>)[headers[j]] = val
             }
 
             // Basic validation: needs at least firstName or lastName
             if (obj.firstName || obj.lastName || obj.email) {
-                result.push(obj)
+                // Ensure source is present
+                if (!obj.source) obj.source = 'import';
+                result.push(obj as CreateLeadData)
             }
         }
         return result

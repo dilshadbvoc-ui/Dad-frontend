@@ -28,14 +28,14 @@ const SSOCallback = () => {
                     // Redirect to dashboard
                     navigate('/dashboard');
                 } else {
-                    setError('Invalid token data received');
+                    setTimeout(() => setError('Invalid token data received'), 0);
                 }
             } catch (err) {
                 console.error('SSO Parse Error', err);
-                setError('Failed to process login data');
+                setTimeout(() => setError('Failed to process login data'), 0);
             }
         } else {
-            setError('No login data received');
+            setTimeout(() => setError('No login data received'), 0);
         }
     }, [searchParams, navigate]);
 

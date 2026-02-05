@@ -1,61 +1,80 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-interface SocketContextType {
-    socket: Socket | null;
-    connected: boolean;
-}
 
-const SocketContext = createContext<SocketContextType>({ socket: null, connected: false });
+import { SocketContext } from './SocketContextObject';
 
-export const useSocket = () => useContext(SocketContext);
 
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (!userInfo) return;
+        let socketInstance: Socket | null = null;
 
-        try {
-            const parsed = JSON.parse(userInfo);
-            const token = parsed.token;
+        const manageConnection = async () => {
+            const userInfoStr = localStorage.getItem('userInfo');
 
-            if (!token) return;
+            // Case 1: Connect if authenticated and not connected
+            if (userInfoStr && !socketInstance) {
+                try {
+                    const { API_URL } = await import('@/config');
+                    let token = null;
+                    try {
+                        const userInfo = JSON.parse(userInfoStr);
+                        token = userInfo.token;
+                    } catch (e) {
+                        console.error('Error parsing userInfo for socket:', e);
+                        return;
+                    }
 
-            const SERVER_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+                    if (!token) return;
 
-            const newSocket = io(SERVER_URL, {
-                auth: { token },
-                transports: ['websocket'],
-                reconnection: true,
-                reconnectionAttempts: 5,
-                reconnectionDelay: 1000
-            });
+                    socketInstance = io(API_URL, {
+                        withCredentials: true,
+                        transports: ['websocket', 'polling'],
+                        auth: { token }
+                    });
 
-            newSocket.on('connect', () => {
-                console.log('Socket connected:', newSocket.id);
-                setConnected(true);
-            });
+                    socketInstance.on('connect', () => {
+                        setConnected(true);
+                    });
 
-            newSocket.on('disconnect', () => {
-                console.log('Socket disconnected');
+                    socketInstance.on('disconnect', () => {
+                        setConnected(false);
+                    });
+
+                    socketInstance.on('connect_error', (error) => {
+                        // Suppress 401 errors globally or log them?
+                        // Log mostly for debugging, but prevent spam if possible?
+                        // User complained about spam.
+                        // If token is invalid (expired), we might want to close socket to stop retry spam?
+                        console.error('Socket connection error:', error.message);
+                    });
+
+                    setSocket(socketInstance);
+                } catch (e) {
+                    console.error('Failed to initialize socket:', e);
+                }
+            }
+            // Case 2: Disconnect if logged out and connected
+            else if (!userInfoStr && socketInstance) {
+                socketInstance.close();
+                socketInstance = null;
+                setSocket(null);
                 setConnected(false);
-            });
+            }
+        };
 
-            newSocket.on('connect_error', (error) => {
-                console.error('Socket connection error:', error);
-            });
+        manageConnection(); // Initial check
+        const intervalId = setInterval(manageConnection, 2000); // Poll every 2s for login/logout state
 
-            setSocket(newSocket);
-
-            return () => {
-                newSocket.close();
-            };
-        } catch (e) {
-            console.error('Failed to initialize socket:', e);
-        }
+        return () => {
+            clearInterval(intervalId);
+            if (socketInstance) {
+                socketInstance.close();
+            }
+        };
     }, []);
 
     return (

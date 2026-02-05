@@ -58,6 +58,22 @@ export interface IntegrationSettings {
     entryPoint?: string;
     issuer?: string;
     cert?: string;
+    // General Integration Fields (Generic)
+    apiKey?: string;
+    apiSecret?: string;
+    endpoint?: string;
+    locationId?: string;
+    businessId?: string;
+    clientEmail?: string;
+    customerId?: string;
+}
+
+export interface LeadScoringConfig {
+    emailOpened: number
+    linkClicked: number
+    formSubmitted: number
+    callConnected: number
+    websiteVisit: number
 }
 
 export interface OrganisationUpdateData {
@@ -68,6 +84,7 @@ export interface OrganisationUpdateData {
     address?: string;
     integrations?: Record<string, IntegrationSettings>;
     ssoConfig?: IntegrationSettings;
+    leadScoringConfig?: LeadScoringConfig;
 }
 
 export const getUsers = async () => {
@@ -108,6 +125,20 @@ export const changePassword = async (data: { currentPassword: string; newPasswor
 export const getRoles = async () => {
     const response = await api.get('/roles');
     return response.data;
+};
+
+export const createRole = async (data: { name: string; description?: string; permissions?: string[] }) => {
+    const response = await api.post('/roles', data);
+    return response.data;
+};
+
+export const updateRole = async (id: string, data: { name?: string; description?: string; permissions?: string[] }) => {
+    const response = await api.put(`/roles/${id}`, data);
+    return response.data;
+};
+
+export const deleteRole = async (id: string) => {
+    await api.delete(`/roles/${id}`);
 };
 
 export const getTerritories = async () => {

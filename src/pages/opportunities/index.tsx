@@ -36,7 +36,7 @@ export default function OpportunitiesPage() {
     const allOpportunities = data?.opportunities || []
 
     const filteredOpportunities = filterMode === 'mine' && currentUser
-        ? allOpportunities.filter((opp: any) => opp.owner?.id === currentUser.id || opp.ownerId === currentUser.id)
+        ? allOpportunities.filter((opp: { owner?: { id: string }, ownerId?: string }) => opp.owner?.id === currentUser.id || opp.ownerId === currentUser.id)
         : allOpportunities;
 
     if (isError) {
@@ -54,16 +54,16 @@ export default function OpportunitiesPage() {
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Opportunities</h1>
-                    <p className="text-gray-500 mt-1">Track your deals and sales pipeline.</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Opportunities</h1>
+                    <p className="text-indigo-300/70 mt-1">Track your deals and sales pipeline.</p>
                 </div>
                 <div className="flex gap-2">
-                    <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mr-2">
+                    <div className="flex bg-[#1e1b4b] border border-indigo-900/50 p-1 rounded-xl mr-2">
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setFilterMode('all')}
-                            className={`rounded-lg h-8 px-2 text-xs font-medium ${filterMode === 'all' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500'}`}
+                            className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'all' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
                         >
                             <Users className="h-3.5 w-3.5 mr-1.5" />
                             Team
@@ -72,19 +72,19 @@ export default function OpportunitiesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setFilterMode('mine')}
-                            className={`rounded-lg h-8 px-2 text-xs font-medium ${filterMode === 'mine' ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500'}`}
+                            className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'mine' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
                         >
                             <User className="h-3.5 w-3.5 mr-1.5" />
                             My Deals
                         </Button>
                     </div>
 
-                    <div className="hidden md:flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl mr-2">
+                    <div className="hidden md:flex bg-[#1e1b4b] border border-indigo-900/50 p-1 rounded-xl mr-2">
                         <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode('list')}
-                            className={`rounded-lg h-8 px-2 ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                            className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'list' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
                         >
                             <LayoutList className="h-4 w-4" />
                         </Button>
@@ -92,21 +92,21 @@ export default function OpportunitiesPage() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setViewMode('board')}
-                            className={`rounded-lg h-8 px-2 ${viewMode === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'text-gray-500'}`}
+                            className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'board' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
                         >
                             <LayoutGrid className="h-4 w-4" />
                         </Button>
                     </div>
 
-                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
+                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex border-indigo-900/50 text-indigo-300 hover:text-white hover:bg-white/5">
                         <Filter className="h-4 w-4 mr-2" />
                         Filter
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
+                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex border-indigo-900/50 text-indigo-300 hover:text-white hover:bg-white/5">
                         <Download className="h-4 w-4 mr-2" />
                         Export
                     </Button>
-                    <Button size="sm" onClick={() => setIsCreateOpen(true)} className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 rounded-xl">
+                    <Button size="sm" onClick={() => setIsCreateOpen(true)} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl">
                         <Target className="mr-2 h-4 w-4" />
                         Create Opportunity
                     </Button>
@@ -116,12 +116,12 @@ export default function OpportunitiesPage() {
             {isLoading ? (
                 <div className="flex items-center justify-center p-12">
                     <div className="flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-                        <p className="text-sm text-gray-500">Loading opportunities...</p>
+                        <div className="h-10 w-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+                        <p className="text-sm text-indigo-300/70">Loading opportunities...</p>
                     </div>
                 </div>
             ) : (
-                <div className={viewMode === 'list' ? "rounded-xl border bg-card text-card-foreground shadow-sm overflow-hidden" : ""}>
+                <div className={viewMode === 'list' ? "rounded-xl border border-indigo-900/50 bg-[#1e1b4b] text-white shadow-lg shadow-indigo-950/20 overflow-hidden" : ""}>
                     {viewMode === 'list' ? (
                         <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
                     ) : (

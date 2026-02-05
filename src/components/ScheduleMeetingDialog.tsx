@@ -44,10 +44,8 @@ export function ScheduleMeetingDialog({ open, onOpenChange, leadId, leadName, on
                 lead: leadId,
                 status: 'scheduled'
             };
-            console.log('Creating event with data:', eventData);
 
-            const result = await createEvent(eventData);
-            console.log('Event created successfully:', result);
+            await createEvent(eventData);
 
             toast.success('Meeting scheduled successfully!');
             onSuccess();
@@ -60,7 +58,8 @@ export function ScheduleMeetingDialog({ open, onOpenChange, leadId, leadName, on
             setLocation('');
             setDescription('');
 
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             console.error('Failed to create event:', error);
             console.error('Error response:', error?.response?.data);
             toast.error(error?.response?.data?.message || 'Failed to schedule meeting');

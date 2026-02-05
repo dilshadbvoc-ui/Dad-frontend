@@ -48,7 +48,6 @@ const buildTree = (users: User[]): TreeNode[] => {
         console.error('buildTree received non-array users:', users);
         return [];
     }
-    console.log('Building tree with users:', users.length);
     const userMap = new Map<string, TreeNode>();
     const roots: TreeNode[] = [];
 
@@ -87,7 +86,6 @@ const buildTree = (users: User[]): TreeNode[] => {
         }
     });
 
-    console.log('Tree built:', roots);
     return roots;
 };
 
@@ -225,7 +223,6 @@ export default function HierarchyPage() {
         queryKey: ['hierarchy-users'],
         queryFn: async () => {
             const res = await api.get('/users');
-            console.log('Hierarchy API Response:', res);
             // Handle various response formats
             // If api wrapper auto-extracts .data, res might BE the data directly
             const data = res.data ?? res; // Use res.data if exists, else res itself
@@ -239,14 +236,12 @@ export default function HierarchyPage() {
     });
 
     const tree = useMemo(() => {
-        console.log('useMemo: users data:', users);
         // If users is somehow an object (error case), fallback to empty
         if (!users || !Array.isArray(users)) {
-            console.log('useMemo: users is not array, returning []');
             return [];
         }
         const result = buildTree(users);
-        console.log('useMemo: tree result:', result);
+
         return result;
     }, [users]);
 

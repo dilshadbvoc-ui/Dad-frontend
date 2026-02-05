@@ -27,7 +27,11 @@ export default function Layout() {
 
     // Close mobile menu when route changes
     useEffect(() => {
-        setMobileMenuOpen(false);
+        // Defer to avoid cascading renders during navigation
+        const timer = setTimeout(() => {
+            setMobileMenuOpen(false);
+        }, 0);
+        return () => clearTimeout(timer);
     }, [location.pathname]);
 
     // Close mobile menu on escape key
@@ -49,7 +53,7 @@ export default function Layout() {
         }
 
         const handleCallUpdate = (data: CallUpdateData) => {
-            console.log('Call Update:', data);
+            // Call Update Received
             if (data.status === 'connected') {
                 toast.info(`Call Connected: ${data.phoneNumber}`, {
                     description: 'Call timer started...',
@@ -72,7 +76,7 @@ export default function Layout() {
     }, []);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#F3F4F6]">
+        <div className="flex h-screen overflow-hidden bg-background">
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
                 <div
@@ -95,13 +99,13 @@ export default function Layout() {
             </div>
 
             <div className="flex-1 flex flex-col overflow-hidden">
-                {/* Enhanced Header with Mobile Menu Button */}
-                <div className="flex items-center justify-between lg:justify-end bg-white border-b border-slate-200 px-4 py-3 lg:px-6">
+                {/* Standardized Header Container */}
+                <div className="flex items-center justify-between lg:justify-end bg-card border-b border-border px-4 h-16 shadow-md shadow-black/5 shrink-0">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="lg:hidden p-2"
+                        className="lg:hidden p-2 text-indigo-100"
                     >
                         {mobileMenuOpen ? (
                             <X className="h-5 w-5" />
@@ -109,30 +113,32 @@ export default function Layout() {
                             <Menu className="h-5 w-5" />
                         )}
                     </Button>
-                    <Header />
+                    <Header className="flex-1 lg:flex-none" />
                 </div>
 
                 <main className="flex-1 overflow-y-auto">
-                    {!isDashboard && (
-                        <div className="container mx-auto px-4 py-3 pb-0 lg:px-6 lg:py-4">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => navigate(-1)}
-                                className="group flex items-center gap-2 text-muted-foreground hover:text-foreground pl-0 hover:bg-transparent"
-                            >
-                                <div className="p-1 rounded-full bg-slate-200/50 dark:bg-slate-800/50 group-hover:bg-slate-300 dark:group-hover:bg-slate-700 transition-colors">
-                                    <ChevronLeft className="h-4 w-4" />
-                                </div>
-                                <span className="font-medium">Back</span>
-                            </Button>
+                    <div className="container max-w-7xl mx-auto">
+                        {!isDashboard && (
+                            <div className="px-4 py-4 lg:px-6">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => navigate(-1)}
+                                    className="group flex items-center gap-2 text-indigo-400/60 hover:text-white pl-0 hover:bg-transparent transition-colors"
+                                >
+                                    <div className="p-1 rounded-full bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors">
+                                        <ChevronLeft className="h-4 w-4" />
+                                    </div>
+                                    <span className="font-semibold text-xs uppercase tracking-wider">Back</span>
+                                </Button>
+                            </div>
+                        )}
+                        <div className={cn(
+                            "px-4 pb-8 lg:px-6",
+                            isDashboard ? "pt-6" : "pt-0"
+                        )}>
+                            <Outlet />
                         </div>
-                    )}
-                    <div className={cn(
-                        "container mx-auto p-4 lg:p-6",
-                        isDashboard ? "lg:pt-6" : "pt-2 lg:pt-4"
-                    )}>
-                        <Outlet />
                     </div>
                 </main>
             </div>

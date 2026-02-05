@@ -14,14 +14,13 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
-// import { useToast } from "@/components/ui/use-toast" // TODO: Implement Toast
+import { toast } from "sonner"
 import { ArrowLeft, ArrowRight, Check } from "lucide-react"
 
 const STEPS = ['Details', 'Recipients', 'Content', 'Review']
 
 export default function CreateCampaignPage() {
     const navigate = useNavigate()
-    // const { toast } = useToast()
     const [currentStep, setCurrentStep] = useState(0)
 
     const [name, setName] = useState("")
@@ -33,14 +32,13 @@ export default function CreateCampaignPage() {
     const { data: lists } = useQuery({ queryKey: ['emailLists'], queryFn: () => getEmailLists() })
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => createCampaign(data),
+        mutationFn: (data: { name: string; subject: string; emailList: string; content: string }) => createCampaign(data),
         onSuccess: () => {
-            // toast({ title: "Success", description: "Campaign created successfully" })
-            alert("Campaign created successfully!") // Temporary
+            toast.success("Campaign created successfully")
             navigate('/marketing')
         },
-        onError: (error: any) => {
-            alert(`Error: ${error.message}`)
+        onError: (error: { message: string }) => {
+            toast.error(`Error: ${error.message}`)
         }
     })
 
@@ -111,11 +109,13 @@ export default function CreateCampaignPage() {
                                         <SelectValue placeholder="Select a list..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {lists?.map((l: any) => (
+                                        {lists?.map((l: { id: string, name: string, contacts?: unknown[] }) => (
                                             <SelectItem key={l.id} value={l.id}>{l.name} ({l.contacts?.length || 0} contacts)</SelectItem>
                                         ))}
                                         {(!lists || lists.length === 0) && (
-                                            <div className="p-2 text-sm text-yellow-600">No lists found. Please create a list first via API (UI coming soon).</div>
+                                            <div className="p-2 text-sm text-yellow-600">
+                                                No lists found. <a href="/marketing/lists" className="underline font-bold">Create a list first</a>
+                                            </div>
                                         )}
                                     </SelectContent>
                                 </Select>

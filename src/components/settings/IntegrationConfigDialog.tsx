@@ -34,7 +34,7 @@ interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -101,7 +101,19 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                 ? 'Twilio Integration'
                 : integrationType === 'whatsapp'
                     ? 'WhatsApp Integration'
-                    : 'Single Sign-On (SAML)'
+                    : integrationType === 'happilee'
+                        ? 'Happilee Integration'
+                        : integrationType === 'wabis'
+                            ? 'Wabis Integration'
+                            : integrationType === 'doubletick'
+                                ? 'DoubleTick Integration'
+                                : integrationType === 'googleads'
+                                    ? 'Google Ads Integration'
+                                    : integrationType === 'wati'
+                                        ? 'Wati Integration'
+                                        : integrationType === 'halapi'
+                                            ? 'HAL API Integration'
+                                            : 'Single Sign-On (SAML)'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -111,7 +123,19 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                 ? 'Connect Twilio account for cloud telephony.'
                 : integrationType === 'whatsapp'
                     ? 'Connect WhatsApp Business API.'
-                    : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
+                    : integrationType === 'happilee'
+                        ? 'Connect Happilee for WhatsApp automation.'
+                        : integrationType === 'wabis'
+                            ? 'Sync leads from Wabis.'
+                            : integrationType === 'doubletick'
+                                ? 'Integrate DoubleTick WhatsApp API.'
+                                : integrationType === 'googleads'
+                                    ? 'Sync Google Ads lead forms.'
+                                    : integrationType === 'wati'
+                                        ? 'Connect Wati for WhatsApp marketing.'
+                                        : integrationType === 'halapi'
+                                            ? 'Integrate HAL API for appointments.'
+                                            : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -519,6 +543,73 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                             </>
                         )}
 
+                        {/* Fields for Happilee, Wabis, DoubleTick, Wati, HAL API */}
+                        {['happilee', 'wabis', 'doubletick', 'wati', 'halapi'].includes(integrationType) && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="apiKey"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>API Key</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Provider API Key" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="endpoint"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="https://api.provider.com/v1" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
+
+                        {/* Specific Fields for Google Ads */}
+                        {integrationType === 'googleads' && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="customerId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Customer ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="123-456-7890" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Your Google Ads Customer ID.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="apiKey"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Developer Token</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="Developer Token" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
+
                         <DialogFooter className="flex justify-between sm:justify-between">
                             {((integrationType === 'meta' && isConnected) || (integrationType === 'whatsapp' && isConnected)) && (
                                 <Button
@@ -539,7 +630,8 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                                     toast.success(`Connected to: ${result.verifiedName} (${result.phoneNumber})`);
                                                 }
                                             }
-                                        } catch (error: any) {
+                                        } catch (err: unknown) {
+                                            const error = err as { message?: string; response?: { data?: { message?: string } } };
                                             toast.error("Connection failed: " + (error.response?.data?.message || error.message));
                                         }
                                     }}

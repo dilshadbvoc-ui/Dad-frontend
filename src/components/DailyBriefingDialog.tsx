@@ -17,14 +17,14 @@ export function DailyBriefingDialog() {
     const [isOpen, setIsOpen] = useState(false);
 
     // Fetch Sales Target Data
-    const { data: achievement } = useQuery({
+    const { data: achievement, isLoading: isLoadingAchievement } = useQuery({
         queryKey: ['daily-achievement'],
         queryFn: getDailyAchievement,
         staleTime: 1000 * 60 * 60, // Cache for 1 hour
     });
 
     // Fetch Pending Follow-ups Count
-    const { data: pendingStats } = useQuery({
+    const { data: pendingStats, isLoading: isLoadingStats } = useQuery({
         queryKey: ['pending-followups-count'],
         queryFn: async () => {
             const res = await api.get('/leads/pending-follow-ups');
@@ -32,18 +32,21 @@ export function DailyBriefingDialog() {
         }
     });
 
+    const isLoading = isLoadingAchievement || isLoadingStats;
+
     useEffect(() => {
         // Logic to show once per day
         const lastSeen = localStorage.getItem('dailyBriefingLastSeen');
         const today = new Date().toISOString().split('T')[0];
 
-        if (lastSeen !== today && achievement?.hasTarget) {
+        // Only show if loaded, not seen today, and has target
+        if (!isLoading && lastSeen !== today && achievement?.hasTarget) {
             const timer = setTimeout(() => {
                 setIsOpen(true);
             }, 1500);
             return () => clearTimeout(timer);
         }
-    }, [achievement]);
+    }, [achievement, isLoading]);
 
     const handleClose = () => {
         const today = new Date().toISOString().split('T')[0];
@@ -54,6 +57,7 @@ export function DailyBriefingDialog() {
         }
     };
 
+    if (isLoading) return null; // Don't render anything while loading (prevents flash)
     if (!achievement?.hasTarget || !achievement.target) return null;
 
     const { target } = achievement;

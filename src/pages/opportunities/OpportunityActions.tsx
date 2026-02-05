@@ -10,6 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { EditOpportunityDialog, type Opportunity } from "@/components/EditOpportunityDialog"
+import { ViewOpportunityDialog } from "@/components/ViewOpportunityDialog"
 import { deleteOpportunity } from "@/services/opportunityService"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -20,6 +21,7 @@ interface OpportunityActionsProps {
 
 export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
     const [isEditOpen, setIsEditOpen] = useState(false)
+    const [isViewOpen, setIsViewOpen] = useState(false)
     const queryClient = useQueryClient()
 
     // Helper to get user role
@@ -72,9 +74,9 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                         Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem disabled>
+                    <DropdownMenuItem onClick={() => setIsViewOpen(true)}>
                         <Eye className="mr-2 h-4 w-4" />
-                        View Details (Coming Soon)
+                        View Details
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
                         <Pencil className="mr-2 h-4 w-4" />
@@ -95,6 +97,12 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
             <EditOpportunityDialog
                 open={isEditOpen}
                 onOpenChange={setIsEditOpen}
+                opportunity={opportunity}
+            />
+
+            <ViewOpportunityDialog
+                open={isViewOpen}
+                onOpenChange={setIsViewOpen}
                 opportunity={opportunity}
             />
         </>

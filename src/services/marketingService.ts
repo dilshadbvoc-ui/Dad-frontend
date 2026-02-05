@@ -66,3 +66,17 @@ export const sendCampaign = async (id: string) => {
     const response = await api.post(`/campaigns/${id}/send`);
     return response.data;
 };
+
+export const getCampaignById = async (id: string) => {
+    const response = await api.get<Campaign>(`/campaigns/${id}`);
+    return response.data;
+};
+
+export const updateCampaign = async (id: string, data: Partial<CreateCampaignData>) => {
+    const response = await api.put<Campaign>(`/campaigns/${id}`, data);
+    return response.data;
+};
+
+export const deleteCampaign = async (id: string) => {
+    await api.delete(`/campaigns/${id}`);
+};

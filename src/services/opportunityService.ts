@@ -26,6 +26,9 @@ export interface Opportunity {
     };
     createdAt: string;
     updatedAt: string;
+    paymentStatus?: 'pending' | 'partial' | 'paid';
+    paymentDate?: string;
+    type?: 'NEW_BUSINESS' | 'UPSALE'; // Added type
 }
 
 export interface OpportunityQueryParams {
@@ -37,6 +40,7 @@ export interface OpportunityQueryParams {
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    type?: 'NEW_BUSINESS' | 'UPSALE';
 }
 
 export interface CreateOpportunityData {
@@ -48,6 +52,9 @@ export interface CreateOpportunityData {
     account: string;
     contact?: string;
     owner?: string;
+    paymentStatus?: 'pending' | 'partial' | 'paid';
+    paymentDate?: string;
+    type?: 'NEW_BUSINESS' | 'UPSALE'; // Added type
 }
 
 export type UpdateOpportunityData = Partial<CreateOpportunityData>;

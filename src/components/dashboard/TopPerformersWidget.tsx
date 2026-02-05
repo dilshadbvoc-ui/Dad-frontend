@@ -28,12 +28,12 @@ export function TopPerformersWidget() {
                     </div>
                 ) : (
                     <div className="space-y-6 mt-4">
-                        {performers?.map((user: any, index: number) => (
+                        {performers?.map((user: { id: string, name: string, image?: string, dealsWon: number, totalRevenue: number }, index: number) => (
                             <div key={user.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
-                                            index === 1 ? 'bg-gray-100 text-gray-700' :
-                                                index === 2 ? 'bg-orange-50 text-orange-700' : 'text-gray-400'
+                                        index === 1 ? 'bg-gray-100 text-gray-700' :
+                                            index === 2 ? 'bg-orange-50 text-orange-700' : 'text-gray-400'
                                         }`}>
                                         {index + 1}
                                     </div>

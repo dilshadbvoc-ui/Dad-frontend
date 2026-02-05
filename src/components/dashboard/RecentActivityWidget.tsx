@@ -33,7 +33,7 @@ export function RecentActivityWidget() {
                 ) : (
                     <ScrollArea className="h-[350px] pr-4">
                         <div className="space-y-4">
-                            {logs.map((log: any) => (
+                            {logs.map((log: { id: string, actor?: { profileImage?: string, firstName?: string, lastName?: string }, action: string, entity: string, createdAt: string }) => (
                                 <div key={log.id} className="flex items-start gap-3 border-b border-gray-100 last:border-0 pb-3 last:pb-0">
                                     <Avatar className="h-9 w-9 mt-0.5">
                                         <AvatarImage src={log.actor?.profileImage} />

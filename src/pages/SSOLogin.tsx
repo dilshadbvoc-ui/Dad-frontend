@@ -31,7 +31,8 @@ const SSOLogin = () => {
                 toast.error('SSO configuration not found');
                 setIsLoading(false);
             }
-        } catch (err: any) {
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
             toast.error(err.response?.data?.message || 'Failed to initiate SSO');
             setIsLoading(false);
         }

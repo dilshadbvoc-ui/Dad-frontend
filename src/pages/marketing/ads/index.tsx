@@ -1,6 +1,6 @@
 import { AxiosError } from 'axios';
 import { useQuery } from '@tanstack/react-query';
-import { getMetaCampaigns, getMetaInsights, type MetaCampaign } from '@/services/adService';
+import { getMetaCampaigns, getMetaAdSets, getMetaAds, getMetaInsights, type MetaCampaign, type MetaAdSet, type MetaAd } from '@/services/adService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw, ExternalLink, Plus, AlertCircle } from 'lucide-react';
@@ -14,6 +14,18 @@ export default function AdsDashboard() {
     const { data: campaigns, isLoading: campaignsLoading, error: campaignsError, refetch: refetchCampaigns } = useQuery({
         queryKey: ['meta-campaigns'],
         queryFn: getMetaCampaigns
+    });
+
+    const { data: adSets, isLoading: adSetsLoading } = useQuery({
+        queryKey: ['meta-adsets'],
+        queryFn: () => getMetaAdSets(),
+        enabled: !!campaigns // Only fetch if campaigns loaded
+    });
+
+    const { data: ads, isLoading: adsLoading } = useQuery({
+        queryKey: ['meta-ads'],
+        queryFn: () => getMetaAds(),
+        enabled: !!adSets // Only fetch if adsets loaded
     });
 
     const { data: insights, isLoading: insightsLoading } = useQuery({
@@ -124,8 +136,8 @@ export default function AdsDashboard() {
                         <Tabs defaultValue="campaigns" className="space-y-4">
                             <TabsList>
                                 <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-                                <TabsTrigger value="adsets" disabled>Ad Sets (Coming Soon)</TabsTrigger>
-                                <TabsTrigger value="ads" disabled>Ads (Coming Soon)</TabsTrigger>
+                                <TabsTrigger value="adsets">Ad Sets</TabsTrigger>
+                                <TabsTrigger value="ads">Ads</TabsTrigger>
                             </TabsList>
                             <TabsContent value="campaigns" className="space-y-4">
                                 <Card>
@@ -167,10 +179,7 @@ export default function AdsDashboard() {
                                                                     {campaign.daily_budget ? `$${(parseInt(campaign.daily_budget) / 100).toFixed(2)} / day` : campaign.lifetime_budget ? `$${(parseInt(campaign.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
                                                                 </TableCell>
                                                                 <TableCell className="text-right">
-                                                                    {/* Placeholder for actions */}
-                                                                    <Button variant="ghost" size="sm">
-                                                                        Details
-                                                                    </Button>
+                                                                    <Button variant="ghost" size="sm">Details</Button>
                                                                 </TableCell>
                                                             </TableRow>
                                                         ))
@@ -178,6 +187,111 @@ export default function AdsDashboard() {
                                                         <TableRow>
                                                             <TableCell colSpan={5} className="h-24 text-center">
                                                                 No campaigns found.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="adsets" className="space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Ad Sets</CardTitle>
+                                        <CardDescription>Manage target audiences and budgets.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {adSetsLoading ? (
+                                            <div className="py-10 text-center">Loading ad sets...</div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Budget</TableHead>
+                                                        <TableHead>Start Date</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {adSets && adSets.length > 0 ? (
+                                                        adSets.map((adSet: MetaAdSet) => (
+                                                            <TableRow key={adSet.id}>
+                                                                <TableCell>
+                                                                    <Badge variant={adSet.status === 'ACTIVE' ? 'default' : 'secondary'} className={adSet.status === 'ACTIVE' ? 'bg-green-600' : ''}>
+                                                                        {adSet.status}
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">
+                                                                    {adSet.name}
+                                                                    <div className="text-xs text-muted-foreground">ID: {adSet.id}</div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {adSet.daily_budget ? `$${(parseInt(adSet.daily_budget) / 100).toFixed(2)} / day` : adSet.lifetime_budget ? `$${(parseInt(adSet.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {adSet.start_time ? new Date(adSet.start_time).toLocaleDateString() : '-'}
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={4} className="h-24 text-center">
+                                                                No ad sets found.
+                                                            </TableCell>
+                                                        </TableRow>
+                                                    )}
+                                                </TableBody>
+                                            </Table>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </TabsContent>
+
+                            <TabsContent value="ads" className="space-y-4">
+                                <Card>
+                                    <CardHeader>
+                                        <CardTitle>Ads</CardTitle>
+                                        <CardDescription>Manage creatives and messaging.</CardDescription>
+                                    </CardHeader>
+                                    <CardContent>
+                                        {adsLoading ? (
+                                            <div className="py-10 text-center">Loading ads...</div>
+                                        ) : (
+                                            <Table>
+                                                <TableHeader>
+                                                    <TableRow>
+                                                        <TableHead>Status</TableHead>
+                                                        <TableHead>Name</TableHead>
+                                                        <TableHead>Preview</TableHead>
+                                                    </TableRow>
+                                                </TableHeader>
+                                                <TableBody>
+                                                    {ads && ads.length > 0 ? (
+                                                        ads.map((ad: MetaAd) => (
+                                                            <TableRow key={ad.id}>
+                                                                <TableCell>
+                                                                    <Badge variant={ad.status === 'ACTIVE' ? 'default' : 'secondary'} className={ad.status === 'ACTIVE' ? 'bg-green-600' : ''}>
+                                                                        {ad.status}
+                                                                    </Badge>
+                                                                </TableCell>
+                                                                <TableCell className="font-medium">
+                                                                    {ad.name}
+                                                                    <div className="text-xs text-muted-foreground">ID: {ad.id}</div>
+                                                                </TableCell>
+                                                                <TableCell>
+                                                                    {/* Simple link for now */}
+                                                                    <Button variant="link" size="sm" className="h-auto p-0">View Creative</Button>
+                                                                </TableCell>
+                                                            </TableRow>
+                                                        ))
+                                                    ) : (
+                                                        <TableRow>
+                                                            <TableCell colSpan={3} className="h-24 text-center">
+                                                                No ads found.
                                                             </TableCell>
                                                         </TableRow>
                                                     )}

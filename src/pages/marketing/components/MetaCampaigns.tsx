@@ -4,9 +4,12 @@ import { Facebook, Plus, ExternalLink, BarChart3, Users, MousePointer2, CheckCir
 import { useQuery } from "@tanstack/react-query"
 import { getOrganisation } from "@/services/settingsService"
 import { useNavigate } from "react-router-dom"
+import { useState } from "react"
+import { CreateAdDialog } from "./CreateAdDialog"
 
 export function MetaCampaigns() {
     const navigate = useNavigate();
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const { data: organisation } = useQuery({
         queryKey: ['organisation'],
         queryFn: getOrganisation
@@ -23,7 +26,8 @@ export function MetaCampaigns() {
                 </div>
                 <Button
                     className="bg-[#1877F2] hover:bg-[#166fe5] text-white"
-                    onClick={() => window.open('https://adsmanager.facebook.com/ads/create', '_blank')}
+                    disabled={!isConnected}
+                    onClick={() => setIsCreateDialogOpen(true)}
                 >
                     <Plus className="mr-2 h-4 w-4" />
                     Create Ad Campaign
@@ -131,6 +135,12 @@ export function MetaCampaigns() {
                     </Card>
                 </div>
             )}
+
+            <CreateAdDialog
+                open={isCreateDialogOpen}
+                onOpenChange={setIsCreateDialogOpen}
+                organisation={organisation}
+            />
         </div>
     )
 }

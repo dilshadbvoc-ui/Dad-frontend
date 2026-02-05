@@ -1,15 +1,19 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { syncToken } from './utils/mobileBridge';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { SocketProvider } from './contexts/SocketContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 
 import LeadsPage from './pages/leads';
 import CreateLeadPage from './pages/leads/new';
@@ -34,8 +38,14 @@ import FieldForcePage from './pages/field-force';
 import SupportPage from './pages/support';
 import GoalsPage from './pages/goals';
 import SalesTargetsPage from './pages/sales-targets';
+import CommissionsPage from './pages/sales/commissions';
 import ReportsPage from './pages/reports';
 import WhatsAppInbox from './pages/WhatsAppInbox';
+import SMSCampaignsPage from './pages/marketing/sms';
+import LandingPagesManager from './pages/marketing/landing-pages';
+import WebFormsPage from './pages/marketing/forms';
+import WhatsAppCampaignsPage from './pages/marketing/whatsapp';
+import EmailListsPage from './pages/marketing/lists';
 
 // Settings sub-pages
 import ProfileSettingsPage from './pages/settings/profile';
@@ -56,6 +66,7 @@ import WorkflowDetailPage from './pages/automation/WorkflowDetail';
 import AnalyticsPage from './pages/reports/analytics';
 
 import IntegrationsSettingsPage from './pages/settings/Integrations';
+import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
 import ImportPage from './pages/settings/import';
 import DeveloperSettingsPage from './pages/settings/developer';
@@ -106,6 +117,8 @@ function AppContent() {
           <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
           <Route path="/sso-callback" element={<SSOCallback />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -119,7 +132,12 @@ function AppContent() {
             <Route path="/opportunities" element={<OpportunitiesPage />} />
             <Route path="/marketing" element={<MarketingPage />} />
             <Route path="/marketing/ads" element={<AdsDashboard />} />
+            <Route path="/marketing/sms" element={<SMSCampaignsPage />} />
+            <Route path="/marketing/landing-pages" element={<LandingPagesManager />} />
+            <Route path="/marketing/forms" element={<WebFormsPage />} />
             <Route path="/marketing/campaigns/new" element={<CreateCampaignPage />} />
+            <Route path="/marketing/lists" element={<EmailListsPage />} />
+            <Route path="/marketing/whatsapp" element={<WhatsAppCampaignsPage />} />
             <Route path="/communications" element={<CommunicationsPage />} />
             <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
             <Route path="/calls" element={<CallsPage />} />
@@ -133,6 +151,7 @@ function AppContent() {
             <Route path="/settings/profile" element={<ProfileSettingsPage />} />
             <Route path="/settings/team" element={<TeamSettingsPage />} />
             <Route path="/settings/roles" element={<RolesSettingsPage />} />
+            <Route path="/settings/pipelines" element={<PipelinesSettingsPage />} />
             <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
             <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
@@ -145,6 +164,7 @@ function AppContent() {
             <Route path="/support" element={<SupportPage />} />
             <Route path="/goals" element={<GoalsPage />} />
             <Route path="/sales-targets" element={<SalesTargetsPage />} />
+            <Route path="/sales/commissions" element={<CommissionsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
 
             {/* Super Admin & Organisation Settings */}
@@ -162,6 +182,7 @@ function AppContent() {
             <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
           </Route>
 
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/" element={<LandingPage />} />
         </Routes>
       </Router>
@@ -171,21 +192,23 @@ function AppContent() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AppContent />
-      <Toaster
-        position="bottom-right"
-        expand={true}
-        richColors
-        closeButton
-        duration={4000}
-        toastOptions={{
-          style: {
-            borderRadius: '12px',
-          },
-        }}
-      />
-    </QueryClientProvider>
+    <ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+        <Toaster
+          position="bottom-right"
+          expand={true}
+          richColors
+          closeButton
+          duration={4000}
+          toastOptions={{
+            style: {
+              borderRadius: '12px',
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

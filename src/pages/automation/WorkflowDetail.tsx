@@ -36,14 +36,17 @@ export default function WorkflowDetailPage() {
 
     useEffect(() => {
         if (workflow) {
-            setFormData({
-                name: workflow.name,
-                triggerEntity: workflow.triggerEntity,
-                triggerEvent: workflow.triggerEvent,
-                isActive: workflow.isActive,
-                conditions: workflow.conditions,
-                actions: workflow.actions
-            })
+            const timer = setTimeout(() => {
+                setFormData({
+                    name: workflow.name,
+                    triggerEntity: workflow.triggerEntity,
+                    triggerEvent: workflow.triggerEvent,
+                    isActive: workflow.isActive,
+                    conditions: workflow.conditions,
+                    actions: workflow.actions
+                })
+            }, 0);
+            return () => clearTimeout(timer);
         }
     }, [workflow])
 
@@ -55,7 +58,7 @@ export default function WorkflowDetailPage() {
             toast.success("Workflow updated successfully")
             navigate('/automation')
         },
-        onError: (err: any) => {
+        onError: (err: { response?: { data?: { message?: string } } }) => {
             setError(err.response?.data?.message || "Failed to update workflow")
         }
     })

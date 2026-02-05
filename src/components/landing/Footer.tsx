@@ -11,7 +11,7 @@ export default function Footer() {
                             <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
                                 <Rocket className="h-5 w-5" />
                             </div>
-                            <span className="text-xl font-bold text-gray-900 dark:text-white">MERN CRM</span>
+                            <span className="text-xl font-bold text-gray-900 dark:text-white">LeadHostix</span>
                         </Link>
                         <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                             The ultimate CRM platform for modern sales teams. Built with React, Node, and AI.
@@ -56,10 +56,10 @@ export default function Footer() {
 
                 <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                        © {new Date().getFullYear()} MERN CRM. All rights reserved.
+                        © {new Date().getFullYear()} LeadHostix. All rights reserved.
                     </p>
                     <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">
-                        <a href="#" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</a>
+                        <Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</Link>
                         <a href="#" className="hover:text-gray-900 dark:hover:text-white">Terms of Service</a>
                     </div>
                 </div>

@@ -15,24 +15,9 @@ export function LicenseUsageWidget() {
 
     if (isLoading) return <Card className="h-[200px] flex items-center justify-center"><Loader2 className="animate-spin" /></Card>
 
-    // Assuming endpoint returns userCount or we calculate from users array. 
-    // Wait, the /api/organisation endpoint returns plain org object, doesn't always return user count or nested users depending on controller.
-    // Let's check update controller later if needed. For now assuming 'users' array length or 'userCount'.
-
-    // Actually in step 1104, I saw the Settings page uses `/api/organisation` and returns `{ org }`.
-    // Wait, step 1104 shows `const { data: org } = useQuery(...)` but calls `axios.get('/api/organisation')`.
-    // It doesn't show the response structure clearly other than usages like `org?.name`.
-    // I'll assume I can get user count or I might need to fetch `/api/users` count.
-    // Let's check analytics stats for user count. `/api/analytics/dashboard` returns `contacts: { total }` but not users?
-    // Wait, `getDashboardStats` in 1109 does NOT return user count.
-
-    // Let's use `org.userLimit` and maybe I need to fetch active users count?
-    // The `getDashboardStats` implementation is missing user count.
-    // I will mock it for now or rely on what's available.
-    // Actually, `getDashboardStats` -> `const user = (req as any).user`.
-
+    // Endpoint now returns userCount (calculated from active users)
     const userLimit = org?.userLimit || 5
-    const userCount = org?.userCount || 0 // Assuming backend might return this.
+    const userCount = org?.userCount || 0
 
     const usagePercent = Math.min(100, Math.round((userCount / userLimit) * 100))
 

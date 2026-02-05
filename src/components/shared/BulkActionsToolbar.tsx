@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { 
+import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -17,12 +17,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { 
-  ChevronDown, 
-  Mail, 
-  UserPlus, 
-  Trash2, 
-  Download, 
+import {
+  ChevronDown,
+  Mail,
+  UserPlus,
+  Trash2,
+  Download,
   Tag,
   MessageSquare,
   Phone,
@@ -35,14 +35,14 @@ interface BulkActionsToolbarProps {
   selectedItems: string[];
   entityType: 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'tasks';
   onClearSelection: () => void;
-  onBulkAction: (action: string, data?: any) => Promise<void>;
+  onBulkAction: (action: string, data?: Record<string, unknown>) => Promise<void>;
   className?: string;
 }
 
-export function BulkActionsToolbar({ 
-  selectedItems, 
-  entityType, 
-  onClearSelection, 
+export function BulkActionsToolbar({
+  selectedItems,
+  entityType,
+  onClearSelection,
   onBulkAction,
   className = ''
 }: BulkActionsToolbarProps) {
@@ -52,10 +52,10 @@ export function BulkActionsToolbar({
 
   if (selectedItems.length === 0) return null;
 
-  const handleAction = async (action: string, data?: any) => {
+  const handleAction = async (action: string, data?: Record<string, unknown>) => {
     setIsLoading(true);
     setCurrentAction(action);
-    
+
     try {
       await onBulkAction(action, data);
       toast.success(`Bulk ${action} completed successfully`);
@@ -236,9 +236,9 @@ export function BulkActionsToolbar({
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="default" 
-                size="sm" 
+              <Button
+                variant="default"
+                size="sm"
                 disabled={isLoading}
                 className="bg-blue-600 hover:bg-blue-700"
               >
@@ -256,7 +256,7 @@ export function BulkActionsToolbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              {actions.map((action, index) => {
+              {actions.map((action) => {
                 const Icon = action.icon;
                 return (
                   <DropdownMenuItem
@@ -287,7 +287,7 @@ export function BulkActionsToolbar({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete {selectedItems.length} {entityType}?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the selected {entityType} 
+              This action cannot be undone. This will permanently delete the selected {entityType}
               and remove all associated data.
             </AlertDialogDescription>
           </AlertDialogHeader>

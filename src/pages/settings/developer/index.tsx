@@ -104,7 +104,7 @@ function ApiKeysTab() {
             setNewKeyName("")
             // Don't close dialog yet, showing the key
         },
-        onError: (error: any) => toast.error(error.response?.data?.message || "Failed to create key")
+        onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to create key")
     })
 
     const revokeMutation = useMutation({
@@ -212,7 +212,7 @@ function ApiKeysTab() {
                                 <TableRow>
                                     <TableCell colSpan={5} className="text-center h-24 text-gray-500">No API keys found.</TableCell>
                                 </TableRow>
-                            ) : apiKeys.map((key: any) => (
+                            ) : apiKeys.map((key: { id: string, name: string, isActive: boolean, createdAt: string, firstEight: string }) => (
                                 <TableRow key={key.id}>
                                     <TableCell className="font-medium">{key.name}</TableCell>
                                     <TableCell>
@@ -264,7 +264,7 @@ function WebhooksTab() {
             setIsCreateOpen(false)
             setUrl("")
         },
-        onError: (error: any) => toast.error(error.response?.data?.message || "Failed to create webhook")
+        onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to create webhook")
     })
 
     const deleteMutation = useMutation({
@@ -339,7 +339,7 @@ function WebhooksTab() {
                                 <TableRow>
                                     <TableCell colSpan={4} className="text-center h-24 text-gray-500">No webhooks configured.</TableCell>
                                 </TableRow>
-                            ) : webhooks.map((hook: any) => (
+                            ) : webhooks.map((hook: { id: string, url: string, events: string[] }) => (
                                 <TableRow key={hook.id}>
                                     <TableCell className="font-mono text-sm">{hook.url}</TableCell>
                                     <TableCell>
@@ -400,7 +400,7 @@ function DocsTab() {
   })
 })
 .then(response => response.json())
-.then(data => console.log("Success:", data))
+.then(() => toast.success("Test event sent"))
 .catch(error => console.error("Error:", error));`
 
     const [copied, setCopied] = useState<string | null>(null)

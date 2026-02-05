@@ -1,10 +1,9 @@
 import axios from 'axios';
+import { API_URL } from '@/config';
 
-const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : 'http://localhost:5001/api',
-    headers: {
-        'Content-Type': 'application/json',
-    },
+export const api = axios.create({
+    baseURL: `${API_URL}/api`,
+    withCredentials: true,
 });
 
 api.interceptors.request.use(
@@ -32,4 +31,4 @@ api.interceptors.response.use(
     }
 );
 
-export { api };
+

@@ -40,15 +40,15 @@ export function LogInteractionDialog({ open, onOpenChange, onSuccess }: LogInter
         const fetchEntities = async () => {
             setIsLoadingEntities(true);
             try {
-                let data: any[] = [];
+                let data: { id: string, firstName: string, lastName: string }[] = [];
                 if (onModel === "Lead") {
                     const response = await getLeads({ limit: 50, sortOrder: 'desc' });
                     data = response.leads || [];
-                    setEntityOptions(data.map((l: any) => ({ id: l.id, name: `${l.firstName} ${l.lastName}` })));
+                    setEntityOptions(data.map((l: { id: string, firstName: string, lastName: string }) => ({ id: l.id, name: `${l.firstName} ${l.lastName}` })));
                 } else if (onModel === "Contact") {
                     const response = await getContacts({ limit: 50, sortOrder: 'desc' });
                     data = response.contacts || [];
-                    setEntityOptions(data.map((c: any) => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })));
+                    setEntityOptions(data.map((c: { id: string, firstName: string, lastName: string }) => ({ id: c.id, name: `${c.firstName} ${c.lastName}` })));
                 }
             } catch (error) {
                 console.error("Failed to fetch entities", error);
@@ -75,11 +75,11 @@ export function LogInteractionDialog({ open, onOpenChange, onSuccess }: LogInter
         try {
             await createInteraction({
                 subject,
-                type: type as any,
+                type: type as "call" | "email" | "meeting" | "note" | "sms" | "whatsapp" | "other",
                 date: new Date(date).toISOString(),
                 duration: duration ? parseInt(duration) : undefined,
-                direction: direction as any,
-                status: status as any,
+                direction: direction as "inbound" | "outbound",
+                status: status as "completed" | "planned" | "missed" | "cancelled",
                 description,
                 onModel,
                 relatedTo,
@@ -94,9 +94,10 @@ export function LogInteractionDialog({ open, onOpenChange, onSuccess }: LogInter
             setDescription("");
             setRelatedTo("");
             setDuration("");
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { message?: string; response?: { data?: { message?: string } } };
             console.error("Error logging interaction:", error);
-            toast.error(error.message || "Failed to log interaction");
+            toast.error(error.response?.data?.message || error.message || "Failed to log interaction");
         } finally {
             setIsLoading(false);
         }
@@ -158,7 +159,7 @@ export function LogInteractionDialog({ open, onOpenChange, onSuccess }: LogInter
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>Related Entity</Label>
-                            <Select value={onModel} onValueChange={(val: any) => { setOnModel(val); setRelatedTo(""); }}>
+                            <Select value={onModel} onValueChange={(val: "Lead" | "Contact") => { setOnModel(val); setRelatedTo(""); }}>
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>

@@ -70,7 +70,7 @@ export function DataTable<TData, TValue>({
         setDragOverRowId(null)
     }
 
-    const handleDrop = (e: React.DragEvent, row: any) => {
+    const handleDrop = (e: React.DragEvent, row: { original: TData }) => {
         if (!onRowDrop) return
         e.preventDefault()
         setDragOverRowId(null)
@@ -80,7 +80,7 @@ export function DataTable<TData, TValue>({
     return (
         <div>
             {searchKey && (
-                <div className="flex items-center py-4">
+                <div className="flex items-center py-4 px-2 sm:px-0">
                     <Input
                         placeholder="Search..."
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
@@ -91,7 +91,7 @@ export function DataTable<TData, TValue>({
                     />
                 </div>
             )}
-            <div className="rounded-md border">
+            <div className="rounded-md border overflow-x-auto">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

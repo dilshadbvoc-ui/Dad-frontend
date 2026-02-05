@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { api } from '../../services/api';
 import { formatDistanceToNow } from 'date-fns';
-import { useSocket } from '../../contexts/SocketContext';
+import { useSocket } from '../../contexts/useSocket';
 
 interface Conversation {
     phoneNumber: string;
     displayName: string;
-    lastMessage: any;
+    lastMessage?: string | { text?: string, templateName?: string };
     lastMessageAt: string;
     messageType: string;
     unreadCount?: number;
@@ -43,8 +43,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
 
         // Socket listener
         if (socket) {
-            const handleNewMessage = (data: { message: any, phoneNumber: string }) => {
-                console.log('ConversationList: Received new message via socket:', data);
+            const handleNewMessage = (data: { message: { content: string, sentAt?: string, createdAt?: string, messageType: string }, phoneNumber: string }) => {
 
                 setConversations(prev => {
                     const existingIdx = prev.findIndex(c => c.phoneNumber === data.phoneNumber);
@@ -55,7 +54,7 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
                         const conversation = { ...updated[existingIdx] };
 
                         conversation.lastMessage = data.message.content;
-                        conversation.lastMessageAt = data.message.sentAt || data.message.createdAt;
+                        conversation.lastMessageAt = data.message.sentAt || data.message.createdAt || new Date().toISOString();
                         conversation.messageType = data.message.messageType;
 
                         updated.splice(existingIdx, 1);
@@ -71,7 +70,6 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
             socket.on('whatsapp_message_received', handleNewMessage);
 
             socket.on('whatsapp_conversation_read', (data: { phoneNumber: string }) => {
-                console.log('ConversationList: Received read notification via socket:', data);
                 setConversations(prev => prev.map(c => {
                     if (c.phoneNumber === data.phoneNumber) {
                         return { ...c, unreadCount: 0 };
@@ -97,22 +95,25 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
 
     const getMessagePreview = (conv: Conversation) => {
         if (!conv.lastMessage) return 'No content';
-        if (conv.messageType === 'text') return conv.lastMessage.text || 'Text message';
+        if (typeof conv.lastMessage === 'string') return conv.lastMessage;
+
+        const lastMsg = conv.lastMessage;
+        if (conv.messageType === 'text') return lastMsg.text || 'Text message';
         if (conv.messageType === 'image') return '📷 Image';
         if (conv.messageType === 'document') return '📄 Document';
         if (conv.messageType === 'audio') return '🎤 Audio';
         if (conv.messageType === 'video') return '🎥 Video';
-        if (conv.messageType === 'template') return `📋 Template: ${conv.lastMessage.templateName}`;
+        if (conv.messageType === 'template') return `📋 Template: ${lastMsg.templateName}`;
         return 'Message';
     };
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-3 bg-white border-b border-gray-100">
+        <div className="flex-1 flex flex-col overflow-hidden bg-[#1e1b4b]">
+            <div className="p-3 bg-[#1e1b4b] border-b border-indigo-900/50">
                 <input
                     type="text"
                     placeholder="Search chats..."
-                    className="w-full px-4 py-2 bg-gray-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-2 bg-indigo-950/50 border border-indigo-900/50 rounded-lg text-sm text-white placeholder:text-indigo-400/50 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-900/50 outline-none transition-all"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -123,10 +124,10 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
                     <div className="p-4 space-y-4">
                         {[1, 2, 3].map(i => (
                             <div key={i} className="flex gap-3 animate-pulse">
-                                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                                <div className="w-12 h-12 bg-indigo-950/50 rounded-full"></div>
                                 <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                                    <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                                    <div className="h-4 bg-indigo-950/50 rounded w-1/2"></div>
+                                    <div className="h-3 bg-indigo-950/50 rounded w-3/4"></div>
                                 </div>
                             </div>
                         ))}
@@ -136,16 +137,16 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
                         <p>No conversations found</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-gray-100">
+                    <div className="divide-y divide-indigo-900/30">
                         {filteredConversations.map((conv) => (
                             <div
                                 key={conv.phoneNumber}
                                 onClick={() => onSelectConversation(conv.phoneNumber)}
-                                className={`flex items-center gap-3 p-4 cursor-pointer transition-colors hover:bg-gray-50 ${selectedPhone === conv.phoneNumber ? 'bg-green-50 hover:bg-green-50 border-l-4 border-green-500' : 'border-l-4 border-transparent'
+                                className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:bg-white/5 ${selectedPhone === conv.phoneNumber ? 'bg-indigo-500/20 shadow-inner' : ''
                                     }`}
                             >
                                 <div className="relative">
-                                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 font-semibold text-lg overflow-hidden shrink-0">
+                                    <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0 shadow-lg">
                                         {conv.displayName.charAt(0).toUpperCase()}
                                     </div>
                                     {/* Online indicator could go here */}
@@ -153,21 +154,21 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className={`text-sm font-semibold truncate ${selectedPhone === conv.phoneNumber ? 'text-green-800' : 'text-gray-900'}`}>
+                                        <h3 className={`text-sm font-semibold truncate ${selectedPhone === conv.phoneNumber ? 'text-indigo-200' : 'text-white'}`}>
                                             {conv.displayName}
                                         </h3>
                                         {conv.lastMessageAt && (
-                                            <span className={`text-[10px] shrink-0 ${conv.unreadCount && conv.unreadCount > 0 ? 'text-green-600 font-semibold' : 'text-gray-400'}`}>
+                                            <span className={`text-[10px] shrink-0 font-medium ${conv.unreadCount && conv.unreadCount > 0 ? 'text-indigo-400' : 'text-indigo-300/40'}`}>
                                                 {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }).replace('about ', '')}
                                             </span>
                                         )}
                                     </div>
                                     <div className="flex justify-between items-center gap-2">
-                                        <p className={`text-xs truncate flex-1 ${conv.unreadCount && conv.unreadCount > 0 ? 'text-gray-900 font-medium' : 'text-gray-500'}`}>
+                                        <p className={`text-xs truncate flex-1 leading-relaxed ${conv.unreadCount && conv.unreadCount > 0 ? 'text-indigo-100 font-semibold' : 'text-indigo-300/60'}`}>
                                             {getMessagePreview(conv)}
                                         </p>
                                         {conv.unreadCount && conv.unreadCount > 0 ? (
-                                            <span className="bg-green-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-sm">
+                                            <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg shadow-indigo-500/30">
                                                 {conv.unreadCount}
                                             </span>
                                         ) : null}

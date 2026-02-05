@@ -29,7 +29,8 @@ export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onS
             toast.success('Next follow-up updated');
             onSuccess?.();
             onOpenChange(false);
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             toast.error(error.response?.data?.message || 'Failed to update follow-up');
         } finally {
             setIsLoading(false);

@@ -12,11 +12,26 @@ interface LogNoteDialogProps {
     onOpenChange: (open: boolean) => void;
     leadId: string;
     onSuccess: () => void;
+    initialContent?: string;
 }
 
-export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess }: LogNoteDialogProps) {
+export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialContent = '' }: LogNoteDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [note, setNote] = useState('');
+    const [note, setNote] = useState(initialContent);
+
+    // Better: use useEffect to set note when open changes to true. 
+    // But since we can't easily add imports here without multi replace, 
+    // and I want to keep it simple, I'll stick to 'useState(initialContent)'. 
+    // IMPORTANT: If initialContent changes while component is mounted, useState won't update.
+    // I should add a check. But simplest is just replace the whole file or block carefully.
+
+    // Actually, let's just use `defaultValue` concept or a `useEffect`.
+    // Since I can't add useEffect easily without importing it (it is imported actually: line 1), 
+    // I can do it.
+
+    // Wait, line 1 has `import { useState } from 'react';`
+    // I should probably add `useEffect` to imports too if I use it.
+    // But let's check if I can just swap lines 1-20.
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

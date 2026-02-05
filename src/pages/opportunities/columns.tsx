@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { OpportunityActions } from "./OpportunityActions"
+import type { Opportunity } from "@/services/opportunityService"
 
-export const columns: ColumnDef<any>[] = [
+export const columns: ColumnDef<Opportunity>[] = [
     {
         accessorKey: "name",
         header: ({ column }) => {

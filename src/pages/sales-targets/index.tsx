@@ -6,10 +6,12 @@ import {
     getSubordinates,
     assignTarget,
     deleteTarget,
+    updateTarget,
     recalculateProgress,
     type SalesTarget,
     type Subordinate,
-    type AssignTargetInput
+    type AssignTargetInput,
+    type UpdateTargetInput
 } from "@/services/salesTargetService"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -29,7 +31,9 @@ import {
     RefreshCw,
     ChevronDown,
     ChevronRight,
-    User
+    User,
+    Pencil,
+    Box
 } from "lucide-react"
 import {
     DropdownMenu,
@@ -87,7 +91,7 @@ const buildTargetTree = (targets: SalesTarget[]): TargetTreeNode[] => {
 };
 
 // Target Tree Node Component
-const TargetNode = ({ node, level = 0, onDelete }: { node: TargetTreeNode; level?: number; onDelete: (id: string) => void }) => {
+const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNode; level?: number; onDelete: (id: string) => void; onEdit: (target: SalesTarget) => void }) => {
     const [expanded, setExpanded] = useState(true);
     const hasChildren = node.children.length > 0;
     const achievementPercent = node.targetValue > 0
@@ -119,6 +123,17 @@ const TargetNode = ({ node, level = 0, onDelete }: { node: TargetTreeNode; level
                                 <Badge variant={node.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                                     {node.status}
                                 </Badge>
+                                {node.product && (
+                                    <Badge variant="outline" className="text-xs border-blue-200 bg-blue-50 text-blue-700 flex items-center gap-1">
+                                        <Box className="h-3 w-3" />
+                                        {node.product.name}
+                                    </Badge>
+                                )}
+                                {node.opportunityType && (
+                                    <Badge variant="outline" className="text-xs border-purple-200 bg-purple-50 text-purple-700">
+                                        {node.opportunityType.replace('_', ' ')}
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -132,6 +147,9 @@ const TargetNode = ({ node, level = 0, onDelete }: { node: TargetTreeNode; level
                                 <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => onEdit(node)}>
+                                    <Pencil className="h-4 w-4 mr-2" />Edit
+                                </DropdownMenuItem>
                                 <DropdownMenuItem className="text-red-600" onClick={() => onDelete(node.id)}>
                                     <Trash2 className="h-4 w-4 mr-2" />Delete
                                 </DropdownMenuItem>
@@ -145,7 +163,7 @@ const TargetNode = ({ node, level = 0, onDelete }: { node: TargetTreeNode; level
             {hasChildren && expanded && (
                 <div className="mt-2">
                     {node.children.map(child => (
-                        <TargetNode key={child.id} node={child} level={level + 1} onDelete={onDelete} />
+                        <TargetNode key={child.id} node={child} level={level + 1} onDelete={onDelete} onEdit={onEdit} />
                     ))}
                 </div>
             )}
@@ -158,7 +176,35 @@ export default function SalesTargetsPage() {
     const [selectedSubordinate, setSelectedSubordinate] = useState("")
     const [targetValue, setTargetValue] = useState("")
     const [period, setPeriod] = useState<"monthly" | "quarterly" | "yearly">("monthly")
+
+    // New State for Enhanced Targeting
+    const [metric, setMetric] = useState<'revenue' | 'units'>('revenue')
+    const [scope, setScope] = useState<'INDIVIDUAL' | 'HIERARCHY'>('HIERARCHY')
+    const [selectedProductId, setSelectedProductId] = useState<string>('ALL')
+    const [opportunityType, setOpportunityType] = useState<'NEW_BUSINESS' | 'UPSALE' | 'ALL'>('ALL')
+
+    // Edit State
+    const [isEditOpen, setIsEditOpen] = useState(false)
+    const [editingTarget, setEditingTarget] = useState<SalesTarget | null>(null)
+    const [editValue, setEditValue] = useState("")
+
     const queryClient = useQueryClient()
+
+    // Fetch Products for dropdown
+    // Assuming we can use /api/products directly or need a service method.
+    // Using inline fetch or similar approach to previous files
+    const { data: productsData } = useQuery({
+        queryKey: ['products'],
+        queryFn: async () => {
+            // We need to import api here or use existing pattern. 
+            // To avoid import issues, I will try to use the api imported in other files if available,
+            // but index.tsx doesn't import 'api'.
+            // I'll assume 'api' can be imported from @/services/api
+            const { api } = await import('@/services/api')
+            return (await api.get('/products')).data
+        }
+    })
+    const products = productsData || []
 
     const { data: myTargetsData, isLoading: isLoadingMy } = useQuery({
         queryKey: ['sales-targets', 'my'],
@@ -207,6 +253,19 @@ export default function SalesTargetsPage() {
         }
     })
 
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: UpdateTargetInput }) => updateTarget(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['sales-targets'] })
+            setIsEditOpen(false)
+            setEditingTarget(null)
+            toast.success("Target updated successfully")
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Failed to update target")
+        }
+    })
+
     const recalcMutation = useMutation({
         mutationFn: recalculateProgress,
         onSuccess: () => {
@@ -222,8 +281,30 @@ export default function SalesTargetsPage() {
         assignMutation.mutate({
             assignToUserId: selectedSubordinate,
             targetValue: parseFloat(targetValue),
-            period
+            period,
+            metric,
+            scope,
+            productId: selectedProductId === 'ALL' ? undefined : selectedProductId,
+            opportunityType: opportunityType === 'ALL' ? undefined : opportunityType
         })
+    }
+
+    const handleEditSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!editingTarget || !editValue) return
+
+        updateMutation.mutate({
+            id: editingTarget.id,
+            data: {
+                targetValue: parseFloat(editValue)
+            }
+        })
+    }
+
+    const openEditDialog = (target: SalesTarget) => {
+        setEditingTarget(target)
+        setEditValue(target.targetValue.toString())
+        setIsEditOpen(true)
     }
 
     // Stats
@@ -290,12 +371,74 @@ export default function SalesTargetsPage() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <Label>Target Amount (₹)</Label>
+                                                    <Label>Measure By</Label>
+                                                    <Select value={metric} onValueChange={(v) => setMetric(v as 'revenue' | 'units')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="revenue">Revenue Amount (₹)</SelectItem>
+                                                            <SelectItem value="units">Product Units (Qty)</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Target Scope</Label>
+                                                    <Select value={scope} onValueChange={(v) => setScope(v as 'INDIVIDUAL' | 'HIERARCHY')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="HIERARCHY">Team Hierarchy (Rollup)</SelectItem>
+                                                            <SelectItem value="INDIVIDUAL">Individual Only</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <p className="text-[11px] text-muted-foreground mt-1">
+                                                        {scope === 'HIERARCHY'
+                                                            ? "Target includes sales from the user + their team."
+                                                            : "Target counts ONLY the user's personal sales."}
+                                                    </p>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Product (Optional)</Label>
+                                                    <Select value={selectedProductId} onValueChange={setSelectedProductId}>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="All Products (General Target)" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="ALL">All Products (General Target)</SelectItem>
+                                                            {products.map((product: any) => (
+                                                                <SelectItem key={product.id} value={product.id}>
+                                                                    {product.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Opportunity Type (Optional)</Label>
+                                                    <Select value={opportunityType} onValueChange={(v) => setOpportunityType(v as 'NEW_BUSINESS' | 'UPSALE' | 'ALL')}>
+                                                        <SelectTrigger>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="ALL">All Types</SelectItem>
+                                                            <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                                            <SelectItem value="UPSALE">Upsale</SelectItem>
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>{metric === 'revenue' ? 'Target Amount (₹)' : 'Target Units (Qty)'}</Label>
                                                     <Input
                                                         type="number"
                                                         value={targetValue}
                                                         onChange={(e) => setTargetValue(e.target.value)}
-                                                        placeholder="e.g. 100000"
+                                                        placeholder={metric === 'revenue' ? "e.g. 100000" : "e.g. 50"}
                                                         required
                                                     />
                                                 </div>
@@ -319,6 +462,42 @@ export default function SalesTargetsPage() {
                                             <DialogFooter>
                                                 <Button type="submit" disabled={assignMutation.isPending || !selectedSubordinate}>
                                                     {assignMutation.isPending ? "Assigning..." : "Assign Target"}
+                                                </Button>
+                                            </DialogFooter>
+                                        </form>
+                                    </DialogContent>
+                                </Dialog>
+
+                                {/* Edit Dialog */}
+                                <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+                                    <DialogContent>
+                                        <form onSubmit={handleEditSubmit}>
+                                            <DialogHeader>
+                                                <DialogTitle>Edit Sales Target</DialogTitle>
+                                                <DialogDescription>
+                                                    Update the target value. Period and assignee cannot be changed here.
+                                                </DialogDescription>
+                                            </DialogHeader>
+                                            <div className="grid gap-4 py-4">
+                                                <div>
+                                                    <Label>Target Amount (₹)</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={editValue}
+                                                        onChange={(e) => setEditValue(e.target.value)}
+                                                        placeholder="e.g. 100000"
+                                                        required
+                                                    />
+                                                </div>
+                                                {editingTarget?.product && (
+                                                    <div className="text-sm text-gray-500">
+                                                        Product: <span className="font-medium text-gray-900 dark:text-gray-100">{editingTarget.product.name}</span>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <DialogFooter>
+                                                <Button type="submit" disabled={updateMutation.isPending}>
+                                                    {updateMutation.isPending ? "Updating..." : "Update Target"}
                                                 </Button>
                                             </DialogFooter>
                                         </form>
@@ -419,11 +598,20 @@ export default function SalesTargetsPage() {
                                                                             <Calendar className="h-3 w-3" />
                                                                             <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}</span>
                                                                         </div>
+                                                                        {target.product && (
+                                                                            <Badge variant="outline" className="mt-1 text-xs border-blue-200 bg-blue-50 text-blue-700 flex items-center gap-1 w-fit">
+                                                                                <Box className="h-3 w-3" />
+                                                                                {target.product.name}
+                                                                            </Badge>
+                                                                        )}
                                                                     </div>
                                                                 </div>
-                                                                <div className="text-right">
-                                                                    <p className="font-bold text-lg">₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}</p>
-                                                                    <p className="text-sm text-gray-500">{percent}% achieved</p>
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="text-right">
+                                                                        <p className="font-bold text-lg">₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}</p>
+                                                                        <p className="text-sm text-gray-500">{percent}% achieved</p>
+                                                                    </div>
+                                                                    {/* Note: Employees can't usually edit their own targets assigned by managers, blocking edit here for 'My Targets' view unless we want self-assigned targets logic. Assuming 'Team' view is where management happens. */}
                                                                 </div>
                                                             </div>
                                                             <Progress value={Math.min(percent, 100)} className="h-2" />
@@ -459,6 +647,7 @@ export default function SalesTargetsPage() {
                                                         key={node.id}
                                                         node={node}
                                                         onDelete={(id) => deleteMutation.mutate(id)}
+                                                        onEdit={openEditDialog}
                                                     />
                                                 ))}
                                             </div>

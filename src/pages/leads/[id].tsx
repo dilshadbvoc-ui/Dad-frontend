@@ -18,10 +18,11 @@ import { AssignLeadDialog } from "@/components/AssignLeadDialog"
 import { SetFollowUpDialog } from "@/components/SetFollowUpDialog"
 import { useState } from "react"
 import { toast } from "sonner"
-import { format, formatDistanceToNow } from "date-fns"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
+import { EmailComposeDialog } from "@/components/EmailComposeDialog"
+import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
 
 
 
@@ -52,11 +53,14 @@ export default function LeadDetailPage() {
     const [isLogCallOpen, setIsLogCallOpen] = useState(false)
     const [isCreateTaskOpen, setIsCreateTaskOpen] = useState(false)
     const [isLogNoteOpen, setIsLogNoteOpen] = useState(false)
+    const [noteInitialContent, setNoteInitialContent] = useState('')
     const [isScheduleMeetingOpen, setIsScheduleMeetingOpen] = useState(false)
     const [isConvertOpen, setIsConvertOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
-    const [isAssignOpen, setIsAssignOpen] = useState(false)
-    const [isSetFollowUpOpen, setIsSetFollowUpOpen] = useState(false)
+    const [assignDialogOpen, setAssignDialogOpen] = useState(false)
+    const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
+    const [emailDialogOpen, setEmailDialogOpen] = useState(false)
+    const [productDialogOpen, setProductDialogOpen] = useState(false)
     const [dragOver, setDragOver] = useState(false)
     const queryClient = useQueryClient()
 
@@ -108,15 +112,28 @@ export default function LeadDetailPage() {
     const handleActivityAction = (type: string) => {
         if (type === 'call') setIsLogCallOpen(true)
         else if (type === 'task') setIsCreateTaskOpen(true)
-        else if (type === 'note') setIsLogNoteOpen(true)
+        else if (type === 'note') {
+            setNoteInitialContent('')
+            setIsLogNoteOpen(true)
+        }
         else if (type === 'meeting') setIsScheduleMeetingOpen(true)
         else if (type === 'whatsapp') {
             const phone = lead?.phone?.replace(/[^0-9]/g, '')
-            if (phone) window.open(`https://wa.me/${phone}`, '_blank')
+            if (phone) {
+                window.open(`https://wa.me/${phone}`, '_blank')
+                // Smart Log: Prompt to log this interaction
+                setNoteInitialContent(`Started WhatsApp conversation with ${lead.firstName}. Noted: `)
+                setIsLogNoteOpen(true)
+            }
             else toast.error('No phone number available')
         }
         else if (type === 'email') {
-            if (lead?.email) window.open(`mailto:${lead.email}`, '_blank')
+            if (lead?.email) {
+                window.open(`mailto:${lead.email}`, '_blank')
+                // Smart Log
+                setNoteInitialContent(`Sent email to ${lead.email}. Subject: `)
+                setIsLogNoteOpen(true)
+            }
             else toast.error('No email available')
         }
         else toast.info(`Create ${type} dialog coming soon!`)
@@ -161,7 +178,7 @@ export default function LeadDetailPage() {
                     <h1 className="text-3xl font-bold flex items-center gap-3">
                         {lead.firstName} {lead.lastName}
                         {id && <CollaborationBadge resourceId={`leads/${id}`} />}
-                        <Button variant="outline" size="sm" onClick={() => setIsSetFollowUpOpen(true)}>
+                        <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)}>
                             <Calendar className="h-4 w-4 mr-2" />
                             Set Follow-up
                         </Button>
@@ -169,9 +186,13 @@ export default function LeadDetailPage() {
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setIsAssignOpen(true)}>
+                        <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)}>
                             <UserPlus className="h-4 w-4 mr-2" />
                             Assign
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
+                            <Mail className="w-4 h-4 mr-2" />
+                            Email
                         </Button>
                         <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setIsConvertOpen(true)} disabled={lead.status === 'converted'}>
                             <CheckCircle2 className="h-4 w-4 mr-2" />
@@ -197,7 +218,14 @@ export default function LeadDetailPage() {
                             <SelectItem value="Lost">Lost</SelectItem>
                         </SelectContent>
                     </Select>
-                    <Badge>{lead.status}</Badge>
+                    <div className="flex flex-col items-end">
+                        <Badge>{lead.status}</Badge>
+                        {lead.potentialValue > 0 && (
+                            <span className="text-xs font-semibold text-green-600 mt-1">
+                                Value: ${lead.potentialValue.toLocaleString()}
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 
@@ -225,8 +253,30 @@ export default function LeadDetailPage() {
                                     </span>
                                 </div>
                             )}
+
                             <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName}</Link> : 'Unassigned'}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+
+                            <div className="pt-2 border-t">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-semibold text-sm">Products Interested</span>
+                                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => setProductDialogOpen(true)}>
+                                        <Pencil className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                                {lead.products && lead.products.length > 0 ? (
+                                    <div className="space-y-1">
+                                        {lead.products.map((kp: any) => (
+                                            <div key={kp.productId} className="text-sm flex justify-between">
+                                                <span>{kp.product?.name} <span className="text-muted-foreground text-xs">x{kp.quantity}</span></span>
+                                                <span className="font-medium">${(kp.price * kp.quantity).toLocaleString()}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <span className="text-sm text-muted-foreground">No products selected</span>
+                                )}
+                            </div>
                         </CardContent>
                     </Card>
 
@@ -300,8 +350,8 @@ export default function LeadDetailPage() {
             {lead && (
                 <>
                     <SetFollowUpDialog
-                        open={isSetFollowUpOpen}
-                        onOpenChange={setIsSetFollowUpOpen}
+                        open={followUpDialogOpen}
+                        onOpenChange={setFollowUpDialogOpen}
                         leadId={lead.id}
                         currentDate={lead.nextFollowUp}
                         onSuccess={() => {
@@ -337,6 +387,7 @@ export default function LeadDetailPage() {
                         open={isLogNoteOpen}
                         onOpenChange={setIsLogNoteOpen}
                         leadId={lead.id}
+                        initialContent={noteInitialContent}
                         onSuccess={() => {
                             queryClient.invalidateQueries({ queryKey: ['interactions', id] })
                         }}
@@ -355,7 +406,26 @@ export default function LeadDetailPage() {
             )}
 
             {lead && <EditLeadDialog open={isEditOpen} onOpenChange={setIsEditOpen} lead={lead} />}
-            {lead && <AssignLeadDialog open={isAssignOpen} onOpenChange={setIsAssignOpen} lead={lead} />}
+            {lead && <AssignLeadDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} lead={lead} />}
+            <EmailComposeDialog
+                open={emailDialogOpen}
+                onOpenChange={setEmailDialogOpen}
+                leadId={lead.id}
+                leadEmail={lead.email}
+                onSuccess={() => {
+                    queryClient.invalidateQueries({ queryKey: ['lead-timeline', lead.id] })
+                }}
+            />
+            {lead && (
+                <AddProductToLeadDialog
+                    open={productDialogOpen}
+                    onOpenChange={setProductDialogOpen}
+                    leadId={lead.id}
+                    currentProducts={lead.products}
+                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
+                />
+            )}
+
         </div>
     )
 }

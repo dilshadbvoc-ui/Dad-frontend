@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { getProfile, updateProfile, changePassword, uploadImage, type ProfileUpdateData } from "@/services/settingsService"
+import { API_URL } from "@/config"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -79,76 +80,71 @@ export default function ProfileSettingsPage() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="space-y-6 container mx-auto p-6 lg:p-8">
+            <div className="max-w-3xl mx-auto space-y-6">
+                <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Profile Settings</h1>
+                    <p className="text-gray-500">Manage your personal information</p>
+                </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-                    <div className="max-w-3xl mx-auto space-y-6">
-                        <div>
-                            <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Profile Settings</h1>
-                            <p className="text-gray-500">Manage your personal information</p>
-                        </div>
-
-                        {loading ? (
-                            <div className="flex justify-center p-16"><div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
-                        ) : (
-                            <>
-                                <Card>
-                                    <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Personal Information</CardTitle><CardDescription>Update your name and contact details</CardDescription></CardHeader>
-                                    <CardContent>
-                                        <form onSubmit={handleProfileSubmit} className="space-y-6">
-                                            {/* Profile Image Section */}
-                                            <div className="flex items-center gap-6">
-                                                <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                                    <Avatar className="h-24 w-24 border-2 border-primary/20">
-                                                        <AvatarImage src={`http://localhost:5000${profile?.profileImage}`} className="object-cover" />
-                                                        <AvatarFallback className="text-2xl bg-primary/10 text-primary">
-                                                            {profile?.firstName?.[0]}{profile?.lastName?.[0]}
-                                                        </AvatarFallback>
-                                                    </Avatar>
-                                                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                                        {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
-                                                    </div>
-                                                </div>
-                                                <div>
-                                                    <h3 className="font-medium">Profile Picture</h3>
-                                                    <p className="text-sm text-gray-500">Click to upload a new photo. JPG, PNG or GIF.</p>
-                                                    <input
-                                                        type="file"
-                                                        ref={fileInputRef}
-                                                        className="hidden"
-                                                        accept="image/*"
-                                                        onChange={handleImageUpload}
-                                                    />
-                                                </div>
+                {loading ? (
+                    <div className="flex justify-center p-16"><div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
+                ) : (
+                    <>
+                        <Card>
+                            <CardHeader><CardTitle className="flex items-center gap-2"><User className="h-5 w-5" />Personal Information</CardTitle><CardDescription>Update your name and contact details</CardDescription></CardHeader>
+                            <CardContent>
+                                <form onSubmit={handleProfileSubmit} className="space-y-6">
+                                    {/* Profile Image Section */}
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                            <Avatar className="h-24 w-24 border-2 border-primary/20">
+                                                <AvatarImage src={`${API_URL}${profile?.profileImage}`} className="object-cover" />
+                                                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                                                    {profile?.firstName?.[0]}{profile?.lastName?.[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
                                             </div>
+                                        </div>
+                                        <div>
+                                            <h3 className="font-medium">Profile Picture</h3>
+                                            <p className="text-sm text-gray-500">Click to upload a new photo. JPG, PNG or GIF.</p>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                                accept="image/*"
+                                                onChange={handleImageUpload}
+                                            />
+                                        </div>
+                                    </div>
 
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} /></div>
-                                                <div><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} /></div>
-                                            </div>
-                                            <div><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-gray-100" /></div>
-                                            <div><Label>Phone</Label><Input value={profile?.phone || ''} onChange={e => setProfile(p => p ? { ...p, phone: e.target.value } : null)} /></div>
-                                            <Button type="submit" className="bg-gradient-to-r from-blue-600 to-purple-600"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
-                                        </form>
-                                    </CardContent>
-                                </Card>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} /></div>
+                                        <div><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} /></div>
+                                    </div>
+                                    <div><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-gray-100" /></div>
+                                    <div><Label>Phone</Label><Input value={profile?.phone || ''} onChange={e => setProfile(p => p ? { ...p, phone: e.target.value } : null)} /></div>
+                                    <Button type="submit" className="bg-gradient-to-r from-blue-600 to-purple-600"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
+                                </form>
+                            </CardContent>
+                        </Card>
 
-                                <Card>
-                                    <CardHeader><CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" />Change Password</CardTitle><CardDescription>Update your password</CardDescription></CardHeader>
-                                    <CardContent>
-                                        <form onSubmit={handlePasswordSubmit} className="space-y-4">
-                                            <div><Label>Current Password</Label><Input type="password" value={passwords.currentPassword} onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })} required /></div>
-                                            <div><Label>New Password</Label><Input type="password" value={passwords.newPassword} onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })} required /></div>
-                                            <div><Label>Confirm New Password</Label><Input type="password" value={passwords.confirmPassword} onChange={e => setPasswords({ ...passwords, confirmPassword: e.target.value })} required /></div>
-                                            <Button type="submit" variant="outline">Change Password</Button>
-                                        </form>
-                                    </CardContent>
-                                </Card>
-                            </>
-                        )}
-                    </div>
-                </main>
+                        <Card>
+                            <CardHeader><CardTitle className="flex items-center gap-2"><Lock className="h-5 w-5" />Change Password</CardTitle><CardDescription>Update your password</CardDescription></CardHeader>
+                            <CardContent>
+                                <form onSubmit={handlePasswordSubmit} className="space-y-4">
+                                    <div><Label>Current Password</Label><Input type="password" value={passwords.currentPassword} onChange={e => setPasswords({ ...passwords, currentPassword: e.target.value })} required /></div>
+                                    <div><Label>New Password</Label><Input type="password" value={passwords.newPassword} onChange={e => setPasswords({ ...passwords, newPassword: e.target.value })} required /></div>
+                                    <div><Label>Confirm New Password</Label><Input type="password" value={passwords.confirmPassword} onChange={e => setPasswords({ ...passwords, confirmPassword: e.target.value })} required /></div>
+                                    <Button type="submit" variant="outline">Change Password</Button>
+                                </form>
+                            </CardContent>
+                        </Card>
+                    </>
+                )}
             </div>
         </div>
     )

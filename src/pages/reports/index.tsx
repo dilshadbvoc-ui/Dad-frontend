@@ -1,20 +1,20 @@
-import { useState, useEffect, useMemo } from "react"
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Download, TrendingUp, Users, DollarSign, Target, BarChart3, PieChart as PieIcon, Filter, Calendar, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Download, TrendingUp, Users, DollarSign, Target, BarChart3, PieChart as PieIcon, Calendar, ArrowUpRight } from "lucide-react"
 import { api } from "@/services/api"
 import { getUsers } from "@/services/settingsService"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, AreaChart, Area } from 'recharts'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function ReportsPage() {
-    const [dateRange, setDateRange] = useState({ start: '', end: '' })
+    const [dateRange] = useState({ start: '', end: '' })
 
     // --- Leads Report State ---
     const [leadStage, setLeadStage] = useState('all')
@@ -32,7 +32,7 @@ export default function ReportsPage() {
     const { data: leadsData, isLoading: leadsLoading } = useQuery({
         queryKey: ['report-leads', leadStage, leadStatus, leadUser, dateRange],
         queryFn: async () => {
-            const params: any = {}
+            const params: Record<string, string> = {}
             if (leadStage !== 'all') params.stage = leadStage
             if (leadStatus !== 'all') params.status = leadStatus
             if (leadUser !== 'all') params.userId = leadUser
@@ -59,7 +59,7 @@ export default function ReportsPage() {
     const { data: performanceData, isLoading: perfLoading } = useQuery({
         queryKey: ['report-performance', dateRange],
         queryFn: async () => {
-            const params: any = {}
+            const params: Record<string, string> = {}
             if (dateRange.start) params.startDate = dateRange.start
             if (dateRange.end) params.endDate = dateRange.end
             const res = await api.get('/reports/user-performance', { params })
@@ -70,7 +70,7 @@ export default function ReportsPage() {
     // Prepare chart for User Performance
     const userPerfChartData = useMemo(() => {
         if (!performanceData?.performance) return []
-        return performanceData.performance.map((item: any) => ({
+        return performanceData.performance.map((item: { user: { name: string }, metrics: { leadsAssigned: number, leadsConverted: number } }) => ({
             name: item.user.name.split(' ')[0], // First name only for clearer labels
             assigned: item.metrics.leadsAssigned,
             converted: item.metrics.leadsConverted
@@ -91,7 +91,7 @@ export default function ReportsPage() {
     const salesTrendData = useMemo(() => {
         if (!salesData?.sales) return []
 
-        const grouped = salesData.sales.reduce((acc: any, sale: any) => {
+        const grouped = salesData.sales.reduce((acc: Record<string, number>, sale: { closedAt: string, amount: number }) => {
             const date = new Date(sale.closedAt).toLocaleDateString()
             acc[date] = (acc[date] || 0) + sale.amount
             return acc
@@ -99,7 +99,7 @@ export default function ReportsPage() {
 
         return Object.entries(grouped)
             .map(([date, amount]) => ({ date, amount }))
-            .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
+            .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
     }, [salesData])
 
 
@@ -108,10 +108,10 @@ export default function ReportsPage() {
     }
 
     const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', { 
-            style: 'currency', 
-            currency: 'INR', 
-            maximumFractionDigits: 0 
+        return new Intl.NumberFormat('en-IN', {
+            style: 'currency',
+            currency: 'INR',
+            maximumFractionDigits: 0
         }).format(amount);
     };
 
@@ -131,10 +131,10 @@ export default function ReportsPage() {
                                 <div className="flex items-center gap-2 bg-white dark:bg-gray-900 rounded-lg px-3 py-2 shadow-sm border">
                                     <Calendar className="h-4 w-4 text-slate-500" />
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-                                        {new Date().toLocaleDateString('en-IN', { 
-                                            month: 'long', 
-                                            day: 'numeric', 
-                                            year: 'numeric' 
+                                        {new Date().toLocaleDateString('en-IN', {
+                                            month: 'long',
+                                            day: 'numeric',
+                                            year: 'numeric'
                                         })}
                                     </span>
                                 </div>
@@ -185,7 +185,7 @@ export default function ReportsPage() {
                                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                         ))}
                                                     </Pie>
-                                                    <Tooltip 
+                                                    <Tooltip
                                                         contentStyle={{
                                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
                                                             borderRadius: '12px',
@@ -193,8 +193,8 @@ export default function ReportsPage() {
                                                             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
                                                         }}
                                                     />
-                                                    <Legend 
-                                                        verticalAlign="bottom" 
+                                                    <Legend
+                                                        verticalAlign="bottom"
                                                         height={36}
                                                         iconType="circle"
                                                     />
@@ -214,25 +214,25 @@ export default function ReportsPage() {
                                                 <BarChart data={leadsByStatusData}>
                                                     <defs>
                                                         <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
-                                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3}/>
+                                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8} />
+                                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0.3} />
                                                         </linearGradient>
                                                     </defs>
                                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                                                    <XAxis 
-                                                        dataKey="name" 
-                                                        fontSize={12} 
-                                                        tickLine={false} 
+                                                    <XAxis
+                                                        dataKey="name"
+                                                        fontSize={12}
+                                                        tickLine={false}
                                                         axisLine={false}
                                                         tick={{ fill: '#6b7280' }}
                                                     />
-                                                    <YAxis 
-                                                        fontSize={12} 
-                                                        tickLine={false} 
+                                                    <YAxis
+                                                        fontSize={12}
+                                                        tickLine={false}
                                                         axisLine={false}
                                                         tick={{ fill: '#6b7280' }}
                                                     />
-                                                    <Tooltip 
+                                                    <Tooltip
                                                         cursor={{ fill: 'rgba(34, 197, 94, 0.1)' }}
                                                         contentStyle={{
                                                             backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -241,9 +241,9 @@ export default function ReportsPage() {
                                                             boxShadow: '0 10px 25px rgba(0, 0, 0, 0.1)'
                                                         }}
                                                     />
-                                                    <Bar 
-                                                        dataKey="value" 
-                                                        fill="url(#colorBar)" 
+                                                    <Bar
+                                                        dataKey="value"
+                                                        fill="url(#colorBar)"
                                                         radius={[8, 8, 0, 0]}
                                                         maxBarSize={60}
                                                     />
@@ -304,7 +304,7 @@ export default function ReportsPage() {
                                                     <SelectContent>
                                                         <SelectItem value="all">All Users</SelectItem>
                                                         <SelectItem value="unassigned">Unassigned</SelectItem>
-                                                        {users.map((u: any) => (
+                                                        {users.map((u: { id: string, firstName: string, lastName: string }) => (
                                                             <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -331,7 +331,7 @@ export default function ReportsPage() {
                                                     ) : leadsData?.leads?.length === 0 ? (
                                                         <TableRow><TableCell colSpan={6} className="text-center py-8 text-gray-500">No leads found</TableCell></TableRow>
                                                     ) : (
-                                                        leadsData?.leads?.map((lead: any) => (
+                                                        leadsData?.leads?.map((lead: { id: string, firstName: string, lastName: string, company?: string, stage?: string, status: string, assignedTo?: { firstName: string, lastName: string }, createdAt: string }) => (
                                                             <TableRow key={lead.id}>
                                                                 <TableCell className="font-medium">{lead.firstName} {lead.lastName}</TableCell>
                                                                 <TableCell>{lead.company || '-'}</TableCell>
@@ -397,7 +397,9 @@ export default function ReportsPage() {
                                                 <TableBody>
                                                     {perfLoading ? (
                                                         <TableRow><TableCell colSpan={7} className="text-center py-8">Loading...</TableCell></TableRow>
-                                                    ) : performanceData?.performance?.map((item: any) => (
+                                                    ) : !performanceData?.performance || performanceData.performance.length === 0 ? (
+                                                        <TableRow><TableCell colSpan={7} className="text-center py-8 text-gray-500">No performance data available</TableCell></TableRow>
+                                                    ) : performanceData.performance.map((item: { user: { id: string, name: string, role: string }, metrics: { leadsAssigned: number, leadsConverted: number, conversionRate: number, callsMade: number, meetingsHeld: number } }) => (
                                                         <TableRow key={item.user.id}>
                                                             <TableCell className="font-medium">{item.user.name}</TableCell>
                                                             <TableCell className="capitalize">{item.user.role}</TableCell>
@@ -528,7 +530,7 @@ export default function ReportsPage() {
                                                     ) : salesData?.sales?.length === 0 ? (
                                                         <TableRow><TableCell colSpan={5} className="text-center py-8 text-gray-500">No sales in this period</TableCell></TableRow>
                                                     ) : (
-                                                        salesData?.sales?.map((sale: any) => (
+                                                        salesData?.sales?.map((sale: { id: string, name: string, account: string, owner: string, amount: number, closedAt: string }) => (
                                                             <TableRow key={sale.id}>
                                                                 <TableCell className="font-medium">{sale.name}</TableCell>
                                                                 <TableCell>{sale.account}</TableCell>

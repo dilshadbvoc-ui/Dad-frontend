@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { toast } from "sonner"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -30,7 +31,7 @@ export default function TasksPage() {
             setIsDialogOpen(false)
         },
         onError: (err: Error) => {
-            alert(err.message)
+            toast.error(err.message)
         }
     })
 
@@ -42,8 +43,8 @@ export default function TasksPage() {
         createMutation.mutate({
             subject: formData.get('subject') as string,
             description: formData.get('description') as string,
-            status: formData.get('status') as any,
-            priority: formData.get('priority') as any,
+            status: formData.get('status') as 'not_started' | 'in_progress' | 'completed' | 'deferred',
+            priority: formData.get('priority') as 'high' | 'medium' | 'low',
             dueDate: formData.get('dueDate') as string,
         })
     }
@@ -61,12 +62,12 @@ export default function TasksPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Tasks</h1>
-                    <p className="text-muted-foreground">Manage your to-dos and activities.</p>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Tasks</h1>
+                    <p className="text-indigo-400/60 mt-1">Manage your to-dos and activities.</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button>
+                        <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-none">
                             <Plus className="mr-2 h-4 w-4" />
                             Create Task
                         </Button>
@@ -127,7 +128,7 @@ export default function TasksPage() {
 
             {isLoading ? (
                 <div className="flex items-center justify-center p-8">
-                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                    <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
                 </div>
             ) : (
                 <DataTable columns={columns} data={tasks} searchKey="subject" />

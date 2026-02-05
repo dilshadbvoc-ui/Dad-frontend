@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { Slot } from "@radix-ui/react-slot"
 import { cn } from "@/lib/utils"
 
 const TooltipProvider = ({ children }: { children: React.ReactNode }) => <>{children}</>
@@ -32,20 +33,20 @@ Tooltip.displayName = "Tooltip"
 const TooltipTrigger = React.forwardRef<
     HTMLElement,
     React.HTMLAttributes<HTMLElement> & { asChild?: boolean }
->(({ className, children, asChild, ...props }, ref) => {
-    // @ts-ignore
+>(({ className, children, asChild = false, ...props }, ref) => {
     const { setOpen } = React.useContext(TooltipContext)
+    const Comp = asChild ? Slot : "div"
 
     return (
-        <div
-            ref={ref as any}
+        <Comp
+            ref={ref as React.LegacyRef<never>}
             className={cn("inline-flex", className)}
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
             {...props}
         >
             {children}
-        </div>
+        </Comp>
     )
 })
 TooltipTrigger.displayName = "TooltipTrigger"
@@ -57,8 +58,7 @@ interface TooltipContentProps extends React.HTMLAttributes<HTMLDivElement> {
 const TooltipContent = React.forwardRef<
     HTMLDivElement,
     TooltipContentProps
->(({ className, sideOffset = 4, ...props }, ref) => {
-    // @ts-ignore
+>(({ className, ...props }, ref) => {
     const { open } = React.useContext(TooltipContext)
 
     if (!open) return null

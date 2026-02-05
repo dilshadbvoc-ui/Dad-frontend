@@ -47,6 +47,8 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
     const [calcQuantity, setCalcQuantity] = useState<number>(0);
     const [calcPrice, setCalcPrice] = useState<number>(0);
 
+    const [type, setType] = useState('NEW_BUSINESS');
+
     // Fetch Organisation Settings for Custom Labels
     const { data: org } = useQuery({
         queryKey: ['organisation'],
@@ -110,7 +112,8 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                 probability,
                 closeDate: closeDate || new Date().toISOString(),
                 description,
-                accountId: accountId || undefined // Backend validation required if not present, ideally UI should force Account selection
+                accountId: accountId || undefined, // Backend validation required if not present, ideally UI should force Account selection
+                type
                 // If accountId is missing, this might fail unless we allow creating orphaned opportunities (usually not)
             });
 
@@ -227,6 +230,19 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                                 </SelectContent>
                             </Select>
                         </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="type">Opportunity Type</Label>
+                        <Select value={type} onValueChange={setType}>
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                <SelectItem value="UPSALE">Upsale</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

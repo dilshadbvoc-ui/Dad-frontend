@@ -13,6 +13,7 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
     const audioRef = useRef<HTMLAudioElement>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+    const [audioDuration, setAudioDuration] = useState(duration || 0);
     const [error, setError] = useState(false);
 
     const togglePlay = () => {
@@ -29,6 +30,12 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
     const handleTimeUpdate = () => {
         if (audioRef.current) {
             setCurrentTime(audioRef.current.currentTime);
+        }
+    };
+
+    const handleLoadedMetadata = () => {
+        if (audioRef.current && !duration) {
+            setAudioDuration(audioRef.current.duration);
         }
     };
 
@@ -65,14 +72,14 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
             <div className="flex-1 space-y-1">
                 <Slider
                     value={[currentTime]}
-                    max={duration || audioRef.current?.duration || 100}
+                    max={audioDuration || 100}
                     step={1}
                     onValueChange={handleSeek}
                     className="cursor-pointer"
                 />
                 <div className="flex justify-between text-xs text-muted-foreground">
                     <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration || audioRef.current?.duration || 0)}</span>
+                    <span>{formatTime(audioDuration)}</span>
                 </div>
             </div>
 
@@ -80,6 +87,7 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
                 ref={audioRef}
                 src={fullUrl}
                 onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
                 onEnded={() => setIsPlaying(false)}
                 onError={() => setError(true)}
                 className="hidden"

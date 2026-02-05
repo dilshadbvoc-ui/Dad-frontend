@@ -28,11 +28,11 @@ class SocketService {
         }
     }
 
-    emit<T = any>(event: string, data: T) {
+    emit<T = unknown>(event: string, data: T) {
         this.socket?.emit(event, data);
     }
 
-    on<T = any>(event: string, callback: (data: T) => void) {
+    on<T = unknown>(event: string, callback: (data: T) => void) {
         this.socket?.on(event, callback);
     }
 

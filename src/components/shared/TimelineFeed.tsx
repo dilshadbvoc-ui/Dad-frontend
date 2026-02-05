@@ -40,7 +40,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
         );
     }
 
-    const getIcon = (item: any) => {
+    const getIcon = (item: { type: string, subType?: string }) => {
         switch (item.type) {
             case 'interaction':
                 return item.subType === 'call' ? <PhoneCall className="h-4 w-4" /> : <Mail className="h-4 w-4" />;
@@ -55,7 +55,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
         }
     };
 
-    const getColor = (item: any) => {
+    const getColor = (item: { type: string }) => {
         switch (item.type) {
             case 'interaction': return 'bg-blue-100 text-blue-600';
             case 'task': return 'bg-green-100 text-green-600';
@@ -75,7 +75,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             </CardHeader>
             <CardContent>
                 <div className="relative pl-6 border-l-2 border-gray-100 dark:border-gray-800 space-y-8">
-                    {timeline.map((item: any) => (
+                    {timeline.map((item: { id: string, type: string, title: string, description?: string, meta?: { direction?: string }, date: string, actor?: { firstName: string } }) => (
                         <div key={item.id} className="relative">
                             <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-white dark:ring-gray-950 ${getColor(item)}`}>
                                 {getIcon(item)}
@@ -90,7 +90,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                     </p>
 
                                     {/* Detailed Metadata rendering could go here */}
-                                    {item.type === 'interaction' && item.meta.direction && (
+                                    {item.type === 'interaction' && item.meta?.direction && (
                                         <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 mt-2 inline-block">
                                             {item.meta.direction}
                                         </span>
@@ -111,7 +111,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
     );
 }
 
-function HistoryIcon(props: any) {
+function HistoryIcon(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

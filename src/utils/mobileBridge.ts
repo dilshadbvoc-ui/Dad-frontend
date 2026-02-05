@@ -37,12 +37,11 @@ export const syncToken = (token: string) => {
 // Initialize MobileBridge object if detecting mobile environment
 if (typeof window !== 'undefined') {
     window.MobileBridge = window.MobileBridge || {
-        initiateCall: (phoneNumber: string) => console.log('Mock initiate call:', phoneNumber)
+        initiateCall: (_phoneNumber: string) => { void _phoneNumber; }
     };
 
     // Define the native callback handler that dispatches a DOM event
     window.MobileBridge.onCallCompleted = (data: MobileCallData) => {
-        console.log('Mobile Bridge: Call Completed', data);
         const event = new CustomEvent('mobile_call_completed', { detail: data });
         window.dispatchEvent(event);
     };
