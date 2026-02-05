@@ -3,50 +3,52 @@
 
 @layer base {
   :root {
-    /* Light Mode - Clean Professional */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* Light Mode - Clean Professional with Better Contrast */
+    --background: 220 14% 96%;
+    /* Soft gray-blue background */
+    --foreground: 222 47% 15%;
+    /* Darker text for better readability */
 
-    /* White Cards */
+    /* Cards - Crisp white with subtle shadow */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 222 47% 15%;
 
     /* Popovers */
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 222 47% 15%;
 
-    /* Indigo Primary */
-    --primary: 243 75% 59%;
+    /* Indigo Primary - Vibrant */
+    --primary: 243 75% 52%;
     --primary-foreground: 0 0% 100%;
 
-    /* Light Secondary */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary - Light gray-blue */
+    --secondary: 220 14% 92%;
+    --secondary-foreground: 222 47% 20%;
 
-    /* Muted */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* Muted - For subtle backgrounds */
+    --muted: 220 14% 90%;
+    --muted-foreground: 220 10% 45%;
 
-    /* Accent */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    /* Accent - Light indigo tint */
+    --accent: 243 40% 94%;
+    --accent-foreground: 243 75% 45%;
 
     /* Destructive */
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Borders */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 243 75% 59%;
+    /* Borders - Subtle gray */
+    --border: 220 13% 85%;
+    --input: 220 13% 85%;
+    --ring: 243 75% 52%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Light mode uses a softer indigo */
-    --sidebar-bg: 224 71% 97%;
-    --sidebar-text: 222 47% 11%;
-    --sidebar-active: 243 75% 59%;
-    --sidebar-border: 214 32% 91%;
+    /* Sidebar - Light mode: soft blue-gray with indigo accent */
+    --sidebar-bg: 225 25% 95%;
+    --sidebar-text: 222 47% 25%;
+    --sidebar-active: 243 75% 52%;
+    --sidebar-border: 220 13% 85%;
   }
 
   .dark {
