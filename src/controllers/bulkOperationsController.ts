@@ -5,6 +5,7 @@ import { ResponseHandler } from '../utils/apiResponse';
 import { logger } from '../utils/logger';
 import { EmailService } from '../services/EmailService';
 import { WhatsAppService } from '../services/WhatsAppService';
+import { logAudit } from '../utils/auditLogger';
 
 /**
  * Bulk Operations Controller
@@ -37,9 +38,17 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
     let message = '';
 
     switch (action) {
-      case 'assign':
+      case 'assign': {
         if (!data?.assignedToId) {
           return ResponseHandler.validationError(res, 'assignedToId is required for assign action');
+        }
+
+        // Verify user belongs to org
+        const assignedUser = await prisma.user.findFirst({
+          where: { id: data.assignedToId, organisationId }
+        });
+        if (!assignedUser) {
+          return ResponseHandler.validationError(res, 'Assigned user does not belong to your organisation');
         }
 
         result = await prisma.lead.updateMany({
@@ -53,8 +62,18 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
             updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_ASSIGN',
+          entity: 'Lead',
+          details: { count: leadIds.length, assignedToId: data.assignedToId }
+        });
+
         message = `${result.count} leads assigned successfully`;
         break;
+      }
 
       case 'update-status':
         if (!data?.status) {
@@ -72,6 +91,15 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
             updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_UPDATE_STATUS',
+          entity: 'Lead',
+          details: { count: leadIds.length, status: data.status }
+        });
+
         message = `${result.count} leads status updated successfully`;
         break;
 
@@ -105,6 +133,15 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         });
 
         await Promise.all(updatePromises);
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_ADD_TAGS',
+          entity: 'Lead',
+          details: { count: leadsWithTags.length, tags: data.tags }
+        });
+
         message = `Tags added to ${leadsWithTags.length} leads successfully`;
         break;
       }
@@ -156,6 +193,14 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
         // Don't wait for all emails to complete
         Promise.all(emailPromises).catch(error => {
           logger.error('Some bulk emails failed', error, 'BULK_EMAIL', userId, organisationId);
+        });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_SEND_EMAIL',
+          entity: 'Lead',
+          details: { count: leadsWithEmail.length, subject: data.subject }
         });
 
         message = `Email sending initiated for ${leadsWithEmail.length} leads`;
@@ -212,6 +257,14 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
           logger.error('Some bulk WhatsApp messages failed', error, 'BULK_WHATSAPP', userId, organisationId);
         });
 
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_SEND_WHATSAPP',
+          entity: 'Lead',
+          details: { count: leadsWithPhone.length }
+        });
+
         message = `WhatsApp messages sending initiated for ${leadsWithPhone.length} leads`;
         break;
       }
@@ -228,6 +281,15 @@ export const bulkLeadOperations = async (req: Request, res: Response) => {
             updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_LEAD_DELETE',
+          entity: 'Lead',
+          details: { count: leadIds.length }
+        });
+
         message = `${result.count} leads deleted successfully`;
         break;
 
@@ -309,13 +371,23 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
         result = await prisma.contact.updateMany({
           where: {
             id: { in: contactIds },
-            organisationId
+            organisationId,
+            isDeleted: false
           },
           data: {
             ownerId: data.ownerId,
             updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_CONTACT_ASSIGN',
+          entity: 'Contact',
+          details: { count: contactIds.length, ownerId: data.ownerId }
+        });
+
         message = `${result.count} contacts assigned successfully`;
         break;
 
@@ -360,12 +432,26 @@ export const bulkContactOperations = async (req: Request, res: Response) => {
       }
 
       case 'delete':
-        result = await prisma.contact.deleteMany({
+        result = await prisma.contact.updateMany({
           where: {
             id: { in: contactIds },
-            organisationId
+            organisationId,
+            isDeleted: false
+          },
+          data: {
+            isDeleted: true,
+            updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_CONTACT_DELETE',
+          entity: 'Contact',
+          details: { count: contactIds.length }
+        });
+
         message = `${result.count} contacts deleted successfully`;
         break;
 
@@ -452,6 +538,14 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
           }
         });
         message = `${result.count} opportunities stage updated successfully`;
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_OPPORTUNITY_UPDATE_STAGE',
+          entity: 'Opportunity',
+          details: { count: opportunityIds.length, stage: data.stage }
+        });
         break;
 
       case 'assign-owner':
@@ -470,15 +564,37 @@ export const bulkOpportunityOperations = async (req: Request, res: Response) => 
           }
         });
         message = `${result.count} opportunities assigned successfully`;
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_OPPORTUNITY_ASSIGN',
+          entity: 'Opportunity',
+          details: { count: opportunityIds.length, ownerId: data.ownerId }
+        });
         break;
 
       case 'delete':
-        result = await prisma.opportunity.deleteMany({
+        result = await prisma.opportunity.updateMany({
           where: {
             id: { in: opportunityIds },
-            organisationId
+            organisationId,
+            isDeleted: false
+          },
+          data: {
+            isDeleted: true,
+            updatedAt: new Date()
           }
         });
+
+        await logAudit({
+          organisationId,
+          actorId: userId,
+          action: 'BULK_OPPORTUNITY_DELETE',
+          entity: 'Opportunity',
+          details: { count: opportunityIds.length }
+        });
+
         message = `${result.count} opportunities deleted successfully`;
         break;
 

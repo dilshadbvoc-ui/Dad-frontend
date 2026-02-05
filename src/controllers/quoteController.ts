@@ -20,15 +20,16 @@ export const getQuotes = async (req: Request, res: Response) => {
             }
         } else {
             const orgId = getOrgId(user);
-            if (orgId) where.organisationId = orgId;
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
         }
 
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
             where.OR = [
-                { assignedToId: { in: subordinateIds } },
-                { createdById: { in: subordinateIds } }
+                { assignedToId: { in: [...subordinateIds, user.id] } },
+                { createdById: { in: [...subordinateIds, user.id] } }
             ];
         }
 
@@ -125,6 +126,21 @@ export const createQuote = async (req: Request, res: Response) => {
             include: { lineItems: true } // Return with line items
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_QUOTE',
+                entity: 'Quote',
+                entityId: quote.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { quoteNumber: quote.quoteNumber, grandTotal: quote.grandTotal }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(quote);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -133,8 +149,17 @@ export const createQuote = async (req: Request, res: Response) => {
 
 export const getQuoteById = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id, isDeleted: false };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const quote = await prisma.quote.findFirst({
-            where: { id: req.params.id, isDeleted: false },
+            where,
             include: {
                 account: true,
                 contact: true,
@@ -156,12 +181,18 @@ export const updateQuote = async (req: Request, res: Response) => {
         const lineItemsData = updates.lineItems;
         delete updates.lineItems; // Handle separately
 
-        // Relation scalar cleanup if any
-        if (updates.account && typeof updates.account === 'string') updates.account = { connect: { id: updates.account } };
+        const requester = (req as any).user;
+        const orgId = getOrgId(requester);
+        const whereObj: any = { id };
+
+        if (requester.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            whereObj.organisationId = orgId;
+        }
 
         // Simple update of Quote scalars
         const quoteUpdate = prisma.quote.update({
-            where: { id },
+            where: whereObj,
             data: updates
         });
 
@@ -222,13 +253,25 @@ export const updateQuote = async (req: Request, res: Response) => {
             result = await prisma.quote.findUnique({ where: { id }, include: { lineItems: true } });
         } else {
             result = await prisma.quote.update({
-                where: { id },
+                where: whereObj,
                 data: updates,
                 include: { lineItems: true }
             });
         }
 
         if (!result) return res.status(404).json({ message: 'Quote not found' });
+
+        // Audit Log
+        const { logAudit } = await import('../utils/auditLogger');
+        logAudit({
+            action: 'UPDATE_QUOTE',
+            entity: 'Quote',
+            entityId: id,
+            actorId: requester.id,
+            organisationId: result.organisationId,
+            details: { quoteNumber: result.quoteNumber, total: result.grandTotal }
+        });
+
         res.json(result);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -238,8 +281,17 @@ export const updateQuote = async (req: Request, res: Response) => {
 
 export const downloadQuotePdf = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id, isDeleted: false };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const quote = await prisma.quote.findFirst({
-            where: { id: req.params.id, isDeleted: false },
+            where,
             include: {
                 account: true,
                 contact: true,
@@ -263,10 +315,34 @@ export const downloadQuotePdf = async (req: Request, res: Response) => {
 
 export const deleteQuote = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
+        const quote = await prisma.quote.findFirst({ where });
+        if (!quote) return res.status(404).json({ message: 'Quote not found' });
+
         await prisma.quote.update({
             where: { id: req.params.id },
             data: { isDeleted: true }
         });
+
+        // Audit Log
+        const { logAudit } = await import('../utils/auditLogger');
+        logAudit({
+            action: 'DELETE_QUOTE',
+            entity: 'Quote',
+            entityId: req.params.id,
+            actorId: user.id,
+            organisationId: quote.organisationId,
+            details: { quoteNumber: quote.quoteNumber }
+        });
+
         res.json({ message: 'Quote deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

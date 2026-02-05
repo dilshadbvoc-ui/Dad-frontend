@@ -129,3 +129,70 @@ export const getAccountInsights = async (req: AuthRequest, res: Response) => {
         res.status(500).json({ message: error.message });
     }
 };
+
+export const createFullAd = async (req: AuthRequest, res: Response) => {
+    try {
+        const config = await getMetaConfig(req);
+        const { campaign, adSet, creative, ad } = req.body;
+
+        // 1. Create Campaign
+        const campaignResult = await metaService.createCampaign(config, campaign);
+        const campaignId = campaignResult.id;
+
+        // 2. Create Ad Set
+        const adSetResult = await metaService.createAdSet(config, {
+            ...adSet,
+            campaignId
+        });
+        const adSetId = adSetResult.id;
+
+        // 3. Create Creative
+        // First, check if we need to upload an image from a URL
+        let imageHash = creative.imageHash;
+        if (creative.imageUrl && !imageHash) {
+            const uploadResult = await metaService.uploadImage(config, creative.imageUrl);
+            imageHash = uploadResult.images[Object.keys(uploadResult.images)[0]].hash;
+        }
+
+        const creativeResult = await metaService.createAdCreative(config, {
+            ...creative,
+            imageHash
+        });
+        const creativeId = creativeResult.id;
+
+        // 4. Create Ad
+        const adResult = await metaService.createAd(config, {
+            ...ad,
+            adSetId,
+            creativeId
+        });
+
+        res.status(201).json({
+            success: true,
+            campaignId,
+            adSetId,
+            creativeId,
+            adId: adResult.id
+        });
+    } catch (error: any) {
+        console.error('Error in createFullAd:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const uploadAdImage = async (req: AuthRequest, res: Response) => {
+    try {
+        const config = await getMetaConfig(req);
+        const { imageUrl } = req.body;
+
+        if (!imageUrl) {
+            return res.status(400).json({ message: 'imageUrl is required' });
+        }
+
+        const result = await metaService.uploadImage(config, imageUrl);
+        res.json(result);
+    } catch (error: any) {
+        console.error('Error in uploadAdImage:', error);
+        res.status(500).json({ message: error.message });
+    }
+};

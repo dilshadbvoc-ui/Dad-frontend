@@ -1,12 +1,8 @@
 import prisma from '../config/prisma';
 import { WhatsAppService } from './WhatsAppService';
+import { EmailService } from './EmailService';
+import { logger } from '../utils/logger';
 
-interface CampaignRecipient {
-    type: 'lead' | 'contact' | 'phone';
-    id?: string;
-    phone?: string;
-    name?: string;
-}
 
 interface CampaignStats {
     sent: number;
@@ -23,7 +19,7 @@ export class CampaignProcessor {
      */
     static async processWhatsAppCampaign(campaignId: string): Promise<void> {
         try {
-            console.log(`[CampaignProcessor] Starting campaign ${campaignId}`);
+            logger.info(`Starting campaign ${campaignId}`, 'CampaignProcessor', undefined, undefined, { campaignId });
 
             const campaign = await prisma.whatsAppCampaign.findUnique({
                 where: { id: campaignId },
@@ -53,7 +49,7 @@ export class CampaignProcessor {
                 throw new Error('No recipients found for campaign');
             }
 
-            console.log(`[CampaignProcessor] Found ${recipients.length} recipients`);
+            logger.info(`Found ${recipients.length} recipients`, 'CampaignProcessor', undefined, campaign.organisationId);
 
             // Initialize stats
             const stats: CampaignStats = {
@@ -67,7 +63,7 @@ export class CampaignProcessor {
             // Update campaign status to sending
             await prisma.whatsAppCampaign.update({
                 where: { id: campaignId },
-                data: { 
+                data: {
                     status: 'sent',
                     sentAt: new Date(),
                     stats
@@ -80,7 +76,7 @@ export class CampaignProcessor {
 
             for (let i = 0; i < recipients.length; i += batchSize) {
                 const batch = recipients.slice(i, i + batchSize);
-                
+
                 await Promise.all(
                     batch.map(recipient => this.sendToRecipient(
                         whatsAppService,
@@ -102,18 +98,119 @@ export class CampaignProcessor {
                 }
             }
 
-            console.log(`[CampaignProcessor] Campaign ${campaignId} completed. Stats:`, stats);
+            logger.info(`Campaign ${campaignId} completed`, 'CampaignProcessor', undefined, campaign.organisationId, { stats });
 
         } catch (error) {
-            console.error(`[CampaignProcessor] Error processing campaign ${campaignId}:`, error);
-            
+            logger.error(`Error processing campaign ${campaignId}`, error, 'CampaignProcessor');
+
             // Update campaign status to failed
             await prisma.whatsAppCampaign.update({
                 where: { id: campaignId },
-                data: { 
+                data: {
                     status: 'failed',
                     stats: { error: (error as Error).message }
                 }
+            }).catch(console.error);
+        }
+    }
+
+    /**
+     * Process Email campaign with batch sending
+     */
+    static async processEmailCampaign(campaignId: string): Promise<void> {
+        try {
+            logger.info(`Starting email campaign ${campaignId}`, 'CampaignProcessor');
+
+            const campaign = await prisma.campaign.findUnique({
+                where: { id: campaignId },
+                include: {
+                    organisation: true,
+                    createdBy: true,
+                    emailList: true
+                }
+            });
+
+            if (!campaign) throw new Error('Campaign not found');
+            if (campaign.status === 'completed' || campaign.status === 'failed') {
+                throw new Error(`Campaign is already in ${campaign.status} state`);
+            }
+
+            // Get recipients - For now, pull all leads from the organization
+            // In a full implementation, we would filter by emailList
+            const recipients = await prisma.lead.findMany({
+                where: {
+                    organisationId: campaign.organisationId,
+                    isDeleted: false,
+                    email: { not: null }
+                },
+                select: { id: true, email: true, firstName: true, lastName: true, company: true }
+            });
+
+            if (recipients.length === 0) throw new Error('No recipients found with valid email addresses');
+
+            logger.info(`Found ${recipients.length} recipients for email campaign`, 'CampaignProcessor', undefined, campaign.organisationId);
+
+            const stats = { sent: 0, failed: 0 };
+
+            await prisma.campaign.update({
+                where: { id: campaignId },
+                data: { status: 'sending', sentAt: new Date() }
+            });
+
+            const batchSize = 10;
+            for (let i = 0; i < recipients.length; i += batchSize) {
+                const batch = recipients.slice(i, i + batchSize);
+                await Promise.all(batch.map(async (recipient) => {
+                    try {
+                        const personalizedBody = EmailService.personalize(campaign.content, {
+                            firstName: recipient.firstName,
+                            lastName: recipient.lastName,
+                            company: recipient.company
+                        });
+
+                        const sent = await EmailService.sendEmail(
+                            recipient.email!,
+                            campaign.subject,
+                            personalizedBody,
+                            campaign.organisationId,
+                            campaign.createdById || undefined,
+                            { leadId: recipient.id }
+                        );
+
+                        if (sent) stats.sent++; else stats.failed++;
+                    } catch (err) {
+                        logger.error(`Failed to send email to ${recipient.email}:`, err);
+                        stats.failed++;
+                    }
+                }));
+
+                // Update intermediate stats
+                await prisma.campaign.update({
+                    where: { id: campaignId },
+                    data: { stats: stats as any }
+                });
+
+                // Throttle to avoid hitting mail server limits
+                if (i + batchSize < recipients.length) {
+                    await new Promise(r => setTimeout(r, 1000));
+                }
+            }
+
+            await prisma.campaign.update({
+                where: { id: campaignId },
+                data: {
+                    status: stats.failed === 0 ? 'sent' : 'partially_failed',
+                    stats: stats as any
+                }
+            });
+
+            logger.info(`Email campaign ${campaignId} completed`, 'CampaignProcessor', undefined, campaign.organisationId, { stats });
+
+        } catch (error) {
+            logger.error(`Error processing email campaign ${campaignId}`, error, 'CampaignProcessor');
+            await prisma.campaign.update({
+                where: { id: campaignId },
+                data: { status: 'failed', stats: { error: (error as Error).message } as any }
             }).catch(console.error);
         }
     }
@@ -152,7 +249,7 @@ export class CampaignProcessor {
                         // Extract phone from JSON field
                         const phones = contact.phones as any;
                         let phone = null;
-                        
+
                         if (Array.isArray(phones) && phones.length > 0) {
                             phone = phones[0];
                         } else if (typeof phones === 'object' && phones.primary) {
@@ -160,7 +257,7 @@ export class CampaignProcessor {
                         } else if (typeof phones === 'string') {
                             phone = phones;
                         }
-                        
+
                         if (phone) {
                             recipients.push({
                                 phone,
@@ -194,7 +291,7 @@ export class CampaignProcessor {
     ): Promise<void> {
         try {
             let result;
-            
+
             if (campaign.templateId) {
                 // Send template message
                 result = await whatsAppService.sendTemplateMessage(
@@ -226,15 +323,31 @@ export class CampaignProcessor {
                     waMessageId: result.messages?.[0]?.id,
                     sentAt: new Date(),
                     organisationId: campaign.organisationId,
-                    agentId: campaign.createdById
+                    agentId: campaign.createdById,
+                    campaignId: campaign.id
+                }
+            });
+
+            // Log Interaction for timeline visibility
+            await prisma.interaction.create({
+                data: {
+                    organisationId: campaign.organisationId,
+                    type: 'other',
+                    subject: campaign.templateId ? `Campaign Template: ${campaign.templateId}` : 'Campaign WhatsApp Message',
+                    description: campaign.message || `Sent WhatsApp Template ${campaign.templateId}`,
+                    direction: 'outbound',
+                    leadId: campaign.recipients?.find((r: any) => r.phone === recipient.phone && r.type === 'lead')?.id,
+                    contactId: campaign.recipients?.find((r: any) => r.phone === recipient.phone && r.type === 'contact')?.id,
+                    createdById: campaign.createdById,
+                    phoneNumber: recipient.phone
                 }
             });
 
             stats.sent++;
-            console.log(`[CampaignProcessor] Sent message to ${recipient.phone}`);
+            logger.debug(`Sent message to ${recipient.phone}`, 'CampaignProcessor');
 
         } catch (error) {
-            console.error(`[CampaignProcessor] Failed to send to ${recipient.phone}:`, error);
+            logger.error(`Failed to send to ${recipient.phone}`, error, 'CampaignProcessor');
             stats.failed++;
 
             // Log failed message
@@ -251,7 +364,8 @@ export class CampaignProcessor {
                     status: 'failed',
                     errorMessage: (error as Error).message,
                     organisationId: campaign.organisationId,
-                    agentId: campaign.createdById
+                    agentId: campaign.createdById,
+                    campaignId: campaign.id
                 }
             }).catch(console.error);
         }
@@ -264,22 +378,30 @@ export class CampaignProcessor {
         try {
             const message = await prisma.whatsAppMessage.findUnique({
                 where: { id: messageId },
-                select: { organisationId: true, sentAt: true, waMessageId: true }
+                select: { organisationId: true, sentAt: true, waMessageId: true, campaignId: true }
             });
 
             if (!message || !message.sentAt) return;
 
-            // Find campaign that sent this message (within 24 hour window)
-            const campaign = await prisma.whatsAppCampaign.findFirst({
-                where: {
-                    organisationId: message.organisationId,
-                    sentAt: {
-                        gte: new Date(message.sentAt.getTime() - 24 * 60 * 60 * 1000), // 24 hours before
-                        lte: new Date(message.sentAt.getTime() + 24 * 60 * 60 * 1000)  // 24 hours after
-                    },
-                    status: 'sent'
-                }
-            });
+            // Find campaign directly by ID if linked
+            let campaign;
+            if (message.campaignId) {
+                campaign = await prisma.whatsAppCampaign.findUnique({
+                    where: { id: message.campaignId }
+                });
+            } else {
+                // Fallback to time-based search for unlinked messages
+                campaign = await prisma.whatsAppCampaign.findFirst({
+                    where: {
+                        organisationId: message.organisationId,
+                        sentAt: {
+                            gte: new Date(message.sentAt.getTime() - 24 * 60 * 60 * 1000),
+                            lte: new Date(message.sentAt.getTime() + 24 * 60 * 60 * 1000)
+                        },
+                        status: 'sent'
+                    }
+                });
+            }
 
             if (!campaign) return;
 
@@ -305,10 +427,10 @@ export class CampaignProcessor {
                 data: { stats }
             });
 
-            console.log(`[CampaignProcessor] Updated campaign ${campaign.id} stats for status: ${newStatus}`);
+            logger.debug(`Updated campaign ${campaign.id} stats for status: ${newStatus}`, 'CampaignProcessor');
 
         } catch (error) {
-            console.error('[CampaignProcessor] Error updating campaign stats:', error);
+            logger.error('Error updating campaign stats', error, 'CampaignProcessor');
         }
     }
 }

@@ -1,10 +1,12 @@
 import express from 'express';
-import { getCheckIns, createCheckIn } from '../controllers/checkInController';
 import { protect } from '../middleware/authMiddleware';
+import { createCheckIn, getCheckIns } from '../controllers/checkInController';
 
 const router = express.Router();
 
-router.get('/', protect, getCheckIns);
-router.post('/', protect, createCheckIn);
+router.use(protect);
+
+router.post('/', createCheckIn);
+router.get('/', getCheckIns);
 
 export default router;

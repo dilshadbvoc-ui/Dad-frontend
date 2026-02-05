@@ -3,16 +3,9 @@ import prisma from '../config/prisma';
 
 export const getPlans = async (req: Request, res: Response) => {
     try {
-        const user = (req as any).user;
-        const where: any = {};
-
-        // If not super admin, only show active plans
-        if (!user || user.role !== 'super_admin') {
-            where.isActive = true;
-        }
-
+        // Always filter by isActive: true - deleted plans should not reappear
         const plans = await prisma.subscriptionPlan.findMany({
-            where,
+            where: { isActive: true },
             orderBy: { price: 'asc' }
         });
         res.json({ plans });

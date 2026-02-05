@@ -44,7 +44,7 @@ export const verifyApiKey = async (req: Request, res: Response, next: NextFuncti
         };
 
         next();
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: 'API Key Error' });
     }
 };

@@ -27,17 +27,17 @@ export class ImportJobService {
                 data: { status: 'processing', startedAt: new Date() }
             });
 
-            const results: any[] = [];
             const errors: any[] = [];
             let successCount = 0;
             let failureCount = 0;
 
             // 1. Count total lines (approximation)
             let totalLines = 0;
-            const countStream = fs.createReadStream(job.fileUrl).pipe(csv());
-            for await (const _ of countStream) {
-                totalLines++;
-            }
+            await new Promise((resolve) => {
+                fs.createReadStream(job.fileUrl!).pipe(csv())
+                    .on('data', () => totalLines++)
+                    .on('end', resolve);
+            });
 
             await prisma.importJob.update({
                 where: { id: jobId },
@@ -63,32 +63,39 @@ export class ImportJobService {
                     for (const [csvHeader, crmField] of Object.entries(mapping)) {
                         if (!crmField) continue;
                         const value = row[csvHeader];
+                        if (value === undefined || value === null || value === '') continue;
 
-                        if (crmField === 'address.street') leadData.address.street = value;
-                        else if (crmField === 'address.city') leadData.address.city = value;
-                        else if (crmField === 'address.state') leadData.address.state = value;
-                        else if (crmField === 'address.country') leadData.address.country = value;
-                        else if (crmField === 'address.zipCode') leadData.address.zipCode = value;
-                        else {
+                        if (String(crmField).startsWith('address.')) {
+                            const addressField = String(crmField).split('.')[1];
+                            leadData.address[addressField] = value;
+                        } else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status'].includes(crmField as string)) {
                             (leadData as any)[crmField as string] = value;
+                        } else {
+                            // Custom Fields
+                            if (!leadData.customFields) leadData.customFields = {};
+                            leadData.customFields[crmField as string] = value;
                         }
                     }
 
                     // Basic Validation
-                    if (!leadData.firstName || !leadData.lastName || !leadData.phone) {
-                        throw new Error('Missing required fields (Name/Phone)');
+                    if (!leadData.firstName || !leadData.lastName || (!leadData.phone && !leadData.email)) {
+                        throw new Error('Missing required fields (Name and at least Phone or Email)');
                     }
 
-                    // Check duplicate phone
+                    // Strict Deduplication (Organisation Scoped)
                     const existing = await prisma.lead.findFirst({
                         where: {
-                            phone: String(leadData.phone),
-                            organisationId: job.organisationId
+                            organisationId: job.organisationId,
+                            isDeleted: false,
+                            OR: [
+                                leadData.phone ? { phone: String(leadData.phone) } : {},
+                                leadData.email ? { email: String(leadData.email) } : {}
+                            ].filter(q => Object.keys(q).length > 0)
                         }
                     });
 
                     if (existing) {
-                        throw new Error('Duplicate phone number');
+                        throw new Error(`Potential duplicate found (Phone/Email: ${leadData.phone || leadData.email})`);
                     }
 
                     const createdLead = await prisma.lead.create({ data: leadData });
@@ -127,6 +134,16 @@ export class ImportJobService {
                     failureCount,
                     errors: errors.length > 0 ? errors : undefined
                 }
+            });
+
+            // Audit the import completion
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: job.organisationId,
+                actorId: job.createdById,
+                action: 'BULK_IMPORT_COMPLETED',
+                entity: 'Lead',
+                details: { jobId, successCount, failureCount }
             });
 
             // Cleanup file

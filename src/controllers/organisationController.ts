@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
 import bcrypt from 'bcryptjs';
+import { logAudit } from '../utils/auditLogger';
 
 export const createOrganisation = async (req: Request, res: Response) => {
     try {
@@ -42,6 +43,16 @@ export const createOrganisation = async (req: Request, res: Response) => {
         await prisma.organisation.update({
             where: { id: org.id },
             data: { createdBy: user.id }
+        });
+
+        // Audit Log
+        logAudit({
+            action: 'CREATE_ORGANISATION',
+            entity: 'Organisation',
+            entityId: org.id,
+            actorId: (req as any).user.id,
+            organisationId: org.id,
+            details: { name: org.name, slug: org.slug }
         });
 
         res.status(201).json({ organisation: org, adminUser: { ...user, password: undefined }, tempPassword });
@@ -104,6 +115,14 @@ export const getOrganisation = async (req: Request, res: Response) => {
         });
         if (!org) return res.status(404).json({ message: 'Organisation not found' });
 
+        // Get active user count
+        const userCount = await prisma.user.count({
+            where: {
+                organisationId: orgId,
+                isActive: true
+            }
+        });
+
         // If super admin requesting specific org, include full details
         if (user.role === 'super_admin' && req.params.id) {
             const [users, leadCount, contactCount, accountCount, opportunityCount, wonOpportunities] = await Promise.all([
@@ -136,7 +155,21 @@ export const getOrganisation = async (req: Request, res: Response) => {
             });
         }
 
-        res.json(org);
+        // Return org with userCount for normal users
+        const isStaff = user.role === 'admin' || user.role === 'super_admin';
+        const sanitizedOrg = { ...org };
+
+        // Security: Remove sensitive integration details for non-admins
+        if (!isStaff) {
+            if (sanitizedOrg.integrations) {
+                const integrations = { ...(sanitizedOrg.integrations as any) };
+                if (integrations.meta) integrations.meta.accessToken = '[HIDDEN]';
+                if (integrations.whatsapp) integrations.whatsapp.token = '[HIDDEN]';
+                sanitizedOrg.integrations = integrations;
+            }
+        }
+
+        res.json({ ...sanitizedOrg, userCount });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }
@@ -218,6 +251,16 @@ export const updateOrganisation = async (req: Request, res: Response) => {
             data: data
         });
 
+        // Audit Log
+        logAudit({
+            action: 'UPDATE_ORGANISATION',
+            entity: 'Organisation',
+            entityId: org.id,
+            actorId: user.id,
+            organisationId: org.id,
+            details: { updatedFields: Object.keys(data) }
+        });
+
         res.json(org);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -248,6 +291,16 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
         // Delete the organisation
         // User and other related data will be deleted via onDelete: Cascade relations
         await prisma.organisation.delete({ where: { id: orgId } });
+
+        // Audit Log
+        logAudit({
+            action: 'DELETE_ORGANISATION',
+            entity: 'Organisation',
+            entityId: orgId,
+            actorId: (req as any).user.id,
+            organisationId: orgId, // Technically gone, but for log context
+            details: { name: org.name }
+        });
 
         res.json({ message: 'Organisation and associated data deleted' });
     } catch (error) {

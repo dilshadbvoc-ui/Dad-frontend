@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getSubordinateIds, getOrgId } from '../utils/hierarchyUtils';
 import { Prisma } from '../generated/client';
+import { logAudit } from '../utils/auditLogger';
 
 export const getCases = async (req: Request, res: Response) => {
     try {
@@ -88,6 +89,15 @@ export const createCase = async (req: Request, res: Response) => {
             }
         });
 
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'CREATE_CASE',
+            entity: 'Case',
+            entityId: newCase.id,
+            details: { caseNumber: newCase.caseNumber }
+        });
+
         res.status(201).json(newCase);
     } catch (error) {
         console.error('createCase Error:', error);
@@ -97,8 +107,16 @@ export const createCase = async (req: Request, res: Response) => {
 
 export const getCaseById = async (req: Request, res: Response) => {
     try {
-        const supportCase = await prisma.case.findUnique({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
+        const supportCase = await prisma.case.findFirst({
+            where: {
+                id: req.params.id,
+                organisationId: orgId,
+                isDeleted: false
+            },
             include: {
                 contact: true,
                 account: true,
@@ -106,8 +124,16 @@ export const getCaseById = async (req: Request, res: Response) => {
             }
         });
 
-        if (!supportCase || supportCase.isDeleted) {
+        if (!supportCase) {
             return res.status(404).json({ message: 'Case not found' });
+        }
+
+        // Hierarchy check
+        if (user.role !== 'super_admin' && user.role !== 'admin' && supportCase.assignedToId !== user.id) {
+            const subordinateIds = await getSubordinateIds(user.id);
+            if (!subordinateIds.includes(supportCase.assignedToId || '')) {
+                return res.status(403).json({ message: 'Not authorized to view this case' });
+            }
         }
 
         res.json(supportCase);
@@ -130,9 +156,25 @@ export const updateCase = async (req: Request, res: Response) => {
         delete updates.account;
         delete updates.assignedTo;
 
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
         const supportCase = await prisma.case.update({
-            where: { id },
+            where: {
+                id,
+                organisationId: orgId
+            },
             data: updates
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'UPDATE_CASE',
+            entity: 'Case',
+            entityId: supportCase.id,
+            details: { updatedFields: Object.keys(updates) }
         });
 
         res.json(supportCase);
@@ -145,9 +187,24 @@ export const updateCase = async (req: Request, res: Response) => {
 
 export const deleteCase = async (req: Request, res: Response) => {
     try {
-        const supportCase = await prisma.case.update({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
+        await prisma.case.update({
+            where: {
+                id: req.params.id,
+                organisationId: orgId
+            },
             data: { isDeleted: true }
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'DELETE_CASE',
+            entity: 'Case',
+            entityId: req.params.id
         });
 
         res.json({ message: 'Case deleted' });

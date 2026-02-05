@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { logAudit } from '../utils/auditLogger';
 import { InteractionType, InteractionDirection } from '../generated/client';
 
 // POST /api/leads/:leadId/interactions - Log a new interaction
@@ -46,6 +47,15 @@ export const createInteraction = async (req: Request, res: Response) => {
                 createdBy: { connect: { id: user.id } },
                 organisation: { connect: { id: orgId } }
             }
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'CREATE_INTERACTION',
+            entity: 'Interaction',
+            entityId: interaction.id,
+            details: { type: interaction.type, subject: interaction.subject }
         });
 
         res.status(201).json(interaction);
@@ -99,7 +109,7 @@ export const getAllInteractions = async (req: Request, res: Response) => {
 
         const where: any = {
             organisationId: orgId,
-            // isDeleted: false // interactions don't have isDeleted in schema? lead has. interaction doesn't usually.
+            isDeleted: false
         };
 
         // Filter: Type
@@ -157,6 +167,14 @@ export const updateInteractionRecording = async (req: Request, res: Response) =>
             }
         });
 
+        await logAudit({
+            organisationId: orgId || existing.organisationId,
+            actorId: user.id,
+            action: 'UPDATE_INTERACTION_RECORDING',
+            entity: 'Interaction',
+            entityId: interaction.id
+        });
+
         res.json(interaction);
     } catch (error) {
         console.error('updateInteractionRecording Error:', error);
@@ -195,6 +213,15 @@ export const logQuickInteraction = async (req: Request, res: Response) => {
                 createdBy: { connect: { id: user.id } },
                 organisation: { connect: { id: orgId } }
             }
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'LOG_QUICK_INTERACTION',
+            entity: 'Interaction',
+            entityId: interaction.id,
+            details: { type }
         });
 
         res.status(201).json(interaction);

@@ -1,11 +1,19 @@
 import { Server as SocketIOServer } from 'socket.io';
 import { Server as HttpServer } from 'http';
 import jwt from 'jsonwebtoken';
+import { logger } from './utils/logger';
+
+declare module 'socket.io' {
+    interface Socket {
+        userId?: string;
+        organisationId?: string;
+    }
+}
 
 export const initSocket = (httpServer: HttpServer) => {
     const io = new SocketIOServer(httpServer, {
         cors: {
-            origin: ['http://localhost:5173', 'https://dad-frontend-psi.vercel.app'],
+            origin: ['http://localhost:5173', 'http://localhost:5174', 'https://dad-frontend-psi.vercel.app'],
             methods: ['GET', 'POST'],
             credentials: true
         }
@@ -19,11 +27,8 @@ export const initSocket = (httpServer: HttpServer) => {
             return next(new Error('Authentication error: No token provided'));
         }
         try {
-            // @ts-ignore
-            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_change_this');
-            // @ts-ignore
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret_key_change_this') as any;
             socket.userId = decoded.id; // Store userId on socket
-            // @ts-ignore
             socket.organisationId = decoded.organisationId; // Store organisationId on socket
             next();
         } catch (err) {
@@ -32,26 +37,24 @@ export const initSocket = (httpServer: HttpServer) => {
     });
 
     io.on('connection', (socket) => {
-        // @ts-ignore
         const userId = socket.userId;
-        console.log(`Socket connected: ${socket.id} (User: ${userId})`);
+        logger.info(`Socket connected: ${socket.id}`, 'SocketID', userId);
 
         // Automatically join user room
         if (userId) {
             socket.join(userId);
-            // @ts-ignore
             const organisationId = socket.organisationId;
             if (organisationId) {
                 socket.join(`org:${organisationId}`);
-                console.log(`User ${userId} auto-joined room org:${organisationId}`);
+                logger.debug(`User ${userId} auto-joined room org:${organisationId}`, 'SocketID', userId, organisationId);
             }
-            console.log(`User ${userId} auto-joined room ${userId}`);
+            logger.debug(`User ${userId} auto-joined room ${userId}`, 'SocketID', userId);
         }
 
         // User joins their personal room (custom manual join if needed)
         socket.on('join_room', (room) => {
             if (userId) {
-                console.log(`User ${userId} joining room ${userId}`);
+                logger.debug(`User ${userId} joining room ${userId}`, 'SocketID', userId);
                 socket.join(userId);
             }
         });
@@ -59,7 +62,7 @@ export const initSocket = (httpServer: HttpServer) => {
         // Web Client requests a dial on the Mobile Device
         socket.on('dial_request', (data) => {
             const { userId, phoneNumber, callId } = data;
-            console.log(`Dial request for ${userId}: ${phoneNumber} (Call ID: ${callId})`);
+            logger.info(`Dial request for ${userId}: ${phoneNumber}`, 'SocketID', userId, undefined, { callId });
 
             // Forward the request to the specific user's mobile device (in their room)
             // The Mobile App must be listening for 'dial_request'
@@ -72,13 +75,13 @@ export const initSocket = (httpServer: HttpServer) => {
         // Mobile Device reports call completion (optional confirmation)
         socket.on('call_completed', (data) => {
             const { userId, callId } = data;
-            console.log(`Call completed for ${userId}: ${callId}`);
+            logger.info(`Call completed for ${userId}: ${callId}`, 'SocketID', userId, undefined, { callId });
             // Notify the Web Client (if they are listening in the same room or a web-specific room)
             io.to(userId).emit('call_completed', { callId });
         });
 
         // Mobile Device reports call connected
-        socket.on('call_connected', (data) => {
+        socket.on('call_connected', async (data) => {
             // We assume the mobile app sends { phoneNumber, timestamp }
             // We need to know WHICH user this socket belongs to. 
             // Ideally, the mobile socket "joins" the room with the userId on connection.
@@ -134,14 +137,97 @@ export const initSocket = (httpServer: HttpServer) => {
             // Server side change:
             // We'll require `userId` in the payload for these events.
             const { userId, phoneNumber, timestamp } = data;
+
             if (userId) {
+                // Find Organisation for this user
+                const user = await import('./config/prisma').then(m => m.default.user.findUnique({
+                    where: { id: userId },
+                    select: { organisationId: true }
+                }));
+
+                // Ensure organisationId is valid string
+                const orgId = user?.organisationId;
+
+                if (orgId) {
+                    // Try to find matching Lead using 'phone' field (Lead has direct string)
+                    const lead = await import('./config/prisma').then(m => m.default.lead.findFirst({
+                        where: {
+                            organisationId: orgId,
+                            phone: { contains: phoneNumber }
+                        }
+                    }));
+
+                    // Note: Contact matching removed for now as 'phones' is JSON and requires raw query or specific structure knowledge
+                    const contactId = null;
+
+                    // Check if an initiated call already exists (web dialer flow)
+                    // We look for a call created in the last 2 minutes to same number
+                    const recentCall = await import('./config/prisma').then(m => m.default.interaction.findFirst({
+                        where: {
+                            createdById: userId,
+                            phoneNumber: { contains: phoneNumber }, // Loose match
+                            type: 'call',
+                            callStatus: 'initiated',
+                            date: { gte: new Date(Date.now() - 2 * 60 * 1000) }
+                        },
+                        orderBy: { date: 'desc' }
+                    }));
+
+                    if (recentCall) {
+                        // Update existing
+                        await import('./config/prisma').then(m => m.default.interaction.update({
+                            where: { id: recentCall.id },
+                            data: { callStatus: 'in-progress' }
+                        }));
+                    } else {
+                        // Create new "Manual Outbound" call detected from phone
+                        await import('./config/prisma').then(m => m.default.interaction.create({
+                            data: {
+                                type: 'call',
+                                direction: 'outbound',
+                                subject: `Call to ${phoneNumber}`,
+                                date: new Date(),
+                                callStatus: 'in-progress',
+                                phoneNumber,
+                                description: 'Auto-logged via Mobile App',
+                                organisationId: orgId,
+                                createdById: userId,
+                                leadId: lead?.id,
+                                contactId: undefined
+                            }
+                        }));
+                    }
+                }
+
                 io.to(userId).emit('call_status_update', { status: 'connected', phoneNumber, timestamp });
             }
         });
 
-        socket.on('call_ended', (data) => {
+        socket.on('call_ended', async (data) => {
             const { userId, phoneNumber, timestamp, duration } = data;
             if (userId) {
+                // Find the active call to close
+                const activeCall = await import('./config/prisma').then(m => m.default.interaction.findFirst({
+                    where: {
+                        createdById: userId,
+                        phoneNumber: { contains: phoneNumber },
+                        type: 'call',
+                        callStatus: { in: ['initiated', 'in-progress'] }
+                    },
+                    orderBy: { date: 'desc' }
+                }));
+
+                if (activeCall) {
+                    await import('./config/prisma').then(m => m.default.interaction.update({
+                        where: { id: activeCall.id },
+                        data: {
+                            callStatus: 'completed',
+                            duration: duration ? Math.floor(duration) : 0,
+                            description: activeCall.description ? activeCall.description + `\nDuration: ${duration}s` : `Duration: ${duration}s`
+                        }
+                    }));
+                }
+
                 io.to(userId).emit('call_status_update', { status: 'ended', phoneNumber, timestamp, duration });
             }
         });
@@ -151,7 +237,7 @@ export const initSocket = (httpServer: HttpServer) => {
             const { resourceId } = data;
             if (userId && resourceId) {
                 socket.join(`collaboration:${resourceId}`);
-                console.log(`User ${userId} joined collaboration on ${resourceId}`);
+                logger.debug(`User ${userId} joined collaboration on ${resourceId}`, 'SocketID', userId, undefined, { resourceId });
 
                 // Fetch all users currently in this resource room
                 // Note: We'll broadcast a 'presence_update' to the room
@@ -178,7 +264,7 @@ export const initSocket = (httpServer: HttpServer) => {
         });
 
         socket.on('disconnect', () => {
-            console.log(`Socket disconnected: ${socket.id}`);
+            logger.info(`Socket disconnected: ${socket.id}`, 'SocketID');
             // Note: In a production app, we would ideally track which rooms the user was in
             // and emit 'leave' events for all of them. For now, simple disconnect log.
         });

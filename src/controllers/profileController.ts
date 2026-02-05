@@ -13,7 +13,8 @@ export const getProfile = async (req: Request, res: Response) => {
 
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        const { password, ...userWithoutPassword } = user;
+        const userWithoutPassword = { ...user } as any;
+        delete userWithoutPassword.password;
         res.json({
             ...userWithoutPassword,
             role: { id: user.role, name: user.role } // Transform for frontend
@@ -26,14 +27,17 @@ export const getProfile = async (req: Request, res: Response) => {
 export const updateProfile = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.id;
-        const { password, email, ...updateData } = req.body;
+        const updateData = { ...req.body };
+        delete updateData.password;
+        delete updateData.email;
 
         const user = await prisma.user.update({
             where: { id: userId },
             data: updateData
         });
 
-        const { password: pwd, ...userWithoutPassword } = user;
+        const userWithoutPassword = { ...user } as any;
+        delete userWithoutPassword.password;
         res.json(userWithoutPassword);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

@@ -76,6 +76,9 @@ export const WhatsAppIntegrationService = {
             const contact = contacts?.find(c => c.wa_id === message.from);
             const contactName = contact?.profile?.name || message.from;
 
+            // Normalize phone number (remove +, spaces, dashes, etc. for searching)
+            const normalizedPhone = message.from.replace(/\D/g, '');
+
             // Check if message already exists
             const existingMessage = await prisma.whatsAppMessage.findFirst({
                 where: {
@@ -119,49 +122,26 @@ export const WhatsAppIntegrationService = {
             }
 
             // Try to find existing lead or contact
+            // Search with normalized phone
             const lead = await prisma.lead.findFirst({
                 where: {
-                    phone: message.from,
+                    OR: [
+                        { phone: message.from },
+                        { phone: normalizedPhone },
+                        { phone: `+${normalizedPhone}` }
+                    ],
                     organisationId,
                     isDeleted: false
                 }
             });
 
-            const contactRecord = await prisma.contact.findFirst({
-                where: {
-                    organisationId
-                },
-                select: {
-                    id: true,
-                    phones: true
-                }
-            }).then(async (contact) => {
-                // Since Prisma JSON queries are limited, we'll do a secondary filter
-                if (!contact) return null;
+            const contactRecord = await prisma.$queryRawUnsafe(`
+                SELECT id FROM "Contact" 
+                WHERE "organisationId" = $1
+                AND ("phones"::text ILIKE $2 OR "phones"::text ILIKE $3)
+            `, organisationId, `%${message.from}%`, `%${normalizedPhone}%`) as any[];
 
-                // For now, we'll create a simple search - in production you might want to use raw SQL
-                const allContacts = await prisma.contact.findMany({
-                    where: {
-                        organisationId
-                    },
-                    select: {
-                        id: true,
-                        phones: true
-                    }
-                });
-
-                return allContacts.find(contact => {
-                    const phones = contact.phones as any;
-                    if (Array.isArray(phones)) {
-                        return phones.some(phone => phone.includes(message.from));
-                    } else if (typeof phones === 'object' && phones !== null) {
-                        return Object.values(phones).some(phone =>
-                            typeof phone === 'string' && phone.includes(message.from)
-                        );
-                    }
-                    return false;
-                }) || null;
-            });
+            const contactId = contactRecord?.[0]?.id;
 
             // Create WhatsApp message record
             const messageRecord = await prisma.whatsAppMessage.create({
@@ -176,13 +156,13 @@ export const WhatsAppIntegrationService = {
                     deliveredAt: new Date(parseInt(message.timestamp) * 1000),
                     organisationId,
                     leadId: lead?.id,
-                    contactId: contactRecord?.id,
+                    contactId: contactId,
                     isReadByAgent: false
                 }
             });
 
             // Create lead if none exists and link to message
-            if (!lead && !contactRecord) {
+            if (!lead && !contactId) {
                 const newLead = await prisma.lead.create({
                     data: {
                         firstName: contactName.split(' ')[0] || contactName,

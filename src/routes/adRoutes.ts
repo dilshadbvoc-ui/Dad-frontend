@@ -8,7 +8,9 @@ import {
     testConnection,
     syncCampaigns,
     getCampaignInsights,
-    getAccountInsights
+    getAccountInsights,
+    createFullAd,
+    uploadAdImage
 } from '../controllers/adController';
 import { metaLimiter } from '../middleware/rateLimiter';
 
@@ -25,5 +27,9 @@ router.post('/meta/test', protect, metaLimiter, testConnection as any);
 router.post('/meta/sync-campaigns', protect, metaLimiter, syncCampaigns as any);
 router.get('/meta/campaigns/:campaignId/insights', protect, metaLimiter, getCampaignInsights as any);
 router.get('/meta/account/insights', protect, metaLimiter, getAccountInsights as any);
+
+// New Ad Creation Endpoints
+router.post('/meta/campaigns', protect, metaLimiter, createFullAd as any);
+router.post('/meta/images', protect, metaLimiter, uploadAdImage as any);
 
 export default router;

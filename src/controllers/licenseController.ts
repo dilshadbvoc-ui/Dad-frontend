@@ -10,7 +10,8 @@ export const getLicenses = async (req: Request, res: Response) => {
         // Super admin can see all, others only their org
         if (!user.isSuperAdmin) {
             const orgId = getOrgId(user);
-            if (orgId) where.organisationId = orgId;
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
         }
 
         const licenses = await prisma.license.findMany({
@@ -107,6 +108,21 @@ export const activateLicense = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'ACTIVATE_LICENSE',
+                entity: 'License',
+                entityId: license.id,
+                details: { plan: plan.name, maxUsers: plan.maxUsers }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(license);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -138,6 +154,21 @@ export const cancelLicense = async (req: Request, res: Response) => {
             where: { id: orgId },
             data: { subscription: { status: 'cancelled' } }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: orgId,
+                actorId: (req as any).user.id,
+                action: 'CANCEL_LICENSE',
+                entity: 'License',
+                entityId: req.params.id,
+                details: { reason: req.body.reason }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json({ message: 'License cancelled' });
     } catch (error) {

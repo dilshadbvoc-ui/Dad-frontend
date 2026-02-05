@@ -40,10 +40,10 @@ export const checkPlanLimits = (resource: 'leads' | 'contacts' | 'users' | 'stor
             // Fallback for trial or missing plan: Use "Starter" defaults
             if (!plan) {
                 plan = {
-                    maxLeads: 100,
-                    maxContacts: 500,
-                    maxUsers: 2, // Trial limit
-                    maxStorage: 1000
+                    maxLeads: 10000, // Generous limit for testing
+                    maxContacts: 5000,
+                    maxUsers: 100, // Allow more team members
+                    maxStorage: 10000
                 };
             }
 
@@ -71,6 +71,7 @@ export const checkPlanLimits = (resource: 'leads' | 'contacts' | 'users' | 'stor
             }
 
             if (currentCount >= limit) {
+                console.log(`[Limit Reached] ${resource}: ${currentCount} >= ${limit}`);
                 return res.status(403).json({
                     message: `Plan limit reached for ${resource}. Current: ${currentCount}, Max: ${limit}. Please upgrade your plan.`
                 });

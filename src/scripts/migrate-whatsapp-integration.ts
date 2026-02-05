@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { Prisma } from '@prisma/client';
+
 
 /**
  * Migration script to separate WhatsApp configuration from Meta integration
@@ -26,7 +26,7 @@ async function migrateWhatsAppIntegrations() {
 
         for (const org of organisations) {
             const integrations = org.integrations as any;
-            
+
             // Check if Meta integration has WhatsApp fields
             if (integrations?.meta?.phoneNumberId && !integrations?.whatsapp) {
                 console.log(`Migrating organisation: ${org.name} (${org.id})`);

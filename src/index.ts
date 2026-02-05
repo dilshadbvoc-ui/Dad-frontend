@@ -24,7 +24,7 @@ import taskRoutes from './routes/taskRoutes';
 import workflowRoutes from './routes/workflowRoutes';
 import productRoutes from './routes/productRoutes';
 import quoteRoutes from './routes/quoteRoutes';
-import checkInRoutes from './routes/checkInRoutes';
+
 import caseRoutes from './routes/caseRoutes';
 import goalRoutes from './routes/goalRoutes';
 import territoryRoutes from './routes/territoryRoutes';
@@ -46,8 +46,10 @@ import callRoutes from './routes/callRoutes';
 import callSettingsRoutes from './routes/callSettingsRoutes';
 import reportRoutes from './routes/reportRoutes';
 import importRoutes from './routes/importRoutes';
+import aiRoutes from './routes/aiRoutes';
+import emailRoutes from './routes/emailRoutes';
 import searchRoutes from './routes/searchRoutes';
-import bulkRoutes from './routes/bulkRoutes';
+
 import adRoutes from './routes/adRoutes';
 import pipelineRoutes from './routes/pipelineRoutes';
 import webFormRoutes from './routes/webFormRoutes';
@@ -56,6 +58,9 @@ import whatsAppCampaignRoutes from './routes/whatsAppCampaignRoutes';
 import whatsAppRoutes from './routes/whatsAppRoutes';
 import commissionRoutes from './routes/commissionRoutes';
 import landingPageRoutes from './routes/landingPageRoutes';
+import bulkRoutes from './routes/bulkRoutes';
+import publicRoutes from './routes/publicRoutes';
+import teamRoutes from './routes/teamRoutes';
 import path from 'path';
 
 // import { dataIsolation } from './middleware/dataIsolation';
@@ -99,7 +104,7 @@ app.use(compression()); // Enable gzip compression
 app.use('/api/', generalLimiter);
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://dad-frontend-psi.vercel.app'],
+    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://dad-frontend-psi.vercel.app'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));
@@ -134,13 +139,18 @@ app.get('/health', (req, res) => {
 
 
 
+// Public Routes (No Auth)
+app.use('/api/public', publicRoutes);
+
 // Auth & Core
 app.use('/api/auth', authRoutes);
 app.use('/api/analytics', analyticsRoutes);
-app.use('/api/reports', reportRoutes);
+app.use('/api/workflow', workflowRoutes);
 app.use('/api/import', importRoutes);
-app.use('/api/search', searchRoutes);
-app.use('/api/bulk', bulkRoutes);
+app.use('/api/ai', aiRoutes);
+app.use('/api/email', emailRoutes);
+
+
 app.use('/api/profile', profileRoutes);
 
 // Sales
@@ -160,10 +170,11 @@ app.use('/api/calls', callRoutes);
 app.use('/api/call-settings', callSettingsRoutes);
 app.use('/api/telephony', telephonyRoutes);
 
-import syncRoutes from './routes/syncRoutes';
-app.use('/api/sync', syncRoutes);
+
 
 // Operations
+import checkInRoutes from './routes/checkInRoutes';
+app.use('/api/checkins', checkInRoutes);
 app.use('/api/calendar', eventRoutes);
 app.use('/api/tasks', taskRoutes);
 
@@ -172,7 +183,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/quotes', quoteRoutes);
 
 // Field & Support
-app.use('/api/checkins', checkInRoutes);
+
 app.use('/api/cases', caseRoutes);
 
 // Advanced
@@ -188,7 +199,12 @@ app.use('/api/commissions', commissionRoutes);
 app.use('/api/landing-pages', landingPageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/sales-targets', salesTargetRoutes);
+app.use('/api/teams', teamRoutes);
 app.use('/api/ads', adRoutes);
+
+// Meta OAuth
+import metaAuthRoutes from './routes/metaAuthRoutes';
+app.use('/api/meta', metaAuthRoutes);
 
 // Admin & Settings
 app.use('/api/users', userRoutes);
@@ -200,6 +216,7 @@ app.use('/api/assignment-rules', assignmentRuleRoutes);
 app.use('/api/hierarchy', hierarchyRoutes);
 app.use('/api/organisation', organisationRoutes);
 app.use('/api/api-keys', apiKeyRoutes);
+app.use('/api/bulk', bulkRoutes);
 
 // Licensing & Multi-tenancy
 app.use('/api/plans', subscriptionPlanRoutes);

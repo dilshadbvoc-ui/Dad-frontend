@@ -90,7 +90,7 @@ export const revokeApiKey = async (req: Request, res: Response) => {
 
 export const deleteApiKey = async (req: Request, res: Response) => {
     try {
-        const apiKey = await prisma.apiKey.update({
+        await prisma.apiKey.update({
             where: { id: req.params.id },
             data: { isDeleted: true }
         });

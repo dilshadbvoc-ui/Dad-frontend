@@ -1,14 +1,22 @@
 import { Request, Response } from 'express';
 import { StripeService } from '../services/StripeService';
-import SubscriptionPlan from '../models/SubscriptionPlan';
-import Organisation from '../models/Organisation';
+import prisma from '../config/prisma';
 
 export const createCheckoutSession = async (req: Request, res: Response) => {
     try {
-        const { planId, organisationId } = req.body;
-        const userEmail = (req as any).user.email; // Assuming auth middleware populates this
+        const { planId } = req.body;
+        const user = (req as any).user;
+        const userEmail = user.email;
+        const organisationId = user.organisationId;
 
-        const plan = await SubscriptionPlan.findById(planId);
+        if (!organisationId) {
+            return res.status(403).json({ message: 'User has no organisation' });
+        }
+
+        const plan = await prisma.subscriptionPlan.findUnique({
+            where: { id: planId }
+        });
+
         if (!plan) return res.status(404).json({ message: 'Plan not found' });
 
         const session = await StripeService.createCheckoutSession(plan, organisationId, userEmail);
@@ -21,14 +29,27 @@ export const createCheckoutSession = async (req: Request, res: Response) => {
 
 export const createPortalSession = async (req: Request, res: Response) => {
     try {
-        const { organisationId } = req.body;
+        const user = (req as any).user;
+        const organisationId = user.organisationId;
 
-        const org = await Organisation.findById(organisationId);
-        if (!org || !org.subscription?.stripeCustomerId) {
-            return res.status(404).json({ message: 'Organisation or Stripe Customer ID not found' });
+        if (!organisationId) {
+            return res.status(403).json({ message: 'User has no organisation' });
         }
 
-        const session = await StripeService.createPortalSession(org.subscription.stripeCustomerId);
+        const org = await prisma.organisation.findUnique({
+            where: { id: organisationId }
+        });
+
+        if (!org || !org.subscription) {
+            return res.status(404).json({ message: 'Organisation or subscription not found' });
+        }
+
+        const subscription = org.subscription as any;
+        if (!subscription.stripeCustomerId) {
+            return res.status(404).json({ message: 'Stripe Customer ID not found' });
+        }
+
+        const session = await StripeService.createPortalSession(subscription.stripeCustomerId);
         res.json({ url: session.url });
     } catch (error) {
         console.error('Error creating portal session:', error);
@@ -41,6 +62,8 @@ export const handleWebhook = async (req: Request, res: Response) => {
 
     try {
         if (!sig) throw new Error('No signature');
+        // Note: Stripe Webhook requires the RAW body. 
+        // Ensure express.raw() is used in routes for this endpoint.
         await StripeService.handleWebhook(sig as string, req.body);
         res.json({ received: true });
     } catch (err) {

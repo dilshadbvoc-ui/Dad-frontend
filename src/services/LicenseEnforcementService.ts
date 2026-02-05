@@ -5,13 +5,13 @@ export class LicenseEnforcementService {
     /**
      * Checks if the organisation has reached the limit for a specific resource.
      * @param organisationId 
-     * @param resourceType 'users' | 'contacts' | 'storage'
+     * @param resourceType 'users' | 'contacts'
      * @returns boolean - true if within limits, throws error if limit reached
      */
     static async checkLimits(organisationId: string, resourceType: 'users' | 'contacts'): Promise<void> {
         const org = await prisma.organisation.findUnique({
             where: { id: organisationId },
-            select: { userLimit: true, status: true }
+            select: { userLimit: true, contactLimit: true, status: true }
         });
 
         if (!org) throw new Error('Organisation not found');
@@ -36,8 +36,17 @@ export class LicenseEnforcementService {
             }
         }
 
-        // Add Contact limit check later if 'contactLimit' exists on Organisation or License
-        // For now preventing errors if someone calls it.
+        if (resourceType === 'contacts') {
+            const currentContacts = await prisma.contact.count({
+                where: { organisationId, isDeleted: false }
+            });
+
+            if (currentContacts >= org.contactLimit) {
+                throw new Error(`Contact limit reached (${currentContacts}/${org.contactLimit}). Please upgrade your plan.`);
+            }
+        }
+
+
     }
 
     /**

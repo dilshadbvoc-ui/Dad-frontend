@@ -12,7 +12,8 @@ export const WorkflowEngine = {
         entityType: string,
         eventType: string,
         data: any,
-        organisationId: string
+        organisationId: string,
+        depth: number = 0
     ): Promise<void> {
         try {
             console.log(`[WorkflowEngine] Evaluating ${entityType} ${eventType} for Org ${organisationId}`);
@@ -32,7 +33,7 @@ export const WorkflowEngine = {
 
             for (const workflow of workflows) {
                 if (this.checkConditions(workflow.conditions, data)) {
-                    await this.executeActions(workflow, data, organisationId);
+                    await this.executeActions(workflow, data, organisationId, 0, undefined, depth);
                 }
             }
         } catch (error) {
@@ -123,7 +124,8 @@ export const WorkflowEngine = {
                 queueItem.data,
                 queueItem.organisationId,
                 queueItem.nextActionIndex,
-                queueItem.entityId
+                queueItem.entityId,
+                0 // reset depth for queued items
             );
 
             // Mark as completed/delete
@@ -151,8 +153,14 @@ export const WorkflowEngine = {
         data: any,
         organisationId: string,
         startIndex: number = 0,
-        entityId?: string
+        entityId?: string,
+        depth: number = 0
     ): Promise<void> {
+        // Recursion Protection
+        if (depth > 3) {
+            console.warn(`[WorkflowEngine] Max recursion depth reached for workflow ${workflow.name}. Stopping.`);
+            return;
+        }
         console.log(`[WorkflowEngine] Executing workflow: ${workflow.name} from index ${startIndex}`);
 
         const actions = workflow.actions as any[];
@@ -216,7 +224,7 @@ export const WorkflowEngine = {
                         // However, prisma[modelName] might be tricky with TS.
                         // We'll trust the model mapping. Lead -> lead, Contact -> contact, etc.
 
-                        // @ts-ignore
+
                         const delegate = (prisma as any)[modelName];
                         if (delegate) {
                             console.log(`[WorkflowEngine] Action: Updating ${modelName} ${effectiveEntityId} - ${field} = ${value}`);
@@ -228,6 +236,15 @@ export const WorkflowEngine = {
                                 where: { id: effectiveEntityId },
                                 data: { [field]: parsedValue }
                             });
+
+                            // Re-evaluate workflows for the change (triggers recursion depth check)
+                            await this.evaluate(
+                                workflow.triggerEntity,
+                                'updated',
+                                await delegate.findUnique({ where: { id: effectiveEntityId } }),
+                                organisationId,
+                                depth + 1
+                            );
                         } else {
                             console.error(`[WorkflowEngine] Model delegate not found for ${modelName}`);
                         }
@@ -241,7 +258,17 @@ export const WorkflowEngine = {
 
                         if (to) {
                             console.log(`[WorkflowEngine] Action: Sending Email to ${to}`);
-                            await EmailService.sendEmail(to, subject, body);
+                            await EmailService.sendEmail(
+                                to,
+                                subject,
+                                body,
+                                organisationId,
+                                workflow.createdById,
+                                {
+                                    leadId: workflow.triggerEntity === 'Lead' ? effectiveEntityId : undefined,
+                                    contactId: workflow.triggerEntity === 'Contact' ? effectiveEntityId : undefined
+                                }
+                            );
                         }
                         break;
                     }
@@ -268,6 +295,21 @@ export const WorkflowEngine = {
                             const body = this.parseTemplate(action.config.message, data);
                             console.log(`[WorkflowEngine] Action: Sending WhatsApp Text to ${phone}`);
                             await waClient.sendTextMessage(phone, body);
+
+                            // Log Interaction
+                            await prisma.interaction.create({
+                                data: {
+                                    organisationId,
+                                    type: 'other',
+                                    subject: 'WhatsApp Workflow Message',
+                                    description: body,
+                                    direction: 'outbound',
+                                    leadId: workflow.triggerEntity === 'Lead' ? effectiveEntityId : undefined,
+                                    contactId: workflow.triggerEntity === 'Contact' ? effectiveEntityId : undefined,
+                                    createdById: workflow.createdById,
+                                    phoneNumber: phone
+                                }
+                            });
                         }
                         break;
                     }

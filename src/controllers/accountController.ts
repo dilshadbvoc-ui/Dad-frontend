@@ -9,7 +9,7 @@ export const getAccounts = async (req: Request, res: Response) => {
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
         const user = (req as any).user;
-        const where: Prisma.AccountWhereInput = {};
+        const where: Prisma.AccountWhereInput = { isDeleted: false };
 
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
@@ -18,14 +18,15 @@ export const getAccounts = async (req: Request, res: Response) => {
             }
         } else {
             const orgId = getOrgId(user);
-            if (orgId) where.organisationId = orgId;
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
         }
 
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
             // In Prisma: ownerId IN [...]
-            where.ownerId = { in: subordinateIds };
+            where.ownerId = { in: [...subordinateIds, user.id] };
         }
 
         // Filters
@@ -87,6 +88,21 @@ export const createAccount = async (req: Request, res: Response) => {
             data: accountData
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_ACCOUNT',
+                entity: 'Account',
+                entityId: account.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: account.name, type: account.type }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(account);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -95,8 +111,17 @@ export const createAccount = async (req: Request, res: Response) => {
 
 export const getAccountById = async (req: Request, res: Response) => {
     try {
-        const account = await prisma.account.findUnique({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
+        const account = await prisma.account.findFirst({
+            where,
             include: {
                 owner: { select: { firstName: true, lastName: true, email: true } },
                 contacts: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -120,13 +145,36 @@ export const updateAccount = async (req: Request, res: Response) => {
             updates.owner = { connect: { id: updates.owner } };
         }
 
+        const requester = (req as any).user;
+        const whereObj: any = { id: accountId };
+        if (requester.role !== 'super_admin') {
+            const orgId = getOrgId(requester);
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            whereObj.organisationId = orgId;
+        }
+
         const account = await prisma.account.update({
-            where: { id: accountId },
+            where: whereObj,
             data: updates,
             include: {
                 owner: { select: { firstName: true, lastName: true, email: true } }
             }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_ACCOUNT',
+                entity: 'Account',
+                entityId: accountId,
+                actorId: requester.id,
+                organisationId: account.organisationId,
+                details: { name: account.name, updatedFields: Object.keys(updates) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json(account);
     } catch (error) {
@@ -138,27 +186,124 @@ export const deleteAccount = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const accountId = req.params.id;
+        const orgId = getOrgId(user);
 
         // 1. Role Check
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             return res.status(403).json({ message: 'Not authorized to delete accounts' });
         }
 
-        // 2. Org Check for Admins
-        if (user.role === 'admin') {
-            const account = await prisma.account.findUnique({ where: { id: accountId } });
-            if (!account) return res.status(404).json({ message: 'Account not found' });
-
-            const orgId = getOrgId(user);
-            if (account.organisationId !== orgId) {
-                return res.status(403).json({ message: 'Not authorized to delete this account' });
-            }
+        const where: any = { id: accountId };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
         }
 
-        await prisma.account.delete({
-            where: { id: accountId }
+        const account = await prisma.account.findFirst({ where });
+        if (!account) return res.status(404).json({ message: 'Account not found' });
+
+        // 2. Transaction for Cascading Soft-Delete
+        await prisma.$transaction(async (tx) => {
+            // Update Account
+            await tx.account.update({
+                where: { id: accountId },
+                data: { isDeleted: true }
+            });
+
+            // Update Contacts
+            await tx.contact.updateMany({
+                where: { accountId: accountId, organisationId: orgId || account.organisationId },
+                data: { isDeleted: true }
+            });
+
+            // Update Opportunities
+            await tx.opportunity.updateMany({
+                where: { accountId: accountId, organisationId: orgId || account.organisationId },
+                data: { isDeleted: true }
+            });
+
+            // Audit Log
+            try {
+                const { logAudit } = await import('../utils/auditLogger');
+                logAudit({
+                    action: 'DELETE_ACCOUNT',
+                    entity: 'Account',
+                    entityId: accountId,
+                    actorId: user.id,
+                    organisationId: orgId || account.organisationId,
+                    details: { name: account.name }
+                });
+            } catch (e) {
+                console.error('Audit Log Error:', e);
+            }
         });
-        res.json({ message: 'Account deleted' });
+
+        res.json({ message: 'Account and related contacts/opportunities deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+// Add product to account (Asset)
+export const addAccountProduct = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const { accountId } = req.params;
+        const { productId, quantity, purchaseDate, serialNumber, status, notes } = req.body;
+
+        if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
+
+        const account = await prisma.account.findFirst({
+            where: { id: accountId, organisationId: orgId }
+        });
+        if (!account) return res.status(404).json({ message: 'Account not found' });
+
+        const asset = await prisma.accountProduct.create({
+            data: {
+                accountId,
+                productId,
+                quantity: Number(quantity) || 1,
+                purchaseDate: purchaseDate ? new Date(purchaseDate) : new Date(),
+                serialNumber,
+                status: status || 'active',
+                notes,
+                organisationId: orgId
+            },
+            include: { product: true }
+        });
+
+        await prisma.interaction.create({
+            data: {
+                accountId,
+                type: 'note',
+                subject: `Added Asset: ${asset.product.name}`,
+                description: `Added product: ${asset.product.name} (Qty: ${asset.quantity})`,
+                createdById: user.id,
+                organisationId: orgId
+            }
+        });
+
+        res.status(201).json(asset);
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+// Get account products
+export const getAccountProducts = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const { accountId } = req.params;
+
+        const assets = await prisma.accountProduct.findMany({
+            where: { accountId, organisationId: orgId || undefined },
+            include: { product: true },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        res.json(assets);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }

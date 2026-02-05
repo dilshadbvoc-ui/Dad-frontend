@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId, getSubordinateIds } from '../utils/hierarchyUtils';
+import { logAudit } from '../utils/auditLogger';
 import { Prisma } from '../generated/client';
 
 // Helper to consolidate polymorphic 'relatedTo' for Frontend compatibility
@@ -38,13 +39,15 @@ export const getTasks = async (req: Request, res: Response) => {
             }
         } else {
             const orgId = getOrgId(user);
-            if (orgId) where.organisationId = orgId;
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
         }
 
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
-            where.assignedToId = { in: subordinateIds };
+            // Include self in tasks
+            where.assignedToId = { in: [...subordinateIds, user.id] };
         }
 
         if (search) {
@@ -96,12 +99,12 @@ export const createTask = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'No org' });
 
-        const { relatedTo, onModel, ...rest } = req.body;
+        const { relatedTo, onModel } = req.body;
 
         const data: Prisma.TaskCreateInput = {
             subject: req.body.subject,
             description: req.body.description,
-            status: req.body.status || 'pending',
+            status: req.body.status || 'not_started',
             priority: req.body.priority || 'medium',
             dueDate: req.body.dueDate,
 
@@ -133,6 +136,15 @@ export const createTask = async (req: Request, res: Response) => {
             }
         });
 
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'CREATE_TASK',
+            entity: 'Task',
+            entityId: task.id,
+            details: { subject: task.subject }
+        });
+
         res.status(201).json(transformTask(task));
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -141,8 +153,17 @@ export const createTask = async (req: Request, res: Response) => {
 
 export const getTaskById = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
         const task = await prisma.task.findFirst({
-            where: { id: req.params.id, isDeleted: false },
+            where,
             include: {
                 assignedTo: { select: { firstName: true, lastName: true } },
                 lead: { select: { id: true, firstName: true, lastName: true, company: true } },
@@ -188,8 +209,16 @@ export const updateTask = async (req: Request, res: Response) => {
             delete updates.onModel;
         }
 
+        const requester = (req as any).user;
+        const whereObj: any = { id };
+        if (requester.role !== 'super_admin') {
+            const orgId = getOrgId(requester);
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            whereObj.organisationId = orgId;
+        }
+
         const task = await prisma.task.update({
-            where: { id },
+            where: whereObj,
             data: updates,
             include: {
                 assignedTo: { select: { firstName: true, lastName: true } },
@@ -200,6 +229,15 @@ export const updateTask = async (req: Request, res: Response) => {
             }
         });
 
+        await logAudit({
+            organisationId: requester.organisationId || getOrgId(requester),
+            actorId: requester.id,
+            action: 'UPDATE_TASK',
+            entity: 'Task',
+            entityId: task.id,
+            details: { updatedFields: Object.keys(updates) }
+        });
+
         res.json(transformTask(task));
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -208,10 +246,28 @@ export const updateTask = async (req: Request, res: Response) => {
 
 export const deleteTask = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
         await prisma.task.update({
-            where: { id: req.params.id },
+            where,
             data: { isDeleted: true }
         });
+
+        await logAudit({
+            organisationId: (orgId || getOrgId(user)) as string,
+            actorId: user.id,
+            action: 'DELETE_TASK',
+            entity: 'Task',
+            entityId: req.params.id
+        });
+
         res.json({ message: 'Task deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

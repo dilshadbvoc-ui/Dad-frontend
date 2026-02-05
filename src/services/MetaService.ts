@@ -54,6 +54,35 @@ export class MetaService {
         throw new Error(errorMsg);
     }
 
+    async makePostRequest(endpoint: string, accessToken: string, data: any = {}, retries: number = 2) {
+        let lastError: any;
+
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const response = await axios.post(`${this.baseUrl}/${endpoint}`, data, {
+                    params: { access_token: accessToken },
+                    timeout: 60000 // Post might take longer
+                });
+                return response.data;
+            } catch (error: any) {
+                lastError = error;
+                console.error(`Meta API POST Error (attempt ${attempt}/${retries}):`, error.response?.data || error.message);
+
+                if (error.response?.status >= 400 && error.response?.status < 500 && error.response?.status !== 429) {
+                    break;
+                }
+
+                if (attempt < retries) {
+                    const delay = Math.pow(2, attempt) * 2000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+
+        const errorMsg = lastError?.response?.data?.error?.message || lastError?.message || 'Failed to post data to Meta API';
+        throw new Error(errorMsg);
+    }
+
     async exchangeForLongLivedToken(shortLivedToken: string, config?: MetaConfig): Promise<string> {
         try {
             // Prefer config values (from DB), fallback to env vars (system default)
@@ -141,6 +170,99 @@ export class MetaService {
             accountName: data.name,
             status: data.account_status
         };
+    }
+
+    async createCampaign(config: MetaConfig, details: { name: string, objective: string, status?: string }) {
+        const adAccountId = this.getFormattedAdAccountId(config.adAccountId);
+        return await this.makePostRequest(`${adAccountId}/campaigns`, config.accessToken, {
+            name: details.name,
+            objective: details.objective,
+            status: details.status || 'PAUSED', // Always create as paused by default
+            special_ad_categories: 'NONE'
+        });
+    }
+
+    async createAdSet(config: MetaConfig, details: {
+        name: string,
+        campaignId: string,
+        bidAmount?: number,
+        billingEvent?: string,
+        dailyBudget?: number,
+        optimizationGoal?: string,
+        status?: string,
+        targeting: any
+    }) {
+        const adAccountId = this.getFormattedAdAccountId(config.adAccountId);
+        const data: any = {
+            name: details.name,
+            campaign_id: details.campaignId,
+            optimization_goal: details.optimizationGoal || 'REACH',
+            billing_event: details.billingEvent || 'IMPRESSIONS',
+            status: details.status || 'PAUSED',
+            targeting: details.targeting
+        };
+
+        if (details.dailyBudget) {
+            data.daily_budget = details.dailyBudget;
+        }
+
+        if (details.bidAmount) {
+            data.bid_amount = details.bidAmount;
+        }
+
+        return await this.makePostRequest(`${adAccountId}/adsets`, config.accessToken, data);
+    }
+
+    async createAdCreative(config: MetaConfig, details: {
+        name: string,
+        pageId: string,
+        message: string,
+        link: string,
+        imageHash?: string,
+        videoUrl?: string
+    }) {
+        const adAccountId = this.getFormattedAdAccountId(config.adAccountId);
+        const object_story_spec: any = {
+            page_id: details.pageId,
+            link_data: {
+                message: details.message,
+                link: details.link,
+                call_to_action: { type: 'LEARN_MORE' }
+            }
+        };
+
+        if (details.imageHash) {
+            object_story_spec.link_data.image_hash = details.imageHash;
+        }
+
+        return await this.makePostRequest(`${adAccountId}/adcreatives`, config.accessToken, {
+            name: details.name,
+            object_story_spec
+        });
+    }
+
+    async createAd(config: MetaConfig, details: {
+        name: string,
+        adSetId: string,
+        creativeId: string,
+        status?: string
+    }) {
+        const adAccountId = this.getFormattedAdAccountId(config.adAccountId);
+        return await this.makePostRequest(`${adAccountId}/ads`, config.accessToken, {
+            name: details.name,
+            adset_id: details.adSetId,
+            creative_id: details.creativeId,
+            status: details.status || 'PAUSED'
+        });
+    }
+
+    async uploadImage(config: MetaConfig, imageUrl: string) {
+        const adAccountId = this.getFormattedAdAccountId(config.adAccountId);
+        // This is a simplified version, usually we'd pass a buffer or stream
+        // But Graph API accepts URL for images in some cases or we can use the bytes parameter
+        return await this.makePostRequest(`${adAccountId}/adimages`, config.accessToken, {
+            url: imageUrl
+        });
     }
 
     private getFormattedAdAccountId(adAccountId: string): string {

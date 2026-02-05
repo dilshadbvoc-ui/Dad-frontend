@@ -9,7 +9,7 @@ export const getContacts = async (req: Request, res: Response) => {
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
         const user = (req as any).user;
-        const where: Prisma.ContactWhereInput = {};
+        const where: Prisma.ContactWhereInput = { isDeleted: false };
 
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
@@ -27,7 +27,7 @@ export const getContacts = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
             // In Prisma: ownerId IN [...]
-            where.ownerId = { in: subordinateIds };
+            where.ownerId = { in: [...subordinateIds, user.id] };
         }
 
         // Filter: Account
@@ -73,6 +73,24 @@ export const createContact = async (req: Request, res: Response) => {
 
         if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
 
+        // Limit Check
+        const org = await prisma.organisation.findUnique({
+            where: { id: orgId },
+            select: { contactLimit: true }
+        });
+        if (org && org.contactLimit > 0) {
+            const count = await prisma.contact.count({
+                where: { organisationId: orgId, isDeleted: false }
+            });
+            if (count >= org.contactLimit) {
+                return res.status(403).json({
+                    message: `Contact limit reached (${org.contactLimit}). Please upgrade your plan.`,
+                    code: 'LIMIT_EXCEEDED',
+                    limit: org.contactLimit
+                });
+            }
+        }
+
         if (email) {
             const existingContact = await prisma.contact.findFirst({
                 where: {
@@ -117,6 +135,21 @@ export const createContact = async (req: Request, res: Response) => {
             data: contactData
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_CONTACT',
+                entity: 'Contact',
+                entityId: contact.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: `${contact.firstName} ${contact.lastName}` }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(contact);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -125,8 +158,17 @@ export const createContact = async (req: Request, res: Response) => {
 
 export const getContactById = async (req: Request, res: Response) => {
     try {
-        const contact = await prisma.contact.findUnique({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
+        const contact = await prisma.contact.findFirst({
+            where,
             include: {
                 account: { select: { name: true } },
                 owner: { select: { firstName: true, lastName: true, email: true } }
@@ -167,14 +209,37 @@ export const updateContact = async (req: Request, res: Response) => {
             await CustomFieldValidationService.validateFields('Contact', currentContact.organisationId, updates.customFields);
         }
 
+        const requester = (req as any).user;
+        const whereObj: any = { id: contactId };
+        if (requester.role !== 'super_admin') {
+            const orgId = getOrgId(requester);
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            whereObj.organisationId = orgId;
+        }
+
         const contact = await prisma.contact.update({
-            where: { id: contactId },
+            where: whereObj,
             data: updates,
             include: {
                 account: { select: { name: true } },
                 owner: { select: { firstName: true, lastName: true, email: true } }
             }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_CONTACT',
+                entity: 'Contact',
+                entityId: contactId,
+                actorId: requester.id,
+                organisationId: contact.organisationId,
+                details: { name: `${contact.firstName} ${contact.lastName}`, updatedFields: Object.keys(updates) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json(contact);
     } catch (error) {
@@ -185,9 +250,38 @@ export const updateContact = async (req: Request, res: Response) => {
 
 export const deleteContact = async (req: Request, res: Response) => {
     try {
-        await prisma.contact.delete({
-            where: { id: req.params.id }
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
+        await prisma.contact.update({
+            where,
+            data: { isDeleted: true }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            const contact = await prisma.contact.findUnique({ where: { id: req.params.id } });
+            if (contact) {
+                logAudit({
+                    action: 'DELETE_CONTACT',
+                    entity: 'Contact',
+                    entityId: contact.id,
+                    actorId: user.id,
+                    organisationId: contact.organisationId,
+                    details: { name: `${contact.firstName} ${contact.lastName}` }
+                });
+            }
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json({ message: 'Contact deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

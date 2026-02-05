@@ -81,6 +81,7 @@ export const globalSearch = async (req: Request, res: Response) => {
     const contacts = await prisma.contact.findMany({
       where: {
         organisationId,
+        isDeleted: false,
         OR: [
           { firstName: { contains: searchTerm, mode: 'insensitive' } },
           { lastName: { contains: searchTerm, mode: 'insensitive' } },
@@ -112,6 +113,7 @@ export const globalSearch = async (req: Request, res: Response) => {
     const accounts = await prisma.account.findMany({
       where: {
         organisationId,
+        isDeleted: false,
         OR: [
           { name: { contains: searchTerm, mode: 'insensitive' } },
           { industry: { contains: searchTerm, mode: 'insensitive' } },
@@ -143,6 +145,7 @@ export const globalSearch = async (req: Request, res: Response) => {
     const opportunities = await prisma.opportunity.findMany({
       where: {
         organisationId,
+        isDeleted: false,
         OR: [
           { name: { contains: searchTerm, mode: 'insensitive' } },
           { description: { contains: searchTerm, mode: 'insensitive' } },
@@ -213,10 +216,10 @@ export const globalSearch = async (req: Request, res: Response) => {
     results.sort((a, b) => {
       const aExactMatch = a.title.toLowerCase().includes(searchTerm.toLowerCase());
       const bExactMatch = b.title.toLowerCase().includes(searchTerm.toLowerCase());
-      
+
       if (aExactMatch && !bExactMatch) return -1;
       if (!aExactMatch && bExactMatch) return 1;
-      
+
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
 
@@ -224,6 +227,18 @@ export const globalSearch = async (req: Request, res: Response) => {
     const finalResults = results.slice(0, limit);
 
     logger.info(`Global search completed: ${finalResults.length} results`, 'SEARCH', userId, organisationId || undefined, { query: searchTerm });
+
+    // Save search history
+    if (userId && searchTerm.length >= 2) {
+      await prisma.searchHistory.create({
+        data: {
+          query: searchTerm,
+          userId
+        }
+      }).catch(err => {
+        logger.error('Failed to save search history', err, 'SEARCH_HISTORY', userId);
+      });
+    }
 
     return ResponseHandler.success(res, {
       results: finalResults,
@@ -341,11 +356,27 @@ export const recentSearches = async (req: Request, res: Response) => {
   const userId = user?.id;
 
   try {
-    // This would typically come from a user search history table
-    // For now, return empty array as we haven't implemented search history tracking
+    const history = await prisma.searchHistory.groupBy({
+      by: ['query'],
+      where: {
+        userId
+      },
+      _max: {
+        createdAt: true
+      },
+      orderBy: {
+        _max: {
+          createdAt: 'desc'
+        }
+      },
+      take: 10
+    });
+
+    const recent = history.map(h => h.query);
+
     return ResponseHandler.success(res, {
-      recent: [],
-      message: 'Search history tracking not yet implemented'
+      recent,
+      message: 'Recent searches retrieved'
     }, 'Recent searches retrieved');
 
   } catch (error: any) {

@@ -1,8 +1,6 @@
 
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
-import path from 'path';
-import fs from 'fs';
 import { getOrgId } from '../utils/hierarchyUtils';
 
 export const uploadCallRecording = async (req: Request, res: Response) => {
@@ -23,6 +21,31 @@ export const uploadCallRecording = async (req: Request, res: Response) => {
 
         // Clean phone number (remove non-digits, maybe keep +)
         const cleanPhone = phoneNumber.replace(/[^0-9]/g, '');
+
+        // 0. Storage Limit Check (basic implementation)
+        const org = await prisma.organisation.findUnique({
+            where: { id: orgId || user.organisationId },
+            select: { storageLimit: true }
+        });
+
+        if (org && org.storageLimit > 0) {
+            // Calculate total storage used by this org
+            const totalUsed = await prisma.interaction.aggregate({
+                where: { organisationId: orgId || user.organisationId, recordingUrl: { not: null } },
+                _sum: { recordingDuration: true } // Duration is a proxy, but better to check file size if we tracked it.
+                // Since we don't track file size in DB, we'll use a count-based heuristic or just duration sum as placeholder
+                // or ideally use fs to check size of uploads/recordings.
+                // For now, let's assume 1MB per 60s of recording.
+            });
+
+            const estimatedMB = Math.ceil((totalUsed._sum.recordingDuration || 0) / 60);
+            if (estimatedMB >= org.storageLimit) {
+                return res.status(403).json({
+                    message: `Storage limit reached (${org.storageLimit}MB). Please upgrade.`,
+                    code: 'STORAGE_LIMIT_EXCEEDED'
+                });
+            }
+        }
 
         // Find Lead or Contact
         let entityId = null;

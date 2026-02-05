@@ -54,10 +54,12 @@ export const ssoLogin = (req: Request, res: Response, next: NextFunction) => {
     })(req, res, next);
 };
 
+import { logAudit } from '../utils/auditLogger';
+
 // @desc    SAML Callback
 // @route   POST /api/auth/sso/callback/:orgId
 export const ssoCallback = (req: Request, res: Response, next: NextFunction) => {
-    passport.authenticate('saml', { session: false }, (err: any, user: any, info: any) => {
+    passport.authenticate('saml', { session: false }, async (err: any, user: any) => {
         if (err || !user) {
             console.error('SSO Authenticate Error:', err);
             return res.redirect('http://localhost:5173/login?error=sso_failed');
@@ -65,6 +67,16 @@ export const ssoCallback = (req: Request, res: Response, next: NextFunction) => 
 
         // Generate JWT
         const token = generateToken(user.id);
+
+        // Audit Log
+        await logAudit({
+            action: 'AUTH_SSO_LOGIN_SUCCESS',
+            entity: 'User',
+            entityId: user.id,
+            actorId: user.id,
+            organisationId: user.organisationId,
+            details: { email: user.email, provider: 'saml' }
+        });
 
         // Redirect to Frontend Dashboard with Token
         // NOTE: In production, consider a more secure way than query param (e.g. cookie + redirect, or temp code)

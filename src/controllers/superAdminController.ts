@@ -108,6 +108,21 @@ export const createOrganisation = async (req: Request, res: Response) => {
             return { organisation, tempPassword: password || 'Welcome123' };
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: result.organisation.id,
+                actorId: (req as any).user?.id || 'SYSTEM_REG', // Super Admin ID or SYSTEM if registration
+                action: 'CREATE_ORGANISATION',
+                entity: 'Organisation',
+                entityId: result.organisation.id,
+                details: { name: result.organisation.name, slug: result.organisation.slug }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(result);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -172,6 +187,21 @@ export const updateOrganisationAdmin = async (req: Request, res: Response) => {
             data: data
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: organisation.id,
+                actorId: (req as any).user.id,
+                action: 'UPDATE_ORGANISATION',
+                entity: 'Organisation',
+                entityId: organisation.id,
+                details: { updatedFields: Object.keys(data) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json(organisation);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -198,6 +228,20 @@ export const suspendOrganisation = async (req: Request, res: Response) => {
             where: { organisationId: organisation.id },
             data: { status: 'cancelled', cancelledAt: new Date() }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: organisation.id,
+                actorId: (req as any).user.id,
+                action: 'SUSPEND_ORGANISATION',
+                entity: 'Organisation',
+                entityId: organisation.id
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json({ message: 'Organisation suspended', organisation });
     } catch (error) {

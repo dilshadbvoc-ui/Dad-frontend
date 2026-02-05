@@ -52,6 +52,21 @@ export const createCampaign = async (req: Request, res: Response) => {
             data
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_CAMPAIGN',
+                entity: 'Campaign',
+                entityId: campaign.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: campaign.name, subject: campaign.subject }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(campaign);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -110,7 +125,30 @@ export const updateCampaign = async (req: Request, res: Response) => {
             include: { emailList: { select: { name: true } } }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_CAMPAIGN',
+                entity: 'Campaign',
+                entityId: campaignId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: campaign.name, updatedFields: Object.keys(updateData) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json(campaign);
+
+        // Process campaign if status is set to 'sent' or 'scheduled'
+        if (req.body.status === 'sent' || req.body.status === 'scheduled') {
+            const { CampaignProcessor } = await import('../services/CampaignProcessor');
+            CampaignProcessor.processEmailCampaign(campaignId).catch(err => {
+                console.error('[CampaignController] Error triggering campaign processing:', err);
+            });
+        }
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
     }
@@ -140,6 +178,21 @@ export const deleteCampaign = async (req: Request, res: Response) => {
             where: { id: campaignId },
             data: { isDeleted: true }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'DELETE_CAMPAIGN',
+                entity: 'Campaign',
+                entityId: campaignId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: existing.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json({ message: 'Campaign deleted successfully' });
     } catch (error) {

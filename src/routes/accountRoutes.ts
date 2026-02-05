@@ -1,13 +1,28 @@
 import express from 'express';
-import { getAccounts, createAccount, getAccountById, updateAccount, deleteAccount } from '../controllers/accountController';
+import {
+    createAccount,
+    getAccounts,
+    getAccountById as getAccount,
+    updateAccount,
+    deleteAccount,
+    addAccountProduct,
+    getAccountProducts
+} from '../controllers/accountController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.get('/', protect, getAccounts);
-router.post('/', protect, createAccount);
-router.get('/:id', protect, getAccountById);
-router.put('/:id', protect, updateAccount);
-router.delete('/:id', protect, deleteAccount);
+router.route('/')
+    .post(protect, createAccount)
+    .get(protect, getAccounts);
+
+router.route('/:id')
+    .get(protect, getAccount)
+    .put(protect, updateAccount)
+    .delete(protect, deleteAccount);
+
+router.route('/:accountId/products')
+    .post(protect, addAccountProduct)
+    .get(protect, getAccountProducts);
 
 export default router;

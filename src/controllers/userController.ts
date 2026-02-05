@@ -1,8 +1,10 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import { logger } from '../utils/logger';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
 import { UserRole } from '../generated/client';
+import { logAudit } from '../utils/auditLogger';
 
 // GET /api/users/:id/stats - Get user performance stats
 export const getUserStats = async (req: Request, res: Response) => {
@@ -54,14 +56,14 @@ export const getUserStats = async (req: Request, res: Response) => {
         });
 
     } catch (error) {
-        console.error('getUserStats Error:', error);
+        logger.error('getUserStats Error', error, 'UserController');
         res.status(500).json({ message: (error as Error).message });
     }
 };
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
-        console.log('[UserController] getUsers called');
+        logger.info('getUsers called', 'UserController', undefined, (req as any).user?.organisationId);
         const currentUser = (req as any).user;
         const where: any = { isActive: true }; // Default to active? Original was isDeleted: {$ne: true}, but schema uses isActive.
         // Wait, Mongoose schema had isDeleted check?
@@ -105,8 +107,8 @@ export const getUsers = async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' }
         });
 
-        console.log('[UserController] Query where:', JSON.stringify(where));
-        console.log('[UserController] Users found:', users.length);
+        // logger.debug(`Query where: ${JSON.stringify(where)}`, 'UserController');
+        logger.info(`Users found: ${users.length}`, 'UserController');
 
         // Transform results to match frontend expectations
         const transformedUsers = users.map(u => ({
@@ -123,7 +125,7 @@ export const getUsers = async (req: Request, res: Response) => {
 
         res.json({ users: transformedUsers });
     } catch (error) {
-        console.error('getUsers Error:', error);
+        logger.error('getUsers Error', error, 'UserController');
         res.status(500).json({ message: (error as Error).message });
     }
 };
@@ -153,7 +155,7 @@ export const getUserById = async (req: Request, res: Response) => {
         const { password, ...userWithoutPassword } = user;
         res.json(userWithoutPassword);
     } catch (error) {
-        console.error('[getUserById] Error:', error);
+        logger.error('getUserById Error', error, 'UserController');
         res.status(500).json({ message: (error as Error).message });
     }
 };
@@ -181,6 +183,16 @@ export const updateUser = async (req: Request, res: Response) => {
 
         // Process Update Data
         const dataToUpdate: any = { ...updateData };
+
+        // Security: Prevent organisationId or role changes for non-super-admins
+        if (currentUser.role !== 'super_admin') {
+            delete dataToUpdate.organisationId;
+            // Only allow role change if admin is updating someone in their own org
+            // But we should also prevent admin from making themselves or others super_admin
+            if (dataToUpdate.role === 'super_admin') {
+                delete dataToUpdate.role;
+            }
+        }
 
         // Handle reportsTo mapping
         if (updateData.reportsTo) {
@@ -212,11 +224,21 @@ export const updateUser = async (req: Request, res: Response) => {
             data: dataToUpdate
         });
 
+        // Audit Log
+        logAudit({
+            action: 'UPDATE_USER',
+            entity: 'User',
+            entityId: userId,
+            actorId: currentUser.id,
+            organisationId: getOrgId(updatedUser) || currentUser.organisationId,
+            details: { updatedFields: Object.keys(dataToUpdate).filter(k => k !== 'password') }
+        });
+
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { password: _password, ...userNoPass } = updatedUser;
         res.json(userNoPass);
     } catch (error) {
-        console.error('[UpdateUser Error]', error);
+        logger.error('UpdateUser Error', error, 'UserController');
         res.status(500).json({ message: (error as Error).message });
     }
 };
@@ -265,6 +287,16 @@ export const createUser = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        logAudit({
+            action: 'CREATE_USER',
+            entity: 'User',
+            entityId: newUser.id,
+            actorId: currentUser.id,
+            organisationId: targetOrgId,
+            details: { email: newUser.email, role: newUser.role }
+        });
+
         // 3. Update Organisation Counter (Optional, if using userIdCounter)
         // await prisma.organisation.update({ where: { id: targetOrgId }, data: { userIdCounter: { increment: 1 } } });
 
@@ -273,7 +305,7 @@ export const createUser = async (req: Request, res: Response) => {
         res.status(201).json(userWithoutPassword);
 
     } catch (error) {
-        console.error('createUser Error:', error);
+        logger.error('createUser Error', error, 'UserController');
         res.status(400).json({ message: (error as Error).message });
     }
 };
@@ -346,6 +378,16 @@ export const inviteUser = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        logAudit({
+            action: 'INVITE_USER',
+            entity: 'User',
+            entityId: newUser.id,
+            actorId: currentUser.id,
+            organisationId: targetOrgId,
+            details: { email: newUser.email, role: newUser.role }
+        });
+
         res.status(201).json({
             user: { id: newUser.id, email: newUser.email, firstName: newUser.firstName },
             message: 'User invited successfully'
@@ -362,6 +404,17 @@ export const deactivateUser = async (req: Request, res: Response) => {
             where: { id: req.params.id },
             data: { isActive: false }
         });
+
+        // Audit Log
+        logAudit({
+            action: 'DEACTIVATE_USER',
+            entity: 'User',
+            entityId: user.id,
+            actorId: (req as any).user.id,
+            organisationId: user.organisationId || (req as any).user.organisationId,
+            details: { email: user.email }
+        });
+
         res.json({ message: 'User deactivated', user });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

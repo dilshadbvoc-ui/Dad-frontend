@@ -14,7 +14,7 @@ export const getLeads = async (req: Request, res: Response) => {
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
         const user = (req as any).user;
-        const where: any = {};
+        const where: any = { isDeleted: false };
 
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
@@ -29,7 +29,7 @@ export const getLeads = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
             // In Prisma: assignedToId IN [...]
-            where.assignedToId = { in: subordinateIds };
+            where.assignedToId = { in: [...subordinateIds, user.id] };
         }
 
         // Filter: Status
@@ -126,9 +126,58 @@ export const createLead = async (req: Request, res: Response) => {
                 // Handle assignedTo relation properly
                 ...(assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {}),
                 source: req.body.source as LeadSource,
-                status: req.body.status as LeadStatus || LeadStatus.new
+                status: req.body.status as LeadStatus || LeadStatus.new,
+                potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0
             }
         });
+
+        // 3a. Handle Products if provided
+        if (req.body.products && Array.isArray(req.body.products)) {
+            const productItems = req.body.products;
+            let totalValue = 0;
+
+            for (const item of productItems) {
+                const product = await prisma.product.findUnique({ where: { id: item.productId } });
+                if (product) {
+                    const price = product.basePrice || 0;
+                    const quantity = item.quantity || 1;
+                    totalValue += price * quantity;
+
+                    await prisma.leadProduct.create({
+                        data: {
+                            leadId: lead.id,
+                            productId: item.productId,
+                            quantity: quantity,
+                            price: price
+                        }
+                    });
+                }
+            }
+
+            // Update lead with calculated value if products were added
+            if (totalValue > 0) {
+                await prisma.lead.update({
+                    where: { id: lead.id },
+                    data: { potentialValue: totalValue }
+                });
+                lead.potentialValue = totalValue; // Update local obj for response
+            }
+        }
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_LEAD',
+                entity: 'Lead',
+                entityId: lead.id,
+                actorId: (req as any).user.id,
+                organisationId: orgId,
+                details: { name: `${lead.firstName} ${lead.lastName}`, company: lead.company }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         // Enable Distribution
         await DistributionService.assignLead(lead, orgId);
@@ -150,6 +199,21 @@ export const createLead = async (req: Request, res: Response) => {
                     GoalService.updateProgressForUser(assignedId, 'leads').catch(console.error);
                 }
             });
+
+            // Meta Conversion API: New Lead
+            import('../services/MetaConversionService').then(({ MetaConversionService }) => {
+                MetaConversionService.sendEvent(orgId, {
+                    eventName: 'Lead',
+                    userData: {
+                        email: lead.email,
+                        phone: lead.phone,
+                        firstName: lead.firstName,
+                        lastName: lead.lastName,
+                        externalId: lead.id
+                    },
+                    actionSource: 'system_generated' // or website if we knew source url
+                }).catch(console.error);
+            });
         } catch (workflowErr) {
             console.error('WorkflowEngine error:', workflowErr);
             // Don't fail the request if workflow fails
@@ -164,9 +228,21 @@ export const createLead = async (req: Request, res: Response) => {
 
 export const getLeadById = async (req: Request, res: Response) => {
     try {
-        const lead = await prisma.lead.findUnique({
-            where: { id: req.params.id },
-            include: { assignedTo: { select: { firstName: true, lastName: true, email: true } } }
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
+        }
+
+        const lead = await prisma.lead.findFirst({
+            where,
+            include: {
+                assignedTo: { select: { firstName: true, lastName: true, email: true } },
+                products: { include: { product: true } }
+            }
         });
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
         res.json(lead);
@@ -216,6 +292,19 @@ export const updateLead = async (req: Request, res: Response) => {
             delete updates.assignedToId; // Clean up
         }
 
+        // Track Status Change
+        if (updates.status && updates.status !== currentLead.status) {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'LEAD_STATUS_CHANGE',
+                entity: 'Lead',
+                entityId: leadId,
+                actorId: requester.id,
+                organisationId: currentLead.organisationId,
+                details: { oldStatus: currentLead.status, newStatus: updates.status }
+            });
+        }
+
         // Track Follow-up Change
         if (updates.nextFollowUp) {
             await prisma.interaction.create({
@@ -235,15 +324,93 @@ export const updateLead = async (req: Request, res: Response) => {
             await CustomFieldValidationService.validateFields('Lead', currentLead.organisationId, updates.customFields);
         }
 
+        const whereObj: any = { id: leadId };
+        if (requester.role !== 'super_admin') {
+            const orgId = getOrgId(requester);
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            whereObj.organisationId = orgId;
+        }
+
+        // Update Lead Basic Info
         const [lead] = await prisma.$transaction([
             prisma.lead.update({
-                where: { id: leadId },
-                data: updates
+                where: whereObj,
+                data: updates,
+                include: { assignedTo: { select: { firstName: true, lastName: true, email: true } } }
             }),
             ...(historyData ? [prisma.leadHistory.create({ data: historyData })] : [])
         ]);
 
-        res.json(lead);
+        let finalLead = lead;
+
+        // Handle Products Update
+        if (req.body.products && Array.isArray(req.body.products)) {
+            const productItems = req.body.products;
+
+            // 1. Clear existing products (simplest approach for full replace)
+            await prisma.leadProduct.deleteMany({ where: { leadId } });
+
+            // 2. Add new products and calculate value
+            let totalValue = 0;
+
+            for (const item of productItems) {
+                const product = await prisma.product.findUnique({ where: { id: item.productId } });
+                if (product) {
+                    const price = product.basePrice || 0;
+                    const quantity = item.quantity || 1;
+                    totalValue += price * quantity;
+
+                    await prisma.leadProduct.create({
+                        data: {
+                            leadId,
+                            productId: item.productId,
+                            quantity: quantity,
+                            price: price
+                        }
+                    });
+                }
+            }
+
+            // 3. Update Lead Value
+            finalLead = await prisma.lead.update({
+                where: { id: leadId },
+                data: { potentialValue: totalValue },
+                include: {
+                    assignedTo: { select: { firstName: true, lastName: true, email: true } },
+                    products: { include: { product: true } }
+                }
+            });
+
+            // Log History for Value Change
+            if (currentLead.potentialValue !== totalValue) {
+                await prisma.leadHistory.create({
+                    data: {
+                        leadId,
+                        changedById: requester.id,
+                        fieldName: 'potentialValue',
+                        oldValue: currentLead.potentialValue?.toString() || '0',
+                        newValue: totalValue.toString()
+                    }
+                });
+            }
+        }
+
+        // Audit Log for update
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_LEAD',
+                entity: 'Lead',
+                entityId: leadId,
+                actorId: requester.id,
+                organisationId: currentLead.organisationId,
+                details: { name: `${currentLead.firstName} ${currentLead.lastName}`, updatedFields: Object.keys(updates) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
+        res.json(finalLead);
 
         // Webhook
         import('../services/WebhookService').then(({ WebhookService }) => {
@@ -283,7 +450,26 @@ export const deleteLead = async (req: Request, res: Response) => {
             }
         }
 
-        await prisma.lead.delete({ where: { id: leadId } });
+        await prisma.lead.update({
+            where: { id: leadId },
+            data: { isDeleted: true }
+        });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'DELETE_LEAD',
+                entity: 'Lead',
+                entityId: leadId,
+                actorId: user.id,
+                organisationId: lead.organisationId,
+                details: { name: `${lead.firstName} ${lead.lastName}` }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json({ message: 'Lead deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -332,8 +518,14 @@ export const createBulkLeads = async (req: Request, res: Response) => {
 
                 // Distribute
                 await DistributionService.assignLead(lead, orgId);
+
+                // AI Scoring
+                import('../services/LeadScoringService').then(({ LeadScoringService }) => {
+                    LeadScoringService.scoreLead(lead.id).catch(console.error);
+                });
+
                 createdCount++;
-            } catch (e) {
+            } catch {
                 // Ignore duplicates (unique constraint violations)
                 // Console log if needed
             }
@@ -382,11 +574,29 @@ export const convertLead = async (req: Request, res: Response) => {
 
         if (!orgId) return res.status(400).json({ message: 'No organisation context' });
 
-        const lead = await prisma.lead.findUnique({ where: { id: leadId } });
+        const lead = await prisma.lead.findUnique({
+            where: { id: leadId },
+            include: { organisation: true }
+        });
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
 
-        if (lead.status === LeadStatus.converted) { // or 'converted' if enum not available in scope, but used above
+        if (lead.status === LeadStatus.converted) {
             return res.status(400).json({ message: 'Lead already converted' });
+        }
+
+        // 0. Limit Check
+        const org = lead.organisation;
+        if (org.contactLimit > 0) {
+            const contactCount = await prisma.contact.count({
+                where: { organisationId: orgId, isDeleted: false }
+            });
+            if (contactCount >= org.contactLimit) {
+                return res.status(403).json({
+                    message: `Contact limit reached (${org.contactLimit}). Please upgrade your plan.`,
+                    code: 'LIMIT_EXCEEDED',
+                    limit: org.contactLimit
+                });
+            }
         }
 
         const result = await prisma.$transaction(async (tx) => {
@@ -423,7 +633,8 @@ export const convertLead = async (req: Request, res: Response) => {
                     organisationId: orgId,
                     ownerId: user.id,
                     accountId: targetAccountId,
-                    address: lead.address as any
+                    address: lead.address as any,
+                    customFields: lead.customFields as any // Migrate custom fields
                 }
             });
 
@@ -444,12 +655,60 @@ export const convertLead = async (req: Request, res: Response) => {
             const updatedLead = await tx.lead.update({
                 where: { id: leadId },
                 data: {
-                    status: LeadStatus.converted // or 'converted'
+                    status: LeadStatus.converted
+                }
+            });
+
+            // 5. Migrate Interactions
+            await tx.interaction.updateMany({
+                where: { leadId: leadId },
+                data: {
+                    contactId: contact.id,
+                    accountId: targetAccountId
+                }
+            });
+
+            // 6. Migrate WhatsApp Messages
+            await tx.whatsAppMessage.updateMany({
+                where: { leadId: leadId },
+                data: {
+                    contactId: contact.id
+                }
+            });
+
+            // 7. Migrate Tasks
+            await tx.task.updateMany({
+                where: { leadId: leadId },
+                data: {
+                    leadId: null, // Unlink from lead
+                    contactId: contact.id,
+                    accountId: targetAccountId
                 }
             });
 
             return { account, contact, opportunity, lead: updatedLead };
         });
+
+        // Audit Log for conversion
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CONVERT_LEAD',
+                entity: 'Lead',
+                entityId: leadId,
+                actorId: user.id,
+                organisationId: orgId,
+                details: {
+                    name: `${lead.firstName} ${lead.lastName}`,
+                    company: lead.company,
+                    accountId: result.account.id,
+                    contactId: result.contact.id,
+                    opportunityId: result.opportunity.id
+                }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json({
             message: 'Lead converted successfully',
@@ -478,19 +737,28 @@ export const getViolations = async (req: Request, res: Response) => {
         };
 
         if (user.role !== 'super_admin') {
-            const subordinateIds = await getSubordinateIds(user.id);
-            // Include self in subordinate list for simple "my or my team's violations" check?
-            // If I am a rep, subordinateIds is just [myId] usually? Or empty?
-            // getSubordinateIds usually returns descendants.
+            const orgId = getOrgId(user);
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+
+            let subordinateIds: string[] = [];
+            try {
+                subordinateIds = await getSubordinateIds(user.id);
+            } catch (subError) {
+                console.error('[getViolations] Error fetching subordinates:', subError);
+                // Continue with just the user's own violations
+            }
 
             // Logic:
             // 1. I am previousOwner (I failed)
             // 2. I am manager of previousOwner (My report failed)
 
-            where.OR = [
-                { previousOwnerId: user.id }, // My failure
-                { previousOwnerId: { in: subordinateIds } } // My team's failure
-            ];
+            // Guard against empty array which causes Prisma issues
+            const orConditions: any[] = [{ previousOwnerId: user.id }];
+            if (subordinateIds.length > 0) {
+                orConditions.push({ previousOwnerId: { in: subordinateIds } });
+            }
+            where.OR = orConditions;
         }
 
         const violations = await prisma.lead.findMany({
@@ -508,6 +776,7 @@ export const getViolations = async (req: Request, res: Response) => {
         res.json({ violations, page, pages: Math.ceil(total / pageSize), total });
 
     } catch (error) {
+        console.error('[getViolations] Error:', error);
         res.status(500).json({ message: (error as Error).message });
     }
 };

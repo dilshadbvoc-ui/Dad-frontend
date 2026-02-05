@@ -75,6 +75,9 @@ export const DistributionService = {
                         // Increment quota tracker
                         await this.incrementUserLeadCount(assignedUserId);
 
+                        // Notify User
+                        this.notifyUser(assignedUserId, lead, organisationId);
+
                         console.log(`[DistributionService] Assigned lead to user ${assignedUserId}`);
                         return assignedUserId;
                     }
@@ -197,21 +200,25 @@ export const DistributionService = {
             orderBy: { id: 'asc' }
         });
 
-        // Filter out users who have reached their daily quota
-        const eligibleUsers = users.filter((user: any) => {
-            if (!user.dailyLeadQuota) return true; // No quota = unlimited
-
-            const todayCount = user.leadQuotaTracking?.[0]?.leadCount || 0;
-            const hasCapacity = todayCount < user.dailyLeadQuota;
-
-            if (!hasCapacity) {
-                console.log(`[DistributionService] User ${user.id} skipped - quota reached (${todayCount}/${user.dailyLeadQuota})`);
+        // Filter out users who have reached their daily quota or are outside working hours
+        return users.filter((user: any) => {
+            // 1. Quota Check
+            if (user.dailyLeadQuota) {
+                const todayCount = user.leadQuotaTracking?.[0]?.leadCount || 0;
+                if (todayCount >= user.dailyLeadQuota) {
+                    console.log(`[DistributionService] User ${user.id} skipped - quota reached (${todayCount}/${user.dailyLeadQuota})`);
+                    return false;
+                }
             }
 
-            return hasCapacity;
-        });
+            // 2. Working Hours & Availability Check
+            if (!this.isUserAvailable(user)) {
+                console.log(`[DistributionService] User ${user.id} skipped - outside working hours or unavailable`);
+                return false;
+            }
 
-        return eligibleUsers;
+            return true;
+        });
     },
 
     /**
@@ -400,15 +407,17 @@ export const DistributionService = {
                 }
             });
 
-            // Filter out users at quota
+            // Filter out users at quota or outside working hours
             const eligibleUsers = users.filter((user: any) => {
-                if (!user.dailyLeadQuota) return true;
-                const todayCount = user.leadQuotaTracking?.[0]?.leadCount || 0;
-                return todayCount < user.dailyLeadQuota;
+                if (user.dailyLeadQuota) {
+                    const todayCount = user.leadQuotaTracking?.[0]?.leadCount || 0;
+                    if (todayCount >= user.dailyLeadQuota) return false;
+                }
+                return this.isUserAvailable(user);
             });
 
             if (eligibleUsers.length === 0) {
-                console.log('[DistributionService] All campaign users at quota');
+                console.log('[DistributionService] All campaign users at quota or unavailable');
                 return null;
             }
 
@@ -434,6 +443,66 @@ export const DistributionService = {
         } catch (e) {
             console.error('[DistributionService] Campaign Users Error:', e);
             return null;
+        }
+    },
+
+    /**
+     * Check if user is currently within their working hours
+     */
+    isUserAvailable(user: any): boolean {
+        // If no working hours defined, assume available 24/7
+        if (!user.workingHours) return true;
+
+        try {
+            const tz = user.timezone || 'UTC';
+            // Get current time in User's timezone
+            const nowInTz = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            const dayNames = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+            const day = dayNames[nowInTz.getDay()];
+
+            const hours = (user.workingHours as any)[day];
+            if (!hours || !hours.start || !hours.end) return false; // Not working this day
+
+            const currentTime = nowInTz.getHours() * 60 + nowInTz.getMinutes();
+
+            const [startH, startM] = hours.start.split(':').map(Number);
+            const [endH, endM] = hours.end.split(':').map(Number);
+
+            const startTime = startH * 60 + startM;
+            const endTime = endH * 60 + endM;
+
+            return currentTime >= startTime && currentTime <= endTime;
+        } catch (err) {
+            console.error('[DistributionService] Error checking user availability:', err);
+            return true; // Fallback to available if error
+        }
+    },
+
+    /**
+     * Notify user of new lead assignment via WhatsApp
+     */
+    async notifyUser(userId: string, lead: any, organisationId: string) {
+        try {
+            const user = await prisma.user.findUnique({
+                where: { id: userId },
+                select: { phone: true, firstName: true }
+            });
+
+            if (!user?.phone) return;
+
+            // Lazy load WhatsAppService
+            const { WhatsAppService } = await import('./WhatsAppService');
+            const waClient = await WhatsAppService.getClientForOrg(organisationId);
+
+            if (!waClient) return;
+
+            const message = `Hi ${user.firstName}, New Lead Assigned!\n\nName: ${lead.firstName} ${lead.lastName}\nCompany: ${lead.company || 'N/A'}\n\nPlease check the CRM for details.`;
+
+            await waClient.sendTextMessage(user.phone, message);
+            console.log(`[DistributionService] Notification sent to ${user.phone}`);
+
+        } catch (error) {
+            console.error('[DistributionService] Failed to notify user:', error);
         }
     }
 };

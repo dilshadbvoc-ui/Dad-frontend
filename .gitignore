@@ -9,3 +9,4 @@ coverage/
 *.tmp*
 *.log
 dist/
+node_modules

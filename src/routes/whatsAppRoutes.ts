@@ -13,9 +13,13 @@ import {
     getConversationAnalytics,
     getMessageStatistics,
     markConversationAsRead,
-    getMedia
+    getMedia,
+    uploadMedia,
+    handleWebhook,
+    verifyWebhook
 } from '../controllers/whatsAppController';
 import { whatsappLimiter } from '../middleware/rateLimiter';
+import multer from 'multer';
 import {
     validate,
     whatsappMessageSchema,
@@ -25,6 +29,7 @@ import {
     markConversationReadSchema
 } from '../middleware/validation';
 
+const upload = multer();
 const router = express.Router();
 
 // WhatsApp messaging endpoints with rate limiting and validation
@@ -41,5 +46,8 @@ router.get('/templates', protect, whatsappLimiter, getTemplates as any);
 router.post('/templates', protect, whatsappLimiter, validate(whatsappTemplateSchema), createTemplate as any);
 router.get('/analytics', protect, whatsappLimiter, getConversationAnalytics as any);
 router.post('/test', protect, whatsappLimiter, testConnection as any);
+router.get('/webhook', verifyWebhook as any);
+router.post('/webhook', handleWebhook as any);
+router.post('/upload-media', protect, upload.single('file'), uploadMedia as any);
 
 export default router;

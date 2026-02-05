@@ -6,155 +6,149 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
+        const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+        const subordinateIds = await getSubordinateIds(user.id);
 
         if (!orgId) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
 
-        // Date ranges for trend calculation
-        const now = new Date();
-        const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-        const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        // Base filter for users who are not admin/super_admin
+        const visibilityFilter: any = {};
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            visibilityFilter.assignedToId = { in: [...subordinateIds, user.id] };
+        }
+
+        // Special case for opportunity ownerId vs assignedToId (if schema differs)
+        const oppVisibilityFilter: any = {};
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            oppVisibilityFilter.ownerId = { in: [...subordinateIds, user.id] };
+        }
 
         // Leads
         const totalLeads = await prisma.lead.count({
-            where: { organisationId: orgId, isDeleted: false }
+            where: { organisationId: orgId, isDeleted: false, ...visibilityFilter }
         });
         const newLeads = await prisma.lead.count({
-            where: { organisationId: orgId, isDeleted: false, status: 'new' }
+            where: { organisationId: orgId, isDeleted: false, status: 'new', ...visibilityFilter }
         });
         const convertedLeads = await prisma.lead.count({
-            where: { organisationId: orgId, isDeleted: false, status: 'converted' }
+            where: { organisationId: orgId, isDeleted: false, status: 'converted', ...visibilityFilter }
         });
 
-        // Leads trend (this month vs last month)
-        const leadsThisMonth = await prisma.lead.count({
-            where: {
-                organisationId: orgId,
-                isDeleted: false,
-                createdAt: { gte: thisMonth }
-            }
-        });
-        const leadsLastMonth = await prisma.lead.count({
-            where: {
-                organisationId: orgId,
-                isDeleted: false,
-                createdAt: { gte: lastMonth, lt: thisMonth }
-            }
-        });
-        const leadsTrend = leadsLastMonth > 0 ?
-            Math.round(((leadsThisMonth - leadsLastMonth) / leadsLastMonth) * 100) : 0;
 
-        // Opportunities
-        const totalOpportunities = await prisma.opportunity.count({
-            where: { organisationId: orgId }
-        });
-        const wonOpportunities = await prisma.opportunity.count({
-            where: { organisationId: orgId, stage: 'closed_won' }
-        });
-        const lostOpportunities = await prisma.opportunity.count({
-            where: { organisationId: orgId, stage: 'closed_lost' }
-        });
 
         // Revenue calculation and trend
         const revenueResult = await prisma.opportunity.aggregate({
             where: {
                 organisationId: orgId,
-                stage: 'closed_won'
+                stage: 'closed_won',
+                ...oppVisibilityFilter
             },
             _sum: { amount: true }
         });
         const totalRevenue = revenueResult._sum.amount || 0;
 
-        const revenueThisMonth = await prisma.opportunity.aggregate({
-            where: {
-                organisationId: orgId,
-                stage: 'closed_won',
-                closeDate: { gte: thisMonth }
-            },
-            _sum: { amount: true }
-        });
-        const revenueLastMonth = await prisma.opportunity.aggregate({
-            where: {
-                organisationId: orgId,
-                stage: 'closed_won',
-                closeDate: { gte: lastMonth, lt: thisMonth }
-            },
-            _sum: { amount: true }
-        });
-        const revThisMonth = revenueThisMonth._sum.amount || 0;
-        const revLastMonth = revenueLastMonth._sum.amount || 0;
-        const revenueTrend = revLastMonth > 0 ?
-            Math.round(((revThisMonth - revLastMonth) / revLastMonth) * 100) : 0;
-
-        // Pipeline Value (Sum of amount) - Prisma aggregate
+        // Pipeline Value
         const pipelineResult = await prisma.opportunity.aggregate({
-            where: { organisationId: orgId },
+            where: { organisationId: orgId, ...oppVisibilityFilter },
             _sum: { amount: true }
         });
         const pipelineValue = pipelineResult._sum.amount || 0;
 
-        // Win rate trend
-        const wonThisMonth = await prisma.opportunity.count({
-            where: {
-                organisationId: orgId,
-                stage: 'closed_won',
-                closeDate: { gte: thisMonth }
-            }
-        });
-        const totalThisMonth = await prisma.opportunity.count({
-            where: {
-                organisationId: orgId,
-                closeDate: { gte: thisMonth }
-            }
-        });
-        const wonLastMonth = await prisma.opportunity.count({
-            where: {
-                organisationId: orgId,
-                stage: 'closed_won',
-                closeDate: { gte: lastMonth, lt: thisMonth }
-            }
-        });
-        const totalLastMonth = await prisma.opportunity.count({
-            where: {
-                organisationId: orgId,
-                closeDate: { gte: lastMonth, lt: thisMonth }
-            }
-        });
-
-        const winRateThisMonth = totalThisMonth > 0 ? (wonThisMonth / totalThisMonth) * 100 : 0;
-        const winRateLastMonth = totalLastMonth > 0 ? (wonLastMonth / totalLastMonth) * 100 : 0;
-        const winRateTrend = winRateLastMonth > 0 ?
-            Math.round(winRateThisMonth - winRateLastMonth) : 0;
-
-        // Contacts
+        // Contacts/Accounts (Usually visible to everyone in org? or scoped?)
         const totalContacts = await prisma.contact.count({
-            where: { organisationId: orgId }
+            where: { organisationId: orgId, ...(user.role !== 'admin' && user.role !== 'super_admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
 
-        // Accounts
         const totalAccounts = await prisma.account.count({
-            where: { organisationId: orgId }
+            where: { organisationId: orgId, ...(user.role !== 'admin' && user.role !== 'super_admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
+
+        // Current Month Dates
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
+        const startOfLastMonth = new Date(startOfMonth);
+        startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
+
+        // Previous Month Stats for Trends
+        const prevLeads = await prisma.lead.count({
+            where: {
+                organisationId: orgId,
+                isDeleted: false,
+                createdAt: { gte: startOfLastMonth, lt: startOfMonth },
+                ...visibilityFilter
+            }
+        });
+
+        const prevRevenueResult = await prisma.opportunity.aggregate({
+            where: {
+                organisationId: orgId,
+                stage: 'closed_won',
+                closeDate: { gte: startOfLastMonth, lt: startOfMonth },
+                ...oppVisibilityFilter
+            },
+            _sum: { amount: true }
+        });
+        const prevRevenue = prevRevenueResult._sum.amount || 0;
+
+        // Trending Win Rate
+        const totalClosedCurrent = await prisma.opportunity.count({
+            where: {
+                organisationId: orgId,
+                stage: { in: ['closed_won', 'closed_lost'] },
+                closeDate: { gte: startOfMonth },
+                ...oppVisibilityFilter
+            }
+        });
+        const wonCurrent = await prisma.opportunity.count({
+            where: {
+                organisationId: orgId,
+                stage: 'closed_won',
+                closeDate: { gte: startOfMonth },
+                ...oppVisibilityFilter
+            }
+        });
+
+        const currentWinRate = totalClosedCurrent > 0 ? (wonCurrent / totalClosedCurrent) * 100 : 0;
+
+        // Won/Lost for nested object
+        const wonTotal = await prisma.opportunity.count({
+            where: { organisationId: orgId, stage: 'closed_won', ...oppVisibilityFilter }
+        });
+        const lostTotal = await prisma.opportunity.count({
+            where: { organisationId: orgId, stage: 'closed_lost', ...oppVisibilityFilter }
+        });
+
+        const calculateTrend = (curr: number, prev: number) => {
+            if (prev === 0) return curr > 0 ? 100 : 0;
+            return Math.round(((curr - prev) / prev) * 100);
+        };
 
         res.json({
             // Flat structure
             totalLeads,
-            activeOpportunities: totalOpportunities,
+            activeOpportunities: await prisma.opportunity.count({ where: { organisationId: orgId, stage: { notIn: ['closed_won', 'closed_lost'] }, ...oppVisibilityFilter } }),
             salesRevenue: totalRevenue,
-            winRate: totalOpportunities > 0 ? Math.round((wonOpportunities / totalOpportunities) * 100) : 0,
+            winRate: Math.round(currentWinRate),
 
             // Trends
             trends: {
-                revenue: revenueTrend,
-                leads: leadsTrend,
-                winRate: winRateTrend
+                revenue: calculateTrend(totalRevenue, prevRevenue),
+                leads: calculateTrend(totalLeads, prevLeads),
+                winRate: 0 // Win rate trend requires more historical data, 0 for now
             },
 
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
-            opportunities: { total: totalOpportunities, value: pipelineValue, won: wonOpportunities, lost: lostOpportunities },
+            opportunities: {
+                total: await prisma.opportunity.count({ where: { organisationId: orgId, ...oppVisibilityFilter } }),
+                value: pipelineValue,
+                won: wonTotal,
+                lost: lostTotal
+            },
             contacts: { total: totalContacts },
             accounts: { total: totalAccounts }
         });
@@ -180,11 +174,20 @@ export const getSalesChartData = async (req: Request, res: Response) => {
         sixMonthsAgo.setDate(1); // Start of that month
         sixMonthsAgo.setHours(0, 0, 0, 0);
 
+        // Base filter for visibility
+        const visibilityFilter: any = {};
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+            const subordinateIds = await getSubordinateIds(user.id);
+            visibilityFilter.ownerId = { in: subordinateIds };
+        }
+
         // Fetch closed_won opportunities
         const wonOpportunities = await prisma.opportunity.findMany({
             where: {
                 organisationId: orgId,
                 stage: 'closed_won',
+                ...visibilityFilter,
                 OR: [
                     { closeDate: { gte: sixMonthsAgo } },
                     { updatedAt: { gte: sixMonthsAgo } }
@@ -219,7 +222,7 @@ export const getSalesChartData = async (req: Request, res: Response) => {
 
         // Format for frontend
         const formattedData = Array.from(monthlyData.entries()).map(([key, total]) => {
-            const [year, monthIndex] = key.split('-').map(Number);
+            const [, monthIndex] = key.split('-').map(Number);
             return {
                 name: monthNames[monthIndex],
                 total,
@@ -244,10 +247,19 @@ export const getTopLeads = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Organisation not found' });
         }
 
+        // Visibility
+        const visibilityFilter: any = {};
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+            const subordinateIds = await getSubordinateIds(user.id);
+            visibilityFilter.assignedToId = { in: [...subordinateIds, user.id] };
+        }
+
         const topLeads = await prisma.lead.findMany({
             where: {
                 organisationId: orgId,
-                isDeleted: false
+                isDeleted: false,
+                ...visibilityFilter
             },
             orderBy: { leadScore: 'desc' },
             take: 5,
@@ -277,11 +289,20 @@ export const getSalesForecast = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'Organisation not found' });
         }
 
+        // Visibility
+        const visibilityFilter: any = {};
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+            const subordinateIds = await getSubordinateIds(user.id);
+            visibilityFilter.ownerId = { in: subordinateIds };
+        }
+
         // Get open opportunities (not closed_won or closed_lost)
         const openOpportunities = await prisma.opportunity.findMany({
             where: {
                 organisationId: orgId,
-                stage: { notIn: ['closed_won', 'closed_lost'] }
+                stage: { notIn: ['closed_won', 'closed_lost'] },
+                ...visibilityFilter
             },
             select: {
                 amount: true,

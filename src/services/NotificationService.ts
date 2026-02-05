@@ -1,6 +1,7 @@
 
 import prisma from '../config/prisma';
 import { getIO } from '../socket';
+import { EmailService } from './EmailService';
 
 // Singleton helper to get IO instance if not exported globally
 // Assuming socket.ts exports initSocket and returns io instance, 
@@ -28,11 +29,31 @@ export class NotificationService {
             // 2. Emit Real-time Event
             const io = getIO();
             if (io) {
-                // @ts-ignore
                 io.to(recipientId).emit('notification', notification);
-                // console.log(`[NotificationService] Sent to ${recipientId}`);
             } else {
                 console.warn('[NotificationService] Socket IO not initialized');
+            }
+
+            // 3. Email Fallback
+            if (type === 'high_priority' || type === 'alert' || type === 'reminder') {
+                const user = await prisma.user.findUnique({
+                    where: { id: recipientId },
+                    select: { email: true, notificationPreferences: true, firstName: true }
+                });
+
+                const prefs = user?.notificationPreferences as any;
+                if (user?.email && prefs?.emailNotifications !== false) {
+                    const emailHtml = `
+                        <div style="font-family: sans-serif; padding: 20px;">
+                            <h2>${title}</h2>
+                            <p>Hi ${user.firstName},</p>
+                            <p>${message}</p>
+                            <hr />
+                            <small>You received this because email notifications are enabled in your CRM settings.</small>
+                        </div>
+                    `;
+                    await EmailService.sendEmail(user.email, `Notification: ${title}`, emailHtml);
+                }
             }
 
             return notification;

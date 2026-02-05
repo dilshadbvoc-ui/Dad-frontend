@@ -44,7 +44,7 @@ export const markAsRead = async (req: Request, res: Response) => {
             data: { isRead: true }
         });
         res.json({ success: true });
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: 'Server Error' });
     }
 };
@@ -57,7 +57,7 @@ export const markAllAsRead = async (req: Request, res: Response) => {
             data: { isRead: true }
         });
         res.json({ success: true });
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: 'Server Error' });
     }
 };

@@ -134,12 +134,15 @@ exports.Prisma.OrganisationScalarFieldEnum = {
   address: 'address',
   status: 'status',
   userLimit: 'userLimit',
+  contactLimit: 'contactLimit',
+  storageLimit: 'storageLimit',
   userIdCounter: 'userIdCounter',
   apiKey: 'apiKey',
   integrations: 'integrations',
   leadScoringConfig: 'leadScoringConfig',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  isDeleted: 'isDeleted',
   createdBy: 'createdBy',
   upsellConfig: 'upsellConfig',
   ssoConfig: 'ssoConfig'
@@ -161,12 +164,29 @@ exports.Prisma.UserScalarFieldEnum = {
   lastLogin: 'lastLogin',
   integrations: 'integrations',
   notificationPreferences: 'notificationPreferences',
+  resetPasswordToken: 'resetPasswordToken',
+  resetPasswordExpire: 'resetPasswordExpire',
+  workingHours: 'workingHours',
+  timezone: 'timezone',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   organisationId: 'organisationId',
   reportsToId: 'reportsToId',
   permissions: 'permissions',
-  dailyLeadQuota: 'dailyLeadQuota'
+  dailyLeadQuota: 'dailyLeadQuota',
+  teamId: 'teamId'
+};
+
+exports.Prisma.TeamScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  managerId: 'managerId',
+  createdById: 'createdById',
+  organisationId: 'organisationId',
+  isDeleted: 'isDeleted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.NotificationScalarFieldEnum = {
@@ -197,6 +217,7 @@ exports.Prisma.LeadScalarFieldEnum = {
   leadScore: 'leadScore',
   engagementScore: 'engagementScore',
   qualityScore: 'qualityScore',
+  isHotLead: 'isHotLead',
   lastScoredAt: 'lastScoredAt',
   status: 'status',
   stage: 'stage',
@@ -214,7 +235,9 @@ exports.Prisma.LeadScalarFieldEnum = {
   rotationViolation: 'rotationViolation',
   userExplanation: 'userExplanation',
   violationTime: 'violationTime',
-  nextFollowUp: 'nextFollowUp'
+  nextFollowUp: 'nextFollowUp',
+  pipelineId: 'pipelineId',
+  potentialValue: 'potentialValue'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -231,6 +254,7 @@ exports.Prisma.AccountScalarFieldEnum = {
   tags: 'tags',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
+  isDeleted: 'isDeleted',
   ownerId: 'ownerId',
   organisationId: 'organisationId',
   parentAccountId: 'parentAccountId'
@@ -252,6 +276,7 @@ exports.Prisma.ContactScalarFieldEnum = {
   customFields: 'customFields',
   tags: 'tags',
   lastActivity: 'lastActivity',
+  isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   accountId: 'accountId',
@@ -270,11 +295,15 @@ exports.Prisma.OpportunityScalarFieldEnum = {
   description: 'description',
   customFields: 'customFields',
   tags: 'tags',
+  isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   accountId: 'accountId',
   ownerId: 'ownerId',
-  organisationId: 'organisationId'
+  organisationId: 'organisationId',
+  paymentStatus: 'paymentStatus',
+  paymentDate: 'paymentDate',
+  pipelineId: 'pipelineId'
 };
 
 exports.Prisma.ProductScalarFieldEnum = {
@@ -299,6 +328,28 @@ exports.Prisma.ProductScalarFieldEnum = {
   updatedAt: 'updatedAt',
   createdById: 'createdById',
   organisationId: 'organisationId'
+};
+
+exports.Prisma.LeadProductScalarFieldEnum = {
+  id: 'id',
+  leadId: 'leadId',
+  productId: 'productId',
+  quantity: 'quantity',
+  price: 'price'
+};
+
+exports.Prisma.AccountProductScalarFieldEnum = {
+  id: 'id',
+  quantity: 'quantity',
+  purchaseDate: 'purchaseDate',
+  serialNumber: 'serialNumber',
+  status: 'status',
+  notes: 'notes',
+  accountId: 'accountId',
+  productId: 'productId',
+  organisationId: 'organisationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.QuoteScalarFieldEnum = {
@@ -600,12 +651,17 @@ exports.Prisma.SalesTargetScalarFieldEnum = {
   startDate: 'startDate',
   endDate: 'endDate',
   status: 'status',
+  metric: 'metric',
   autoDistributed: 'autoDistributed',
   lastNotifiedDate: 'lastNotifiedDate',
   organisationId: 'organisationId',
   assignedToId: 'assignedToId',
+  teamId: 'teamId',
   assignedById: 'assignedById',
   parentTargetId: 'parentTargetId',
+  productId: 'productId',
+  scope: 'scope',
+  opportunityType: 'opportunityType',
   isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -685,6 +741,13 @@ exports.Prisma.ApiKeyScalarFieldEnum = {
   isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SearchHistoryScalarFieldEnum = {
+  id: 'id',
+  query: 'query',
+  userId: 'userId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.CustomFieldScalarFieldEnum = {
@@ -776,6 +839,9 @@ exports.Prisma.LeadHistoryScalarFieldEnum = {
   newOwnerId: 'newOwnerId',
   changedById: 'changedById',
   reason: 'reason',
+  fieldName: 'fieldName',
+  oldValue: 'oldValue',
+  newValue: 'newValue',
   createdAt: 'createdAt'
 };
 
@@ -878,6 +944,7 @@ exports.Prisma.WhatsAppMessageScalarFieldEnum = {
   leadId: 'leadId',
   contactId: 'contactId',
   agentId: 'agentId',
+  campaignId: 'campaignId',
   isReadByAgent: 'isReadByAgent',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
@@ -929,6 +996,27 @@ exports.Prisma.AuditLogScalarFieldEnum = {
   userAgent: 'userAgent',
   organisationId: 'organisationId',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.DocumentScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  fileKey: 'fileKey',
+  fileUrl: 'fileUrl',
+  fileType: 'fileType',
+  fileSize: 'fileSize',
+  category: 'category',
+  tags: 'tags',
+  isDeleted: 'isDeleted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  organisationId: 'organisationId',
+  createdById: 'createdById',
+  leadId: 'leadId',
+  contactId: 'contactId',
+  accountId: 'accountId',
+  opportunityId: 'opportunityId'
 };
 
 exports.Prisma.SortOrder = {
@@ -1012,15 +1100,28 @@ exports.InteractionDirection = exports.$Enums.InteractionDirection = {
   outbound: 'outbound'
 };
 
+exports.TargetScope = exports.$Enums.TargetScope = {
+  INDIVIDUAL: 'INDIVIDUAL',
+  HIERARCHY: 'HIERARCHY'
+};
+
+exports.OpportunityType = exports.$Enums.OpportunityType = {
+  NEW_BUSINESS: 'NEW_BUSINESS',
+  UPSALE: 'UPSALE'
+};
+
 exports.Prisma.ModelName = {
   Organisation: 'Organisation',
   User: 'User',
+  Team: 'Team',
   Notification: 'Notification',
   Lead: 'Lead',
   Account: 'Account',
   Contact: 'Contact',
   Opportunity: 'Opportunity',
   Product: 'Product',
+  LeadProduct: 'LeadProduct',
+  AccountProduct: 'AccountProduct',
   Quote: 'Quote',
   QuoteLineItem: 'QuoteLineItem',
   Task: 'Task',
@@ -1041,6 +1142,7 @@ exports.Prisma.ModelName = {
   Case: 'Case',
   CheckIn: 'CheckIn',
   ApiKey: 'ApiKey',
+  SearchHistory: 'SearchHistory',
   CustomField: 'CustomField',
   Territory: 'Territory',
   Webhook: 'Webhook',
@@ -1055,7 +1157,8 @@ exports.Prisma.ModelName = {
   WhatsAppMessage: 'WhatsAppMessage',
   Commission: 'Commission',
   LandingPage: 'LandingPage',
-  AuditLog: 'AuditLog'
+  AuditLog: 'AuditLog',
+  Document: 'Document'
 };
 
 /**

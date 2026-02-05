@@ -21,12 +21,15 @@ model Organisation {
   address           String?
   status            String           @default("active")
   userLimit         Int              @default(5)
+  contactLimit      Int              @default(500)
+  storageLimit      Int              @default(1000) // MB
   userIdCounter     Int              @default(0)
   apiKey            String?
   integrations      Json?
   leadScoringConfig Json?
   createdAt         DateTime         @default(now())
   updatedAt         DateTime         @updatedAt
+  isDeleted         Boolean          @default(false)
   createdBy         String?
   upsellConfig      Json?
   ssoConfig         Json?
@@ -65,6 +68,9 @@ model Organisation {
   landingPages      LandingPage[]
   auditLogs         AuditLog[]
   queueItems        WorkflowQueue[]
+  teams             Team[]
+  accountProducts   AccountProduct[]
+  documents         Document[]
 }
 
 model User {
@@ -83,6 +89,10 @@ model User {
   lastLogin                   DateTime?
   integrations                Json?
   notificationPreferences     Json?
+  resetPasswordToken          String?
+  resetPasswordExpire         DateTime?
+  workingHours                Json?
+  timezone                    String                 @default("UTC")
   createdAt                   DateTime               @default(now())
   updatedAt                   DateTime               @updatedAt
   organisationId              String?
@@ -141,10 +151,37 @@ model User {
   createdCommissions          Commission[]           @relation("CommissionCreator")
   createdLandingPages         LandingPage[]          @relation("LandingPageCreator")
   auditLogs                   AuditLog[]             @relation("AuditActor")
+  searchHistory               SearchHistory[]        @relation("UserSearchHistory")
+  createdDocuments            Document[]             @relation("DocumentCreator")
+  teamId                      String?
+  team                        Team?                  @relation(fields: [teamId], references: [id])
+  createdTeams                Team[]                 @relation("TeamCreator")
+  managedTeams                Team[]                 @relation("TeamManager")
 
   @@index([organisationId])
   @@index([email])
   @@index([role])
+  @@index([teamId])
+}
+
+model Team {
+  id             String       @id @default(uuid())
+  name           String
+  description    String?
+  managerId      String?
+  createdById    String
+  organisationId String
+  isDeleted      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  members        User[]
+  manager        User?        @relation("TeamManager", fields: [managerId], references: [id])
+  createdBy      User         @relation("TeamCreator", fields: [createdById], references: [id])
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  salesTargets   SalesTarget[]
+
+  @@index([organisationId])
 }
 
 model Notification {
@@ -167,7 +204,7 @@ model Lead {
   firstName          String
   lastName           String
   email              String?
-  phone              String          @unique
+  phone              String
   company            String?
   jobTitle           String?
   address            Json?
@@ -176,6 +213,7 @@ model Lead {
   leadScore          Int             @default(0)
   engagementScore    Int             @default(0)
   qualityScore       Int             @default(0)
+  isHotLead          Boolean         @default(false)
   lastScoredAt       DateTime?
   status             LeadStatus      @default(new)
   stage              String?
@@ -204,12 +242,19 @@ model Lead {
   tasks              Task[]
   emailLists         EmailList[]     @relation("EmailListToLead")
   whatsAppMessages   WhatsAppMessage[]
+  documents          Document[]
+  pipelineId         String?
+  pipeline           Pipeline?       @relation(fields: [pipelineId], references: [id])
+  potentialValue     Float           @default(0)
+  products           LeadProduct[]
 
+  @@unique([phone, organisationId])
   @@index([organisationId])
   @@index([assignedToId])
   @@index([status])
   @@index([isDeleted])
   @@index([firstName, lastName])
+  @@index([pipelineId])
 }
 
 model Account {
@@ -226,6 +271,7 @@ model Account {
   tags            String[]
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  isDeleted       Boolean         @default(false)
   ownerId         String?
   organisationId  String
   parentAccountId String?
@@ -241,9 +287,11 @@ model Account {
   opportunities   Opportunity[]
   quotes          Quote[]
   tasks           Task[]
+  documents       Document[]
 
   @@index([organisationId])
   @@index([name])
+  accountProducts AccountProduct[]
 }
 
 model Contact {
@@ -262,6 +310,7 @@ model Contact {
   customFields   Json?
   tags           String[]
   lastActivity   DateTime?
+  isDeleted      Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   accountId      String?
@@ -279,6 +328,7 @@ model Contact {
   emailLists     EmailList[]     @relation("ContactToEmailList")
   opportunities  Opportunity[]   @relation("OpportunityContacts")
   whatsAppMessages WhatsAppMessage[]
+  documents      Document[]
 
   @@index([organisationId])
   @@index([email])
@@ -296,11 +346,14 @@ model Opportunity {
   description    String?
   customFields   Json?
   tags           String[]
+  isDeleted      Boolean         @default(false)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
   accountId      String
   ownerId        String?
   organisationId String
+  paymentStatus  String          @default("pending") // pending, partial, paid
+  paymentDate    DateTime?
   events         CalendarEvent[]
   interactions   Interaction[]
   account        Account         @relation(fields: [accountId], references: [id])
@@ -309,10 +362,14 @@ model Opportunity {
   quotes         Quote[]
   tasks          Task[]
   contacts       Contact[]       @relation("OpportunityContacts")
+  documents      Document[]
+  pipelineId     String?
+  pipeline       Pipeline?       @relation(fields: [pipelineId], references: [id])
 
   @@index([organisationId])
   @@index([stage])
   @@index([accountId])
+  @@index([pipelineId])
 }
 
 model Product {
@@ -340,6 +397,45 @@ model Product {
   createdBy      User?           @relation("ProductCreator", fields: [createdById], references: [id])
   organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   quoteItems     QuoteLineItem[]
+  accountProducts AccountProduct[]
+  salesTargets    SalesTarget[]
+  leads           LeadProduct[]
+}
+
+model LeadProduct {
+  id             String       @id @default(uuid())
+  leadId         String
+  productId      String
+  quantity       Int          @default(1)
+  price          Float
+  lead           Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
+
+  @@unique([leadId, productId])
+}
+
+model AccountProduct {
+  id             String       @id @default(uuid())
+  quantity       Float        @default(1)
+  purchaseDate   DateTime?
+  serialNumber   String?
+  status         String       @default("active") // active, churned, returned
+  notes          String?
+  
+  accountId      String
+  productId      String
+  organisationId String
+  
+  account        Account      @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  product        Product      @relation(fields: [productId], references: [id])
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([accountId])
+  @@index([productId])
+  @@index([organisationId])
 }
 
 model Quote {
@@ -421,6 +517,8 @@ model Task {
   opportunity    Opportunity? @relation(fields: [opportunityId], references: [id])
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 }
+
+
 
 model Interaction {
   id                String               @id @default(uuid())
@@ -699,20 +797,44 @@ model SalesTarget {
   startDate        DateTime
   endDate          DateTime
   status           String        @default("active")
+  metric           String        @default("revenue") // revenue, units
   autoDistributed  Boolean       @default(false)
   lastNotifiedDate DateTime?
   organisationId   String
-  assignedToId     String
+  assignedToId     String?
+  teamId           String?
   assignedById     String?
   parentTargetId   String?
+
+  
+  // New Fields
+  productId        String?
+  scope            TargetScope   @default(HIERARCHY)
+  opportunityType OpportunityType?
+
   isDeleted        Boolean       @default(false)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+
+  assignedTo       User?         @relation("TargetAssignee", fields: [assignedToId], references: [id])
   assignedBy       User?         @relation("TargetCreator", fields: [assignedById], references: [id])
-  assignedTo       User          @relation("TargetAssignee", fields: [assignedToId], references: [id])
+  team             Team?         @relation(fields: [teamId], references: [id])
   organisation     Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   parentTarget     SalesTarget?  @relation("TargetHierarchy", fields: [parentTargetId], references: [id])
   childTargets     SalesTarget[] @relation("TargetHierarchy")
+  product          Product?      @relation(fields: [productId], references: [id])
+
+  @@index([productId])
+}
+
+enum TargetScope {
+  INDIVIDUAL
+  HIERARCHY
+}
+
+enum OpportunityType {
+  NEW_BUSINESS
+  UPSALE
 }
 
 model Goal {
@@ -814,6 +936,16 @@ model ApiKey {
 
   @@index([organisationId])
   @@index([keyHash])
+}
+
+model SearchHistory {
+  id        String   @id @default(uuid())
+  query     String
+  userId    String
+  user      User     @relation("UserSearchHistory", fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
 }
 
 model CustomField {
@@ -925,6 +1057,9 @@ model LeadHistory {
   newOwnerId  String?
   changedById String?
   reason      String?
+  fieldName   String?
+  oldValue    String?
+  newValue    String?
   createdAt   DateTime @default(now())
   changedBy   User?    @relation("HistoryChanger", fields: [changedById], references: [id])
   lead        Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
@@ -1031,6 +1166,9 @@ model Pipeline {
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdBy      User?        @relation("PipelineCreator", fields: [createdById], references: [id])
   
+  leads          Lead[]
+  opportunities  Opportunity[]
+  
   @@index([organisationId])
 }
 
@@ -1094,6 +1232,7 @@ model WhatsAppCampaign {
 
   organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   createdBy      User?        @relation("WhatsAppCampaignCreator", fields: [createdById], references: [id])
+  messages       WhatsAppMessage[]
 
   @@index([organisationId])
 }
@@ -1116,6 +1255,7 @@ model WhatsAppMessage {
   leadId         String?
   contactId      String?
   agentId        String?
+  campaignId     String?
   isReadByAgent  Boolean   @default(true)
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
@@ -1125,6 +1265,7 @@ model WhatsAppMessage {
   lead           Lead?        @relation(fields: [leadId], references: [id])
   contact        Contact?     @relation(fields: [contactId], references: [id])
   agent          User?        @relation("WhatsAppMessageAgent", fields: [agentId], references: [id])
+  campaign       WhatsAppCampaign? @relation(fields: [campaignId], references: [id])
 
   @@index([conversationId, createdAt])
   @@index([leadId])
@@ -1199,4 +1340,42 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
   @@index([actorId])
+}
+model Document {
+  id             String       @id @default(uuid())
+  name           String
+  description    String?
+  fileKey        String       // S3/Storage key
+  fileUrl        String       // URL or access path
+  fileType       String
+  fileSize       Int
+  category       String?      @default("other")
+  tags           String[]
+  isDeleted      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  
+  organisationId String
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  
+  createdById    String
+  createdBy      User         @relation("DocumentCreator", fields: [createdById], references: [id])
+  
+  leadId         String?
+  lead           Lead?        @relation(fields: [leadId], references: [id])
+  
+  contactId      String?
+  contact        Contact?     @relation(fields: [contactId], references: [id])
+  
+  accountId      String?
+  account        Account?     @relation(fields: [accountId], references: [id])
+  
+  opportunityId  String?
+  opportunity    Opportunity? @relation(fields: [opportunityId], references: [id])
+
+  @@index([organisationId])
+  @@index([leadId])
+  @@index([contactId])
+  @@index([accountId])
+  @@index([opportunityId])
 }

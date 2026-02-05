@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { logAudit } from '../utils/auditLogger';
 
 export const getTerritories = async (req: Request, res: Response) => {
     try {
@@ -64,6 +65,15 @@ export const createTerritory = async (req: Request, res: Response) => {
             }
         });
 
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'CREATE_TERRITORY',
+            entity: 'Territory',
+            entityId: territory.id,
+            details: { name: territory.name }
+        });
+
         res.status(201).json(territory);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -83,10 +93,27 @@ export const updateTerritory = async (req: Request, res: Response) => {
             delete data.members;
         }
 
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'No organisation' });
+
         const territory = await prisma.territory.update({
-            where: { id: req.params.id },
+            where: {
+                id: req.params.id,
+                organisationId: orgId
+            },
             data
         });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'UPDATE_TERRITORY',
+            entity: 'Territory',
+            entityId: territory.id,
+            details: { name: territory.name }
+        });
+
         res.json(territory);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -95,10 +122,26 @@ export const updateTerritory = async (req: Request, res: Response) => {
 
 export const deleteTerritory = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'No organisation' });
+
         await prisma.territory.update({
-            where: { id: req.params.id },
+            where: {
+                id: req.params.id,
+                organisationId: orgId
+            },
             data: { isDeleted: true }
         });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'DELETE_TERRITORY',
+            entity: 'Territory',
+            entityId: req.params.id
+        });
+
         res.json({ message: 'Territory deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

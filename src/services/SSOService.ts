@@ -1,8 +1,8 @@
 import passport from 'passport';
 import { MultiSamlStrategy } from 'passport-saml';
-import { Request } from 'express';
 import prisma from '../config/prisma';
 import { UserRole } from '../generated/client';
+import bcrypt from 'bcryptjs';
 
 export const setupPassport = () => {
     passport.serializeUser((user: any, done) => {
@@ -73,7 +73,6 @@ export const setupPassport = () => {
                     const lastName = profile.lastName || profile.sn || '-';
 
                     // Generate random password
-                    const bcrypt = require('bcryptjs');
                     const randomPass = Math.random().toString(36).slice(-8);
                     const salt = await bcrypt.genSalt(10);
                     const hashedPassword = await bcrypt.hash(randomPass, salt);

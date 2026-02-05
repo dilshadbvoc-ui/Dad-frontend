@@ -12,16 +12,20 @@ export const getLeadsReport = async (req: Request, res: Response) => {
         const user = (req as any).user;
         if (!user) return res.status(401).json({ message: 'Unauthorized' });
 
-        const orgId = await getOrgId(user.id);
+        const orgId = getOrgId(user);
         const subordinateIds = await getSubordinateIds(user.id);
 
         const { stage, status, userId, startDate, endDate } = req.query;
 
         const where: any = {
             organisationId: orgId,
-            isDeleted: false,
-            assignedToId: { in: subordinateIds }
+            isDeleted: false
         };
+
+        // If not admin, restrict to self and subordinates
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            where.assignedToId = { in: [...subordinateIds, user.id] };
+        }
 
         if (stage) where.stage = stage as string;
         if (status) where.status = status as string;
@@ -71,8 +75,9 @@ export const getLeadsReport = async (req: Request, res: Response) => {
  */
 export const getUserPerformance = async (req: Request, res: Response) => {
     try {
-        const orgId = await getOrgId((req as any).user.id);
-        const subordinateIds = await getSubordinateIds((req as any).user.id);
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const subordinateIds = await getSubordinateIds(user.id);
 
         const { startDate, endDate } = req.query;
 
@@ -82,7 +87,7 @@ export const getUserPerformance = async (req: Request, res: Response) => {
 
         const users = await prisma.user.findMany({
             where: {
-                id: { in: subordinateIds },
+                id: { in: [...subordinateIds, user.id] },
                 organisationId: orgId,
                 isActive: true
             },
@@ -164,7 +169,9 @@ export const getUserPerformance = async (req: Request, res: Response) => {
  */
 export const getSalesBook = async (req: Request, res: Response) => {
     try {
-        const orgId = await getOrgId((req as any).user.id);
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const subordinateIds = await getSubordinateIds(user.id);
         const { period = 'month' } = req.query;
 
         const now = new Date();
@@ -185,13 +192,20 @@ export const getSalesBook = async (req: Request, res: Response) => {
                 break;
         }
 
+        const where: any = {
+            organisationId: orgId as string,
+            stage: 'closed_won',
+            updatedAt: { gte: startDate }
+        };
+
+        // If not admin, restrict to self and subordinates
+        if (user.role !== 'admin' && user.role !== 'super_admin') {
+            where.ownerId = { in: [...subordinateIds, user.id] };
+        }
+
         // Get won opportunities (sales)
         const sales = await prisma.opportunity.findMany({
-            where: {
-                organisationId: orgId as string,
-                stage: 'closed_won',
-                updatedAt: { gte: startDate }
-            },
+            where,
             include: {
                 account: { select: { name: true } },
                 owner: { select: { firstName: true, lastName: true } }
@@ -245,8 +259,9 @@ export const getSalesBook = async (req: Request, res: Response) => {
 export const exportToExcel = async (req: Request, res: Response) => {
     try {
         const { type } = req.params;
-        const orgId = await getOrgId((req as any).user.id);
-        const subordinateIds = await getSubordinateIds((req as any).user.id);
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const subordinateIds = await getSubordinateIds(user.id);
 
         const workbook = new ExcelJS.Workbook();
         workbook.creator = 'CRM Reports';
@@ -256,7 +271,7 @@ export const exportToExcel = async (req: Request, res: Response) => {
             const leads = await prisma.lead.findMany({
                 where: {
                     organisationId: orgId as string,
-                    assignedToId: { in: subordinateIds },
+                    assignedToId: { in: [...subordinateIds, user.id] },
                     isDeleted: false
                 },
                 include: {
@@ -296,8 +311,13 @@ export const exportToExcel = async (req: Request, res: Response) => {
             sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
         } else if (type === 'sales') {
+            const where: any = { organisationId: orgId as string, stage: 'closed_won' };
+            if (user.role !== 'admin' && user.role !== 'super_admin') {
+                where.ownerId = { in: [...subordinateIds, user.id] };
+            }
+
             const sales = await prisma.opportunity.findMany({
-                where: { organisationId: orgId as string, stage: 'closed_won' },
+                where,
                 include: {
                     account: { select: { name: true } },
                     owner: { select: { firstName: true, lastName: true } }

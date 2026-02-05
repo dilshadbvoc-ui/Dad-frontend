@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { WhatsAppService } from '../services/WhatsAppService';
+import { WhatsAppIntegrationService } from '../services/WhatsAppIntegrationService';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
 import { getIO } from '../socket';
@@ -618,6 +619,66 @@ export const getMedia = async (req: AuthRequest, res: Response) => {
         mediaStream.pipe(res);
     } catch (error: any) {
         console.error('Error in getMedia:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+export const uploadMedia = async (req: any, res: any) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+
+        const config = await getWhatsAppConfig(req);
+        const whatsAppService = new WhatsAppService({
+            accessToken: config.accessToken,
+            phoneNumberId: config.phoneNumberId,
+            wabaId: config.wabaId
+        });
+
+        const result = await whatsAppService.uploadMedia(
+            req.file.buffer,
+            req.file.originalname,
+            req.file.mimetype
+        );
+
+        res.json(result);
+    } catch (error: any) {
+        console.error('Error in uploadMedia:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const handleWebhook = async (req: Request, res: Response) => {
+    try {
+        const signature = req.headers['x-hub-signature-256'] as string;
+        const appSecret = process.env.WHATSAPP_APP_SECRET;
+
+        if (appSecret && signature) {
+            const isValid = WhatsAppService.verifySignature(
+                JSON.stringify(req.body),
+                signature,
+                appSecret
+            );
+
+            if (!isValid) {
+                console.warn('[WhatsAppWebhook] Invalid signature');
+                return res.sendStatus(401);
+            }
+        }
+
+        await WhatsAppIntegrationService.handleWebhook(req.body);
+        res.sendStatus(200);
+    } catch (error: any) {
+        console.error('Error in handleWebhook:', error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
+export const verifyWebhook = async (req: Request, res: Response) => {
+    try {
+        await WhatsAppIntegrationService.verifyWebhook(req, res);
+    } catch (error: any) {
+        console.error('Error in verifyWebhook:', error);
         res.status(500).json({ message: error.message });
     }
 };

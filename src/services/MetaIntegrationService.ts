@@ -1,5 +1,7 @@
 import prisma from '../config/prisma';
 import { metaService } from './MetaService';
+import { logger } from '../utils/logger';
+import { DistributionService } from './DistributionService';
 
 export const MetaIntegrationService = {
     /**
@@ -7,7 +9,7 @@ export const MetaIntegrationService = {
      */
     async handleWebhook(payload: any): Promise<void> {
         try {
-            console.log('[MetaWebhook] Received payload:', JSON.stringify(payload, null, 2));
+            logger.webhook('Meta', 'receive_payload', undefined, { payload });
 
             // Basic parsing logic for Facebook Webhooks
             // Usually payload.entry array
@@ -25,7 +27,7 @@ export const MetaIntegrationService = {
                 }
             }
         } catch (error) {
-            console.error('[MetaWebhook] Error processing webhook:', error);
+            logger.webhookError('Meta', 'process_webhook', error);
         }
     },
 
@@ -33,7 +35,7 @@ export const MetaIntegrationService = {
         try {
             // value contains leadgen_id, form_id, page_id, created_time
             const { leadgen_id, page_id, form_id } = value;
-            console.log(`[MetaWebhook] Processing LeadGen ID: ${leadgen_id} for Page: ${page_id}`);
+            logger.webhook('Meta', 'process_leadgen', undefined, { leadgen_id, page_id, form_id });
 
             // Find organisation with this page in their integrations
             const orgs = await prisma.organisation.findMany({
@@ -50,7 +52,7 @@ export const MetaIntegrationService = {
             }).catch(() => []);
 
             if (orgs.length === 0) {
-                console.log('[MetaWebhook] No connected account found for page', page_id);
+                logger.warn(`No connected account found for page ${page_id}`, 'MetaWebhook');
                 return;
             }
 
@@ -59,7 +61,7 @@ export const MetaIntegrationService = {
             const metaConfig = integrations.meta;
 
             if (!metaConfig?.accessToken) {
-                console.log('[MetaWebhook] No access token found for organization', org.id);
+                logger.warn(`No access token found for organization ${org.id}`, 'MetaWebhook', undefined, org.id);
                 return;
             }
 
@@ -82,7 +84,7 @@ export const MetaIntegrationService = {
                 fieldData.forEach((field: any) => {
                     const name = field.name?.toLowerCase();
                     const value = field.values?.[0];
-                    
+
                     if (name?.includes('first_name') || name?.includes('firstname')) {
                         leadInfo.firstName = value;
                     } else if (name?.includes('last_name') || name?.includes('lastname')) {
@@ -95,6 +97,8 @@ export const MetaIntegrationService = {
                         leadInfo.company = value;
                     }
                 });
+
+
 
                 // Create lead in CRM
                 const lead = await prisma.lead.create({
@@ -116,7 +120,11 @@ export const MetaIntegrationService = {
                     }
                 });
 
-                console.log(`[MetaWebhook] Created lead ${lead.id} from Meta LeadGen ID: ${leadgen_id}`);
+                logger.info(`Created lead ${lead.id} from Meta LeadGen ID: ${leadgen_id}`, 'MetaWebhook', undefined, org.id);
+
+                // Auto-distribute the lead using assignment rules
+                await DistributionService.assignLead(lead, org.id);
+
 
                 // Find an admin user to notify
                 const adminUser = await prisma.user.findFirst({
@@ -139,26 +147,51 @@ export const MetaIntegrationService = {
                             organisationId: org.id
                         }
                     }).catch(error => {
-                        console.error('[MetaWebhook] Error creating notification:', error);
+                        logger.error('Error creating notification', error, 'MetaWebhook', undefined, org.id);
                     });
                 }
 
             } catch (apiError) {
-                console.error('[MetaWebhook] Error fetching lead data from Meta API:', apiError);
+                logger.error('Error fetching lead data from Meta API', apiError, 'MetaWebhook', undefined, org.id);
             }
 
         } catch (error) {
-            console.error('[MetaWebhook] Error processing leadgen:', error);
+            logger.webhookError('Meta', 'process_leadgen_failed', error);
         }
     },
 
     async processAdUpdate(value: any) {
         try {
-            console.log(`[MetaWebhook] Processing ad update:`, value);
-            // Handle ad status changes, performance updates, etc.
-            // This can be used to sync campaign performance data
+            logger.webhook('Meta', 'ad_update', undefined, { value });
+
+            // value contains data related to ad status changes
+            // For now, we log it and we could potentially update a local campaign status
+            // if we have a mapping between Meta Ad ID and CRM Campaign
+
+            if (value.ad_id) {
+                console.log(`[MetaIntegration] Ad update received for Ad ID: ${value.ad_id}, Status: ${value.status}`);
+
+                // We could find campaigns linked to this ad and update them
+                const campaigns = await prisma.campaign.findMany({
+                    where: {
+                        customFields: {
+                            path: ['metaAdId'],
+                            equals: value.ad_id
+                        }
+                    }
+                });
+
+                for (const campaign of campaigns) {
+                    await prisma.campaign.update({
+                        where: { id: campaign.id },
+                        data: {
+                            status: this.mapMetaStatusToCrmStatus(value.status || 'ACTIVE')
+                        }
+                    });
+                }
+            }
         } catch (error) {
-            console.error('[MetaWebhook] Error processing ad update:', error);
+            logger.webhookError('Meta', 'ad_update_failed', error);
         }
     },
 
@@ -167,7 +200,7 @@ export const MetaIntegrationService = {
      */
     async syncCampaigns(organisationId: string): Promise<any[]> {
         try {
-            console.log(`[MetaIntegration] Syncing campaigns for organization ${organisationId}`);
+            logger.info(`Syncing campaigns for organization ${organisationId}`, 'MetaIntegration', undefined, organisationId);
 
             const org = await prisma.organisation.findUnique({
                 where: { id: organisationId },
@@ -187,7 +220,7 @@ export const MetaIntegrationService = {
 
             // Fetch campaigns from Meta
             const campaigns = await metaService.getCampaigns(metaConfig);
-            
+
             // Sync campaigns to database
             const syncedCampaigns = [];
             for (const campaign of campaigns) {
@@ -244,15 +277,15 @@ export const MetaIntegrationService = {
                         syncedCampaigns.push(created);
                     }
                 } catch (campaignError) {
-                    console.error(`[MetaIntegration] Error syncing campaign ${campaign.id}:`, campaignError);
+                    logger.error(`Error syncing campaign ${campaign.id}`, campaignError, 'MetaIntegration', undefined, organisationId);
                 }
             }
 
-            console.log(`[MetaIntegration] Synced ${syncedCampaigns.length} campaigns`);
+            logger.info(`Synced ${syncedCampaigns.length} campaigns`, 'MetaIntegration', undefined, organisationId);
             return syncedCampaigns;
 
         } catch (error) {
-            console.error(`[MetaIntegration] Error syncing campaigns:`, error);
+            logger.error('Error syncing campaigns', error, 'MetaIntegration', undefined, organisationId);
             throw error;
         }
     },
@@ -331,7 +364,7 @@ export const MetaIntegrationService = {
             return insights;
 
         } catch (error) {
-            console.error('[MetaIntegration] Error getting campaign insights:', error);
+            logger.error('Error getting campaign insights', error, 'MetaIntegration', undefined, organisationId);
             throw error;
         }
     },
@@ -348,14 +381,14 @@ export const MetaIntegrationService = {
 
         if (mode && token) {
             if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-                console.log('[MetaWebhook] Verified webhook');
+                logger.info('Verified webhook', 'MetaWebhook');
                 res.status(200).send(challenge);
             } else {
-                console.log('[MetaWebhook] Webhook verification failed - invalid token');
+                logger.warn('Webhook verification failed - invalid token', 'MetaWebhook');
                 res.sendStatus(403);
             }
         } else {
-            console.log('[MetaWebhook] Webhook verification failed - missing parameters');
+            logger.warn('Webhook verification failed - missing parameters', 'MetaWebhook');
             res.sendStatus(400);
         }
     }

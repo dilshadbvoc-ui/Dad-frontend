@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { logAudit } from '../utils/auditLogger';
 import { SalesTargetService } from '../services/SalesTargetService';
 
 // Helper: Get direct reports of a user
@@ -36,115 +37,259 @@ const calculatePeriodDates = (period: string): { startDate: Date; endDate: Date 
     return { startDate, endDate };
 };
 
-// Assign target to a subordinate (with auto-distribution)
+// Assign target to a subordinate or team (with auto-distribution)
 export const assignTarget = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
-        const { assignToUserId, targetValue, period } = req.body;
+        const { assignToUserId, teamId, targetValue, period, metric = 'revenue', productId, scope = 'HIERARCHY', opportunityType } = req.body; // Default to revenue & hierarchy (legacy support)
         const userOrgId = getOrgId(user);
 
-        if (!assignToUserId || !targetValue || !period) {
-            return res.status(400).json({ message: 'assignToUserId, targetValue, and period are required' });
+        if ((!assignToUserId && !teamId) || !targetValue || !period) {
+            return res.status(400).json({ message: 'Either assignToUserId or teamId, plus targetValue and period are required' });
         }
 
         if (!userOrgId) return res.status(400).json({ message: 'Organisation not found' });
 
-        // Verify the assignee is a subordinate or user is admin
-        const assignee = await prisma.user.findUnique({
-            where: { id: assignToUserId }
-        });
-
-        if (!assignee) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        if (assignee.organisationId !== userOrgId) {
-            return res.status(403).json({ message: 'Cannot assign target to user in different organisation' });
+        // Validate Product if provided
+        if (productId) {
+            const product = await prisma.product.findUnique({ where: { id: productId } });
+            if (!product) return res.status(400).json({ message: 'Product not found' });
         }
 
         const { startDate, endDate } = calculatePeriodDates(period);
 
-        // Check for existing active target in the same period
-        const existingTarget = await prisma.salesTarget.findFirst({
-            where: {
-                assignedToId: assignToUserId,
-                period,
-                startDate,
-                endDate,
-                isDeleted: false
-            }
-        });
-
-        if (existingTarget) {
-            return res.status(400).json({ message: 'User already has an active target for this period' });
-        }
-
-        // Create the main target
-        const mainTarget = await prisma.salesTarget.create({
-            data: {
-                targetValue,
-                period,
-                startDate,
-                endDate,
-                assignedToId: assignToUserId,
-                assignedById: user.id,
-                organisationId: userOrgId,
-                autoDistributed: false
-            }
-        });
-
-        // Get direct reports of the assignee
-        const directReports = await getDirectReports(assignToUserId);
+        let mainTarget;
         const childTargets = [];
 
-        // Auto-distribute to subordinates
-        if (directReports.length > 0) {
-            const distributedValue = Math.floor(targetValue / directReports.length);
+        // --- TEAM ASSIGNMENT ---
+        if (teamId) {
+            // Verify team existence
+            const team = await prisma.team.findFirst({
+                where: { id: teamId, organisationId: userOrgId },
+                include: { members: true }
+            });
 
-            for (const report of directReports) {
-                // Check if subordinate already has a target
-                const existingSubTarget = await prisma.salesTarget.findFirst({
-                    where: {
-                        assignedToId: report.id,
+            if (!team) return res.status(404).json({ message: 'Team not found' });
+
+            // Check for existing team target
+            const existingTeamTarget = await prisma.salesTarget.findFirst({
+                where: {
+                    teamId,
+                    period,
+                    metric,
+                    productId: productId || null,
+                    startDate,
+                    endDate,
+                    isDeleted: false,
+                    opportunityType: opportunityType || null
+                }
+            });
+
+            if (existingTeamTarget) {
+                return res.status(400).json({ message: `Team already has an active ${metric} target for this period` });
+            }
+
+            // Create valid team target (assignedToId is null)
+            mainTarget = await prisma.salesTarget.create({
+                data: {
+                    targetValue,
+                    period,
+                    metric,
+                    startDate,
+                    endDate,
+                    teamId,
+                    assignedById: user.id,
+                    organisationId: userOrgId,
+                    autoDistributed: true,
+                    productId: productId || null,
+                    opportunityType: opportunityType || null
+                }
+            });
+
+            // Distribute to team members
+            if (team.members.length > 0) {
+                const distributedValue = Math.floor(targetValue / team.members.length);
+
+                for (const member of team.members) {
+                    // Check if member already has a target
+                    const existingMemberTarget = await prisma.salesTarget.findFirst({
+                        where: {
+                            assignedToId: member.id,
+                            period,
+                            metric,
+                            productId: productId || null,
+                            startDate,
+                            endDate,
+                            isDeleted: false,
+                            opportunityType: opportunityType || null
+                        }
+                    });
+
+                    if (!existingMemberTarget) {
+                        const childTarget = await prisma.salesTarget.create({
+                            data: {
+                                targetValue: distributedValue,
+                                period,
+                                metric,
+                                startDate,
+                                endDate,
+                                assignedToId: member.id,
+                                assignedById: user.id,
+                                parentTargetId: mainTarget.id,
+                                organisationId: userOrgId,
+                                autoDistributed: true,
+                                productId: productId || null,
+                                opportunityType: opportunityType || null
+                            }
+                        });
+                        childTargets.push(childTarget);
+
+                        // Notify member
+                        await prisma.notification.create({
+                            data: {
+                                recipientId: member.id,
+                                title: 'New Team Sales Target Assigned',
+                                message: `Your team "${team.name}" has been assigned a ${metric} target${opportunityType ? ` (${opportunityType})` : ''}. Your individual share is ${distributedValue.toLocaleString()}`,
+                                type: 'info',
+                                relatedResource: 'SalesTarget',
+                                relatedId: childTarget.id
+                            }
+                        });
+                    }
+                }
+            }
+
+        }
+        // --- INDIVIDUAL ASSIGNMENT ---
+        else if (assignToUserId) {
+            // Verify the assignee is a subordinate or user is admin
+            const assignee = await prisma.user.findUnique({
+                where: { id: assignToUserId }
+            });
+
+            if (!assignee) return res.status(404).json({ message: 'User not found' });
+            if (assignee.organisationId !== userOrgId) return res.status(403).json({ message: 'Cannot assign target to crossover user' });
+
+            // Check existing
+            const existingTarget = await prisma.salesTarget.findFirst({
+                where: {
+                    assignedToId: assignToUserId,
+                    period,
+                    metric,
+                    productId: productId || null,
+                    startDate,
+                    endDate,
+                    isDeleted: false,
+                    opportunityType: opportunityType || null
+                }
+            });
+
+            if (existingTarget) return res.status(400).json({ message: `User already has an active ${metric} target for this period` });
+
+            // Determine if distribution is needed
+            const directReports = await getDirectReports(assignToUserId);
+            const shouldDistribute = scope === 'HIERARCHY' && directReports.length > 0;
+
+            // Create main target
+            mainTarget = await prisma.salesTarget.create({
+                data: {
+                    targetValue,
+                    period,
+                    metric,
+                    startDate,
+                    endDate,
+                    assignedToId: assignToUserId,
+                    assignedById: user.id,
+                    organisationId: userOrgId,
+                    autoDistributed: shouldDistribute, // True only if Hierarchy AND has reports
+                    productId: productId || null,
+                    scope: scope,
+                    opportunityType: opportunityType || null
+                }
+            });
+
+            if (shouldDistribute) {
+                // 1. Create SELF-CHILD for the manager (for personal sales)
+                // We'll calculate share simply as equal share for now, or 0? 
+                // Usually manager also sells. Let's give equal share.
+                const totalMembers = directReports.length + 1;
+                const distributedValue = Math.floor(targetValue / totalMembers);
+
+                // Manager's Personal Target
+                const selfChild = await prisma.salesTarget.create({
+                    data: {
+                        targetValue: distributedValue,
                         period,
+                        metric,
                         startDate,
                         endDate,
-                        isDeleted: false
+                        assignedToId: assignToUserId,
+                        assignedById: user.id,
+                        parentTargetId: mainTarget.id,
+                        organisationId: userOrgId,
+                        autoDistributed: false, // Leaf
+                        productId: productId || null,
+                        scope: 'INDIVIDUAL',
+                        opportunityType: opportunityType || null
                     }
                 });
+                childTargets.push(selfChild);
 
-                if (!existingSubTarget) {
-                    const childTarget = await prisma.salesTarget.create({
-                        data: {
-                            targetValue: distributedValue,
+                // 2. Distribute to Reports
+                for (const report of directReports) {
+                    const existingSubTarget = await prisma.salesTarget.findFirst({
+                        where: {
+                            assignedToId: report.id,
+                            period,
+                            metric,
+                            productId: productId || null,
+                            startDate,
+                            endDate,
+                            isDeleted: false,
+                            opportunityType: opportunityType || null
+                        }
+                    });
+
+                    if (!existingSubTarget) {
+                        // Recursively create targets
+                        // distributeToSubordinates will handle creating the report's target and ITS children
+                        await distributeToSubordinates(
+                            report.id,
+                            distributedValue,
                             period,
                             startDate,
                             endDate,
-                            assignedToId: report.id,
-                            assignedById: user.id,
-                            parentTargetId: mainTarget.id,
-                            organisationId: userOrgId,
-                            autoDistributed: true
-                        }
-                    });
-                    childTargets.push(childTarget);
-
-                    // Recursively distribute to their subordinates
-                    await distributeToSubordinates(report.id, distributedValue, period, startDate, endDate, childTarget.id, user.id, userOrgId);
+                            mainTarget.id,
+                            user.id,
+                            userOrgId,
+                            metric,
+                            productId,
+                            opportunityType
+                        );
+                    }
                 }
             }
+
+            // Notification for Individual
+            await prisma.notification.create({
+                data: {
+                    recipientId: assignToUserId,
+                    title: 'New Sales Target Assigned',
+                    message: `You have been assigned a ${period} sales target of ${targetValue.toLocaleString()}${opportunityType ? ` for ${opportunityType}` : ''}`,
+                    type: 'info',
+                    relatedResource: 'SalesTarget',
+                    relatedId: mainTarget.id
+                }
+            });
         }
 
-        // Create notification for the assignee
-        await prisma.notification.create({
-            data: {
-                recipientId: assignToUserId,
-                title: 'New Sales Target Assigned',
-                message: `You have been assigned a ${period} sales target of ${targetValue.toLocaleString()}`,
-                type: 'info',
-                relatedResource: 'SalesTarget',
-                relatedId: mainTarget.id
-            }
+        await logAudit({
+            organisationId: userOrgId,
+            actorId: user.id,
+            action: 'CREATE_SALES_TARGET',
+            entity: 'SalesTarget',
+            entityId: mainTarget!.id,
+            details: { period, targetValue, teamId, assignToUserId, opportunityType }
         });
 
         res.status(201).json({
@@ -167,54 +312,105 @@ const distributeToSubordinates = async (
     endDate: Date,
     parentTargetId: string,
     assignerId: string,
-    organisationId: string
+    organisationId: string,
+    metric: string,
+    productId?: string,
+    opportunityType?: any
 ) => {
+    // 1. Check if we should distribute further
     const directReports = await getDirectReports(userId);
 
-    if (directReports.length === 0) return;
+    // 2. Create target for THIS user (userId) linked to parentTargetId
+    // If they have reports, they get a CONTAINER target (auto=true) AND a SELF target
+    // If they have no reports, they get a LEAF target (auto=false)
 
-    const distributedValue = Math.floor(targetValue / directReports.length);
+    const hasReports = directReports.length > 0;
 
-    for (const report of directReports) {
-        const existingTarget = await prisma.salesTarget.findFirst({
-            where: {
-                assignedToId: report.id,
+    // Check existing (skip duplicate check for simplicity in helper, relying on caller logic usually, but here we must Create)
+    // Actually this function was previously creating One child. Now we need to create the child for 'userId' first? 
+    // Wait, the previous logic passed 'childTarget.id' as parentTargetId to the next level.
+    // The previous logic created the child OUTSIDE, then called this to distribute FURTHER.
+    // My new call signature in assignTarget simply calls this with mainTarget.id as parent.
+
+    // Let's align:
+    // This function receives `userId` (a subordinate). It should create a target for them under `parentTargetId`.
+    // THEN, if they have reports, it should distribute further.
+
+    const totalMembers = directReports.length + 1;
+    const distributedValueForThisUser = targetValue; // The value passed IN is what THIS user is assigned.
+    // Wait, previous logic distributed the value BEFORE passing it.
+    // Let's stick to: "Assign targetValue to userId, child of parentTargetId".
+
+    const isContainer = hasReports;
+
+    const myTarget = await prisma.salesTarget.create({
+        data: {
+            targetValue: targetValue,
+            period,
+            metric,
+            startDate,
+            endDate,
+            assignedToId: userId,
+            assignedById: assignerId,
+            parentTargetId: parentTargetId,
+            organisationId,
+            autoDistributed: isContainer,
+            productId: productId || null,
+            scope: isContainer ? 'HIERARCHY' : 'INDIVIDUAL',
+            opportunityType: opportunityType || null
+        }
+    });
+
+    // Notify
+    await prisma.notification.create({
+        data: {
+            recipientId: userId,
+            title: 'New Sales Target Assigned',
+            message: `You have been assigned a ${period} sales target of ${targetValue.toLocaleString()}`,
+            type: 'info',
+            relatedResource: 'SalesTarget',
+            relatedId: myTarget.id
+        }
+    });
+
+    if (hasReports) {
+        // Distribute to self (Personal) and Children
+        const childValue = Math.floor(targetValue / totalMembers);
+
+        // Self Personal Child
+        await prisma.salesTarget.create({
+            data: {
+                targetValue: childValue,
                 period,
+                metric,
                 startDate,
                 endDate,
-                isDeleted: false
+                assignedToId: userId,
+                assignedById: assignerId,
+                parentTargetId: myTarget.id,
+                organisationId,
+                autoDistributed: false, // Leaf
+                productId: productId || null,
+                scope: 'INDIVIDUAL',
+                opportunityType: opportunityType || null
             }
         });
 
-        if (!existingTarget) {
-            const childTarget = await prisma.salesTarget.create({
-                data: {
-                    targetValue: distributedValue,
-                    period,
-                    startDate,
-                    endDate,
-                    assignedToId: report.id,
-                    assignedById: assignerId,
-                    parentTargetId: parentTargetId,
-                    organisationId: organisationId,
-                    autoDistributed: true
-                }
-            });
-
-            // Notify subordinate
-            await prisma.notification.create({
-                data: {
-                    recipientId: report.id,
-                    title: 'New Sales Target Assigned',
-                    message: `You have been assigned a ${period} sales target of ${distributedValue.toLocaleString()}`,
-                    type: 'info',
-                    relatedResource: 'SalesTarget',
-                    relatedId: childTarget.id
-                }
-            });
-
-            // Continue recursion
-            await distributeToSubordinates(report.id, distributedValue, period, startDate, endDate, childTarget.id, assignerId, organisationId);
+        // Distribute to reports
+        for (const report of directReports) {
+            await distributeToSubordinates(
+                report.id,
+                childValue,
+                period,
+                startDate,
+                endDate,
+                myTarget.id,
+                assignerId,
+                organisationId,
+                metric,
+                productId,
+                opportunityType
+            );
         }
     }
 };
@@ -230,7 +426,8 @@ export const getMyTargets = async (req: Request, res: Response) => {
                 isDeleted: false
             },
             include: {
-                assignedBy: { select: { firstName: true, lastName: true } }
+                assignedBy: { select: { firstName: true, lastName: true } },
+                product: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -251,13 +448,18 @@ export const getTeamTargets = async (req: Request, res: Response) => {
 
         const targets = await prisma.salesTarget.findMany({
             where: {
-                assignedToId: { in: [...subordinateIds, user.id] },
+                OR: [
+                    { assignedToId: { in: [...subordinateIds, user.id] } },
+                    { teamId: { not: null }, assignedById: user.id } // Include team targets created by user
+                ],
                 isDeleted: false
             },
             include: {
                 assignedTo: { select: { firstName: true, lastName: true, email: true, position: true } },
                 assignedBy: { select: { firstName: true, lastName: true } },
-                parentTarget: true
+                team: { select: { name: true } },
+                parentTarget: true,
+                product: true
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -401,21 +603,89 @@ export const recalculateProgress = async (req: Request, res: Response) => {
     }
 };
 
+// Update target
+export const updateTarget = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const { id } = req.params;
+        const { targetValue, period, metric, productId, opportunityType } = req.body;
+
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
+        const target = await prisma.salesTarget.findFirst({
+            where: { id, organisationId: orgId, isDeleted: false }
+        });
+
+        if (!target) return res.status(404).json({ message: 'Target not found' });
+
+        // Update fields
+        const updateData: any = {};
+        if (targetValue) updateData.targetValue = targetValue;
+
+        // If period changes, recalculate dates
+        if (period) {
+            const { startDate, endDate } = calculatePeriodDates(period);
+            updateData.period = period;
+            updateData.startDate = startDate;
+            updateData.endDate = endDate;
+        }
+
+        if (metric) updateData.metric = metric;
+        if (productId !== undefined) updateData.productId = productId || null;
+        if (opportunityType !== undefined) updateData.opportunityType = opportunityType || null;
+
+        const updatedTarget = await prisma.salesTarget.update({
+            where: { id },
+            data: updateData
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'UPDATE_SALES_TARGET',
+            entity: 'SalesTarget',
+            entityId: id,
+            details: { targetValue, period, metric, productId, opportunityType }
+        });
+
+        res.json({ message: 'Target updated successfully', target: updatedTarget });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
 // Delete target
 export const deleteTarget = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId && user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Organisation not found' });
+        }
+
         const target = await prisma.salesTarget.update({
-            where: { id: req.params.id },
+            where: {
+                id: req.params.id,
+                ...(orgId ? { organisationId: orgId } : {})
+            },
             data: { isDeleted: true }
         });
 
-        if (!target) {
-            return res.status(404).json({ message: 'Target not found' });
-        }
+        await logAudit({
+            organisationId: orgId || target.organisationId,
+            actorId: user.id,
+            action: 'DELETE_SALES_TARGET',
+            entity: 'SalesTarget',
+            entityId: req.params.id
+        });
 
         // Also delete child targets
         await prisma.salesTarget.updateMany({
-            where: { parentTargetId: req.params.id },
+            where: {
+                parentTargetId: req.params.id,
+                ...(orgId ? { organisationId: orgId } : {})
+            },
             data: { isDeleted: true }
         });
 

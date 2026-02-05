@@ -29,7 +29,13 @@ export class QuotePdfService {
         doc.fontSize(10);
         if (quote.account) {
             doc.text(quote.account.name);
-            if (quote.account.address) doc.text(JSON.stringify(quote.account.address)); // Simplification
+            if (quote.account.address) {
+                const addr = quote.account.address;
+                const formatted = typeof addr === 'string'
+                    ? addr
+                    : [addr.street, addr.city, addr.state, addr.zip, addr.country].filter(Boolean).join(', ');
+                doc.text(formatted);
+            }
         } else if (quote.contact) {
             doc.text(`${quote.contact.firstName} ${quote.contact.lastName}`);
             doc.text(quote.contact.email || '');

@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
-import { getSubordinateIds } from '../utils/hierarchyUtils';
-import { getOrgId } from '../utils/hierarchyUtils';
+import { getSubordinateIds, getOrgId } from '../utils/hierarchyUtils';
+import { logAudit } from '../utils/auditLogger';
 
 export const getGoals = async (req: Request, res: Response) => {
     try {
@@ -22,10 +22,6 @@ export const getGoals = async (req: Request, res: Response) => {
             const subordinateIds = await getSubordinateIds(user.id);
             // Show goals assigned to self OR subordinates
             where.assignedToId = { in: [...subordinateIds, user.id] };
-        } else {
-            // Admin/Super Admin see all in org (already filtered by organisationId)
-            // Unless specifically filtering by user? API didn't seem to support it explicitly before other than auth context.
-            // Kept simple as per original logic.
         }
 
         const goals = await prisma.goal.findMany({
@@ -47,6 +43,7 @@ export const createGoal = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
 
         // Calculate dates based on period
         const now = new Date();
@@ -80,7 +77,7 @@ export const createGoal = async (req: Request, res: Response) => {
                 status: 'active',
                 startDate,
                 endDate,
-                organisationId: orgId as string,
+                organisationId: orgId,
                 createdById: user.id,
                 assignedToId: req.body.assignedToId || user.id
             }
@@ -92,6 +89,15 @@ export const createGoal = async (req: Request, res: Response) => {
             await GoalService.updateProgressForUser(goal.assignedToId, goal.type);
         }
 
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'CREATE_GOAL',
+            entity: 'Goal',
+            entityId: goal.id,
+            details: { type: goal.type, targetValue: goal.targetValue }
+        });
+
         res.status(201).json(goal);
     } catch (error) {
         console.error('createGoal Error:', error);
@@ -101,14 +107,20 @@ export const createGoal = async (req: Request, res: Response) => {
 
 export const updateGoal = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
         const { id } = req.params;
         const updates = { ...req.body };
 
-        // Recalculate achievement percent if currentValue changes
-        // Note: Prisma update can be done in one go if we fetch first, or just trust client? 
-        // Better to fetch to calculate percent correctly.
+        let goal = await prisma.goal.findFirst({
+            where: {
+                id,
+                organisationId: orgId
+            }
+        });
 
-        let goal = await prisma.goal.findUnique({ where: { id } });
         if (!goal) return res.status(404).json({ message: 'Goal not found' });
 
         if (updates.currentValue !== undefined) {
@@ -126,6 +138,15 @@ export const updateGoal = async (req: Request, res: Response) => {
             data: updates
         });
 
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'UPDATE_GOAL',
+            entity: 'Goal',
+            entityId: updatedGoal.id,
+            details: { updatedFields: Object.keys(updates) }
+        });
+
         res.json(updatedGoal);
     } catch (error) {
         console.error('updateGoal Error:', error);
@@ -135,25 +156,47 @@ export const updateGoal = async (req: Request, res: Response) => {
 
 export const deleteGoal = async (req: Request, res: Response) => {
     try {
-        const goal = await prisma.goal.update({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
+        await prisma.goal.update({
+            where: {
+                id: req.params.id,
+                organisationId: orgId
+            },
             data: { isDeleted: true }
+        });
+
+        await logAudit({
+            organisationId: orgId,
+            actorId: user.id,
+            action: 'DELETE_GOAL',
+            entity: 'Goal',
+            entityId: req.params.id
         });
 
         res.json({ message: 'Goal deleted' });
     } catch (error) {
-        // Prisma error P2025 means record not found
-        if ((error as any).code === 'P2025') {
-            return res.status(404).json({ message: 'Goal not found' });
-        }
+        if ((error as any).code === 'P2025') return res.status(404).json({ message: 'Goal not found' });
         res.status(500).json({ message: (error as Error).message });
     }
 };
 
 export const recalculateGoal = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'Organisation not found' });
+
         const { id } = req.params;
-        const goal = await prisma.goal.findUnique({ where: { id } });
+        const goal = await prisma.goal.findFirst({
+            where: {
+                id,
+                organisationId: orgId
+            }
+        });
+
         if (!goal) return res.status(404).json({ message: 'Goal not found' });
 
         if (goal.type === 'manual') {

@@ -1,4 +1,6 @@
 import nodemailer from 'nodemailer';
+import prisma from '../config/prisma';
+import { InteractionType, InteractionDirection } from '../generated/client';
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST || 'smtp.ethereal.email',
@@ -14,7 +16,14 @@ export const EmailService = {
     /**
      * Send an email
      */
-    async sendEmail(to: string, subject: string, html: string): Promise<boolean> {
+    async sendEmail(
+        to: string,
+        subject: string,
+        html: string,
+        organisationId?: string,
+        createdById?: string,
+        context?: { leadId?: string; contactId?: string }
+    ): Promise<boolean> {
         try {
             console.log(`[EmailService] Sending email to ${to} | Subject: ${subject}`);
 
@@ -26,12 +35,40 @@ export const EmailService = {
             });
 
             console.log('[EmailService] Message sent:', info.messageId);
-            // If using Ethereal: console.log('Preview URL: ' + nodemailer.getTestMessageUrl(info));
+
+            // Save to Interactions
+            if (organisationId) {
+                await prisma.interaction.create({
+                    data: {
+                        type: InteractionType.email,
+                        direction: InteractionDirection.outbound,
+                        subject: subject,
+                        description: `Email sent to ${to}. Content snippet: ${html.substring(0, 100)}...`,
+                        organisationId,
+                        createdById,
+                        leadId: context?.leadId,
+                        contactId: context?.contactId,
+                        date: new Date()
+                    }
+                }).catch(err => console.error('[EmailService] Failed to log interaction:', err));
+            }
 
             return true;
         } catch (error) {
             console.error('[EmailService] Error sending email:', error);
             return false;
         }
+    },
+
+    /**
+     * Replace placeholders like {{firstName}} with actual values
+     */
+    personalize(text: string, data: Record<string, any>): string {
+        let personalized = text;
+        for (const key in data) {
+            const regex = new RegExp(`{{${key}}}`, 'g');
+            personalized = personalized.replace(regex, data[key] || '');
+        }
+        return personalized;
     }
 };

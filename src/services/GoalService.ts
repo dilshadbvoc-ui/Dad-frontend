@@ -35,7 +35,7 @@ export class GoalService {
 
                 // Calculate progress based on type
                 switch (type.toLowerCase()) {
-                    case 'revenue':
+                    case 'revenue': {
                         const revenueAggregation = await prisma.opportunity.aggregate({
                             where: {
                                 ownerId: userId,
@@ -49,6 +49,7 @@ export class GoalService {
                         });
                         progressValue = revenueAggregation._sum.amount || 0;
                         break;
+                    }
 
                     case 'leads':
                         progressValue = await prisma.lead.count({

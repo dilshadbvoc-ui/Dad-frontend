@@ -106,7 +106,7 @@ router.get('/leads', verifyApiKey, async (req, res) => {
         });
 
         res.json({ data: leads, page, limit });
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: 'Server Error' });
     }
 });

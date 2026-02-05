@@ -14,9 +14,12 @@ export const getWorkflows = async (req: Request, res: Response) => {
         const where: Prisma.WorkflowWhereInput = { isDeleted: false };
         const orgId = getOrgId(user);
 
-        if (orgId) where.organisationId = orgId;
-        if (user.role === 'super_admin' && req.query.organisationId) {
-            where.organisationId = String(req.query.organisationId);
+        // Organisation Scoping
+        if (user.role === 'super_admin') {
+            if (req.query.organisationId) where.organisationId = String(req.query.organisationId);
+        } else {
+            if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+            where.organisationId = orgId;
         }
 
         if (search) {
@@ -62,6 +65,21 @@ export const createWorkflow = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_WORKFLOW',
+                entity: 'Workflow',
+                entityId: workflow.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: workflow.name, triggerEntity: workflow.triggerEntity }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(workflow);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -70,8 +88,17 @@ export const createWorkflow = async (req: Request, res: Response) => {
 
 export const getWorkflowById = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id, isDeleted: false };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const workflow = await prisma.workflow.findFirst({
-            where: { id: req.params.id, isDeleted: false }
+            where
         });
 
         if (!workflow) return res.status(404).json({ message: 'Workflow not found' });
@@ -83,10 +110,39 @@ export const getWorkflowById = async (req: Request, res: Response) => {
 
 export const updateWorkflow = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const workflowId = req.params.id;
+
+        // Verify existence and org
+        const existing = await prisma.workflow.findFirst({
+            where: { id: workflowId, isDeleted: false }
+        });
+
+        if (!existing) return res.status(404).json({ message: 'Workflow not found' });
+        if (existing.organisationId !== orgId && user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
         const workflow = await prisma.workflow.update({
-            where: { id: req.params.id },
+            where: { id: workflowId },
             data: req.body
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_WORKFLOW',
+                entity: 'Workflow',
+                entityId: workflowId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: workflow.name, updatedFields: Object.keys(req.body) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
         res.json(workflow);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -95,11 +151,39 @@ export const updateWorkflow = async (req: Request, res: Response) => {
 
 export const deleteWorkflow = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const workflowId = req.params.id;
+
+        // Verify existence and org
+        const existing = await prisma.workflow.findFirst({
+            where: { id: workflowId, isDeleted: false }
+        });
+
+        if (!existing) return res.status(404).json({ message: 'Workflow not found' });
+        if (existing.organisationId !== orgId && user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
         await prisma.workflow.update({
-            where: { id: req.params.id },
+            where: { id: workflowId },
             data: { isDeleted: true }
         });
-        res.json({ message: 'Workflow deleted' });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'DELETE_WORKFLOW',
+                entity: 'Workflow',
+                entityId: workflowId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: existing.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }
@@ -160,6 +244,21 @@ export const runWorkflow = async (req: Request, res: Response) => {
 
         const { WorkflowEngine } = await import('../services/WorkflowEngine');
         await WorkflowEngine.executeActions(workflow, entityData, workflow.organisationId);
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'RUN_WORKFLOW_MANUAL',
+                entity: 'Workflow',
+                entityId: id,
+                actorId: user.id,
+                organisationId: workflow.organisationId,
+                details: { name: workflow.name, entityType: workflow.triggerEntity, entityId }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         res.json({
             message: 'Workflow executed successfully',

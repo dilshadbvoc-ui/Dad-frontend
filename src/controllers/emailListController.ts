@@ -43,6 +43,21 @@ export const createEmailList = async (req: Request, res: Response) => {
                 createdBy: { connect: { id: user.id } }
             }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_EMAIL_LIST',
+                entity: 'EmailList',
+                entityId: list.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: list.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
         res.status(201).json(list);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -63,10 +78,32 @@ export const getEmailListById = async (req: Request, res: Response) => {
 
 export const deleteEmailList = async (req: Request, res: Response) => {
     try {
-        await prisma.emailList.update({
-            where: { id: req.params.id },
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        if (!orgId) return res.status(400).json({ message: 'No org' });
+
+        const list = await prisma.emailList.update({
+            where: {
+                id: req.params.id,
+                organisationId: orgId
+            },
             data: { isDeleted: true }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'DELETE_EMAIL_LIST',
+                entity: 'EmailList',
+                entityId: req.params.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: list.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
         res.json({ message: 'List deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

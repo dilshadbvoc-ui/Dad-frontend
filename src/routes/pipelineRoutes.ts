@@ -1,13 +1,19 @@
+import { Router } from 'express';
+import { protect, authorize } from '../middleware/authMiddleware';
+import {
+    getPipelines,
+    createPipeline,
+    updatePipeline,
+    deletePipeline
+} from '../controllers/pipelineController';
 
-import express from 'express';
-import { getPipelines, createPipeline, updatePipeline, deletePipeline } from '../controllers/pipelineController';
-import { protect } from '../middleware/authMiddleware';
+const router = Router();
 
-const router = express.Router();
+router.use(protect); // All routes require authentication
 
-router.get('/', protect, getPipelines);
-router.post('/', protect, createPipeline);
-router.put('/:id', protect, updatePipeline);
-router.delete('/:id', protect, deletePipeline);
+router.get('/', getPipelines);
+router.post('/', authorize('admin', 'super_admin'), createPipeline);
+router.put('/:id', authorize('admin', 'super_admin'), updatePipeline);
+router.delete('/:id', authorize('admin', 'super_admin'), deletePipeline);
 
 export default router;

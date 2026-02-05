@@ -58,19 +58,21 @@ export class CustomFieldValidationService {
                         }
                         break;
 
-                    case 'date':
+                    case 'date': {
                         const date = new Date(value);
                         if (isNaN(date.getTime())) {
                             errors.push(`Field '${def.label}' must be a valid date.`);
                         }
                         break;
+                    }
 
-                    case 'email':
+                    case 'email': {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         if (!emailRegex.test(String(value))) {
                             errors.push(`Field '${def.label}' must be a valid email.`);
                         }
                         break;
+                    }
 
                     case 'select':
                     case 'multiselect': // Assuming multiselect stores array or comma-separated?

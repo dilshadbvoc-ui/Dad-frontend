@@ -42,8 +42,8 @@ export const createWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
 
         // Validate that we have either recipients or testNumber
         if (!recipients && !testNumber) {
-            return res.status(400).json({ 
-                message: 'Either recipients array or testNumber is required' 
+            return res.status(400).json({
+                message: 'Either recipients array or testNumber is required'
             });
         }
 
@@ -67,6 +67,21 @@ export const createWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
             }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_WHATSAPP_CAMPAIGN',
+                entity: 'WhatsAppCampaign',
+                entityId: campaign.id,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: campaign.name, recipientCount: (recipients || []).length }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         // If status is 'sent', process the campaign immediately
         if (req.body.status === 'sent') {
             // Process campaign asynchronously
@@ -86,17 +101,17 @@ export const createWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
 export const updateWhatsAppCampaign = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const campaignId = req.params.id;
-        
+
         // Check if campaign exists and belongs to user's organisation
         const user = (req as any).user;
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'No organisation found' });
-        
+
         const existingCampaign = await prisma.whatsAppCampaign.findFirst({
-            where: { 
-                id: campaignId, 
+            where: {
+                id: campaignId,
                 organisationId: orgId as string,
-                isDeleted: false 
+                isDeleted: false
             }
         });
 
@@ -113,6 +128,21 @@ export const updateWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
             where: { id: campaignId },
             data: req.body
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'UPDATE_WHATSAPP_CAMPAIGN',
+                entity: 'WhatsAppCampaign',
+                entityId: campaignId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: campaign.name, updatedFields: Object.keys(req.body) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
 
         // If status changed to 'sent', process the campaign
         if (req.body.status === 'sent' && existingCampaign.status !== 'sent') {
@@ -137,10 +167,10 @@ export const deleteWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
 
         // Check if campaign exists and belongs to user's organisation
         const existingCampaign = await prisma.whatsAppCampaign.findFirst({
-            where: { 
-                id: campaignId, 
+            where: {
+                id: campaignId,
                 organisationId: orgId as string,
-                isDeleted: false 
+                isDeleted: false
             }
         });
 
@@ -152,7 +182,22 @@ export const deleteWhatsAppCampaign = async (req: AuthenticatedRequest, res: Res
             where: { id: campaignId },
             data: { isDeleted: true }
         });
-        
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'DELETE_WHATSAPP_CAMPAIGN',
+                entity: 'WhatsAppCampaign',
+                entityId: campaignId,
+                actorId: user.id,
+                organisationId: orgId as string,
+                details: { name: existingCampaign.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json({ message: 'WhatsApp Campaign deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

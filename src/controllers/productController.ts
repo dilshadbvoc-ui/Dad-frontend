@@ -84,6 +84,21 @@ export const createProduct = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            logAudit({
+                action: 'CREATE_PRODUCT',
+                entity: 'Product',
+                entityId: product.id,
+                actorId: user.id,
+                organisationId: orgId,
+                details: { name: product.name, sku: product.sku }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(product);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -92,9 +107,16 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getProductById = async (req: Request, res: Response) => {
     try {
-        const product = await prisma.product.findFirst({
-            where: { id: req.params.id, isDeleted: false }
-        });
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id, isDeleted: false };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
+        const product = await prisma.product.findFirst({ where });
         if (!product) return res.status(404).json({ message: 'Product not found' });
         res.json(product);
     } catch (error) {
@@ -104,11 +126,31 @@ export const getProductById = async (req: Request, res: Response) => {
 
 export const updateProduct = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const product = await prisma.product.update({
-            where: { id: req.params.id },
+            where,
             data: req.body
         });
-        if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        // Audit Log
+        const { logAudit } = await import('../utils/auditLogger');
+        logAudit({
+            action: 'UPDATE_PRODUCT',
+            entity: 'Product',
+            entityId: product.id,
+            actorId: user.id,
+            organisationId: product.organisationId,
+            details: { name: product.name, sku: product.sku }
+        });
+
         res.json(product);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message }); // Handle RecordNotFound gracefully if needed
@@ -117,10 +159,34 @@ export const updateProduct = async (req: Request, res: Response) => {
 
 export const deleteProduct = async (req: Request, res: Response) => {
     try {
-        const product = await prisma.product.update({
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const where: any = { id: req.params.id };
+
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
+        const product = await prisma.product.findFirst({ where });
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        await prisma.product.update({
             where: { id: req.params.id },
             data: { isDeleted: true }
         });
+
+        // Audit Log
+        const { logAudit } = await import('../utils/auditLogger');
+        logAudit({
+            action: 'DELETE_PRODUCT',
+            entity: 'Product',
+            entityId: req.params.id,
+            actorId: user.id,
+            organisationId: product.organisationId,
+            details: { name: product.name, sku: product.sku }
+        });
+
         res.json({ message: 'Product deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

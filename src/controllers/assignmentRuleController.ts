@@ -57,6 +57,21 @@ export const createAssignmentRule = async (req: Request, res: Response) => {
             }
         });
 
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'CREATE_ASSIGNMENT_RULE',
+                entity: 'AssignmentRule',
+                entityId: rule.id,
+                details: { name: rule.name, entity: rule.entity }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.status(201).json(rule);
     } catch (error) {
         res.status(400).json({ message: (error as Error).message });
@@ -65,10 +80,40 @@ export const createAssignmentRule = async (req: Request, res: Response) => {
 
 export const updateAssignmentRule = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        // Verify existence and ownership
+        const existing = await prisma.assignmentRule.findFirst({
+            where: {
+                id: req.params.id,
+                isDeleted: false,
+                ...(user.role !== 'super_admin' ? { organisationId: orgId as string } : {})
+            }
+        });
+
+        if (!existing) return res.status(404).json({ message: 'Assignment rule not found' });
+
         const rule = await prisma.assignmentRule.update({
             where: { id: req.params.id },
             data: req.body
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: rule.organisationId || (orgId as string),
+                actorId: user.id,
+                action: 'UPDATE_ASSIGNMENT_RULE',
+                entity: 'AssignmentRule',
+                entityId: rule.id,
+                details: { name: rule.name, updatedFields: Object.keys(req.body) }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json(rule);
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
@@ -77,10 +122,40 @@ export const updateAssignmentRule = async (req: Request, res: Response) => {
 
 export const deleteAssignmentRule = async (req: Request, res: Response) => {
     try {
-        await prisma.assignmentRule.update({
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        // Verify existence and ownership
+        const existing = await prisma.assignmentRule.findFirst({
+            where: {
+                id: req.params.id,
+                isDeleted: false,
+                ...(user.role !== 'super_admin' ? { organisationId: orgId as string } : {})
+            }
+        });
+
+        if (!existing) return res.status(404).json({ message: 'Assignment rule not found' });
+
+        const rule = await prisma.assignmentRule.update({
             where: { id: req.params.id },
             data: { isDeleted: true }
         });
+
+        // Audit Log
+        try {
+            const { logAudit } = await import('../utils/auditLogger');
+            await logAudit({
+                organisationId: rule.organisationId || (orgId as string),
+                actorId: user.id,
+                action: 'DELETE_ASSIGNMENT_RULE',
+                entity: 'AssignmentRule',
+                entityId: req.params.id,
+                details: { name: rule.name }
+            });
+        } catch (e) {
+            console.error('Audit Log Error:', e);
+        }
+
         res.json({ message: 'Assignment rule deleted' });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

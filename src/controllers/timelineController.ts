@@ -4,7 +4,6 @@ import prisma from '../config/prisma';
 export const getTimeline = async (req: Request, res: Response) => {
     try {
         const { id, type } = req.params; // type = 'lead' | 'contact' | 'account'
-        const user = (req as any).user;
 
         // Basic validation
         if (!['lead', 'contact', 'account'].includes(type) || !id) {

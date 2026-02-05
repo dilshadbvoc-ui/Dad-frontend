@@ -7,6 +7,7 @@ import {
     acknowledgeDailyNotification,
     recalculateProgress,
     deleteTarget,
+    updateTarget,
     getSubordinates
 } from '../controllers/salesTargetController';
 import { protect } from '../middleware/authMiddleware';
@@ -34,5 +35,8 @@ router.post('/recalculate', protect, recalculateProgress);
 
 // Delete target
 router.delete('/:id', protect, deleteTarget);
+
+// Update target
+router.put('/:id', protect, updateTarget);
 
 export default router;

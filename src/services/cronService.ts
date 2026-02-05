@@ -55,6 +55,28 @@ export const initCronJobs = () => {
 
     console.log('[Cron] Daily lead rollover job scheduled.');
 
+    // Run every day at 08:00 AM (Daily Task Reminders)
+    cron.schedule('0 8 * * *', async () => {
+        console.log('[Cron] Running daily task reminders...');
+        try {
+            const { TaskReminderService } = await import('./TaskReminderService');
+            await TaskReminderService.sendDailyReminders();
+        } catch (error) {
+            console.error('[Cron] Error running task reminders:', error);
+        }
+    });
+
+    // Run every hour for Meeting Reminders
+    cron.schedule('0 * * * *', async () => {
+        console.log('[Cron] Running meeting reminders check...');
+        try {
+            const { generateMeetingReminders } = await import('./meetingReminderService');
+            await generateMeetingReminders();
+        } catch (error) {
+            console.error('[Cron] Error running meeting reminders:', error);
+        }
+    });
+
     // Run every day at 09:00 AM
     cron.schedule('0 9 * * *', async () => {
         console.log('[Cron] Running daily organisation reports...');
@@ -134,4 +156,40 @@ export const initCronJobs = () => {
     });
 
     console.log('[Cron] Workflow Queue processor scheduled.');
+
+    // Run every day at 01:00 AM (Data Retention & Cleanup)
+    cron.schedule('0 1 * * *', async () => {
+        console.log('[Cron] Running daily cleanup tasks...');
+        try {
+            const now = new Date();
+
+            // 1. Audit Log Retention (90 Days)
+            const ninetyDaysAgo = new Date(now);
+            ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+            const deletedLogs = await prisma.auditLog.deleteMany({
+                where: { createdAt: { lt: ninetyDaysAgo } }
+            });
+            if (deletedLogs.count > 0) {
+                console.log(`[Cron] Cleaned up ${deletedLogs.count} old audit logs.`);
+            }
+
+            // 2. Read Notification Retention (30 Days)
+            const thirtyDaysAgo = new Date(now);
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            const deletedNotifications = await prisma.notification.deleteMany({
+                where: {
+                    isRead: true,
+                    updatedAt: { lt: thirtyDaysAgo }
+                }
+            });
+            if (deletedNotifications.count > 0) {
+                console.log(`[Cron] Cleaned up ${deletedNotifications.count} old notifications.`);
+            }
+
+        } catch (error) {
+            console.error('[Cron] Error during daily cleanup:', error);
+        }
+    });
+
+    console.log('[Cron] Daily cleanup job scheduled.');
 };

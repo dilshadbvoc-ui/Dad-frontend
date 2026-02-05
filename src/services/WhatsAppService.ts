@@ -1,4 +1,5 @@
 import axios from 'axios';
+import crypto from 'crypto';
 import prisma from '../config/prisma';
 
 interface WhatsAppConfig {
@@ -18,6 +19,29 @@ export class WhatsAppService {
     }
 
     /**
+     * Verify WhatsApp Webhook signature
+     */
+    static verifySignature(payload: string, signature: string, appSecret: string): boolean {
+        try {
+            if (!signature || !appSecret) return false;
+
+            // Signature is usually sha256=HEX_HASH
+            const [algo, hash] = signature.split('=');
+            if (algo !== 'sha256' || !hash) return false;
+
+            const expectedHash = crypto
+                .createHmac('sha256', appSecret)
+                .update(payload)
+                .digest('hex');
+
+            return crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash));
+        } catch (error) {
+            console.error('Signature verification error:', error);
+            return false;
+        }
+    }
+
+    /**
      * Get configured service for an organisation
      */
     static async getClientForOrg(orgId: string): Promise<WhatsAppService | null> {
@@ -29,10 +53,10 @@ export class WhatsAppService {
         if (!org || !org.integrations) return null;
 
         const integrations = org.integrations as any;
-        
+
         // Check for dedicated WhatsApp config first
         let whatsappConfig = integrations.whatsapp;
-        
+
         // Fallback to meta config for backward compatibility
         if (!whatsappConfig?.connected && integrations.meta?.phoneNumberId) {
             whatsappConfig = {
@@ -61,7 +85,7 @@ export class WhatsAppService {
      */
     async makeRequest(endpoint: string, accessToken: string, params: any = {}, retries: number = 3) {
         let lastError: any;
-        
+
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
                 const response = await axios.get(`${this.baseUrl}/${endpoint}`, {
@@ -75,12 +99,12 @@ export class WhatsAppService {
             } catch (error: any) {
                 lastError = error;
                 console.error(`WhatsApp API Error (attempt ${attempt}/${retries}):`, error.response?.data || error.message);
-                
+
                 // Don't retry on client errors (4xx)
                 if (error.response?.status >= 400 && error.response?.status < 500) {
                     break;
                 }
-                
+
                 // Wait before retrying (exponential backoff)
                 if (attempt < retries) {
                     const delay = Math.pow(2, attempt) * 1000; // 2s, 4s, 8s
@@ -88,7 +112,7 @@ export class WhatsAppService {
                 }
             }
         }
-        
+
         throw new Error(lastError.response?.data?.error?.message || 'Failed to fetch data from WhatsApp API');
     }
 
@@ -382,6 +406,33 @@ export class WhatsAppService {
         } catch (error: any) {
             console.error('WhatsApp Analytics Error:', error.response?.data || error.message);
             throw new Error(error.response?.data?.error?.message || 'Failed to get conversation analytics');
+        }
+    }
+
+    /**
+     * Upload media to Meta servers
+     */
+    async uploadMedia(file: Buffer, fileName: string, mimeType: string) {
+        try {
+            const url = `${this.baseUrl}/${this.config.phoneNumberId}/media`;
+
+            const formData = new FormData();
+            // Use Uint8Array to wrap Buffer for Blob compatibility in Node.js 18+
+            formData.append('file', new Blob([new Uint8Array(file)]), fileName);
+            formData.append('messaging_product', 'whatsapp');
+            formData.append('type', mimeType);
+
+            const response = await axios.post(url, formData, {
+                headers: {
+                    'Authorization': `Bearer ${this.config.accessToken}`,
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            return response.data;
+        } catch (error: any) {
+            console.error('WhatsApp Upload Media Error:', error.response?.data || error.message);
+            throw new Error(error.response?.data?.error?.message || 'Failed to upload media to WhatsApp');
         }
     }
 }

@@ -1,7 +1,4 @@
 import { Request, Response } from 'express';
-import { UserRole } from '../generated/client';
-
-// Static role definitions based on UserRole enum
 const ROLE_DEFINITIONS = [
     {
         id: 'super_admin',
