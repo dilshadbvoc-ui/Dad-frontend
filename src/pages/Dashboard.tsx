@@ -45,22 +45,22 @@ export default function Dashboard() {
             <AchievementNotification />
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Dashboard</h1>
-                    <p className="text-indigo-300/70 mt-1">Overview of your sales pipeline and performance.</p>
+                    <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">Dashboard</h1>
+                    <p className="text-muted-foreground mt-1">Overview of your sales pipeline and performance.</p>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
                 {/* Expected Revenue */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1e1b4b] p-6 shadow-lg shadow-indigo-950/20 border border-indigo-900/50 transition-all hover:shadow-indigo-900/40 hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                             <TrendingUp className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-indigo-300/70">Expected Revenue</h3>
-                        <div className="text-2xl font-extrabold text-white">
-                            {forecastLoading ? <Skeleton className="h-8 w-24 bg-indigo-900/50" /> :
+                        <h3 className="text-sm font-medium text-muted-foreground">Expected Revenue</h3>
+                        <div className="text-2xl font-extrabold text-foreground">
+                            {forecastLoading ? <Skeleton className="h-8 w-24 bg-muted" /> :
                                 new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, notation: 'compact' }).format(forecast?.weightedForecast || 0)
                             }
                         </div>
@@ -68,53 +68,53 @@ export default function Dashboard() {
                 </div>
 
                 {/* Deals In Pipeline */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1e1b4b] p-6 shadow-lg shadow-indigo-950/20 border border-indigo-900/50 transition-all hover:shadow-indigo-900/40 hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                             <Check className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-indigo-300/70">Deals In Pipeline</h3>
-                        <div className="text-2xl font-extrabold text-white">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-indigo-900/50" /> : stats?.activeOpportunities}
+                        <h3 className="text-sm font-medium text-muted-foreground">Deals In Pipeline</h3>
+                        <div className="text-2xl font-extrabold text-foreground">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.activeOpportunities}
                         </div>
                     </div>
                 </div>
 
                 {/* Won Deals */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1e1b4b] p-6 shadow-lg shadow-indigo-950/20 border border-indigo-900/50 transition-all hover:shadow-indigo-900/40 hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                             <Trophy className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-indigo-300/70">Won: {new Date().toLocaleString('default', { month: 'short' })}</h3>
-                        <div className="text-2xl font-extrabold text-white">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-indigo-900/50" /> : stats?.opportunities?.won || 0}
+                        <h3 className="text-sm font-medium text-muted-foreground">Won: {new Date().toLocaleString('default', { month: 'short' })}</h3>
+                        <div className="text-2xl font-extrabold text-foreground">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.opportunities?.won || 0}
                         </div>
                     </div>
                 </div>
 
                 {/* Lost Deals */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1e1b4b] p-6 shadow-lg shadow-indigo-950/20 border border-indigo-900/50 transition-all hover:shadow-indigo-900/40 hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                             <AlertCircle className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-indigo-300/70">Lost Deals</h3>
-                        <div className="text-2xl font-extrabold text-white">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-indigo-900/50" /> : stats?.opportunities?.lost || 0}
+                        <h3 className="text-sm font-medium text-muted-foreground">Lost Deals</h3>
+                        <div className="text-2xl font-extrabold text-foreground">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.opportunities?.lost || 0}
                         </div>
                     </div>
                 </div>
 
                 {/* Conversion */}
-                <div className="relative overflow-hidden rounded-3xl bg-[#1e1b4b] p-6 shadow-lg shadow-indigo-950/20 border border-indigo-900/50 transition-all hover:shadow-indigo-900/40 hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500/20 text-indigo-400">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
                             <RefreshCw className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-indigo-300/70">Conversion %</h3>
-                        <div className="text-2xl font-extrabold text-white">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-indigo-900/50" /> : `${stats?.winRate || 0}%`}
+                        <h3 className="text-sm font-medium text-muted-foreground">Conversion %</h3>
+                        <div className="text-2xl font-extrabold text-foreground">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : `${stats?.winRate || 0}%`}
                         </div>
                     </div>
                 </div>
@@ -124,8 +124,8 @@ export default function Dashboard() {
                 {/* Sales Chart */}
                 <Card className="col-span-4 min-w-0 overflow-hidden">
                     <CardHeader>
-                        <CardTitle className="text-xl text-white">Sales Overview</CardTitle>
-                        <CardDescription className="text-indigo-300/70">Revenue trend over the last 6 months.</CardDescription>
+                        <CardTitle className="text-xl text-foreground">Sales Overview</CardTitle>
+                        <CardDescription className="text-muted-foreground">Revenue trend over the last 6 months.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-0">
                         {chartLoading ? (
@@ -194,8 +194,8 @@ export default function Dashboard() {
                 {/* Lead Sources Pie Chart */}
                 <Card className="col-span-3 min-w-0 overflow-hidden">
                     <CardHeader>
-                        <CardTitle className="text-xl text-white">Lead Sources</CardTitle>
-                        <CardDescription className="text-indigo-300/70">Acquisition channel distribution.</CardDescription>
+                        <CardTitle className="text-xl text-foreground">Lead Sources</CardTitle>
+                        <CardDescription className="text-muted-foreground">Acquisition channel distribution.</CardDescription>
                     </CardHeader>
                     <CardContent>
                         {sourcesLoading ? (
