@@ -24,9 +24,25 @@ const Login = () => {
             localStorage.setItem('userInfo', JSON.stringify(data));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            setError(error.response?.data?.message || 'Login failed');
+        } catch (err: any) {
+            console.error("Login Error Full:", err);
+            let errorMessage = 'Login failed';
+
+            if (err.response) {
+                // Server responded with a status code outside 2xx
+                console.log("Error Response Data:", err.response.data);
+                console.log("Error Status:", err.response.status);
+                errorMessage = err.response.data?.message || `Server Error (${err.response.status})`;
+            } else if (err.request) {
+                // Request was made but no response received
+                console.log("No response received. Possible Network/CORS issue.");
+                errorMessage = 'Network Error: Cannot reach server. Check your connection or API configuration.';
+            } else {
+                // Something else happened
+                errorMessage = err.message || 'Unknown Error';
+            }
+
+            setError(errorMessage);
             setIsLoading(false);
         }
     };
