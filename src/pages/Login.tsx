@@ -24,8 +24,9 @@ const Login = () => {
             localStorage.setItem('userInfo', JSON.stringify(data));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err: any) {
-            setError(err.response?.data?.message || 'Login failed');
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
+            setError(error.response?.data?.message || 'Login failed');
             setIsLoading(false);
         }
     };
@@ -35,7 +36,7 @@ const Login = () => {
             <Card className="w-full max-w-[400px] shadow-lg">
                 <CardHeader className="space-y-1 text-center">
                     <CardTitle className="text-3xl font-bold tracking-tight">
-                        <span className="bg-gradient-to-r from-purple-700 to-indigo-600 dark:from-purple-400 dark:to-indigo-300 bg-clip-text text-transparent">LEADCEPT</span>
+                        <span className="bg-gradient-to-r from-purple-700 to-indigo-600 dark:from-purple-400 dark:to-indigo-300 bg-clip-text text-transparent">LEADHOSTIX</span>
                         <span className="text-amber-500 text-4xl font-extrabold">+</span>
                     </CardTitle>
                 </CardHeader>

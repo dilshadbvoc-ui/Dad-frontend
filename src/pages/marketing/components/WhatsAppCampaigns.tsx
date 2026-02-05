@@ -110,7 +110,7 @@ export function WhatsAppCampaigns() {
                         <div className="flex items-center gap-2">
                             <Users className="h-4 w-4 text-purple-600" />
                             <span className="text-2xl font-bold">
-                                {statistics?.totalMessages > 0 
+                                {statistics?.totalMessages > 0
                                     ? Math.round(((statistics?.statusBreakdown?.delivered || 0) / statistics.totalMessages) * 100)
                                     : 0}%
                             </span>
@@ -138,24 +138,23 @@ export function WhatsAppCampaigns() {
                         <CardContent>
                             {campaigns && campaigns.length > 0 ? (
                                 <div className="space-y-3">
-                                    {campaigns.slice(0, 3).map((campaign: any) => (
+                                    {campaigns.slice(0, 3).map((campaign: { id: string, name: string, message: string, status: string, sentAt?: string, scheduledAt?: string, createdAt: string }) => (
                                         <div key={campaign.id} className="flex items-center justify-between p-3 border rounded-lg">
                                             <div>
                                                 <h4 className="font-medium">{campaign.name}</h4>
                                                 <p className="text-sm text-gray-500">{campaign.message.substring(0, 50)}...</p>
                                             </div>
                                             <div className="text-right">
-                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                                    campaign.status === 'sent' ? 'bg-green-100 text-green-800' :
-                                                    campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
-                                                    'bg-gray-100 text-gray-800'
-                                                }`}>
+                                                <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${campaign.status === 'sent' ? 'bg-green-100 text-green-800' :
+                                                        campaign.status === 'scheduled' ? 'bg-blue-100 text-blue-800' :
+                                                            'bg-gray-100 text-gray-800'
+                                                    }`}>
                                                     {campaign.status}
                                                 </span>
                                                 <p className="text-xs text-gray-500 mt-1">
-                                                    {campaign.sentAt ? new Date(campaign.sentAt).toLocaleDateString() : 
-                                                     campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleDateString() :
-                                                     new Date(campaign.createdAt).toLocaleDateString()}
+                                                    {campaign.sentAt ? new Date(campaign.sentAt).toLocaleDateString() :
+                                                        campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleDateString() :
+                                                            new Date(campaign.createdAt).toLocaleDateString()}
                                                 </p>
                                             </div>
                                         </div>

@@ -38,7 +38,7 @@ const MediaPreview: React.FC<MediaPreviewProps> = ({ mediaId, type, caption, fil
             isMounted = false;
             if (url) URL.revokeObjectURL(url);
         };
-    }, [mediaId]);
+    }, [mediaId, url]);
 
     if (loading) {
         return (

@@ -1,41 +1,48 @@
 import { api } from './api';
 
 export interface PipelineStage {
-    id: string;
+    id?: string;
     name: string;
-    order: number;
     color?: string;
+    order?: number;
 }
 
 export interface Pipeline {
     id: string;
     name: string;
+    description?: string;
     stages: PipelineStage[];
     isDefault: boolean;
+    isActive: boolean;
     createdAt: string;
+    _count?: {
+        leads: number;
+        opportunities: number;
+    };
 }
 
-export interface CreatePipelineData {
+export interface CreatePipelinePayload {
     name: string;
-    stages: { name: string; order: number; color?: string }[];
+    description?: string;
+    stages: PipelineStage[];
     isDefault?: boolean;
 }
 
-export const getPipelines = async () => {
-    const response = await api.get<Pipeline[]>('/pipelines');
-    return response.data;
+export const getPipelines = async (): Promise<Pipeline[]> => {
+    const { data } = await api.get('/pipelines');
+    return data;
 };
 
-export const createPipeline = async (data: CreatePipelineData) => {
-    const response = await api.post<Pipeline>('/pipelines', data);
-    return response.data;
+export const createPipeline = async (payload: CreatePipelinePayload): Promise<Pipeline> => {
+    const { data } = await api.post('/pipelines', payload);
+    return data;
 };
 
-export const updatePipeline = async (id: string, data: Partial<CreatePipelineData>) => {
-    const response = await api.put<Pipeline>(`/pipelines/${id}`, data);
-    return response.data;
+export const updatePipeline = async (id: string, payload: Partial<CreatePipelinePayload>): Promise<Pipeline> => {
+    const { data } = await api.put(`/pipelines/${id}`, payload);
+    return data;
 };
 
-export const deletePipeline = async (id: string) => {
+export const deletePipeline = async (id: string): Promise<void> => {
     await api.delete(`/pipelines/${id}`);
 };

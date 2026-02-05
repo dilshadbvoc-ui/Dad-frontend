@@ -14,10 +14,9 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import { toast } from "sonner"
-import { Shield, Users, Plus, Edit, Trash2, MoreVertical, CheckCircle2 } from "lucide-react"
+import { Shield, Users, Plus, Edit, Trash2, CheckCircle2 } from "lucide-react"
 
 interface Role {
     id: string;
@@ -53,7 +52,7 @@ export default function RolesSettingsPage() {
     })
 
     const updateMutation = useMutation({
-        mutationFn: (data: any) => updateRole(editingRole!.id, data),
+        mutationFn: (data: { name: string, description: string }) => updateRole(editingRole!.id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['roles'] })
             setIsDialogOpen(false)

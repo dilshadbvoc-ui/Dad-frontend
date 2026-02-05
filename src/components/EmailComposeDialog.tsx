@@ -40,7 +40,8 @@ export function EmailComposeDialog({ open, onOpenChange, leadId, leadEmail, onSu
             setBody('');
             onOpenChange(false);
             if (onSuccess) onSuccess();
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             console.error('Failed to send email', error);
             toast.error(error.response?.data?.message || "Failed to send email");
         } finally {

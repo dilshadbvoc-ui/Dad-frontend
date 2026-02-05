@@ -1,5 +1,5 @@
 
-import { useState, useMemo, useEffect } from "react"
+import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Loader2, Check } from "lucide-react"
 import type { AxiosError } from "axios"
@@ -41,24 +41,28 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
 
     const isControlled = open !== undefined
     const finalOpen = isControlled ? open : internalOpen
-    const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
-    // Initialize state from props
-    useEffect(() => {
-        if (internalOpen || open) {
+    const handleOpenChange = (newOpen: boolean) => {
+        if (newOpen) {
+            // Initialize state from props when opening
             let initialId = ""
             if (lead?.assignedTo) {
                 if (typeof lead.assignedTo === 'string') {
                     initialId = lead.assignedTo
                 } else if (typeof lead.assignedTo === 'object') {
-                    // Safe access with type assertion or check
                     const assignObj = lead.assignedTo as { id?: string, _id?: string }
                     initialId = assignObj.id || assignObj._id || ""
                 }
             }
-            if (initialId) setSelectedUserId(initialId)
+            setSelectedUserId(initialId)
         }
-    }, [lead, internalOpen, open])
+
+        if (isControlled) {
+            onOpenChange?.(newOpen)
+        } else {
+            setInternalOpen(newOpen)
+        }
+    }
 
     // Get current user profile to determine role and position in hierarchy
     const { data: profile } = useQuery({
@@ -117,7 +121,7 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
             queryClient.invalidateQueries({ queryKey: ['lead', lead.id] })
             queryClient.invalidateQueries({ queryKey: ['leads'] })
             toast.success("Lead reassigned successfully")
-            finalOnOpenChange?.(false)
+            handleOpenChange(false)
         },
         onError: (error: AxiosError<{ message: string }>) => {
             toast.error(error.response?.data?.message || "Failed to reassign lead")
@@ -129,11 +133,8 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
         assignMutation.mutate(selectedUserId)
     }
 
-    // Set initial selection when opening - MOVED to useMemo above to avoid render loop
-    // Logic is handled in initialization
-
     return (
-        <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
+        <Dialog open={finalOpen} onOpenChange={handleOpenChange}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
@@ -171,7 +172,7 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={() => finalOnOpenChange?.(false)}>Cancel</Button>
+                    <Button variant="outline" onClick={() => handleOpenChange(false)}>Cancel</Button>
                     <Button onClick={handleSave} disabled={assignMutation.isPending || !selectedUserId}>
                         {assignMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Assign

@@ -24,15 +24,7 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { updateOrganisation } from "@/services/settingsService"
-
-interface LeadScoringConfig {
-    emailOpened: number
-    linkClicked: number
-    formSubmitted: number
-    callConnected: number
-    websiteVisit: number
-}
+import { updateOrganisation, type LeadScoringConfig } from "@/services/settingsService"
 
 interface LeadScoringDialogProps {
     children?: React.ReactNode
@@ -68,13 +60,14 @@ export function LeadScoringDialog({ children, open, onOpenChange, initialValues 
     }, [initialValues, form])
 
     const mutation = useMutation({
-        mutationFn: (data: LeadScoringConfig) => updateOrganisation({ leadScoringConfig: data } as any),
+        mutationFn: (data: LeadScoringConfig) => updateOrganisation({ leadScoringConfig: data }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["organisation"] })
             toast.success("Scoring weights updated successfully")
             finalOnOpenChange?.(false)
         },
-        onError: (error: any) => {
+        onError: (err: unknown) => {
+            const error = err as { response?: { data?: { message?: string } } };
             toast.error(error.response?.data?.message || "Failed to update settings")
         },
     })

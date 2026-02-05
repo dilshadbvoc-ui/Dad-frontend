@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, MessageCircle, Calendar, Send } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -50,7 +50,7 @@ export default function WhatsAppCampaignsPage() {
             setFormData({ name: "", message: "", testNumber: "", scheduledAt: "" });
             toast.success("Campaign created successfully");
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to create campaign");
         }
     });

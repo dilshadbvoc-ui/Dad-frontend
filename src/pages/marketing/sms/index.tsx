@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, MessageSquare, Calendar, Users, Send } from "lucide-react";
+import { Plus, Trash2, Calendar, Users } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -43,14 +43,14 @@ export default function SMSCampaignsPage() {
     });
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => createSMSCampaign({ ...data, recipientCount: parseInt(data.recipientCount) || 0 }),
+        mutationFn: (data: { name: string, message: string, recipientCount: string, scheduledAt: string }) => createSMSCampaign({ ...data, recipientCount: parseInt(data.recipientCount) || 0 }),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['sms-campaigns'] });
             setIsDialogOpen(false);
             setFormData({ name: "", message: "", recipientCount: "", scheduledAt: "" });
             toast.success("Campaign created successfully");
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to create campaign");
         }
     });

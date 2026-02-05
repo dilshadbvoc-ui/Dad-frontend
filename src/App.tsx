@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { syncToken } from './utils/mobileBridge';
 import Login from './pages/Login';
@@ -8,6 +8,7 @@ import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -180,6 +181,7 @@ function AppContent() {
             <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
           </Route>
 
+          <Route path="/privacy" element={<PrivacyPolicy />} />
           <Route path="/" element={<LandingPage />} />
         </Routes>
       </Router>

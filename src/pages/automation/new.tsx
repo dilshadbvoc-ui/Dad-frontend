@@ -30,7 +30,7 @@ export default function CreateWorkflowPage() {
             queryClient.invalidateQueries({ queryKey: ['workflows'] })
             navigate('/automation')
         },
-        onError: (err: any) => {
+        onError: (err: { response?: { data?: { message?: string } } }) => {
             setError(err.response?.data?.message || "Failed to create workflow")
         }
     })

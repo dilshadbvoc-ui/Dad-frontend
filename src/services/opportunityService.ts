@@ -26,6 +26,8 @@ export interface Opportunity {
     };
     createdAt: string;
     updatedAt: string;
+    paymentStatus?: 'pending' | 'partial' | 'paid';
+    paymentDate?: string;
 }
 
 export interface OpportunityQueryParams {
@@ -48,6 +50,8 @@ export interface CreateOpportunityData {
     account: string;
     contact?: string;
     owner?: string;
+    paymentStatus?: 'pending' | 'partial' | 'paid';
+    paymentDate?: string;
 }
 
 export type UpdateOpportunityData = Partial<CreateOpportunityData>;

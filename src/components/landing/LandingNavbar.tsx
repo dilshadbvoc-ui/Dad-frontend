@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Link as ScrollLink } from "react-scroll";
-// @ts-ignore
-import * as Scroll from 'react-scroll';
 import { Menu, X, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -43,7 +41,7 @@ export default function LandingNavbar() {
                             <Rocket className="h-6 w-6" />
                         </div>
                         <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-200">
-                            MERN CRM
+                            LeadHostix
                         </span>
                     </Link>
 

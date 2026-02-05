@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { Input } from "@/components/ui/input"
-import { Search, Loader2, User, Building, Briefcase, FileText, CheckSquare, TrendingUp } from "lucide-react"
+import { Search, Loader2, User, Building, FileText, CheckSquare, TrendingUp } from "lucide-react"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
 
@@ -18,12 +18,6 @@ interface SearchResult {
     url: string;
 }
 
-interface SearchResponse {
-    results: SearchResult[];
-    total: number;
-    query: string;
-    searchTime: number;
-}
 
 export function GlobalSearch() {
     const [query, setQuery] = useState("")
@@ -166,18 +160,18 @@ export function GlobalSearch() {
 
             {/* Suggestions dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-950 border rounded-md shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1b4b] border border-indigo-900/50 rounded-xl shadow-2xl z-50 max-h-[200px] overflow-y-auto backdrop-blur-xl">
                     <div className="py-2">
-                        <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                        <div className="px-4 py-2 text-xs font-semibold text-indigo-400/60 uppercase tracking-widest">
                             Suggestions
                         </div>
                         {suggestions.map((suggestion, index) => (
                             <button
                                 key={index}
-                                className="w-full px-4 py-2 text-left hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center gap-3 transition-colors"
+                                className="w-full px-4 py-2 text-left hover:bg-white/5 text-indigo-100 flex items-center gap-3 transition-colors"
                                 onClick={() => handleSuggestionSelect(suggestion)}
                             >
-                                <Search className="h-3 w-3 text-muted-foreground" />
+                                <Search className="h-3.5 w-3.5 text-indigo-400/50" />
                                 <span className="text-sm">{suggestion}</span>
                             </button>
                         ))}
@@ -187,49 +181,51 @@ export function GlobalSearch() {
 
             {/* Search results dropdown */}
             {showResults && query.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-950 border rounded-md shadow-lg z-50 max-h-[400px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1b4b] border border-indigo-900/50 rounded-xl shadow-2xl z-50 max-h-[400px] overflow-y-auto backdrop-blur-xl">
                     {isLoading ? (
-                        <div className="p-4 flex justify-center text-sm text-muted-foreground">
-                            <Loader2 className="h-4 w-4 animate-spin mr-2" /> Searching...
+                        <div className="p-8 flex flex-col items-center justify-center text-sm text-indigo-400/60">
+                            <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                            <span>Searching...</span>
                         </div>
                     ) : results.length > 0 ? (
                         <div className="py-2">
-                            <div className="px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                            <div className="px-4 py-2 text-xs font-semibold text-indigo-400/60 uppercase tracking-widest border-b border-indigo-900/30 mb-1">
                                 {results.length} Results
                             </div>
                             {results.map((result) => (
                                 <button
                                     key={`${result.type}-${result.id}`}
-                                    className="w-full px-4 py-3 text-left hover:bg-slate-100 dark:hover:bg-slate-800 flex items-start gap-3 transition-colors border-b border-slate-100 dark:border-slate-800 last:border-b-0"
+                                    className="w-full px-4 py-3 text-left hover:bg-white/5 flex items-start gap-4 transition-colors border-b border-indigo-900/20 last:border-b-0"
                                     onClick={() => handleSelect(result)}
                                 >
-                                    <div className="shrink-0 mt-0.5">
+                                    <div className="shrink-0 mt-1 p-2 rounded-lg bg-indigo-500/10">
                                         {getIcon(result.type)}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <div className="font-medium text-sm truncate">{result.title}</div>
+                                            <div className="font-semibold text-sm text-white truncate">{result.title}</div>
                                             {result.value && (
-                                                <div className="text-xs font-medium text-green-600 ml-2">
+                                                <div className="text-xs font-bold text-emerald-400 ml-2">
                                                     {formatValue(result.value)}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-xs text-muted-foreground truncate capitalize mt-0.5">
+                                        <div className="text-[11px] text-indigo-300/60 uppercase tracking-tight mt-0.5">
                                             {result.type} • {result.subtitle}
                                         </div>
                                         {result.description && (
-                                            <div className="text-xs text-muted-foreground truncate mt-1">
+                                            <div className="text-xs text-indigo-200/80 truncate mt-1">
                                                 {result.description}
                                             </div>
                                         )}
-                                        <div className="flex items-center justify-between mt-1">
+                                        <div className="flex items-center justify-between mt-2">
                                             {result.assignedTo && (
-                                                <div className="text-xs text-muted-foreground">
-                                                    Assigned to {result.assignedTo}
+                                                <div className="text-[10px] text-indigo-400/60 flex items-center">
+                                                    <div className="w-1 h-1 rounded-full bg-indigo-500 mr-2" />
+                                                    {result.assignedTo}
                                                 </div>
                                             )}
-                                            <div className="text-xs text-muted-foreground ml-auto">
+                                            <div className="text-[10px] text-indigo-400/60 ml-auto">
                                                 {formatDate(result.createdAt)}
                                             </div>
                                         </div>
@@ -238,10 +234,10 @@ export function GlobalSearch() {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-4 text-center text-sm text-muted-foreground">
-                            <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            No results found for "{query}".
-                            <div className="text-xs mt-1">Try different keywords or check spelling.</div>
+                        <div className="p-8 text-center text-sm text-indigo-300/70">
+                            <Search className="h-10 w-10 mx-auto mb-3 text-indigo-900/50" />
+                            <p className="font-medium text-white">No results found</p>
+                            <p className="text-xs mt-1">Try different keywords for "{query}"</p>
                         </div>
                     )}
                 </div>

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getEmailLists, createEmailList, type EmailList } from "@/services/marketingService"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -49,7 +49,7 @@ export default function EmailListsPage() {
             setFormData({ name: "", description: "" })
             toast.success("Email list created successfully")
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to create list")
         }
     })

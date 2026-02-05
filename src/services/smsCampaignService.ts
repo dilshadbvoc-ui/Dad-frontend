@@ -8,7 +8,7 @@ export interface SMSCampaign {
     scheduledAt?: string;
     sentAt?: string;
     recipientCount: number;
-    stats?: any;
+    stats?: Record<string, number>;
     createdAt: string;
 }
 

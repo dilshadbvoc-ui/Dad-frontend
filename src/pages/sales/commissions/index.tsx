@@ -52,27 +52,29 @@ export default function CommissionsPage() {
     });
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => createCommission({ ...data, amount: parseFloat(data.amount) }),
+        mutationFn: (data: Record<string, unknown>) =>
+            createCommission({ ...data, amount: typeof data.amount === 'string' ? parseFloat(data.amount) : (data.amount as number) } as unknown as Commission),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['commissions'] });
             setIsDialogOpen(false);
             resetForm();
             toast.success("Commission added successfully");
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to add commission");
         }
     });
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string, data: any }) => updateCommission(id, { ...data, amount: parseFloat(data.amount) }),
+        mutationFn: ({ id, data }: { id: string, data: Record<string, unknown> }) =>
+            updateCommission(id, { ...data, amount: typeof data.amount === 'string' ? parseFloat(data.amount) : (data.amount as number) } as unknown as Commission),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['commissions'] });
             setIsDialogOpen(false);
             resetForm();
             toast.success("Commission updated successfully");
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to update commission");
         }
     });

@@ -122,7 +122,8 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
             finalOnOpenChange?.(false)
             form.reset()
         },
-        onError: (error: any) => {
+        onError: (err: unknown) => {
+            const error = err as { response?: { data?: { message?: string } } };
             toast.error(error.response?.data?.message || `Failed to ${rule ? 'update' : 'create'} rule`)
         },
     })
@@ -277,7 +278,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    {users?.map((user: any) => (
+                                                    {users?.map((user: { id: string, firstName: string, lastName: string }) => (
                                                         <SelectItem key={user.id} value={user.id}>
                                                             {user.firstName} {user.lastName}
                                                         </SelectItem>
@@ -362,7 +363,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                             <div className="space-y-2">
                                 <FormLabel>Select Users for Round Robin Distribution</FormLabel>
                                 <div className="border rounded-lg p-3 max-h-[150px] overflow-y-auto space-y-2">
-                                    {users?.map((user: any) => {
+                                    {users?.map((user: { id: string, firstName: string, lastName: string, dailyLeadQuota?: number }) => {
                                         const currentUsers = form.watch('assignTo.users') || [];
                                         const isSelected = currentUsers.includes(user.id);
                                         return (

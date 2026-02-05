@@ -1,149 +1,29 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, Trash2, AlertTriangle, Phone, MessageCircle } from "lucide-react"
+import { ArrowUpDown, Phone, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
-import { deleteLead, type Lead } from "@/services/leadService"
+import { type Lead } from "@/services/leadService"
 import { format } from "date-fns"
-import { useNavigate } from "react-router-dom"
-import { useQueryClient } from "@tanstack/react-query"
-import { toast } from "sonner"
-import { useState } from "react"
+import { ActionsCell } from "./ActionsCell"
 
-// Actions cell component with state management
-function ActionsCell({ lead }: { lead: Lead }) {
-    const navigate = useNavigate()
-    const queryClient = useQueryClient()
-    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
-    const [isDeleting, setIsDeleting] = useState(false)
-
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    const canDelete = userInfo.role === 'admin' || userInfo.role === 'super_admin'
-
-    const handleDelete = async () => {
-        setIsDeleting(true)
-        try {
-            await deleteLead(lead.id)
-            toast.success('Lead deleted successfully')
-            queryClient.invalidateQueries({ queryKey: ['leads'] })
-            setShowDeleteDialog(false)
-        } catch (error: any) {
-            toast.error(error.message || 'Failed to delete lead')
-        } finally {
-            setIsDeleting(false)
-        }
-    }
-
-    return (
-        <>
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(lead.id)}>
-                        Copy ID
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate(`/leads/${lead.id}`)}>
-                        View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Edit Lead</DropdownMenuItem>
-
-                    {canDelete && (
-                        <>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => setShowDeleteDialog(true)}
-                                className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                            >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete Lead
-                            </DropdownMenuItem>
-                        </>
-                    )}
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-            <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
-                                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                                <AlertDialogTitle>Delete Lead</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Are you sure you want to delete <strong>{lead.firstName} {lead.lastName}</strong>? This action cannot be undone.
-                                </AlertDialogDescription>
-                            </div>
-                        </div>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700 text-white"
-                        >
-                            {isDeleting ? 'Deleting...' : 'Delete Lead'}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
-        </>
-    )
-}
+import { NameCell } from "./NameCell"
 
 export const columns: ColumnDef<Lead>[] = [
     {
         accessorKey: "firstName",
-        header: ({ column }: any) => {
+        header: ({ column }) => {
             return (
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="hover:bg-white/5 text-indigo-300"
                 >
                     Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
-        cell: ({ row }: any) => {
-            const lead = row.original
-            // eslint-disable-next-line react-hooks/rules-of-hooks
-            const navigate = useNavigate()
-            return (
-                <div
-                    className="font-medium cursor-pointer hover:underline text-blue-600"
-                    onClick={() => navigate(`/leads/${lead.id}`)}
-                >
-                    {lead.firstName} {lead.lastName}
-                </div>
-            )
-        }
+        cell: ({ row }) => <NameCell lead={row.original} />
     },
     {
         accessorKey: "email",
@@ -154,61 +34,69 @@ export const columns: ColumnDef<Lead>[] = [
         header: "Company",
     },
     {
+        accessorKey: "source",
+        header: "Source",
+        cell: ({ row }) => {
+            const source = row.getValue("source") as string
+            return <Badge variant="outline" className="capitalize bg-indigo-500/10 text-indigo-300 border-indigo-500/20">{source}</Badge>
+        }
+    },
+    {
         accessorKey: "leadScore",
-        header: ({ column }: any) => {
+        header: ({ column }) => {
             return (
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="hover:bg-white/5 text-indigo-300"
                 >
                     Score
                     <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
             )
         },
-        cell: ({ row }: any) => {
+        cell: ({ row }) => {
             const score = parseFloat(row.getValue("leadScore"))
-            return <div className={score > 50 ? "text-green-600 font-bold" : ""}>{score}</div>
+            return <div className={score > 50 ? "text-emerald-400 font-bold" : "text-indigo-200"}>{score}</div>
         }
     },
     {
         accessorKey: "status",
         header: "Status",
-        cell: ({ row }: any) => {
+        cell: ({ row }) => {
             const status = row.getValue("status") as string
-            let variant: "default" | "secondary" | "destructive" | "outline" = "default"
+            let className = "capitalize "
 
             switch (status) {
-                case 'new': variant = "default"; break; // Blue-ish usually
-                case 'contacted': variant = "secondary"; break;
-                case 'qualified': variant = "outline"; break; // Green in custom css maybe
-                case 'converted': variant = "outline"; break;
-                case 'lost': variant = "destructive"; break;
-                default: variant = "secondary";
+                case 'new': className += "bg-blue-500/10 text-blue-400 border-blue-500/20"; break;
+                case 'contacted': className += "bg-amber-500/10 text-amber-400 border-amber-500/20"; break;
+                case 'qualified': className += "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"; break;
+                case 'converted': className += "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"; break;
+                case 'lost': className += "bg-red-500/10 text-red-400 border-red-500/20"; break;
+                default: className += "bg-slate-500/10 text-slate-400 border-slate-500/20";
             }
 
-            return <Badge variant={variant} className="capitalize">{status}</Badge>
+            return <Badge variant="outline" className={className}>{status}</Badge>
         }
     },
     {
         accessorKey: "createdAt",
         header: "Created",
-        cell: ({ row }: any) => {
-            return <div>{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+        cell: ({ row }) => {
+            return <div className="text-indigo-300/70 text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
         }
     },
     {
         id: "contact",
         header: "Contact",
-        cell: ({ row }: any) => {
+        cell: ({ row }) => {
             const lead = row.original
-            const phone = lead.phone?.replace(/\D/g, '') // Remove non-digits
-            if (!phone) return <span className="text-muted-foreground text-xs">No phone</span>
+            const phone = lead.phone?.replace(/\D/g, '')
+            if (!phone) return <span className="text-indigo-300/40 text-xs italic">No phone</span>
 
             const logAndOpenWhatsApp = async (e: React.MouseEvent) => {
                 e.stopPropagation()
                 try {
-                    // Log the interaction
                     const userInfo = localStorage.getItem('userInfo')
                     const token = userInfo ? JSON.parse(userInfo).token : null
                     await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
@@ -249,7 +137,7 @@ export const columns: ColumnDef<Lead>[] = [
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="h-8 w-8 p-0 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
                         onClick={logAndOpenWhatsApp}
                         title="WhatsApp"
                     >
@@ -258,7 +146,7 @@ export const columns: ColumnDef<Lead>[] = [
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
                         onClick={logAndCall}
                         title="Call"
                     >
@@ -270,6 +158,6 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }: any) => <ActionsCell lead={row.original} />,
+        cell: ({ row }) => <ActionsCell lead={row.original} />,
     },
 ]

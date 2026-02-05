@@ -34,7 +34,8 @@ const Register = () => {
             localStorage.setItem('userInfo', JSON.stringify(data));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err: any) {
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
             setError(err.response?.data?.message || 'Registration failed');
             setIsLoading(false);
         }

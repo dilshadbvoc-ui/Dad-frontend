@@ -20,7 +20,8 @@ const ForgotPassword = () => {
             // Always show success to prevent email enumeration (backend handles this too)
             setIsSent(true);
             toast.success('If an account exists, a reset link has been sent.');
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             console.error(error);
             toast.error(error.response?.data?.message || 'Something went wrong');
         } finally {

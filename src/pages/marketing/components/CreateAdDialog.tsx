@@ -25,7 +25,7 @@ import { Loader2, ArrowRight, ArrowLeft, Check } from "lucide-react";
 interface CreateAdDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    organisation: any;
+    organisation: { integrations?: { meta?: { pageId?: string } } };
 }
 
 export function CreateAdDialog({ open, onOpenChange, organisation }: CreateAdDialogProps) {
@@ -85,9 +85,10 @@ export function CreateAdDialog({ open, onOpenChange, organisation }: CreateAdDia
             queryClient.invalidateQueries({ queryKey: ['meta-campaigns'] });
             onOpenChange(false);
             setStep(1);
-        } catch (error: any) {
-            console.error('Ad creation error:', error);
-            toast.error(error.response?.data?.message || "Failed to create ad campaign");
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            console.error('Ad creation error:', err);
+            toast.error(err.response?.data?.message || "Failed to create ad campaign");
         } finally {
             setLoading(false);
         }

@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { Plus, Trash2, GitBranch, ArrowRight } from "lucide-react";
 import {
@@ -18,7 +17,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
+
 
 export default function PipelinesPage() {
     const queryClient = useQueryClient();
@@ -34,7 +33,7 @@ export default function PipelinesPage() {
     });
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => createPipeline({
+        mutationFn: (data: { name: string, stagesStr: string }) => createPipeline({
             name: data.name,
             stages: data.stagesStr.split(',').map((s: string, i: number) => ({
                 name: s.trim(),
@@ -52,7 +51,7 @@ export default function PipelinesPage() {
             });
             toast.success("Pipeline created");
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || "Failed to create pipeline");
         }
     });

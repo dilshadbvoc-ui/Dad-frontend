@@ -38,8 +38,8 @@ export default function SupportPage() {
         createMutation.mutate({
             subject: formData.get('subject') as string,
             description: formData.get('description') as string,
-            type: formData.get('type') as any,
-            priority: formData.get('priority') as any,
+            type: formData.get('type') as 'question' | 'problem' | 'feature_request',
+            priority: formData.get('priority') as 'low' | 'medium' | 'high' | 'critical',
             status: 'new'
         })
     }

@@ -1,10 +1,19 @@
 import { api } from './api';
 
+export interface WebFormField {
+    label: string;
+    name: string;
+    type: string;
+    required: boolean;
+    placeholder?: string;
+    options?: string[];
+}
+
 export interface WebForm {
     id: string;
     name: string;
     description?: string;
-    fields: any[]; // JSON definition of fields
+    fields: WebFormField[]; // JSON definition of fields
     submitAction: string; // 'message', 'redirect'
     submitMessage?: string;
     redirectUrl?: string;
@@ -16,7 +25,7 @@ export interface WebForm {
 export interface CreateWebFormData {
     name: string;
     description?: string;
-    fields?: any[];
+    fields?: WebFormField[];
 }
 
 export const getWebForms = async () => {

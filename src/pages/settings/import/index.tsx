@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowRight, Upload, FileText, Check, AlertCircle, Loader2 } from "lucide-react"
+import { Upload, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
@@ -31,7 +31,7 @@ export default function ImportPage() {
     const [step, setStep] = useState(1) // 1: Upload, 2: Map, 3: Review/Importing
     const [file, setFile] = useState<File | null>(null)
     const [headers, setHeaders] = useState<string[]>([])
-    const [previewData, setPreviewData] = useState<any[]>([])
+    const [previewData, setPreviewData] = useState<Record<string, string | number | boolean | null>[]>([])
     const [mapping, setMapping] = useState<Record<string, string>>({})
     const [isImporting, setIsImporting] = useState(false)
 
@@ -56,7 +56,7 @@ export default function ImportPage() {
             complete: (results) => {
                 if (results.meta.fields) {
                     setHeaders(results.meta.fields)
-                    setPreviewData(results.data)
+                    setPreviewData(results.data as Record<string, string | number | boolean | null>[])
                     // Auto-map if headers match loosely
                     const initialMapping: Record<string, string> = {}
                     results.meta.fields.forEach(header => {
@@ -108,7 +108,8 @@ export default function ImportPage() {
             })
             toast.success("Import started successfully! You will be notified when complete.")
             navigate("/leads")
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             console.error("Import failed", error)
             toast.error(error.response?.data?.message || "Import failed")
         } finally {

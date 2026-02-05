@@ -4,17 +4,22 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/utils";
-import { MoreHorizontal, DollarSign, Calendar, AlertCircle } from "lucide-react";
+import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuSub,
+    DropdownMenuSubContent,
+    DropdownMenuSubTrigger,
+    DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { formatDistanceToNow, differenceInDays } from "date-fns";
+import { differenceInDays } from "date-fns";
 
 interface KanbanBoardProps {
     opportunities: Opportunity[];
@@ -62,11 +67,11 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
 
         // Optimistic update
         setOpportunities(prev => prev.map(opp =>
-            opp.id === id ? { ...opp, stage: stageId as any, updatedAt: new Date().toISOString() } : opp
+            opp.id === id ? { ...opp, stage: stageId as Opportunity['stage'], updatedAt: new Date().toISOString() } : opp
         ));
 
         try {
-            await updateOpportunity(id, { stage: stageId as any });
+            await updateOpportunity(id, { stage: stageId as Opportunity['stage'] });
         } catch (error) {
             console.error("Failed to update opportunity stage:", error);
             // Revert on failure (reload from props or fetch)
@@ -126,9 +131,19 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                     {opp.account.name}
                                                                 </div>
                                                             )}
-                                                            <h4 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-gray-100 leading-tight">
-                                                                {opp.name}
-                                                            </h4>
+                                                            <div className="flex items-start gap-2">
+                                                                <h4 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-gray-100 leading-tight">
+                                                                    {opp.name}
+                                                                </h4>
+                                                                {opp.paymentStatus === 'paid' && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger>
+                                                                            <CheckCircle2 className="h-4 w-4 text-green-500 fill-green-50" />
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>Payment Complete</TooltipContent>
+                                                                    </Tooltip>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                         <DropdownMenu>
                                                             <DropdownMenuTrigger asChild>
@@ -142,6 +157,54 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
                                                                 <DropdownMenuItem>Edit</DropdownMenuItem>
+
+                                                                <DropdownMenuSub>
+                                                                    <DropdownMenuSubTrigger>Move to Stage</DropdownMenuSubTrigger>
+                                                                    <DropdownMenuPortal>
+                                                                        <DropdownMenuSubContent>
+                                                                            {STAGES.map((s) => (
+                                                                                <DropdownMenuItem
+                                                                                    key={s.id}
+                                                                                    disabled={s.id === opp.stage}
+                                                                                    onClick={() => {
+                                                                                        const mockEvent = {
+                                                                                            preventDefault: () => { },
+                                                                                            dataTransfer: {
+                                                                                                getData: () => opp.id
+                                                                                            }
+                                                                                        } as unknown as React.DragEvent;
+                                                                                        handleDrop(mockEvent, s.id);
+                                                                                        toast.success(`Moved to ${s.label}`);
+                                                                                    }}
+                                                                                >
+                                                                                    {s.label}
+                                                                                </DropdownMenuItem>
+                                                                            ))}
+                                                                        </DropdownMenuSubContent>
+                                                                    </DropdownMenuPortal>
+                                                                </DropdownMenuSub>
+
+                                                                {opp.stage === 'closed_won' && opp.paymentStatus !== 'paid' && (
+                                                                    <DropdownMenuItem
+                                                                        onClick={async () => {
+                                                                            // Optimistic update
+                                                                            setOpportunities(prev => prev.map(o =>
+                                                                                o.id === opp.id ? { ...o, paymentStatus: 'paid', paymentDate: new Date().toISOString() } : o
+                                                                            ));
+                                                                            try {
+                                                                                await updateOpportunity(opp.id, { paymentStatus: 'paid', paymentDate: new Date().toISOString() });
+                                                                                toast.success("Marked as Paid");
+                                                                            } catch {
+                                                                                toast.error("Failed to update status");
+                                                                                // Revert
+                                                                            }
+                                                                        }}
+                                                                        className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                                                                    >
+                                                                        Mark as Paid
+                                                                    </DropdownMenuItem>
+                                                                )}
+
                                                                 <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
@@ -209,7 +272,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                         </div>
                     );
                 })}
-            </TooltipProvider>
-        </div>
+            </TooltipProvider >
+        </div >
     );
 }

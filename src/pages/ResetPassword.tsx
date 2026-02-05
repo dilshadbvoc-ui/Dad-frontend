@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 
 interface FormData {
@@ -28,7 +28,8 @@ const ResetPassword = () => {
             await api.put(`/auth/reset-password/${resetToken}`, { password: data.password });
             toast.success('Password reset successful! You can now login.');
             navigate('/login');
-        } catch (error: any) {
+        } catch (err: unknown) {
+            const error = err as { response?: { data?: { message?: string } } };
             console.error(error);
             toast.error(error.response?.data?.message || 'Failed to reset password');
         } finally {

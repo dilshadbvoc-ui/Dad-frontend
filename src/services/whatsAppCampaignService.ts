@@ -8,9 +8,9 @@ export interface WhatsAppCampaign {
     status: 'draft' | 'scheduled' | 'sent' | 'failed';
     scheduledAt?: string;
     sentAt?: string;
-    recipients?: any;
+    recipients?: string[] | { leadIds?: string[]; segmentId?: string[] };
     testNumber?: string;
-    stats?: any;
+    stats?: Record<string, number>;
     createdAt: string;
 }
 

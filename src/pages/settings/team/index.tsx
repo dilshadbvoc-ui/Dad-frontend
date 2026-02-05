@@ -59,12 +59,14 @@ export default function TeamSettingsPage() {
             email: formData.get('email') as string,
             position: formData.get('position') as string,
             reportsTo: formData.get('reportsTo') === 'none' ? undefined : formData.get('reportsTo') as string,
+            role: formData.get('role') as string,
             password: formData.get('password') as string,
             dailyLeadQuota: quotaValue ? parseInt(quotaValue) : null
         }
 
         if (selectedUser) {
-            updateMutation.mutate({ ...userData, id: selectedUser.id } as Partial<User> & { id: string })
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            updateMutation.mutate({ ...userData, id: selectedUser.id } as any)
         } else {
             inviteMutation.mutate(userData)
         }
@@ -106,6 +108,18 @@ export default function TeamSettingsPage() {
                                                             {users.filter((u: User) => u.id !== selectedUser?.id).map((u: User) => (
                                                                 <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
                                                             ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div>
+                                                    <Label>Role</Label>
+                                                    <Select name="role" defaultValue={selectedUser?.role?.name || "sales_rep"}>
+                                                        <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="sales_rep">Sales Rep (Field Force)</SelectItem>
+                                                            <SelectItem value="manager">Manager</SelectItem>
+                                                            <SelectItem value="admin">Admin</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                 </div>

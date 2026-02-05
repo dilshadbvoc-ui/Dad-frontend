@@ -4,7 +4,7 @@ export interface LandingPage {
     id: string;
     name: string;
     slug: string;
-    content?: any;
+    content?: Record<string, unknown>;
     html?: string;
     status: 'draft' | 'published' | 'archived';
     publishedAt?: string;
@@ -16,9 +16,9 @@ export interface LandingPage {
 export interface CreateLandingPageData {
     name: string;
     slug: string;
-    content?: any;
+    content?: Record<string, unknown>;
     html?: string;
-    status?: string;
+    status?: 'draft' | 'published' | 'archived';
 }
 
 export const getLandingPages = async () => {

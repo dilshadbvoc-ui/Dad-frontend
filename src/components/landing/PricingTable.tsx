@@ -37,7 +37,7 @@ export default function PricingTable() {
     // Assuming backend 'price' is monthly flat rate.
     // If backend doesn't have yearlyPrice, we can calculate it (e.g. x10 or x12 with discount).
 
-    const displayPlans = serverPlans?.length ? serverPlans.map((p: any) => ({
+    const displayPlans = serverPlans?.length ? serverPlans.map((p: { price: number, name: string, features?: string[], maxUsers: number, durationDays: number, id: string }) => ({
         ...p,
         monthlyPrice: p.price,
         yearlyPrice: p.price * 10, // 2 months free metric
@@ -74,7 +74,7 @@ export default function PricingTable() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    {displayPlans.map((plan: any, index: number) => (
+                    {displayPlans.map((plan: { id?: string, name: string, description?: string, monthlyPrice: number, yearlyPrice: number, popular: boolean, features: string[] }, index: number) => (
                         <motion.div
                             key={plan.id || plan.name}
                             initial={{ opacity: 0, y: 20 }}

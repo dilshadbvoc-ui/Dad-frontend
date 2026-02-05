@@ -3,48 +3,48 @@
 
 @layer base {
   :root {
-    /* Clean Grey Background */
-    --background: 0 0% 100%;
-    /* Dark Grey Text */
-    --foreground: 240 10% 4%;
+    /* Deep Indigo Background */
+    --background: 240 10% 4%;
+    /* White Text */
+    --foreground: 0 0% 98%;
 
-    /* White Cards */
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 4%;
+    /* Dark Indigo Cards */
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 98%;
 
     /* Popovers same as cards */
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 4%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 98%;
 
-    /* Vibrant Purple Primary */
-    --primary: 262 83% 58%;
-    /* White text on purple */
+    /* Vibrant Indigo Primary (Matches Sidebar) */
+    --primary: 243 75% 59%;
+    /* White text on indigo */
     --primary-foreground: 210 40% 98%;
 
-    /* Soft Grey Secondary */
-    --secondary: 240 5% 96%;
-    --secondary-foreground: 240 6% 10%;
+    /* Dark Secondary */
+    --secondary: 240 4% 16%;
+    --secondary-foreground: 0 0% 98%;
 
-    /* Muted Grey */
-    --muted: 240 5% 96%;
-    --muted-foreground: 240 4% 46%;
+    /* Muted Indigo */
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
 
-    /* Accent (Hover states) - Light Purple hint */
-    --accent: 262 83% 97%;
-    --accent-foreground: 240 6% 10%;
+    /* Accent (Hover states) */
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
 
     /* Destructive - Red */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    /* Light Grey Border */
-    --border: 240 6% 90%;
-    --input: 240 6% 90%;
+    /* Indigo Border */
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
 
     /* Ring matches primary */
-    --ring: 262 83% 58%;
+    --ring: 243 75% 59%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   .dark {
@@ -58,8 +58,8 @@
     --popover: 240 10% 6%;
     --popover-foreground: 0 0% 98%;
 
-    /* Light Purple for Dark Mode Primary */
-    --primary: 263 70% 50%;
+    /* Light Indigo for Dark Mode Primary */
+    --primary: 243 70% 50%;
     --primary-foreground: 0 0% 98%;
 
     --secondary: 240 4% 16%;
@@ -196,44 +196,46 @@
 
 /* Mobile-First Responsive Enhancements */
 @layer utilities {
+
   /* Touch-friendly buttons on mobile */
   @media (max-width: 768px) {
     .btn-touch {
       min-height: 44px;
       min-width: 44px;
     }
-    
+
     /* Larger tap targets for mobile */
-    button, [role="button"] {
+    button,
+    [role="button"] {
       min-height: 40px;
     }
-    
+
     /* Better spacing on mobile */
     .mobile-spacing {
       padding: 1rem;
     }
-    
+
     /* Mobile-optimized tables */
     .table-mobile {
       font-size: 0.875rem;
     }
-    
+
     .table-mobile th,
     .table-mobile td {
       padding: 0.5rem 0.25rem;
     }
-    
+
     /* Hide less important columns on mobile */
     .hide-mobile {
       display: none;
     }
-    
+
     /* Stack form elements on mobile */
     .form-mobile {
       flex-direction: column;
       gap: 1rem;
     }
-    
+
     /* Mobile-friendly modals */
     .modal-mobile {
       margin: 1rem;
@@ -241,89 +243,89 @@
       overflow-y: auto;
     }
   }
-  
+
   /* Tablet optimizations */
   @media (min-width: 768px) and (max-width: 1024px) {
     .hide-tablet {
       display: none;
     }
-    
+
     .show-tablet {
       display: block;
     }
   }
-  
+
   /* Desktop optimizations */
   @media (min-width: 1024px) {
     .hide-desktop {
       display: none;
     }
-    
+
     .show-desktop {
       display: block;
     }
   }
-  
+
   /* Improved focus states for accessibility */
   .focus-enhanced:focus {
     outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
-  
+
   /* Better scrollbars */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted)) transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar {
     width: 6px;
     height: 6px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-track {
     background: transparent;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--muted));
     border-radius: 3px;
   }
-  
+
   .scrollbar-thin::-webkit-scrollbar-thumb:hover {
     background-color: hsl(var(--muted-foreground));
   }
-  
+
   /* Loading states */
   .loading-shimmer {
-    background: linear-gradient(90deg, 
-      hsl(var(--muted)) 25%, 
-      hsl(var(--muted-foreground) / 0.1) 50%, 
-      hsl(var(--muted)) 75%
-    );
+    background: linear-gradient(90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--muted-foreground) / 0.1) 50%,
+        hsl(var(--muted)) 75%);
     background-size: 200% 100%;
     animation: shimmer 2s infinite;
   }
-  
+
   @keyframes shimmer {
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
   }
-  
+
   /* Enhanced card hover effects */
   .card-hover {
     transition: all 0.2s ease-in-out;
   }
-  
+
   .card-hover:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
   }
-  
+
   /* Status indicators */
   .status-dot {
     width: 8px;
@@ -332,28 +334,28 @@
     display: inline-block;
     margin-right: 0.5rem;
   }
-  
+
   .status-active {
     background-color: #10b981;
   }
-  
+
   .status-inactive {
     background-color: #ef4444;
   }
-  
+
   .status-pending {
     background-color: #f59e0b;
   }
-  
+
   /* Gradient backgrounds for visual appeal */
   .gradient-primary {
     background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
   }
-  
+
   .gradient-secondary {
     background: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--muted)) 100%);
   }
-  
+
   /* Text truncation utilities */
   .truncate-2 {
     display: -webkit-box;
@@ -361,7 +363,7 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-  
+
   .truncate-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
@@ -375,11 +377,11 @@
   .no-print {
     display: none !important;
   }
-  
+
   .print-break {
     page-break-after: always;
   }
-  
+
   .print-avoid-break {
     page-break-inside: avoid;
   }
@@ -395,6 +397,7 @@
 
 /* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

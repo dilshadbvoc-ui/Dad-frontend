@@ -18,7 +18,6 @@ import { AssignLeadDialog } from "@/components/AssignLeadDialog"
 import { SetFollowUpDialog } from "@/components/SetFollowUpDialog"
 import { useState } from "react"
 import { toast } from "sonner"
-import { format, formatDistanceToNow } from "date-fns"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
@@ -82,7 +81,7 @@ export default function LeadDetailPage() {
         }
     })
 
-    const { data: calls, refetch } = useQuery({
+    const { data: calls } = useQuery({
         queryKey: ['calls', id],
         queryFn: async () => (await api.get(`/calls/lead/${id}`)).data,
         enabled: id !== 'new'

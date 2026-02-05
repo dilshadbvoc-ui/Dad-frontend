@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { Check, CreditCard, Loader2, Sparkles } from 'lucide-react';
 import { billingService } from '@/services/billingService';
@@ -26,7 +25,7 @@ export default function BillingSettingsPage() {
         queryFn: getSubscriptionPlans
     });
 
-    const plans = data?.plans || [];
+    const plans = useMemo(() => data?.plans || [], [data]);
 
     useEffect(() => {
         if (plans.length > 0 && currentPlanId) {

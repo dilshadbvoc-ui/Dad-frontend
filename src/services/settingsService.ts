@@ -58,6 +58,22 @@ export interface IntegrationSettings {
     entryPoint?: string;
     issuer?: string;
     cert?: string;
+    // General Integration Fields (Generic)
+    apiKey?: string;
+    apiSecret?: string;
+    endpoint?: string;
+    locationId?: string;
+    businessId?: string;
+    clientEmail?: string;
+    customerId?: string;
+}
+
+export interface LeadScoringConfig {
+    emailOpened: number
+    linkClicked: number
+    formSubmitted: number
+    callConnected: number
+    websiteVisit: number
 }
 
 export interface OrganisationUpdateData {
@@ -68,6 +84,7 @@ export interface OrganisationUpdateData {
     address?: string;
     integrations?: Record<string, IntegrationSettings>;
     ssoConfig?: IntegrationSettings;
+    leadScoringConfig?: LeadScoringConfig;
 }
 
 export const getUsers = async () => {

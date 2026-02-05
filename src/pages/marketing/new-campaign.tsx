@@ -32,12 +32,12 @@ export default function CreateCampaignPage() {
     const { data: lists } = useQuery({ queryKey: ['emailLists'], queryFn: () => getEmailLists() })
 
     const createMutation = useMutation({
-        mutationFn: (data: any) => createCampaign(data),
+        mutationFn: (data: { name: string; subject: string; emailList: string; content: string }) => createCampaign(data),
         onSuccess: () => {
             toast.success("Campaign created successfully")
             navigate('/marketing')
         },
-        onError: (error: any) => {
+        onError: (error: { message: string }) => {
             toast.error(`Error: ${error.message}`)
         }
     })
@@ -109,7 +109,7 @@ export default function CreateCampaignPage() {
                                         <SelectValue placeholder="Select a list..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {lists?.map((l: any) => (
+                                        {lists?.map((l: { id: string, name: string, contacts?: unknown[] }) => (
                                             <SelectItem key={l.id} value={l.id}>{l.name} ({l.contacts?.length || 0} contacts)</SelectItem>
                                         ))}
                                         {(!lists || lists.length === 0) && (

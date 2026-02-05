@@ -72,7 +72,7 @@ export function LogCallDialog({ open, onOpenChange, leadId, leadPhone, onSuccess
             }
 
             // Listen for call completion from mobile (Socket)
-            socketService.on('call_completed', (data) => {
+            socketService.on<{ callId: string }>('call_completed', (data) => {
                 if (data.callId && data.callId === currentCallId) {
                     toast.success('Call recording received from device!');
                     setWaitingForDevice(false);

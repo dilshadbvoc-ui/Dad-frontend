@@ -7,8 +7,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Calendar, DollarSign, Target, Briefcase } from "lucide-react"
+import { Calendar, DollarSign, Target } from "lucide-react"
 
 export interface Opportunity {
     id: string

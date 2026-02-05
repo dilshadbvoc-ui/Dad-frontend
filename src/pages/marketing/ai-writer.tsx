@@ -1,11 +1,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, Copy, Check } from "lucide-react";
+import { Sparkles, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { api } from "@/services/api";
 
@@ -36,9 +35,10 @@ export default function AiWriterPage() {
             } else {
                 toast.error("Failed to generate content");
             }
-        } catch (error: any) {
-            console.error('AI Generation Error:', error);
-            toast.error(error.response?.data?.message || "Something went wrong");
+        } catch (error: unknown) {
+            const err = error as { response?: { data?: { message?: string } } };
+            console.error('AI Generation Error:', err);
+            toast.error(err.response?.data?.message || "Something went wrong");
         } finally {
             setIsLoading(false);
         }
