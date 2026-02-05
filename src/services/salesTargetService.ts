@@ -60,6 +60,7 @@ export interface AssignTargetInput {
     productId?: string;
     metric?: 'revenue' | 'units';
     scope?: 'INDIVIDUAL' | 'HIERARCHY';
+    opportunityType?: 'NEW_BUSINESS' | 'UPSALE';
 }
 
 export interface UpdateTargetInput {
