@@ -66,7 +66,7 @@ export function GlobalSearch() {
                 try {
                     const response = await api.get(`/search/suggestions?q=${encodeURIComponent(value)}`)
                     const searchData = response.data.data || response.data;
-                    setSuggestions(searchData.suggestions || [])
+                    setSuggestions(Array.isArray(searchData.suggestions) ? searchData.suggestions : [])
                 } catch (error) {
                     console.error("Suggestions failed", error)
                     setSuggestions([])
@@ -88,7 +88,7 @@ export function GlobalSearch() {
             try {
                 const response = await api.get(`/search/global?q=${encodeURIComponent(value)}&limit=20`)
                 const searchData = response.data.data || response.data;
-                setResults(searchData.results || [])
+                setResults(Array.isArray(searchData.results) ? searchData.results : [])
             } catch (error) {
                 console.error("Search failed", error)
                 setResults([])

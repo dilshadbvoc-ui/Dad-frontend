@@ -20,7 +20,7 @@ export function NotificationPopover() {
         // refetchInterval: 30000 // Poll every 30s
     })
 
-    const notifications = data?.notifications || []
+    const notifications = Array.isArray(data?.notifications) ? data.notifications : []
     const unreadCount = data?.unreadCount || 0
 
     const markReadMutation = useMutation({
