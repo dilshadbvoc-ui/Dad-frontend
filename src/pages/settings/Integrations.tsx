@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { Button } from "@/components/ui/button";
@@ -38,6 +38,15 @@ export default function IntegrationsPage() {
         queryKey: ['organisation'],
         queryFn: getOrganisation
     });
+
+    // Debug: Check Facebook SDK Status
+    useEffect(() => {
+        if (window.FB) {
+            window.FB.getLoginStatus(function (response: any) {
+                console.log('FB Login Status:', response);
+            });
+        }
+    }, []);
 
     const integrations = orgData?.integrations || {};
 
@@ -260,6 +269,24 @@ export default function IntegrationsPage() {
                                 </div>
                             )}
 
+                            {/* Debug: Client-side Login Button */}
+                            {integration.id === 'facebook' && (
+                                <div className="mb-4 p-2 bg-indigo-950/30 rounded border border-indigo-500/20 text-center">
+                                    <p className="text-xs text-indigo-400 mb-2">Client SDK Test</p>
+                                    <div
+                                        className="fb-login-button"
+                                        data-width=""
+                                        data-size="large"
+                                        data-button-type="continue_with"
+                                        data-layout="default"
+                                        data-auto-logout-link="false"
+                                        data-use-continue-as="false"
+                                        data-scope="public_profile,email"
+                                        data-onlogin="checkLoginState();">
+                                    </div>
+                                </div>
+                            )}
+
                             <div className="mt-auto flex justify-end">
                                 {integration.link ? (
                                     <Button
@@ -301,6 +328,6 @@ export default function IntegrationsPage() {
                 integrationType={activeConfigType!}
                 initialValues={integrations[activeConfigType!] || {}}
             />
-        </div>
+        </div >
     );
 }
