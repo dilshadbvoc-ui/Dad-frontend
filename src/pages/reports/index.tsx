@@ -9,11 +9,31 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Download, TrendingUp, Users, DollarSign, Target, BarChart3, PieChart as PieIcon, Calendar, ArrowUpRight } from "lucide-react"
 import { api } from "@/services/api"
 import { getUsers } from "@/services/settingsService"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
+// TEMPORARILY DISABLED FOR DEBUGGING
+// import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 
 const COLORS = ['#22c55e', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 export default function ReportsPage() {
+    // TEMPORARILY DISABLED FOR DEBUGGING
+    return (
+        <div className="p-8">
+            <Card>
+                <CardHeader>
+                    <CardTitle>Reports - Temporarily Disabled</CardTitle>
+                    <CardDescription>Charts are temporarily disabled for debugging purposes</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <p className="text-muted-foreground">
+                        The reports page is temporarily disabled while we fix a chart rendering issue.
+                        Please check back soon.
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+    );
+    
+    /* ORIGINAL CODE COMMENTED OUT FOR DEBUGGING
     const [dateRange] = useState({ start: '', end: '' })
 
     // --- Leads Report State ---

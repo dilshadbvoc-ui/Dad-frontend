@@ -6,6 +6,8 @@ import {
     XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, Legend, AreaChart, Area
 } from 'recharts';
+// TEMPORARILY DISABLED FOR DEBUGGING - Analytics page charts
+/*
 import {
     TrendingUp,
     Users,
@@ -61,6 +63,20 @@ interface TopLead {
 const COLORS = ['#0ea5e9', '#22c55e', '#eab308', '#f97316', '#ef4444']; // Blue, Green, Yellow, Orange, Red
 
 export default function AnalyticsPage() {
+    // TEMPORARILY DISABLED FOR DEBUGGING
+    return (
+        <div className="p-8">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                <h1 className="text-2xl font-bold mb-4">Analytics - Temporarily Disabled</h1>
+                <p className="text-gray-600 dark:text-gray-400">
+                    The analytics page is temporarily disabled while we fix a chart rendering issue.
+                    Please check back soon.
+                </p>
+            </div>
+        </div>
+    );
+    
+    /* ORIGINAL CODE COMMENTED OUT FOR DEBUGGING
     const [timeRange, setTimeRange] = useState("6m");
 
     // Fetch API Data with default values
