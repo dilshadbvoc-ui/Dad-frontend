@@ -63,25 +63,57 @@ const COLORS = ['#0ea5e9', '#22c55e', '#eab308', '#f97316', '#ef4444']; // Blue,
 export default function AnalyticsPage() {
     const [timeRange, setTimeRange] = useState("6m");
 
-    // Fetch API Data
-    const { data: stats } = useQuery({
+    // Fetch API Data with default values
+    const { data: stats = {} as DashboardStats } = useQuery({
         queryKey: ['analytics-stats'],
-        queryFn: async () => (await api.get<DashboardStats>('/analytics/dashboard')).data
+        queryFn: async () => {
+            try {
+                const response = await api.get<DashboardStats>('/analytics/dashboard');
+                return response.data || {} as DashboardStats;
+            } catch (error) {
+                console.error('Error fetching analytics stats:', error);
+                return {} as DashboardStats;
+            }
+        }
     });
 
-    const { data: salesData } = useQuery({
+    const { data: salesData = [] } = useQuery({
         queryKey: ['analytics-sales'],
-        queryFn: async () => (await api.get<SalesDataPoint[]>('/analytics/sales-chart')).data
+        queryFn: async () => {
+            try {
+                const response = await api.get<SalesDataPoint[]>('/analytics/sales-chart');
+                return Array.isArray(response.data) ? response.data : [];
+            } catch (error) {
+                console.error('Error fetching sales data:', error);
+                return [];
+            }
+        }
     });
 
-    const { data: leadSources } = useQuery({
+    const { data: leadSources = [] } = useQuery({
         queryKey: ['analytics-sources'],
-        queryFn: async () => (await api.get<LeadSourceData[]>('/analytics/lead-sources')).data
+        queryFn: async () => {
+            try {
+                const response = await api.get<LeadSourceData[]>('/analytics/lead-sources');
+                return Array.isArray(response.data) ? response.data : [];
+            } catch (error) {
+                console.error('Error fetching lead sources:', error);
+                return [];
+            }
+        }
     });
 
-    const { data: topLeads } = useQuery({
+    const { data: topLeads = [] } = useQuery({
         queryKey: ['analytics-topleads'],
-        queryFn: async () => (await api.get<TopLead[]>('/analytics/top-leads')).data
+        queryFn: async () => {
+            try {
+                const response = await api.get<TopLead[]>('/analytics/top-leads');
+                return Array.isArray(response.data) ? response.data : [];
+            } catch (error) {
+                console.error('Error fetching top leads:', error);
+                return [];
+            }
+        }
     });
 
     interface Insight {
@@ -91,9 +123,17 @@ export default function AnalyticsPage() {
         icon: string;
     }
 
-    const { data: insights } = useQuery({
+    const { data: insights = [] } = useQuery({
         queryKey: ['analytics-insights'],
-        queryFn: async () => (await api.get<Insight[]>('/analytics/insights')).data
+        queryFn: async () => {
+            try {
+                const response = await api.get<Insight[]>('/analytics/insights');
+                return Array.isArray(response.data) ? response.data : [];
+            } catch (error) {
+                console.error('Error fetching insights:', error);
+                return [];
+            }
+        }
     });
 
     const formatCurrency = (amount: number) => {
