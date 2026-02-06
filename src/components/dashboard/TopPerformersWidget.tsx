@@ -10,6 +10,7 @@ export function TopPerformersWidget() {
         queryFn: async () => {
             try {
                 const res = await api.get('/analytics/top-performers');
+                console.log('Top Performers Raw:', res.data, 'Is Array:', Array.isArray(res.data));
                 // Ensure it's always an array
                 return Array.isArray(res.data) ? res.data : [];
             } catch (error) {
@@ -21,6 +22,8 @@ export function TopPerformersWidget() {
 
     // Additional safety check
     const performersList = Array.isArray(performers) ? performers : [];
+    
+    console.log('Top Performers List:', performersList, 'Length:', performersList.length);
 
     return (
         <Card className="col-span-2 rounded-3xl bg-gradient-to-br from-indigo-50 to-white shadow-sm border-0">
