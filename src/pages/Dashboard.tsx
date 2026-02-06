@@ -17,6 +17,7 @@ import { Icons } from "@/components/ui/icons";
 import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw } from "lucide-react";
 import { ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, Area, AreaChart, CartesianGrid } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ensureArray } from "@/hooks/useArrayData";
 
 
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
@@ -32,10 +33,23 @@ export default function Dashboard() {
     }, []);
 
     const { data: stats, isLoading: statsLoading } = useQuery({ queryKey: ['dashboardStats'], queryFn: getDashboardStats });
-    const { data: salesData, isLoading: chartLoading } = useQuery({ queryKey: ['salesChart'], queryFn: getSalesChartData });
-
+    const { data: salesDataRaw, isLoading: chartLoading } = useQuery({ queryKey: ['salesChart'], queryFn: getSalesChartData });
     const { data: forecast, isLoading: forecastLoading } = useQuery({ queryKey: ['forecast'], queryFn: getSalesForecast });
-    const { data: leadSources, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
+    const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
+
+    // Ensure data is always an array
+    const salesData = ensureArray(salesDataRaw);
+    const leadSources = ensureArray(leadSourcesRaw);
+
+    // Debug logging
+    useEffect(() => {
+        if (salesDataRaw) {
+            console.log('Sales Data Raw:', salesDataRaw, 'Is Array:', Array.isArray(salesDataRaw));
+        }
+        if (leadSourcesRaw) {
+            console.log('Lead Sources Raw:', leadSourcesRaw, 'Is Array:', Array.isArray(leadSourcesRaw));
+        }
+    }, [salesDataRaw, leadSourcesRaw]);
 
 
     return (
@@ -208,7 +222,7 @@ export default function Dashboard() {
                                     <ResponsiveContainer width="100%" height={350}>
                                         <PieChart>
                                             <Pie
-                                                data={leadSources?.map((s: { source: string, count: number }) => ({ name: s.source, value: s.count })) || []}
+                                                data={leadSources.map((s: any) => ({ name: s.source, value: s.count }))}
                                                 cx="50%"
                                                 cy="50%"
                                                 innerRadius={60}
@@ -217,7 +231,7 @@ export default function Dashboard() {
                                                 dataKey="value"
                                                 stroke="none"
                                             >
-                                                {leadSources?.map((_entry: { source: string, count: number }, index: number) => (
+                                                {leadSources.map((_entry: any, index: number) => (
                                                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                                                 ))}
                                             </Pie>
@@ -239,7 +253,7 @@ export default function Dashboard() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                 )}
-                                {(!leadSources || leadSources.length === 0) && (
+                                {leadSources.length === 0 && (
                                     <div className="absolute inset-0 flex items-center justify-center text-muted-foreground text-sm pointer-events-none">
                                         No data available
                                     </div>
