@@ -303,7 +303,8 @@ exports.Prisma.OpportunityScalarFieldEnum = {
   organisationId: 'organisationId',
   paymentStatus: 'paymentStatus',
   paymentDate: 'paymentDate',
-  pipelineId: 'pipelineId'
+  pipelineId: 'pipelineId',
+  type: 'type'
 };
 
 exports.Prisma.ProductScalarFieldEnum = {
@@ -1074,6 +1075,11 @@ exports.LeadStatus = exports.$Enums.LeadStatus = {
   reborn: 'reborn'
 };
 
+exports.OpportunityType = exports.$Enums.OpportunityType = {
+  NEW_BUSINESS: 'NEW_BUSINESS',
+  UPSALE: 'UPSALE'
+};
+
 exports.TaskStatus = exports.$Enums.TaskStatus = {
   not_started: 'not_started',
   in_progress: 'in_progress',
@@ -1103,11 +1109,6 @@ exports.InteractionDirection = exports.$Enums.InteractionDirection = {
 exports.TargetScope = exports.$Enums.TargetScope = {
   INDIVIDUAL: 'INDIVIDUAL',
   HIERARCHY: 'HIERARCHY'
-};
-
-exports.OpportunityType = exports.$Enums.OpportunityType = {
-  NEW_BUSINESS: 'NEW_BUSINESS',
-  UPSALE: 'UPSALE'
 };
 
 exports.Prisma.ModelName = {

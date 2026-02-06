@@ -78,11 +78,18 @@ const httpServer = createServer(app);
 // Initialize Passport/SSO
 setupPassport();
 
+// Trust Proxy for Render/Vercel
+app.set('trust proxy', 1);
+
 app.use(session({
     secret: process.env.JWT_SECRET || 'secret_sso_key',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Set true if https
+    cookie: {
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        maxAge: 24 * 60 * 60 * 1000 // 24 hours
+    }
 }));
 
 app.use(passport.initialize());
@@ -104,7 +111,13 @@ app.use(compression()); // Enable gzip compression
 app.use('/api/', generalLimiter);
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174', 'https://dad-frontend-psi.vercel.app'],
+    origin: [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'https://dad-frontend-psi.vercel.app',
+        process.env.CLIENT_URL || '',
+        process.env.FRONTEND_URL || ''
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
 }));

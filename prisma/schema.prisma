@@ -370,6 +370,12 @@ model Opportunity {
   @@index([stage])
   @@index([accountId])
   @@index([pipelineId])
+  type           OpportunityType @default(NEW_BUSINESS)
+}
+
+enum OpportunityType {
+  NEW_BUSINESS
+  UPSALE
 }
 
 model Product {
@@ -832,10 +838,7 @@ enum TargetScope {
   HIERARCHY
 }
 
-enum OpportunityType {
-  NEW_BUSINESS
-  UPSALE
-}
+
 
 model Goal {
   id                 String       @id @default(uuid())

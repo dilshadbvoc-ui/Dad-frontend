@@ -288,21 +288,97 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'You cannot delete your own organisation' });
         }
 
-        // Delete the organisation
-        // User and other related data will be deleted via onDelete: Cascade relations
-        await prisma.organisation.delete({ where: { id: orgId } });
+        // CRITICAL FIX: Use SOFT DELETE instead of hard delete to prevent data loss
+        // This marks the organisation as deleted but preserves all data
+        await prisma.organisation.update({
+            where: { id: orgId },
+            data: {
+                isDeleted: true,
+                updatedAt: new Date()
+            }
+        });
+
+        // Also soft delete all users in the organisation to prevent login
+        await prisma.user.updateMany({
+            where: { organisationId: orgId },
+            data: { isActive: false }
+        });
 
         // Audit Log
         logAudit({
-            action: 'DELETE_ORGANISATION',
+            action: 'SOFT_DELETE_ORGANISATION',
             entity: 'Organisation',
             entityId: orgId,
             actorId: (req as any).user.id,
-            organisationId: orgId, // Technically gone, but for log context
-            details: { name: org.name }
+            organisationId: orgId,
+            details: { 
+                name: org.name,
+                note: 'Organisation soft deleted - data preserved for recovery'
+            }
         });
 
-        res.json({ message: 'Organisation and associated data deleted' });
+        res.json({ 
+            message: 'Organisation marked as deleted (data preserved for recovery)',
+            canRestore: true,
+            deletedAt: new Date()
+        });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+// NEW: Restore a soft-deleted organisation
+export const restoreOrganisation = async (req: Request, res: Response) => {
+    try {
+        if ((req as any).user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const orgId = req.params.id;
+        const org = await prisma.organisation.findUnique({
+            where: { id: orgId }
+        });
+
+        if (!org) {
+            return res.status(404).json({ message: 'Organisation not found' });
+        }
+
+        if (!org.isDeleted) {
+            return res.status(400).json({ message: 'Organisation is not deleted' });
+        }
+
+        // Restore the organisation
+        await prisma.organisation.update({
+            where: { id: orgId },
+            data: {
+                isDeleted: false,
+                updatedAt: new Date()
+            }
+        });
+
+        // Reactivate all users in the organisation
+        await prisma.user.updateMany({
+            where: { organisationId: orgId },
+            data: { isActive: true }
+        });
+
+        // Audit Log
+        logAudit({
+            action: 'RESTORE_ORGANISATION',
+            entity: 'Organisation',
+            entityId: orgId,
+            actorId: (req as any).user.id,
+            organisationId: orgId,
+            details: { 
+                name: org.name,
+                note: 'Organisation restored from soft delete'
+            }
+        });
+
+        res.json({ 
+            message: 'Organisation restored successfully',
+            restoredAt: new Date()
+        });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }

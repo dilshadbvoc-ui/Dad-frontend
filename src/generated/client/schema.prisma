@@ -365,11 +365,17 @@ model Opportunity {
   documents      Document[]
   pipelineId     String?
   pipeline       Pipeline?       @relation(fields: [pipelineId], references: [id])
+  type           OpportunityType @default(NEW_BUSINESS)
 
   @@index([organisationId])
   @@index([stage])
   @@index([accountId])
   @@index([pipelineId])
+}
+
+enum OpportunityType {
+  NEW_BUSINESS
+  UPSALE
 }
 
 model Product {
@@ -827,11 +833,6 @@ model SalesTarget {
 enum TargetScope {
   INDIVIDUAL
   HIERARCHY
-}
-
-enum OpportunityType {
-  NEW_BUSINESS
-  UPSALE
 }
 
 model Goal {

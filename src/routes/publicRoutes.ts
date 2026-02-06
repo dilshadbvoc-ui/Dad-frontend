@@ -6,6 +6,12 @@ import { MetaIntegrationService } from '../services/MetaIntegrationService';
 const router = express.Router();
 
 /**
+ * @route GET /api/public/health
+ * @desc Public Health Check
+ */
+router.get('/health', (req, res) => res.status(200).send('OK'));
+
+/**
  * @route POST /api/public/webforms/:id/submit
  * @desc Submit a web form to create a lead
  */
