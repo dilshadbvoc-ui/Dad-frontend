@@ -24,9 +24,25 @@ const Login = () => {
             localStorage.setItem('userInfo', JSON.stringify(data));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
-        } catch (err: unknown) {
-            const error = err as { response?: { data?: { message?: string } } };
-            setError(error.response?.data?.message || 'Login failed');
+        } catch (err: any) {
+            console.error("Login Error Full:", err);
+            let errorMessage = 'Login failed';
+
+            if (err.response) {
+                // Server responded with a status code outside 2xx
+                console.log("Error Response Data:", err.response.data);
+                console.log("Error Status:", err.response.status);
+                errorMessage = err.response.data?.message || `Server Error (${err.response.status})`;
+            } else if (err.request) {
+                // Request was made but no response received
+                console.log("No response received. Possible Network/CORS issue.");
+                errorMessage = 'Network Error: Cannot reach server. Check your connection or API configuration.';
+            } else {
+                // Something else happened
+                errorMessage = err.message || 'Unknown Error';
+            }
+
+            setError(errorMessage);
             setIsLoading(false);
         }
     };
@@ -101,6 +117,26 @@ const Login = () => {
                         </div>
                     </form>
                 </CardContent>
+                {/* DEBUG SECTION */}
+                <div className="p-4 border-t bg-gray-100 dark:bg-gray-900 text-xs text-gray-500 font-mono break-all">
+                    <p><strong>Debug Info:</strong></p>
+                    <p>API URL: {api.defaults.baseURL}</p>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="mt-2 h-6 text-xs"
+                        onClick={async () => {
+                            try {
+                                const res = await api.get('/public/health'); // Try a public route
+                                alert(`Health Check: ${res.status} OK`);
+                            } catch (e: any) {
+                                alert(`Health Check Failed: ${e.message} \nStatus: ${e.response?.status}`);
+                            }
+                        }}
+                    >
+                        Test Connection
+                    </Button>
+                </div>
             </Card>
         </div >
     );

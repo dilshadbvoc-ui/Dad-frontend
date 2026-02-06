@@ -170,7 +170,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             <span className="text-xl">L</span>
                         </div>
                         {!isCollapsed && (
-                            <span className="text-lg font-bold text-white tracking-wide truncate font-sans">
+                            <span className="text-lg font-bold text-[hsl(var(--sidebar-text))] tracking-wide truncate font-sans">
                                 LeadHostix
                             </span>
                         )}
