@@ -5,13 +5,22 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy } from "lucide-react"
 
 export function TopPerformersWidget() {
-    const { data: performers, isLoading } = useQuery({
+    const { data: performers = [], isLoading } = useQuery({
         queryKey: ['top-performers'],
         queryFn: async () => {
-            const res = await api.get('/analytics/top-performers')
-            return res.data
+            try {
+                const res = await api.get('/analytics/top-performers');
+                // Ensure it's always an array
+                return Array.isArray(res.data) ? res.data : [];
+            } catch (error) {
+                console.error('Error fetching top performers:', error);
+                return [];
+            }
         }
-    })
+    });
+
+    // Additional safety check
+    const performersList = Array.isArray(performers) ? performers : [];
 
     return (
         <Card className="col-span-2 rounded-3xl bg-gradient-to-br from-indigo-50 to-white shadow-sm border-0">
@@ -28,7 +37,7 @@ export function TopPerformersWidget() {
                     </div>
                 ) : (
                     <div className="space-y-6 mt-4">
-                        {performers?.map((user: { id: string, name: string, image?: string, dealsWon: number, totalRevenue: number }, index: number) => (
+                        {performersList.map((user: { id: string, name: string, image?: string, dealsWon: number, totalRevenue: number }, index: number) => (
                             <div key={user.id} className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${index === 0 ? 'bg-yellow-100 text-yellow-700' :
@@ -53,7 +62,7 @@ export function TopPerformersWidget() {
                                 </div>
                             </div>
                         ))}
-                        {(!performers || performers.length === 0) && (
+                        {performersList.length === 0 && (
                             <p className="text-center text-sm text-muted-foreground py-8">No performance data yet</p>
                         )}
                     </div>

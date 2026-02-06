@@ -10,12 +10,18 @@ export function RecentActivityWidget() {
     const { data, isLoading } = useQuery({
         queryKey: ['recent-activity'],
         queryFn: async () => {
-            const res = await api.get('/audit-logs', { params: { limit: 10 } })
-            return res.data
+            try {
+                const res = await api.get('/audit-logs', { params: { limit: 10 } });
+                return res.data;
+            } catch (error) {
+                console.error('Error fetching recent activity:', error);
+                return { logs: [] };
+            }
         }
-    })
+    });
 
-    const logs = data?.logs || []
+    // Ensure logs is always an array
+    const logs = Array.isArray(data?.logs) ? data.logs : [];
 
     return (
         <Card className="col-span-3 rounded-3xl bg-white shadow-sm border-0">
