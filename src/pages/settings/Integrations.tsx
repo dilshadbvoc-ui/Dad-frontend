@@ -281,7 +281,7 @@ export default function IntegrationsPage() {
                                         data-layout="default"
                                         data-auto-logout-link="false"
                                         data-use-continue-as="false"
-                                        data-scope="public_profile,email"
+                                        data-scope="public_profile,email,ads_read,leads_retrieval,pages_read_engagement,pages_manage_metadata,business_management"
                                         data-onlogin="checkLoginState();">
                                     </div>
                                 </div>
