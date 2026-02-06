@@ -135,94 +135,28 @@ export default function Dashboard() {
             </div>
 
             <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-7">
-                {/* Sales Chart */}
+                {/* Sales Chart - Temporarily Disabled for Debugging */}
                 <Card className="col-span-4 min-w-0 overflow-hidden">
                     <CardHeader>
                         <CardTitle className="text-xl text-foreground">Sales Overview</CardTitle>
                         <CardDescription className="text-muted-foreground">Revenue trend over the last 6 months.</CardDescription>
                     </CardHeader>
                     <CardContent className="pl-0">
-                        {chartLoading || !isMounted ? (
-                            <div className="h-[350px] flex items-center justify-center">
-                                <Icons.spinner className="h-8 w-8 animate-spin text-green-600" />
-                            </div>
-                        ) : !Array.isArray(salesData) || salesData.length === 0 ? (
-                            <div className="h-[350px] flex items-center justify-center text-muted-foreground text-sm">
-                                No sales data available
-                            </div>
-                        ) : (
-                            <div className="w-full h-[250px] sm:h-[350px]" style={{ minHeight: '250px', width: '100%' }}>
-                                {(() => {
-                                    try {
-                                        // Validate data structure
-                                        const validData = salesData.filter((d: any) => d && typeof d.total === 'number');
-                                        
-                                        if (validData.length === 0) {
-                                            return (
-                                                <div className="h-[350px] flex items-center justify-center text-muted-foreground text-sm">
-                                                    No valid sales data
-                                                </div>
-                                            );
-                                        }
-                                        
-                                        return (
-                                            <ResponsiveContainer width="100%" height={350}>
-                                                <AreaChart data={validData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-                                                    <defs>
-                                                        <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                                            <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                                                            <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                                        </linearGradient>
-                                                    </defs>
-                                                    <XAxis
-                                                        dataKey="name"
-                                                        stroke="#94a3b8"
-                                                        fontSize={12}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        dy={10}
-                                                    />
-                                                    <YAxis
-                                                        stroke="#94a3b8"
-                                                        fontSize={12}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        tickFormatter={(value) => `₹${value}`}
-                                                        dx={-10}
-                                                    />
-                                                    <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.1} stroke="#64748b" />
-                                                    <Tooltip
-                                                        contentStyle={{
-                                                            backgroundColor: '#1e1b4b',
-                                                            borderRadius: '12px',
-                                                            border: '1px solid rgba(99, 102, 241, 0.2)',
-                                                            boxShadow: '0 4px 20px -2px rgb(0 0 0 / 0.3)',
-                                                            color: '#fff'
-                                                        }}
-                                                        itemStyle={{ color: '#818cf8' }}
-                                                    />
-                                                    <Area
-                                                        type="monotone"
-                                                        dataKey="total"
-                                                        stroke="#6366f1"
-                                                        strokeWidth={3}
-                                                        fillOpacity={1}
-                                                        fill="url(#colorTotal)"
-                                                    />
-                                                </AreaChart>
-                                            </ResponsiveContainer>
-                                        );
-                                    } catch (error) {
-                                        console.error('Error rendering AreaChart:', error);
-                                        return (
-                                            <div className="h-[350px] flex items-center justify-center text-muted-foreground text-sm">
-                                                Error loading chart
+                        <div className="h-[350px] flex items-center justify-center">
+                            <div className="text-center space-y-4">
+                                <p className="text-muted-foreground text-sm">Chart temporarily disabled for debugging</p>
+                                {!chartLoading && salesData.length > 0 && (
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-medium">Sales Data Available: {salesData.length} months</p>
+                                        {salesData.slice(0, 3).map((data: any, index: number) => (
+                                            <div key={index} className="text-xs text-muted-foreground">
+                                                {data.name}: ₹{data.total?.toLocaleString() || 0}
                                             </div>
-                                        );
-                                    }
-                                })()}
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </CardContent>
                 </Card>
 
