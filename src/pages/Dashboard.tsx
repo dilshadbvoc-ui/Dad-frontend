@@ -15,7 +15,8 @@ import {
 } from "@/components/ui/card";
 import { Icons } from "@/components/ui/icons";
 import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw } from "lucide-react";
-import { ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, Area, AreaChart, CartesianGrid } from "recharts";
+// RECHARTS IMPORT REMOVED FOR DEBUGGING
+// import { ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, Area, AreaChart, CartesianGrid } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ensureArray } from "@/hooks/useArrayData";
 
