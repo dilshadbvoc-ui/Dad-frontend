@@ -409,7 +409,7 @@ export default function SalesTargetsPage() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="ALL">All Products (General Target)</SelectItem>
-                                                            {products.map((product: any) => (
+                                                            {products.map((product: { id: string; name: string }) => (
                                                                 <SelectItem key={product.id} value={product.id}>
                                                                     {product.name}
                                                                 </SelectItem>

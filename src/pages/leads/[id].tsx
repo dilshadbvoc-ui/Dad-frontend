@@ -266,7 +266,7 @@ export default function LeadDetailPage() {
                                 </div>
                                 {lead.products && lead.products.length > 0 ? (
                                     <div className="space-y-1">
-                                        {lead.products.map((kp: any) => (
+                                        {lead.products.map((kp: { productId: string; product?: { name: string }; quantity: number; price: number }) => (
                                             <div key={kp.productId} className="text-sm flex justify-between">
                                                 <span>{kp.product?.name} <span className="text-muted-foreground text-xs">x{kp.quantity}</span></span>
                                                 <span className="font-medium">${(kp.price * kp.quantity).toLocaleString()}</span>

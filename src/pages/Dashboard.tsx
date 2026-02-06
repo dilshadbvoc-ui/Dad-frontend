@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardStats, getSalesChartData, getSalesForecast, getLeadSourceAnalytics } from '@/services/analyticsService';
 import { AchievementNotification } from '@/components/AchievementNotification';
@@ -13,7 +13,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { Icons } from "@/components/ui/icons";
+// import { Icons } from "@/components/ui/icons";
 import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw } from "lucide-react";
 // RECHARTS IMPORT REMOVED FOR DEBUGGING
 // import { ResponsiveContainer, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, Legend, Area, AreaChart, CartesianGrid } from "recharts";
@@ -24,14 +24,14 @@ import { ensureArray } from "@/hooks/useArrayData";
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
 export default function Dashboard() {
-    const [isMounted, setIsMounted] = useState(false);
+    // const [isMounted, setIsMounted] = useState(false);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setIsMounted(true);
-        }, 0);
-        return () => clearTimeout(timer);
-    }, []);
+    // useEffect(() => {
+    //    const timer = setTimeout(() => {
+    //        setIsMounted(true);
+    //    }, 0);
+    //    return () => clearTimeout(timer);
+    // }, []);
 
     const { data: stats, isLoading: statsLoading } = useQuery({ queryKey: ['dashboardStats'], queryFn: getDashboardStats });
     const { data: salesDataRaw, isLoading: chartLoading } = useQuery({ queryKey: ['salesChart'], queryFn: getSalesChartData });
@@ -39,8 +39,8 @@ export default function Dashboard() {
     const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
 
     // Ensure data is always an array
-    const salesData = ensureArray(salesDataRaw);
-    const leadSources = ensureArray(leadSourcesRaw);
+    const salesData = ensureArray<{ name: string; total?: number }>(salesDataRaw);
+    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw);
 
     // Debug logging
     useEffect(() => {
@@ -149,7 +149,7 @@ export default function Dashboard() {
                                 {!chartLoading && salesData.length > 0 && (
                                     <div className="space-y-2">
                                         <p className="text-sm font-medium">Sales Data Available: {salesData.length} months</p>
-                                        {salesData.slice(0, 3).map((data: any, index: number) => (
+                                        {salesData.slice(0, 3).map((data: { name: string; total?: number }, index: number) => (
                                             <div key={index} className="text-xs text-muted-foreground">
                                                 {data.name}: ₹{data.total?.toLocaleString() || 0}
                                             </div>
@@ -178,11 +178,11 @@ export default function Dashboard() {
                                 <p className="text-muted-foreground text-sm">Chart temporarily disabled for debugging</p>
                                 {!sourcesLoading && leadSources.length > 0 && (
                                     <div className="space-y-2">
-                                        {leadSources.map((source: any, index: number) => (
+                                        {leadSources.map((source: { source: string; count: number }, index: number) => (
                                             <div key={index} className="flex items-center justify-between gap-4 px-4">
                                                 <div className="flex items-center gap-2">
-                                                    <div 
-                                                        className="w-3 h-3 rounded-full" 
+                                                    <div
+                                                        className="w-3 h-3 rounded-full"
                                                         style={{ backgroundColor: COLORS[index % COLORS.length] }}
                                                     />
                                                     <span className="text-sm">{source.source}</span>

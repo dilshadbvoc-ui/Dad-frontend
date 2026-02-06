@@ -12,6 +12,7 @@ export function useArrayData<T>(data: T[] | undefined | null): T[] {
 /**
  * Safely convert any value to an array
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function ensureArray<T>(value: any): T[] {
     if (Array.isArray(value)) {
         return value;
