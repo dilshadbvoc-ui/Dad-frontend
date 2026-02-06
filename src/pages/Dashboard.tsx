@@ -149,7 +149,7 @@ export default function Dashboard() {
                                 {!chartLoading && salesData.length > 0 && (
                                     <div className="space-y-2">
                                         <p className="text-sm font-medium">Sales Data Available: {salesData.length} months</p>
-                                        {salesData.slice(0, 3).map((data: { name: string; total?: number }, index: number) => (
+                                        {Array.isArray(salesData) && salesData.slice(0, 3).map((data: { name: string; total?: number }, index: number) => (
                                             <div key={index} className="text-xs text-muted-foreground">
                                                 {data.name}: ₹{data.total?.toLocaleString() || 0}
                                             </div>
@@ -178,7 +178,7 @@ export default function Dashboard() {
                                 <p className="text-muted-foreground text-sm">Chart temporarily disabled for debugging</p>
                                 {!sourcesLoading && leadSources.length > 0 && (
                                     <div className="space-y-2">
-                                        {leadSources.map((source: { source: string; count: number }, index: number) => (
+                                        {Array.isArray(leadSources) && leadSources.map((source: { source: string; count: number }, index: number) => (
                                             <div key={index} className="flex items-center justify-between gap-4 px-4">
                                                 <div className="flex items-center gap-2">
                                                     <div
