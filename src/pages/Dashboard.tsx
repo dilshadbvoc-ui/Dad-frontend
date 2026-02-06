@@ -288,12 +288,6 @@ export default function Dashboard() {
                                                             color: '#fff'
                                                         }}
                                                     />
-                                                    <Legend
-                                                        verticalAlign="bottom"
-                                                        height={36}
-                                                        iconType="circle"
-                                                        formatter={(value) => <span className="text-sm font-medium text-indigo-300 ml-1">{value}</span>}
-                                                    />
                                                 </PieChart>
                                             </ResponsiveContainer>
                                         );
