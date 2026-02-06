@@ -94,22 +94,23 @@ const seed = async () => {
                     email: superAdminEmail,
                     password: hashedPassword,
                     role: 'super_admin',
-                    // No organisationId for Super Admin
-                    // organisationId: null, 
+                    organisationId: null, // CRITICAL: Super admin must NOT be linked to any organisation
                     isActive: true
                 }
             });
-            console.log('Created Super Admin User');
+            console.log('Created Super Admin User (detached from organisations)');
         } else {
-            // Update password and ensure no org
+            // Update password and ensure no org - CRITICAL FIX
             await prisma.user.update({
                 where: { email: superAdminEmail },
                 data: {
                     password: hashedPassword,
-                    organisationId: null
+                    organisationId: null, // CRITICAL: Detach from any organisation
+                    role: 'super_admin',  // Ensure role is correct
+                    isActive: true        // Ensure active
                 }
             });
-            console.log('Updated Super Admin: Password reset & detached from Organisation');
+            console.log('Updated Super Admin: Password reset & detached from Organisation (PROTECTED)');
         }
 
         console.log('\n-----------------------------------');

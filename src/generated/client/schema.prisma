@@ -134,7 +134,7 @@ model User {
   assignedTasks               Task[]                 @relation("TaskAssignee")
   createdTasks                Task[]                 @relation("TaskCreator")
   managedTerritories          Territory[]            @relation("TerritoryManager")
-  organisation                Organisation?          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation                Organisation?          @relation(fields: [organisationId], references: [id], onDelete: SetNull)
   reportsTo                   User?                  @relation("UserHierarchy", fields: [reportsToId], references: [id])
   subordinates                User[]                 @relation("UserHierarchy")
   leadQuotaTracking           UserLeadQuotaTracker[]
