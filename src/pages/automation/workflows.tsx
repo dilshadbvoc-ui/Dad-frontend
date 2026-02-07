@@ -91,7 +91,7 @@ export default function WorkflowsPage() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="flex h-full overflow-hidden bg-gray-50 dark:bg-gray-950">
             {/* Workflows List Sidebar */}
             <div className="w-64 border-r bg-white dark:bg-gray-900 flex flex-col z-20 shadow-sm">
                 <div className="p-4 border-b">

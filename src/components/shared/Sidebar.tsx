@@ -162,15 +162,15 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             )}>
                 {/* Logo & Toggle */}
                 <div className={cn(
-                    "relative flex h-16 items-center border-b border-[hsl(var(--sidebar-border))]",
-                    isCollapsed ? "justify-center px-0" : "justify-between px-4"
+                    "relative flex h-20 items-center",
+                    isCollapsed ? "justify-center px-0" : "justify-between px-6"
                 )}>
                     <Link to="/dashboard" className="flex items-center gap-3 group">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/30 shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1e293b] text-white font-bold shadow-lg shadow-slate-900/20 shrink-0">
                             <span className="text-xl">L</span>
                         </div>
                         {!isCollapsed && (
-                            <span className="text-lg font-bold text-[hsl(var(--sidebar-text))] tracking-wide truncate font-sans">
+                            <span className="text-xl font-extrabold text-[#1e293b] tracking-tight font-sans">
                                 LeadHostix
                             </span>
                         )}
@@ -180,7 +180,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsCollapsed(true)}
-                            className="h-8 w-8 text-indigo-300 hover:text-white hover:bg-white/10"
+                            className="h-8 w-8 text-slate-400 hover:text-slate-900 hover:bg-slate-100 rounded-full"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
@@ -190,7 +190,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsCollapsed(false)}
-                            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-indigo-600 text-white shadow-lg border border-indigo-400 hover:bg-indigo-500 z-50 p-0.5"
+                            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-[#1e293b] text-white shadow-lg border-2 border-white hover:bg-slate-800 z-50 p-0.5"
                         >
                             <ChevronRight className="h-3 w-3" />
                         </Button>
@@ -233,16 +233,16 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                     <Link
                                         to={item.href}
                                         className={cn(
-                                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                                            "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
                                             isActive
-                                                ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-900/20"
-                                                : "text-indigo-100/70 hover:text-white hover:bg-white/5",
-                                            isCollapsed ? "justify-center px-0 w-10 h-10 mx-auto" : ""
+                                                ? "bg-[#1e293b] text-white shadow-lg shadow-slate-900/20"
+                                                : "text-slate-500 hover:text-slate-900 hover:bg-slate-100",
+                                            isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : ""
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 shrink-0 transition-colors",
-                                            isActive ? "text-white" : "text-indigo-300 group-hover:text-white"
+                                            isActive ? "text-white" : "text-slate-400 group-hover:text-slate-700"
                                         )} />
                                         {!isCollapsed && <span>{item.title}</span>}
                                     </Link>
@@ -261,6 +261,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                     );
                                 }
 
+                                // ... items map
                                 return <div key={itemIndex}>{LinkContent}</div>;
                             })}
                         </div>
@@ -268,7 +269,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-bg))]">
+                <div className="p-4 border-t border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-bg))] mt-auto shrink-0">
                     {isCollapsed ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -303,8 +304,8 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarProps & { className?: string }) {
     return (
         <div className={cn(
-            "hidden lg:flex lg:flex-col bg-[hsl(var(--sidebar-bg))] relative h-screen transition-all duration-300",
-            isCollapsed ? "w-20" : "w-64",
+            "flex flex-col bg-[hsl(var(--sidebar-bg))] relative h-full lg:h-screen transition-all duration-300",
+            isCollapsed ? "w-20" : "w-full lg:w-64", // Full width on mobile when shown
             className
         )}>
             <SidebarContent isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -313,3 +314,4 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
 }
 
 export const Sidebar = memo(SidebarComponent);
+

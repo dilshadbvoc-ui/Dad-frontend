@@ -91,7 +91,8 @@ export function DataTable<TData, TValue>({
                     />
                 </div>
             )}
-            <div className="rounded-md border overflow-x-auto">
+            {/* Mobile-optimized table wrapper */}
+            <div className="rounded-md border table-responsive-wrapper">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

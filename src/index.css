@@ -3,13 +3,12 @@
 
 @layer base {
   :root {
-    /* Light Mode - Vibrant Workpex-inspired Colors */
-    --background: 210 20% 98%;
-    /* Very light blue-gray background */
+    /* Finance Breeze Theme - Inspired by Dribbble Shot */
+    /* Background: Light Teal-Gray (#F0F4F4) */
+    --background: 180 20% 95%;
     --foreground: 222 47% 11%;
-    /* Very dark text for maximum readability */
 
-    /* Cards - Pure white with vibrant shadows */
+    /* Cards: Pure White with Soft Shadows */
     --card: 0 0% 100%;
     --card-foreground: 222 47% 11%;
 
@@ -17,24 +16,23 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Vibrant Blue Primary - Like Workpex */
-    --primary: 217 91% 60%;
-    /* Bright blue */
+    /* Primary: Deep Indigo/Black depending on context */
+    --primary: 222 47% 11%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary - Soft purple-blue */
-    --secondary: 240 20% 96%;
-    --secondary-foreground: 222 47% 15%;
+    /* Secondary: Soft Gray */
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    /* Muted - Light gray with blue tint */
-    --muted: 210 20% 94%;
+    /* Muted: Gray Text */
+    --muted: 210 20% 90%;
     --muted-foreground: 215 16% 47%;
 
-    /* Accent - Light blue tint */
-    --accent: 217 91% 95%;
-    --accent-foreground: 217 91% 50%;
+    /* Accent: Light Teal/Blue */
+    --accent: 180 20% 90%;
+    --accent-foreground: 222 47% 11%;
 
-    /* Destructive - Vibrant red */
+    /* Destructive */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
@@ -50,31 +48,27 @@
     --info: 199 89% 48%;
     --info-foreground: 0 0% 100%;
 
-    /* Borders - Visible but subtle */
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
+    /* Borders */
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 222 47% 11%;
 
-    --radius: 0.75rem;
+    /* Radius: Very Round (24px) */
+    --radius: 1.5rem;
 
-    /* Sidebar - Light mode: white with colored accents */
+    /* Sidebar */
     --sidebar-bg: 0 0% 100%;
-    --sidebar-text: 222 47% 15%;
-    --sidebar-active: 217 91% 60%;
-    --sidebar-hover: 217 91% 97%;
-    --sidebar-border: 214 32% 91%;
+    --sidebar-text: 222 47% 11%;
+    --sidebar-active: 222 47% 11%;
+    --sidebar-hover: 180 20% 95%;
+    --sidebar-border: 210 20% 90%;
 
-    /* Chart colors - Vibrant palette */
-    --chart-1: 217 91% 60%;
-    /* Blue */
-    --chart-2: 142 76% 36%;
-    /* Green */
-    --chart-3: 38 92% 50%;
-    /* Orange */
-    --chart-4: 280 87% 65%;
-    /* Purple */
-    --chart-5: 340 82% 52%;
-    /* Pink */
+    /* Chart Colors */
+    --chart-1: 142 76% 36%;
+    --chart-2: 38 92% 50%;
+    --chart-3: 0 84% 60%;
+    --chart-4: 217 91% 60%;
+    --chart-5: 280 87% 65%;
   }
 
   .dark {
@@ -148,58 +142,59 @@
 
 @layer components {
 
-  /* Vibrant Glass Card */
-  .glass-card {
-    @apply bg-card border border-border shadow-md hover:shadow-lg transition-shadow;
+  /* Finance Breeze Card - Soft, Round, Floating */
+  .finance-card {
+    @apply bg-card text-card-foreground rounded-[2rem] border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300;
   }
 
-  /* Vibrant Gradient Buttons */
+  /* Vibrant Gradient Buttons - Adjusted for lighter theme */
   .gradient-ocean {
-    @apply bg-gradient-to-r from-primary to-blue-600;
+    @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/20 rounded-full;
   }
 
   .gradient-success {
-    @apply bg-gradient-to-r from-green-500 to-emerald-600;
+    @apply bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/20 rounded-full;
   }
 
   .gradient-warning {
-    @apply bg-gradient-to-r from-orange-500 to-amber-600;
+    @apply bg-gradient-to-r from-orange-400 to-amber-500 text-white shadow-lg shadow-orange-500/20 rounded-full;
   }
 
   .gradient-danger {
-    @apply bg-gradient-to-r from-red-500 to-rose-600;
+    @apply bg-gradient-to-r from-rose-500 to-red-600 text-white shadow-lg shadow-rose-500/20 rounded-full;
   }
 
   /* Animated Background */
   .ocean-animated {
-    @apply bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700;
+    @apply bg-gradient-to-br from-[#F0F4F4] via-[#E0E7FF] to-[#F0F4F4];
   }
 
-  /* Vibrant Button */
+  /* Finance Primary Button - Pill Shape */
   .btn-ocean {
-    @apply inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 hover:shadow-md h-10 px-4 py-2;
+    @apply inline-flex items-center justify-center rounded-full text-sm font-bold ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50;
+    @apply bg-[#1e293b] text-white hover:bg-[#0f172a] hover:scale-105 active:scale-95 h-11 px-6 shadow-xl shadow-slate-900/10;
   }
 
-  /* Colorful Cards */
+  /* Finance Standard Card */
   .card-ocean {
-    @apply bg-card text-card-foreground rounded-lg border border-border shadow-sm hover:shadow-md transition-shadow;
+    @apply bg-white dark:bg-card text-card-foreground rounded-[1.5rem] border-0 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300;
   }
 
+  /* Gradient Card Variants - Softened */
   .card-primary {
-    @apply bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 border-blue-200 dark:border-blue-800;
+    @apply bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 border-0;
   }
 
   .card-success {
-    @apply bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 border-green-200 dark:border-green-800;
+    @apply bg-gradient-to-br from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-0;
   }
 
   .card-warning {
-    @apply bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-950 dark:to-amber-950 border-orange-200 dark:border-orange-800;
+    @apply bg-gradient-to-br from-orange-50/50 to-amber-50/50 dark:from-orange-950/20 dark:to-amber-950/20 border-0;
   }
 
   .card-danger {
-    @apply bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950 dark:to-rose-950 border-red-200 dark:border-red-800;
+    @apply bg-gradient-to-br from-rose-50/50 to-red-50/50 dark:from-rose-950/20 dark:to-red-950/20 border-0;
   }
 
   /* Vibrant Stat Card */
@@ -661,6 +656,7 @@
   .truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
+    line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -668,6 +664,7 @@
   .truncate-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
@@ -705,5 +702,55 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Responsive Table Wrapper */
+.table-responsive-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Smooth scrolling on iOS */
+  margin-bottom: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid hsl(var(--border));
+}
+
+/* Utilities for visibility control */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .show-mobile {
+    display: block !important;
+  }
+
+  .flex-mobile {
+    display: flex !important;
+  }
+
+  /* Stack tables on mobile if needed */
+  .table-stacked tr {
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+  }
+
+  .table-stacked td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border: none;
+  }
+
+  .table-stacked td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    margin-right: 1rem;
   }
 }

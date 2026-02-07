@@ -60,22 +60,22 @@ export default function Dashboard() {
             <AchievementNotification />
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1">Overview of your sales pipeline and performance.</p>
+                    <h1 className="text-4xl font-extrabold tracking-tight text-[#1e293b] dark:text-white">Dashboard</h1>
+                    <p className="text-slate-500 mt-1">Overview of your sales pipeline and performance.</p>
                 </div>
             </div>
 
             {/* Stats Cards */}
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
                 {/* Expected Revenue */}
-                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-card p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-50 text-blue-600">
                             <TrendingUp className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Expected Revenue</h3>
-                        <div className="text-2xl font-extrabold text-foreground">
-                            {forecastLoading ? <Skeleton className="h-8 w-24 bg-muted" /> :
+                        <h3 className="text-sm font-bold text-slate-500">Expected Revenue</h3>
+                        <div className="text-2xl font-extrabold text-[#1e293b] dark:text-white">
+                            {forecastLoading ? <Skeleton className="h-8 w-24 bg-slate-100" /> :
                                 new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, notation: 'compact' }).format(forecast?.weightedForecast || 0)
                             }
                         </div>
@@ -83,53 +83,53 @@ export default function Dashboard() {
                 </div>
 
                 {/* Deals In Pipeline */}
-                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-card p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600">
                             <Check className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Deals In Pipeline</h3>
-                        <div className="text-2xl font-extrabold text-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.activeOpportunities}
+                        <h3 className="text-sm font-bold text-slate-500">Deals In Pipeline</h3>
+                        <div className="text-2xl font-extrabold text-[#1e293b] dark:text-white">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-slate-100" /> : stats?.activeOpportunities}
                         </div>
                     </div>
                 </div>
 
                 {/* Won Deals */}
-                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-card p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
                             <Trophy className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Won: {new Date().toLocaleString('default', { month: 'short' })}</h3>
-                        <div className="text-2xl font-extrabold text-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.opportunities?.won || 0}
+                        <h3 className="text-sm font-bold text-slate-500">Won: {new Date().toLocaleString('default', { month: 'short' })}</h3>
+                        <div className="text-2xl font-extrabold text-[#1e293b] dark:text-white">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-slate-100" /> : stats?.opportunities?.won || 0}
                         </div>
                     </div>
                 </div>
 
                 {/* Lost Deals */}
-                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-card p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-50 text-rose-600">
                             <AlertCircle className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Lost Deals</h3>
-                        <div className="text-2xl font-extrabold text-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : stats?.opportunities?.lost || 0}
+                        <h3 className="text-sm font-bold text-slate-500">Lost Deals</h3>
+                        <div className="text-2xl font-extrabold text-[#1e293b] dark:text-white">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-slate-100" /> : stats?.opportunities?.lost || 0}
                         </div>
                     </div>
                 </div>
 
                 {/* Conversion */}
-                <div className="relative overflow-hidden rounded-3xl bg-card dark:bg-[#1e1b4b] p-6 shadow-lg border border-border dark:border-indigo-900/50 transition-all hover:shadow-lg hover:-translate-y-1">
+                <div className="relative overflow-hidden rounded-[2rem] bg-white dark:bg-card p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border-0 transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-1">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
                             <RefreshCw className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-medium text-muted-foreground">Conversion %</h3>
-                        <div className="text-2xl font-extrabold text-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16 bg-muted" /> : `${stats?.winRate || 0}%`}
+                        <h3 className="text-sm font-bold text-slate-500">Conversion %</h3>
+                        <div className="text-2xl font-extrabold text-[#1e293b] dark:text-white">
+                            {statsLoading ? <Skeleton className="h-8 w-16 bg-slate-100" /> : `${stats?.winRate || 0}%`}
                         </div>
                     </div>
                 </div>

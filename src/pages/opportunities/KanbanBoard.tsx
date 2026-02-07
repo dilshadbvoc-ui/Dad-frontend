@@ -79,7 +79,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
     };
 
     return (
-        <div className="flex h-[calc(100vh-200px)] overflow-x-auto gap-4 p-4 pb-8">
+        <div className="flex h-full overflow-x-auto gap-4 pb-4">
             <TooltipProvider>
                 {STAGES.map((stage) => {
                     const stageOpps = columns[stage.id] || [];

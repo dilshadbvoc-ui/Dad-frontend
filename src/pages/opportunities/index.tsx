@@ -51,8 +51,8 @@ export default function OpportunitiesPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="h-full flex flex-col bg-background/50">
+            <div className="flex-none p-6 pb-2">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Opportunities</h1>
                     <p className="text-indigo-300/70 mt-1">Track your deals and sales pipeline.</p>
@@ -114,22 +114,23 @@ export default function OpportunitiesPage() {
             </div>
 
             {isLoading ? (
-                <div className="flex items-center justify-center p-12">
+                <div className="flex-1 flex items-center justify-center p-12">
                     <div className="flex flex-col items-center gap-3">
                         <div className="h-10 w-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
                         <p className="text-sm text-indigo-300/70">Loading opportunities...</p>
                     </div>
                 </div>
             ) : (
-                <div className={viewMode === 'list' ? "rounded-xl border border-indigo-900/50 bg-[#1e1b4b] text-white shadow-lg shadow-indigo-950/20 overflow-hidden" : ""}>
-                    {viewMode === 'list' ? (
-                        <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
-                    ) : (
-                        <KanbanBoard opportunities={filteredOpportunities} />
-                    )}
+                <div className={`flex-1 min-h-0 p-6 pt-2 ${viewMode === 'list' ? 'overflow-auto' : 'overflow-hidden'}`}>
+                    <div className={viewMode === 'list' ? "rounded-xl border border-indigo-900/50 bg-[#1e1b4b] text-white shadow-lg shadow-indigo-950/20 overflow-hidden" : "h-full"}>
+                        {viewMode === 'list' ? (
+                            <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
+                        ) : (
+                            <KanbanBoard opportunities={filteredOpportunities} />
+                        )}
+                    </div>
                 </div>
             )}
-
             <CreateOpportunityDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
         </div>
     )
