@@ -33,12 +33,10 @@ export default function FieldForcePage() {
                 try {
                     const { latitude, longitude } = position.coords
                     await createCheckIn({
-                        type: 'check_in',
-                        location: {
-                            latitude,
-                            longitude,
-                            address: 'Fetching address...' // Backend should handle reverse geocoding ideally
-                        }
+                        type: 'CHECK_IN',
+                        latitude,
+                        longitude,
+                        address: 'Fetching address...' // Backend should handle reverse geocoding ideally
                     })
                     toast.success("Checked in successfully!")
                     queryClient.invalidateQueries({ queryKey: ['checkins'] })
@@ -74,7 +72,7 @@ export default function FieldForcePage() {
     const productivityMetrics = useMemo(() => {
         if (checkIns.length === 0 || users.length === 0) return { score: 0, activeUsers: 0, inTransit: 0 }
 
-        const activeUsers = checkIns.filter((c: { type: string }) => c.type === 'check_in').length
+        const activeUsers = checkIns.filter((c: { type: string }) => c.type === 'CHECK_IN').length
         const totalUsers = users.filter((u: { role: string }) => u.role === 'sales_rep' || u.role === 'field_agent').length
         const inTransit = Math.floor(activeUsers * 0.3) // Estimate 30% in transit
 
@@ -95,9 +93,9 @@ export default function FieldForcePage() {
                     id: user.id,
                     name: `${user.firstName} ${user.lastName}`,
                     status,
-                    location: userCheckIn?.location?.address || 'Unknown',
-                    latitude: userCheckIn?.location?.latitude,
-                    longitude: userCheckIn?.location?.longitude,
+                    location: userCheckIn?.address || 'Unknown',
+                    latitude: userCheckIn?.latitude,
+                    longitude: userCheckIn?.longitude,
                     time: userCheckIn ? format(new Date(userCheckIn.createdAt), 'HH:mm') : '--:--'
                 }
             })
@@ -208,8 +206,8 @@ export default function FieldForcePage() {
                                                 {checkIns.slice(0, 5).map((checkIn: CheckIn) => (
                                                     <tr key={checkIn.id} className="border-b hover:bg-gray-50">
                                                         <td className="py-3 px-4"><div className="flex items-center gap-2"><Avatar className="h-8 w-8"><AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white text-xs">{checkIn.user?.firstName?.[0]}{checkIn.user?.lastName?.[0]}</AvatarFallback></Avatar><span className="text-sm font-medium">{checkIn.user?.firstName} {checkIn.user?.lastName}</span></div></td>
-                                                        <td className="py-3 px-4">{checkIn.type === 'check_in' ? <Badge className="bg-green-100 text-green-800">Check In</Badge> : <Badge className="bg-gray-100 text-gray-800">Check Out</Badge>}</td>
-                                                        <td className="py-3 px-4 text-sm text-gray-600">{checkIn.location?.address || 'Unknown'}</td>
+                                                        <td className="py-3 px-4">{checkIn.type === 'CHECK_IN' ? <Badge className="bg-green-100 text-green-800">Check In</Badge> : <Badge className="bg-gray-100 text-gray-800">Check Out</Badge>}</td>
+                                                        <td className="py-3 px-4 text-sm text-gray-600">{checkIn.address || 'Unknown'}</td>
                                                         <td className="py-3 px-4 text-sm text-gray-500">{format(new Date(checkIn.createdAt), 'MMM d, h:mm a')}</td>
                                                     </tr>
                                                 ))}

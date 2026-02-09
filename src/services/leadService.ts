@@ -40,6 +40,7 @@ export interface LeadQueryParams {
     search?: string;
     page?: number;
     pageSize?: number;
+    limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
 }
