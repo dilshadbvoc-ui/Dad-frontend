@@ -33,7 +33,7 @@ export default function CommunicationsPage() {
 
     if (isError) {
         return (
-            <div className="flex h-screen overflow-hidden bg-[#0f172a]">
+            <div className="flex h-full overflow-hidden bg-[#0f172a]">
 
                 <div className="flex flex-col items-center justify-center p-12 text-center flex-1">
                     <div className="text-red-500 mb-4">Error loading communications. Please try again.</div>
@@ -46,7 +46,7 @@ export default function CommunicationsPage() {
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#0f172a]">
+        <div className="flex h-full overflow-hidden bg-[#0f172a]">
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">

@@ -168,60 +168,60 @@ export default function SettingsPage() {
     return (
         <div className="space-y-6">
             <div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Settings</h1>
-                <p className="text-gray-400 mt-1">Manage your CRM configuration and preferences.</p>
+                <h1 className="text-3xl font-bold text-foreground">Settings</h1>
+                <p className="text-muted-foreground mt-1">Manage your CRM configuration and preferences.</p>
             </div>
 
             {/* Quick Stats */}
             <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-                <Card className="bg-[#1e1b4b]/50 border-indigo-900/50 backdrop-blur-sm">
+                <Card className="bg-muted/50 border-border backdrop-blur-sm">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                <Users className="h-5 w-5 text-indigo-400" />
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Users className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-white">-</p>
-                                <p className="text-xs text-indigo-300">Team Members</p>
+                                <p className="text-2xl font-bold text-foreground">-</p>
+                                <p className="text-xs text-muted-foreground">Team Members</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-[#1e1b4b]/50 border-indigo-900/50 backdrop-blur-sm">
+                <Card className="bg-muted/50 border-border backdrop-blur-sm">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                <FormInput className="h-5 w-5 text-indigo-400" />
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <FormInput className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-white">-</p>
-                                <p className="text-xs text-indigo-300">Custom Fields</p>
+                                <p className="text-2xl font-bold text-foreground">-</p>
+                                <p className="text-xs text-muted-foreground">Custom Fields</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-[#1e1b4b]/50 border-indigo-900/50 backdrop-blur-sm">
+                <Card className="bg-muted/50 border-border backdrop-blur-sm">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                <GitBranch className="h-5 w-5 text-indigo-400" />
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <GitBranch className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-white">-</p>
-                                <p className="text-xs text-indigo-300">Assignment Rules</p>
+                                <p className="text-2xl font-bold text-foreground">-</p>
+                                <p className="text-xs text-muted-foreground">Assignment Rules</p>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
-                <Card className="bg-[#1e1b4b]/50 border-indigo-900/50 backdrop-blur-sm">
+                <Card className="bg-muted/50 border-border backdrop-blur-sm">
                     <CardContent className="p-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                <Webhook className="h-5 w-5 text-indigo-400" />
+                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <Webhook className="h-5 w-5 text-primary" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-white">-</p>
-                                <p className="text-xs text-indigo-300">Active Integrations</p>
+                                <p className="text-2xl font-bold text-foreground">-</p>
+                                <p className="text-xs text-muted-foreground">Active Integrations</p>
                             </div>
                         </div>
                     </CardContent>
@@ -232,21 +232,21 @@ export default function SettingsPage() {
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {settingsSections.map((section, index) => (
                     <Link key={index} to={section.href}>
-                        <Card className="h-full bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-500/50 hover:shadow-xl hover:shadow-indigo-900/20 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
+                        <Card className="h-full bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
                             <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
                                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${section.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0 group-hover:scale-110 transition-transform`}>
                                         <section.icon className="h-6 w-6 text-white" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <h3 className="font-semibold text-white group-hover:text-indigo-300 transition-colors">
+                                        <h3 className="font-semibold text-card-foreground group-hover:text-primary transition-colors">
                                             {section.title}
                                         </h3>
-                                        <p className="text-sm text-indigo-300/70 mt-1 line-clamp-2">
+                                        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                                             {section.description}
                                         </p>
                                     </div>
-                                    <ArrowRight className="h-5 w-5 text-indigo-400 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
+                                    <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all flex-shrink-0" />
                                 </div>
                             </CardContent>
                         </Card>

@@ -83,12 +83,12 @@ export default function ProfileSettingsPage() {
         <div className="space-y-6 container mx-auto p-6 lg:p-8">
             <div className="max-w-3xl mx-auto space-y-6">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Profile Settings</h1>
-                    <p className="text-gray-500">Manage your personal information</p>
+                    <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
+                    <p className="text-muted-foreground">Manage your personal information</p>
                 </div>
 
                 {loading ? (
-                    <div className="flex justify-center p-16"><div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
+                    <div className="flex justify-center p-16"><div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>
                 ) : (
                     <>
                         <Card>
@@ -110,7 +110,7 @@ export default function ProfileSettingsPage() {
                                         </div>
                                         <div>
                                             <h3 className="font-medium">Profile Picture</h3>
-                                            <p className="text-sm text-gray-500">Click to upload a new photo. JPG, PNG or GIF.</p>
+                                            <p className="text-sm text-muted-foreground">Click to upload a new photo. JPG, PNG or GIF.</p>
                                             <input
                                                 type="file"
                                                 ref={fileInputRef}
@@ -125,9 +125,9 @@ export default function ProfileSettingsPage() {
                                         <div><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} /></div>
                                         <div><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} /></div>
                                     </div>
-                                    <div><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-gray-100" /></div>
+                                    <div><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-muted text-muted-foreground" /></div>
                                     <div><Label>Phone</Label><Input value={profile?.phone || ''} onChange={e => setProfile(p => p ? { ...p, phone: e.target.value } : null)} /></div>
-                                    <Button type="submit" className="bg-gradient-to-r from-blue-600 to-purple-600"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
+                                    <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
                                 </form>
                             </CardContent>
                         </Card>

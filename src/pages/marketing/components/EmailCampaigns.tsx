@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
-import { getCampaigns, type Campaign } from "@/services/marketingService"
+import { getEmailCampaigns, type Campaign } from "@/services/marketingService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -10,7 +10,7 @@ import { format } from "date-fns"
 export function EmailCampaigns() {
     const { data: campaignsData, isLoading, isError } = useQuery({
         queryKey: ['campaigns'],
-        queryFn: () => getCampaigns(),
+        queryFn: () => getEmailCampaigns(),
         refetchInterval: 5000,
     })
 

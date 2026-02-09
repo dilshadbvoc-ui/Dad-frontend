@@ -16,7 +16,7 @@ export const columns: ColumnDef<Lead>[] = [
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="hover:bg-white/5 text-indigo-300"
+                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
                 >
                     Name
                     <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -38,7 +38,7 @@ export const columns: ColumnDef<Lead>[] = [
         header: "Source",
         cell: ({ row }) => {
             const source = row.getValue("source") as string
-            return <Badge variant="outline" className="capitalize bg-indigo-500/10 text-indigo-300 border-indigo-500/20">{source}</Badge>
+            return <Badge variant="outline" className="capitalize bg-primary/10 text-primary border-primary/20">{source}</Badge>
         }
     },
     {
@@ -48,7 +48,7 @@ export const columns: ColumnDef<Lead>[] = [
                 <Button
                     variant="ghost"
                     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="hover:bg-white/5 text-indigo-300"
+                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
                 >
                     Score
                     <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -57,7 +57,7 @@ export const columns: ColumnDef<Lead>[] = [
         },
         cell: ({ row }) => {
             const score = parseFloat(row.getValue("leadScore"))
-            return <div className={score > 50 ? "text-emerald-400 font-bold" : "text-indigo-200"}>{score}</div>
+            return <div className={score > 50 ? "text-success font-bold" : "text-muted-foreground"}>{score}</div>
         }
     },
     {
@@ -68,12 +68,12 @@ export const columns: ColumnDef<Lead>[] = [
             let className = "capitalize "
 
             switch (status) {
-                case 'new': className += "bg-blue-500/10 text-blue-400 border-blue-500/20"; break;
-                case 'contacted': className += "bg-amber-500/10 text-amber-400 border-amber-500/20"; break;
-                case 'qualified': className += "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"; break;
-                case 'converted': className += "bg-indigo-500/10 text-indigo-400 border-indigo-500/20"; break;
-                case 'lost': className += "bg-red-500/10 text-red-400 border-red-500/20"; break;
-                default: className += "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                case 'new': className += "bg-blue-500/10 text-blue-500 border-blue-500/20"; break;
+                case 'contacted': className += "bg-warning/10 text-warning border-warning/20"; break;
+                case 'qualified': className += "bg-success/10 text-success border-success/20"; break;
+                case 'converted': className += "bg-primary/10 text-primary border-primary/20"; break;
+                case 'lost': className += "bg-destructive/10 text-destructive border-destructive/20"; break;
+                default: className += "bg-muted text-muted-foreground border-border";
             }
 
             return <Badge variant="outline" className={className}>{status}</Badge>
@@ -83,7 +83,7 @@ export const columns: ColumnDef<Lead>[] = [
         accessorKey: "createdAt",
         header: "Created",
         cell: ({ row }) => {
-            return <div className="text-indigo-300/70 text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+            return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
         }
     },
     {
@@ -92,7 +92,7 @@ export const columns: ColumnDef<Lead>[] = [
         cell: ({ row }) => {
             const lead = row.original
             const phone = lead.phone?.replace(/\D/g, '')
-            if (!phone) return <span className="text-indigo-300/40 text-xs italic">No phone</span>
+            if (!phone) return <span className="text-muted-foreground/50 text-xs italic">No phone</span>
 
             const logAndOpenWhatsApp = async (e: React.MouseEvent) => {
                 e.stopPropagation()
@@ -137,7 +137,7 @@ export const columns: ColumnDef<Lead>[] = [
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10"
+                        className="h-8 w-8 p-0 text-success hover:text-success/80 hover:bg-success/10"
                         onClick={logAndOpenWhatsApp}
                         title="WhatsApp"
                     >
@@ -146,7 +146,7 @@ export const columns: ColumnDef<Lead>[] = [
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-blue-400 hover:text-blue-300 hover:bg-blue-500/10"
+                        className="h-8 w-8 p-0 text-info hover:text-info/80 hover:bg-info/10"
                         onClick={logAndCall}
                         title="Call"
                     >

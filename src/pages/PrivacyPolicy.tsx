@@ -1,6 +1,6 @@
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Footer from "@/components/landing/Footer";
-import { Shield, Lock, Eye, FileText } from "lucide-react";
+import { Shield, Lock, Eye, FileText, Trash2 } from "lucide-react";
 
 export default function PrivacyPolicy() {
     return (
@@ -13,10 +13,10 @@ export default function PrivacyPolicy() {
                             <Shield className="h-8 w-8" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                            Privacy Policy
+                            Privacy Policy - ProHostix
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 text-lg">
-                            Last Updated: February 5, 2026
+                            Last Updated: February 8, 2026
                         </p>
                     </div>
 
@@ -27,7 +27,7 @@ export default function PrivacyPolicy() {
                                 1. Introduction
                             </h2>
                             <p>
-                                Welcome to LeadHostix ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our CRM services.
+                                Welcome to ProHostix ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our CRM services.
                             </p>
                         </section>
 
@@ -74,15 +74,39 @@ export default function PrivacyPolicy() {
                             </p>
                         </section>
 
+                        <section>
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                <Trash2 className="h-6 w-6 text-blue-600" />
+                                5. User Data Deletion
+                            </h2>
+                            <p className="mb-4">
+                                You have the right to request the deletion of your personal data held by us. To request data deletion:
+                            </p>
+                            <ol className="list-decimal pl-6 space-y-2">
+                                <li>
+                                    Send an email to{" "}
+                                    <a
+                                        href="mailto:privacy@prohostix.com"
+                                        className="text-blue-600 font-medium hover:underline"
+                                    >
+                                        privacy@prohostix.com
+                                    </a>{" "}
+                                    with the subject "Data Deletion Request".
+                                </li>
+                                <li>Include your full name and the email address associated with your account.</li>
+                                <li>We will process your request and delete your data within 30 days.</li>
+                            </ol>
+                        </section>
+
                         <section className="p-8 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30">
                             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                                5. Contact Us
+                                6. Contact Us
                             </h2>
                             <p className="mb-4">
                                 If you have questions or comments about this policy, you may email us at:
                             </p>
-                            <a href="mailto:privacy@leadhostix.com" className="text-blue-600 font-bold hover:underline">
-                                privacy@leadhostix.com
+                            <a href="mailto:privacy@prohostix.com" className="text-blue-600 font-bold hover:underline">
+                                privacy@prohostix.com
                             </a>
                         </section>
                     </div>

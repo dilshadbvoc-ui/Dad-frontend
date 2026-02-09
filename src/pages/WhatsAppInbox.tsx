@@ -6,7 +6,7 @@ const WhatsAppInbox: React.FC = () => {
     const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
 
     return (
-        <div className="flex h-[calc(100vh-140px)] lg:h-[calc(100vh-160px)] -m-4 lg:-m-6 overflow-hidden bg-[#0f172a] rounded-xl border border-indigo-900/50 shadow-2xl">
+        <div className="flex h-full overflow-hidden bg-[#0f172a]">
             {/* Conversation List Sidebar */}
             <div className={`${selectedPhone ? 'hidden md:flex' : 'flex'} w-full md:w-80 lg:w-96 flex-col border-r border-indigo-900/50 bg-[#1e1b4b]`}>
                 <div className="p-4 border-b border-indigo-900/50 flex justify-between items-center bg-[#1e1b4b]">

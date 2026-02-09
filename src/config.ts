@@ -3,4 +3,4 @@ const sanitizeUrl = (url: string) => {
     return url.replace(/\/$/, '').replace(/\/api$/, '');
 };
 
-export const API_URL = sanitizeUrl(import.meta.env.VITE_API_URL || 'http://localhost:5001');
+export const API_URL = sanitizeUrl(import.meta.env.VITE_API_URL || '');

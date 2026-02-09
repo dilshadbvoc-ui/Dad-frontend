@@ -26,6 +26,7 @@ import AccountDetailPage from './pages/accounts/[id]';
 import OpportunitiesPage from './pages/opportunities';
 import MarketingPage from './pages/marketing';
 import AdsDashboard from './pages/marketing/ads';
+import AdsManager from './pages/marketing/AdsManager';
 import CreateCampaignPage from './pages/marketing/new-campaign';
 import CommunicationsPage from './pages/communications';
 import CalendarPage from './pages/calendar';
@@ -64,6 +65,10 @@ import WorkflowsPage from './pages/automation/workflows';
 import CreateWorkflowPage from './pages/automation/new';
 import WorkflowDetailPage from './pages/automation/WorkflowDetail';
 import AnalyticsPage from './pages/reports/analytics';
+import CampaignReportsPage from './pages/reports/campaigns';
+import FieldForceReportsPage from './pages/reports/field-force';
+import LeadReportsPage from './pages/reports/leads';
+import FollowUpReportsPage from './pages/reports/follow-ups';
 
 import IntegrationsSettingsPage from './pages/settings/Integrations';
 import PipelinesSettingsPage from './pages/settings/pipelines';
@@ -132,6 +137,7 @@ function AppContent() {
             <Route path="/opportunities" element={<OpportunitiesPage />} />
             <Route path="/marketing" element={<MarketingPage />} />
             <Route path="/marketing/ads" element={<AdsDashboard />} />
+            <Route path="/marketing/ads-manager" element={<AdsManager />} />
             <Route path="/marketing/sms" element={<SMSCampaignsPage />} />
             <Route path="/marketing/landing-pages" element={<LandingPagesManager />} />
             <Route path="/marketing/forms" element={<WebFormsPage />} />
@@ -166,6 +172,11 @@ function AppContent() {
             <Route path="/sales-targets" element={<SalesTargetsPage />} />
             <Route path="/sales/commissions" element={<CommissionsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/reports/analytics" element={<AnalyticsPage />} />
+            <Route path="/reports/campaigns" element={<CampaignReportsPage />} />
+            <Route path="/reports/field-force" element={<FieldForceReportsPage />} />
+            <Route path="/reports/leads" element={<LeadReportsPage />} />
+            <Route path="/reports/follow-ups" element={<FollowUpReportsPage />} />
 
             {/* Super Admin & Organisation Settings */}
             <Route path="/super-admin" element={<SuperAdminDashboard />} />

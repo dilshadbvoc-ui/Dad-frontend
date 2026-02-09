@@ -43,7 +43,7 @@ export function ViolationAlert() {
         refetchInterval: 60000 // Check every minute
     });
 
-    const violations: Violation[] = data?.violations || [];
+    const violations: Violation[] = Array.isArray(data?.violations) ? data.violations : [];
 
     // Filter for unresolved violations for the current user context
     // Ideally backend filters, but frontend can double check what needs action.

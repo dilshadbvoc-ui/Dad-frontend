@@ -22,9 +22,9 @@ export function LicenseUsageWidget() {
     const usagePercent = Math.min(100, Math.round((userCount / userLimit) * 100))
 
     return (
-        <Card className="rounded-3xl bg-slate-900 text-white shadow-lg border-0">
+        <Card className="rounded-3xl bg-card text-card-foreground shadow-sm border-0">
             <CardHeader>
-                <CardTitle className="text-lg font-medium text-slate-200 flex items-center gap-2">
+                <CardTitle className="text-lg font-medium text-card-foreground flex items-center gap-2">
                     <Users className="h-5 w-5" />
                     License Usage
                 </CardTitle>
@@ -33,20 +33,20 @@ export function LicenseUsageWidget() {
                 <div className="space-y-4">
                     <div className="flex justify-between items-end">
                         <div>
-                            <p className="text-3xl font-bold">{userCount} <span className="text-lg text-slate-400 font-normal">/ {userLimit}</span></p>
-                            <p className="text-xs text-slate-400 mt-1">Active Users</p>
+                            <p className="text-3xl font-bold">{userCount} <span className="text-lg text-muted-foreground font-normal">/ {userLimit}</span></p>
+                            <p className="text-xs text-muted-foreground mt-1">Active Users</p>
                         </div>
                         <div className="text-right">
-                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${usagePercent >= 90 ? 'bg-red-500/20 text-red-300' : 'bg-green-500/20 text-green-300'
+                            <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${usagePercent >= 90 ? 'bg-destructive/10 text-destructive' : 'bg-success-light text-success'
                                 }`}>
                                 {usagePercent}% Used
                             </span>
                         </div>
                     </div>
-                    <Progress value={usagePercent} className="h-2 bg-slate-800" indicatorClassName={
-                        usagePercent >= 90 ? 'bg-red-500' : 'bg-blue-500'
+                    <Progress value={usagePercent} className="h-2 bg-muted" indicatorClassName={
+                        usagePercent >= 90 ? 'bg-destructive' : 'bg-primary'
                     } />
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-muted-foreground">
                         Map more users to improve collaboration.
                     </p>
                 </div>

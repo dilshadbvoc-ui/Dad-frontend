@@ -134,13 +134,13 @@ export function AddProductToLeadDialog({
                         </div>
                         <ScrollArea className="flex-1">
                             <div className="p-1">
-                                {availableProducts?.filter((p: Product) =>
+                                {availableProducts?.products?.filter((p: Product) =>
                                     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                     p.sku.toLowerCase().includes(searchQuery.toLowerCase())
                                 ).length === 0 ? (
                                     <div className="py-6 text-center text-sm text-muted-foreground">No products found.</div>
                                 ) : (
-                                    availableProducts?.filter((p: Product) =>
+                                    availableProducts?.products?.filter((p: Product) =>
                                         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                                         p.sku.toLowerCase().includes(searchQuery.toLowerCase())
                                     ).map((product: Product) => {
@@ -162,7 +162,7 @@ export function AddProductToLeadDialog({
                                                     <span className="font-semibold">
                                                         ${product.basePrice}
                                                     </span>
-                                                    {isSelected && <Check className="h-4 w-4 text-green-500" />}
+                                                    {isSelected && <Check className="h-4 w-4 text-success" />}
                                                 </div>
                                             </div>
                                         )

@@ -2,29 +2,42 @@ import { api } from './api';
 
 export interface CheckIn {
     id: string;
-    user: { id: string; firstName: string; lastName: string; email: string };
-    type: 'check_in' | 'check_out';
-    location: { address?: string; latitude?: number; longitude?: number };
-    relatedTo?: { id: string; firstName?: string; lastName?: string; name?: string };
-    onModel?: string;
+    type: 'CHECK_IN' | 'CHECK_OUT' | 'VISIT' | 'MEETING';
+    latitude?: number;
+    longitude?: number;
+    address?: string;
     notes?: string;
+    photoUrl?: string;
+    userId: string;
+    organisationId: string;
+    leadId?: string;
+    contactId?: string;
+    accountId?: string;
     createdAt: string;
+    user?: {
+        firstName: string;
+        lastName: string;
+    };
+    lead?: {
+        firstName: string;
+        lastName: string;
+        company: string;
+    };
+    contact?: {
+        firstName: string;
+        lastName: string;
+    };
+    account?: {
+        name: string;
+    };
 }
 
-export interface CheckInSearchParams {
-    userId?: string;
-    type?: string;
-    date?: string;
-}
-
-export type CheckInInput = Omit<CheckIn, 'id' | 'user' | 'createdAt'>;
-
-export const getCheckIns = async (params?: CheckInSearchParams) => {
+export const getCheckIns = async (params?: { date?: string; userId?: string }) => {
     const response = await api.get('/checkins', { params });
     return response.data;
 };
 
-export const createCheckIn = async (data: CheckInInput) => {
+export const createCheckIn = async (data: any) => {
     const response = await api.post('/checkins', data);
     return response.data;
 };

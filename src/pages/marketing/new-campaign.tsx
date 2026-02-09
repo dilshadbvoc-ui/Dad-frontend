@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useMutation, useQuery } from "@tanstack/react-query"
-import { createCampaign, getEmailLists } from "@/services/marketingService"
+import { createEmailCampaign, getEmailLists } from "@/services/marketingService"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -32,7 +32,7 @@ export default function CreateCampaignPage() {
     const { data: lists } = useQuery({ queryKey: ['emailLists'], queryFn: () => getEmailLists() })
 
     const createMutation = useMutation({
-        mutationFn: (data: { name: string; subject: string; emailList: string; content: string }) => createCampaign(data),
+        mutationFn: (data: { name: string; subject: string; emailList: string; content: string }) => createEmailCampaign(data),
         onSuccess: () => {
             toast.success("Campaign created successfully")
             navigate('/marketing')
@@ -109,10 +109,10 @@ export default function CreateCampaignPage() {
                                         <SelectValue placeholder="Select a list..." />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {lists?.map((l: { id: string, name: string, contacts?: unknown[] }) => (
+                                        {lists?.data?.map((l: { id: string, name: string, contacts?: unknown[] }) => (
                                             <SelectItem key={l.id} value={l.id}>{l.name} ({l.contacts?.length || 0} contacts)</SelectItem>
                                         ))}
-                                        {(!lists || lists.length === 0) && (
+                                        {(!lists?.data || lists.data.length === 0) && (
                                             <div className="p-2 text-sm text-yellow-600">
                                                 No lists found. <a href="/marketing/lists" className="underline font-bold">Create a list first</a>
                                             </div>

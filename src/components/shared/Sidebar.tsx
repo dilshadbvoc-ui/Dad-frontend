@@ -59,9 +59,9 @@ const menuGroups = [
     {
         title: "Marketing",
         items: [
-            { title: "Marketing Hub", href: "/marketing", icon: Megaphone },
-            { title: "Ads Manager", href: "/marketing/ads", icon: Megaphone },
-            { title: "Email Lists", href: "/marketing/lists", icon: Users },
+            { title: "Marketing Hub", href: "/marketing", icon: Megaphone, role: "admin" },
+            { title: "Ads Manager", href: "/marketing/ads-manager", icon: Megaphone, role: "admin" },
+            { title: "Email Lists", href: "/marketing/lists", icon: Users, role: "admin" },
         ]
     },
     {
@@ -157,22 +157,20 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     return (
         <TooltipProvider>
             <div className={cn(
-                "flex flex-col h-full bg-[hsl(var(--sidebar-bg))] text-[hsl(var(--sidebar-text))] transition-all duration-300 border-r border-[hsl(var(--sidebar-border))]",
+                "flex flex-col h-full bg-sidebar-bg text-sidebar-text transition-all duration-300 border-r border-sidebar-border",
                 isCollapsed ? "w-20" : "w-64"
             )}>
                 {/* Logo & Toggle */}
                 <div className={cn(
-                    "relative flex h-16 items-center border-b border-[hsl(var(--sidebar-border))]",
-                    isCollapsed ? "justify-center px-0" : "justify-between px-4"
+                    "relative flex h-20 items-center",
+                    isCollapsed ? "justify-center px-0" : "justify-between px-6"
                 )}>
                     <Link to="/dashboard" className="flex items-center gap-3 group">
-                        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-bold shadow-lg shadow-indigo-500/30 shrink-0">
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 shrink-0">
                             <span className="text-xl">L</span>
                         </div>
                         {!isCollapsed && (
-                            <span className="text-lg font-bold text-[hsl(var(--sidebar-text))] tracking-wide truncate font-sans">
-                                LeadHostix
-                            </span>
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">ProHostix</h1>
                         )}
                     </Link>
                     {!isCollapsed && (
@@ -180,7 +178,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsCollapsed(true)}
-                            className="h-8 w-8 text-indigo-300 hover:text-white hover:bg-white/10"
+                            className="h-8 w-8 text-muted-foreground hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
                         >
                             <ChevronLeft className="h-4 w-4" />
                         </Button>
@@ -190,7 +188,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={() => setIsCollapsed(false)}
-                            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-indigo-600 text-white shadow-lg border border-indigo-400 hover:bg-indigo-500 z-50 p-0.5"
+                            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
                         >
                             <ChevronRight className="h-3 w-3" />
                         </Button>
@@ -207,10 +205,10 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                 <TooltipTrigger asChild>
                                     <Link to="/super-admin" className={cn(
                                         "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        pathname.startsWith('/super-admin') ? "bg-indigo-600/20 text-indigo-300" : "text-gray-400 hover:text-white hover:bg-white/5",
+                                        pathname.startsWith('/super-admin') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
                                         isCollapsed && "justify-center px-0"
                                     )}>
-                                        <ShieldCheck className="h-5 w-5 shrink-0 text-indigo-400" />
+                                        <ShieldCheck className="h-5 w-5 shrink-0 text-sidebar-active" />
                                         {!isCollapsed && <span className="text-sm font-medium">Super Admin</span>}
                                     </Link>
                                 </TooltipTrigger>
@@ -222,7 +220,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {filteredGroups.map((group, groupIndex) => (
                         <div key={groupIndex} className="space-y-1">
                             {!isCollapsed && (
-                                <div className="px-3 text-xs font-semibold text-indigo-400/80 uppercase tracking-wider mb-2 mt-2">
+                                <div className="px-3 text-xs font-semibold text-sidebar-text/50 uppercase tracking-wider mb-2 mt-2">
                                     {group.title}
                                 </div>
                             )}
@@ -233,16 +231,16 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                     <Link
                                         to={item.href}
                                         className={cn(
-                                            "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                                            "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
                                             isActive
-                                                ? "bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-md shadow-indigo-900/20"
-                                                : "text-indigo-100/70 hover:text-white hover:bg-white/5",
-                                            isCollapsed ? "justify-center px-0 w-10 h-10 mx-auto" : ""
+                                                ? "bg-sidebar-active text-sidebar-bg shadow-md"
+                                                : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                            isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : ""
                                         )}
                                     >
                                         <item.icon className={cn(
                                             "h-5 w-5 shrink-0 transition-colors",
-                                            isActive ? "text-white" : "text-indigo-300 group-hover:text-white"
+                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
                                         )} />
                                         {!isCollapsed && <span>{item.title}</span>}
                                     </Link>
@@ -254,7 +252,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                             <TooltipTrigger asChild>
                                                 {LinkContent}
                                             </TooltipTrigger>
-                                            <TooltipContent className="bg-indigo-950 border-indigo-800 text-white">
+                                            <TooltipContent className="bg-popover text-popover-foreground border-border">
                                                 {item.title}
                                             </TooltipContent>
                                         </Tooltip>
@@ -268,12 +266,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 </nav>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-[hsl(var(--sidebar-border))] bg-[hsl(var(--sidebar-bg))]">
+                <div className="p-4 border-t border-sidebar-border bg-sidebar-bg mt-auto shrink-0">
                     {isCollapsed ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <div className="flex flex-col items-center gap-4 cursor-pointer" onClick={handleLogout}>
-                                    <div className="h-8 w-8 rounded-lg bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shadow-lg">
+                                    <div className="h-8 w-8 rounded-lg bg-sidebar-active flex items-center justify-center text-xs font-bold text-sidebar-bg shadow-sm">
                                         {user?.firstName?.charAt(0) || 'U'}
                                     </div>
                                 </div>
@@ -282,14 +280,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         </Tooltip>
                     ) : (
                         <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-indigo-600 flex items-center justify-center text-sm font-bold text-white shadow-lg">
+                            <div className="h-9 w-9 rounded-lg bg-sidebar-active flex items-center justify-center text-sm font-bold text-sidebar-bg shadow-sm">
                                 {user?.firstName?.charAt(0) || 'U'}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate text-white">{user?.firstName} {user?.lastName}</p>
-                                <p className="text-xs text-indigo-300 truncate">{user?.email}</p>
+                                <p className="text-sm font-medium truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
+                                <p className="text-xs text-sidebar-text/60 truncate">{user?.email}</p>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 text-indigo-400 hover:text-white hover:bg-white/10">
+                            <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover">
                                 <LogOut className="h-4 w-4" />
                             </Button>
                         </div>
@@ -303,8 +301,8 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarProps & { className?: string }) {
     return (
         <div className={cn(
-            "hidden lg:flex lg:flex-col bg-[hsl(var(--sidebar-bg))] relative h-screen transition-all duration-300",
-            isCollapsed ? "w-20" : "w-64",
+            "flex flex-col bg-[hsl(var(--sidebar-bg))] relative h-full lg:h-screen transition-all duration-300",
+            isCollapsed ? "w-20" : "w-full lg:w-64", // Full width on mobile when shown
             className
         )}>
             <SidebarContent isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -313,3 +311,4 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
 }
 
 export const Sidebar = memo(SidebarComponent);
+

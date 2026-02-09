@@ -51,7 +51,7 @@ export function Header({ className }: { className?: string }) {
                     <QuickAddLeadDialog>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-yellow-600 hover:text-yellow-700 hover:bg-yellow-50 dark:hover:bg-yellow-900/20">
+                                <Button variant="ghost" size="icon" className="text-warning hover:text-warning/80 hover:bg-warning/10">
                                     <Zap className="h-5 w-5 fill-current" />
                                 </Button>
                             </TooltipTrigger>

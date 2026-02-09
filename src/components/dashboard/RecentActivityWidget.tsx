@@ -10,18 +10,27 @@ export function RecentActivityWidget() {
     const { data, isLoading } = useQuery({
         queryKey: ['recent-activity'],
         queryFn: async () => {
-            const res = await api.get('/audit-logs', { params: { limit: 10 } })
-            return res.data
+            try {
+                const res = await api.get('/audit-logs', { params: { limit: 10 } });
+                console.log('Recent Activity Raw:', res.data, 'Has logs:', !!res.data?.logs, 'Is Array:', Array.isArray(res.data?.logs));
+                return res.data;
+            } catch (error) {
+                console.error('Error fetching recent activity:', error);
+                return { logs: [] };
+            }
         }
-    })
+    });
 
-    const logs = data?.logs || []
+    // Ensure logs is always an array
+    const logs = Array.isArray(data?.logs) ? data.logs : [];
+
+    console.log('Recent Activity Logs:', logs, 'Length:', logs.length);
 
     return (
-        <Card className="col-span-3 rounded-3xl bg-white shadow-sm border-0">
+        <Card className="col-span-3 rounded-3xl bg-card shadow-sm border-0">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <Activity className="h-5 w-5 text-blue-500" />
+                <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-primary" />
                     Recent Activity
                 </CardTitle>
             </CardHeader>
@@ -34,18 +43,18 @@ export function RecentActivityWidget() {
                     <ScrollArea className="h-[350px] pr-4">
                         <div className="space-y-4">
                             {logs.map((log: { id: string, actor?: { profileImage?: string, firstName?: string, lastName?: string }, action: string, entity: string, createdAt: string }) => (
-                                <div key={log.id} className="flex items-start gap-3 border-b border-gray-100 last:border-0 pb-3 last:pb-0">
+                                <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
                                     <Avatar className="h-9 w-9 mt-0.5">
                                         <AvatarImage src={log.actor?.profileImage} />
-                                        <AvatarFallback className="text-xs bg-blue-50 text-blue-700">
+                                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
                                             {log.actor?.firstName?.[0]}{log.actor?.lastName?.[0]}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="space-y-1">
                                         <p className="text-sm font-medium leading-none">
-                                            <span className="text-slate-900">{log.actor?.firstName} {log.actor?.lastName}</span>
-                                            <span className="text-slate-500 font-normal"> {getHumanReadableAction(log.action)} </span>
-                                            <span className="text-slate-900 font-medium">{log.entity}</span>
+                                            <span className="text-foreground">{log.actor?.firstName} {log.actor?.lastName}</span>
+                                            <span className="text-muted-foreground font-normal"> {getHumanReadableAction(log.action)} </span>
+                                            <span className="text-foreground font-medium">{log.entity}</span>
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}

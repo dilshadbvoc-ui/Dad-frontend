@@ -76,7 +76,7 @@ export const columns: ColumnDef<Opportunity>[] = [
         header: "Account",
         cell: ({ row }) => {
             const account = row.original.account
-            return account ? <span className="font-medium">{account.name}</span> : <span className="text-gray-400">-</span>
+            return account ? <span className="font-medium">{account.name}</span> : <span className="text-muted-foreground">-</span>
         }
     },
     {

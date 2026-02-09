@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import loginBg from '@/assets/login-bg.png';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Lock, Loader2, ArrowRight, Building } from 'lucide-react';
+import { User, Mail, Lock, Loader2, Building, ArrowRight } from 'lucide-react';
 
 const Register = () => {
     const [firstName, setFirstName] = useState('');
@@ -42,137 +43,154 @@ const Register = () => {
     };
 
     return (
-        <div className="flex items-center justify-center min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900 via-slate-900 to-black overflow-hidden relative">
-            {/* Ambient Background Effects (Same as Login) */}
-            <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-                <div className="absolute -top-[20%] -left-[10%] w-[50%] h-[50%] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" />
-                <div className="absolute top-[40%] -right-[10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[100px] animate-pulse delay-1000" />
+        <div className="min-h-screen grid lg:grid-cols-2">
+            {/* Image Section */}
+            <div className="hidden lg:block relative h-full bg-slate-900 order-last lg:order-first">
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/90 mix-blend-multiply z-10" />
+                <img
+                    src={loginBg}
+                    alt="Login Background"
+                    className="absolute inset-0 w-full h-full object-cover"
+                />
+                <div className="relative z-20 h-full flex flex-col justify-between p-12 text-white">
+                    <div className="flex items-center gap-2">
+                        <span className="text-xl font-bold tracking-tight">LEADHOSTIX CRM</span>
+                    </div>
+                    <div className="space-y-4 max-w-md">
+                        <blockquote className="text-2xl font-medium leading-relaxed">
+                            "Start your journey with the most powerful CRM built for modern sales teams."
+                        </blockquote>
+                        <div className="text-sm text-slate-300">
+                            Join thousands of growing companies.
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <Card className="w-[450px] z-10 backdrop-blur-xl bg-white/5 border-white/10 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500" />
-
-                <CardHeader className="space-y-1 text-center pb-2">
-                    <CardTitle className="text-3xl font-bold tracking-tight bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">
-                        Create Account
-                    </CardTitle>
-                    <CardDescription className="text-gray-400">
-                        Start your 14-day free trial
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                    <form onSubmit={handleSubmit} className="space-y-4">
-
-                        <div className="space-y-2">
-                            <Label htmlFor="companyName" className="text-gray-300">Company Name</Label>
-                            <div className="relative">
-                                <Building className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                                <Input
-                                    id="companyName"
-                                    placeholder="Acme Inc."
-                                    value={companyName}
-                                    onChange={(e) => setCompanyName(e.target.value)}
-                                    className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all duration-300 hover:bg-black/30"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
+            {/* Form Section */}
+            <div className="flex items-center justify-center p-4 lg:p-12 bg-background">
+                <Card className="w-full max-w-[500px] shadow-lg border-0 bg-card shadow-sm">
+                    <CardHeader className="space-y-1 text-center lg:text-left px-6 pt-6">
+                        <CardTitle className="text-3xl font-bold tracking-tight">
+                            <span className="bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">Create Account</span>
+                        </CardTitle>
+                        <CardDescription>
+                            Start your 14-day free trial, no credit card required.
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4 px-6 pb-6">
+                        <form onSubmit={handleSubmit} className="space-y-4">
                             <div className="space-y-2">
-                                <Label htmlFor="firstName" className="text-gray-300">First Name</Label>
+                                <Label htmlFor="companyName">Company Name</Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                                    <Building className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        id="firstName"
-                                        placeholder="John"
-                                        value={firstName}
-                                        onChange={(e) => setFirstName(e.target.value)}
-                                        className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all duration-300 hover:bg-black/30"
+                                        id="companyName"
+                                        placeholder="Acme Inc."
+                                        value={companyName}
+                                        onChange={(e) => setCompanyName(e.target.value)}
+                                        className="pl-9 bg-white dark:bg-background"
                                         required
                                     />
                                 </div>
                             </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor="firstName">First Name</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="firstName"
+                                            placeholder="John"
+                                            value={firstName}
+                                            onChange={(e) => setFirstName(e.target.value)}
+                                            className="pl-9 bg-white dark:bg-background"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <div className="relative">
+                                        <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                        <Input
+                                            id="lastName"
+                                            placeholder="Doe"
+                                            value={lastName}
+                                            onChange={(e) => setLastName(e.target.value)}
+                                            className="pl-9 bg-white dark:bg-background"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <Label htmlFor="lastName" className="text-gray-300">Last Name</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
+                                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        id="lastName"
-                                        placeholder="Doe"
-                                        value={lastName}
-                                        onChange={(e) => setLastName(e.target.value)}
-                                        className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all duration-300 hover:bg-black/30"
+                                        id="email"
+                                        placeholder="name@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="pl-9 bg-white dark:bg-background"
                                         required
                                     />
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="email" className="text-gray-300">Email</Label>
-                            <div className="relative">
-                                <Mail className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                                <Input
-                                    id="email"
-                                    placeholder="name@example.com"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all duration-300 hover:bg-black/30"
-                                    required
-                                />
+                            <div className="space-y-2">
+                                <Label htmlFor="password">Password</Label>
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="pl-9 bg-white dark:bg-background"
+                                        required
+                                    />
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="password" className="text-gray-300">Password</Label>
-                            <div className="relative">
-                                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-gray-500" />
-                                <Input
-                                    id="password"
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    className="pl-9 bg-black/20 border-white/10 text-white placeholder:text-gray-500 focus:border-purple-500/50 focus:ring-purple-500/20 transition-all duration-300 hover:bg-black/30"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        {error && (
-                            <div className="p-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-                                <span className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                                {error}
-                            </div>
-                        )}
-
-                        <Button
-                            className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-900/20 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
-                            type="submit"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Creating Account...
-                                </>
-                            ) : (
-                                <>
-                                    Register <ArrowRight className="ml-2 h-4 w-4" />
-                                </>
+                            {error && (
+                                <div className="p-3 rounded-md bg-destructive/10 text-destructive text-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
+                                    {error}
+                                </div>
                             )}
-                        </Button>
-                    </form>
-                </CardContent>
-                <CardFooter className="flex justify-center border-t border-white/5 pt-4 mt-2">
-                    <p className="text-sm text-gray-400">
-                        Already have an account?{' '}
-                        <a href="/login" className="font-medium text-purple-400 hover:text-purple-300 transition-colors hover:underline">
-                            Login
-                        </a>
-                    </p>
-                </CardFooter>
-            </Card>
+
+                            <Button
+                                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                                type="submit"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Creating Account...
+                                    </>
+                                ) : (
+                                    <>
+                                        Register <ArrowRight className="ml-2 h-4 w-4" />
+                                    </>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                    <CardFooter className="flex justify-center border-t px-6 py-4">
+                        <p className="text-sm text-muted-foreground">
+                            Already have an account?{' '}
+                            <a href="/login" className="font-medium text-primary hover:text-primary/80 transition-colors hover:underline">
+                                Login
+                            </a>
+                        </p>
+                    </CardFooter>
+                </Card>
+            </div>
         </div>
     );
 };

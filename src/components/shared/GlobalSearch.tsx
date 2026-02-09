@@ -66,7 +66,7 @@ export function GlobalSearch() {
                 try {
                     const response = await api.get(`/search/suggestions?q=${encodeURIComponent(value)}`)
                     const searchData = response.data.data || response.data;
-                    setSuggestions(searchData.suggestions || [])
+                    setSuggestions(Array.isArray(searchData.suggestions) ? searchData.suggestions : [])
                 } catch (error) {
                     console.error("Suggestions failed", error)
                     setSuggestions([])
@@ -88,7 +88,7 @@ export function GlobalSearch() {
             try {
                 const response = await api.get(`/search/global?q=${encodeURIComponent(value)}&limit=20`)
                 const searchData = response.data.data || response.data;
-                setResults(searchData.results || [])
+                setResults(Array.isArray(searchData.results) ? searchData.results : [])
             } catch (error) {
                 console.error("Search failed", error)
                 setResults([])
@@ -149,7 +149,7 @@ export function GlobalSearch() {
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
                 placeholder="Search leads, contacts, accounts..."
-                className="pl-8 bg-background"
+                className="pl-8 bg-background border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring"
                 value={query}
                 onChange={(e) => handleSearch(e.target.value)}
                 onFocus={() => {
@@ -160,18 +160,18 @@ export function GlobalSearch() {
 
             {/* Suggestions dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1b4b] border border-indigo-900/50 rounded-xl shadow-2xl z-50 max-h-[200px] overflow-y-auto backdrop-blur-xl">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-[200px] overflow-y-auto">
                     <div className="py-2">
-                        <div className="px-4 py-2 text-xs font-semibold text-indigo-400/60 uppercase tracking-widest">
+                        <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                             Suggestions
                         </div>
                         {suggestions.map((suggestion, index) => (
                             <button
                                 key={index}
-                                className="w-full px-4 py-2 text-left hover:bg-white/5 text-indigo-100 flex items-center gap-3 transition-colors"
+                                className="w-full px-4 py-2 text-left hover:bg-muted text-popover-foreground flex items-center gap-3 transition-colors"
                                 onClick={() => handleSuggestionSelect(suggestion)}
                             >
-                                <Search className="h-3.5 w-3.5 text-indigo-400/50" />
+                                <Search className="h-3.5 w-3.5 text-muted-foreground" />
                                 <span className="text-sm">{suggestion}</span>
                             </button>
                         ))}
@@ -181,51 +181,51 @@ export function GlobalSearch() {
 
             {/* Search results dropdown */}
             {showResults && query.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-[#1e1b4b] border border-indigo-900/50 rounded-xl shadow-2xl z-50 max-h-[400px] overflow-y-auto backdrop-blur-xl">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-[400px] overflow-y-auto">
                     {isLoading ? (
-                        <div className="p-8 flex flex-col items-center justify-center text-sm text-indigo-400/60">
+                        <div className="p-8 flex flex-col items-center justify-center text-sm text-muted-foreground">
                             <Loader2 className="h-6 w-6 animate-spin mb-2" />
                             <span>Searching...</span>
                         </div>
                     ) : results.length > 0 ? (
                         <div className="py-2">
-                            <div className="px-4 py-2 text-xs font-semibold text-indigo-400/60 uppercase tracking-widest border-b border-indigo-900/30 mb-1">
+                            <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest border-b border-border mb-1">
                                 {results.length} Results
                             </div>
                             {results.map((result) => (
                                 <button
                                     key={`${result.type}-${result.id}`}
-                                    className="w-full px-4 py-3 text-left hover:bg-white/5 flex items-start gap-4 transition-colors border-b border-indigo-900/20 last:border-b-0"
+                                    className="w-full px-4 py-3 text-left hover:bg-muted flex items-start gap-4 transition-colors border-b border-border last:border-b-0"
                                     onClick={() => handleSelect(result)}
                                 >
-                                    <div className="shrink-0 mt-1 p-2 rounded-lg bg-indigo-500/10">
+                                    <div className="shrink-0 mt-1 p-2 rounded-lg bg-muted">
                                         {getIcon(result.type)}
                                     </div>
                                     <div className="min-w-0 flex-1">
                                         <div className="flex items-center justify-between">
-                                            <div className="font-semibold text-sm text-white truncate">{result.title}</div>
+                                            <div className="font-semibold text-sm text-popover-foreground truncate">{result.title}</div>
                                             {result.value && (
-                                                <div className="text-xs font-bold text-emerald-400 ml-2">
+                                                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400 ml-2">
                                                     {formatValue(result.value)}
                                                 </div>
                                             )}
                                         </div>
-                                        <div className="text-[11px] text-indigo-300/60 uppercase tracking-tight mt-0.5">
+                                        <div className="text-[11px] text-muted-foreground uppercase tracking-tight mt-0.5">
                                             {result.type} • {result.subtitle}
                                         </div>
                                         {result.description && (
-                                            <div className="text-xs text-indigo-200/80 truncate mt-1">
+                                            <div className="text-xs text-muted-foreground truncate mt-1">
                                                 {result.description}
                                             </div>
                                         )}
                                         <div className="flex items-center justify-between mt-2">
                                             {result.assignedTo && (
-                                                <div className="text-[10px] text-indigo-400/60 flex items-center">
-                                                    <div className="w-1 h-1 rounded-full bg-indigo-500 mr-2" />
+                                                <div className="text-[10px] text-muted-foreground flex items-center">
+                                                    <div className="w-1 h-1 rounded-full bg-primary mr-2" />
                                                     {result.assignedTo}
                                                 </div>
                                             )}
-                                            <div className="text-[10px] text-indigo-400/60 ml-auto">
+                                            <div className="text-[10px] text-muted-foreground ml-auto">
                                                 {formatDate(result.createdAt)}
                                             </div>
                                         </div>
@@ -234,9 +234,9 @@ export function GlobalSearch() {
                             ))}
                         </div>
                     ) : (
-                        <div className="p-8 text-center text-sm text-indigo-300/70">
-                            <Search className="h-10 w-10 mx-auto mb-3 text-indigo-900/50" />
-                            <p className="font-medium text-white">No results found</p>
+                        <div className="p-8 text-center text-sm text-muted-foreground">
+                            <Search className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
+                            <p className="font-medium text-popover-foreground">No results found</p>
                             <p className="text-xs mt-1">Try different keywords for "{query}"</p>
                         </div>
                     )}

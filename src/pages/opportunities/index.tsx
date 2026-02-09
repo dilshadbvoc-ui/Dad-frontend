@@ -51,85 +51,90 @@ export default function OpportunitiesPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Opportunities</h1>
-                    <p className="text-indigo-300/70 mt-1">Track your deals and sales pipeline.</p>
+        <div className="h-full flex flex-col bg-background/50">
+            <div className="flex-none p-6 pb-2">
+                <div className="mb-6">
+                    <h1 className="text-3xl font-bold text-foreground">Opportunities</h1>
+                    <p className="text-muted-foreground mt-1">Track your deals and sales pipeline.</p>
                 </div>
-                <div className="flex gap-2">
-                    <div className="flex bg-[#1e1b4b] border border-indigo-900/50 p-1 rounded-xl mr-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setFilterMode('all')}
-                            className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'all' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
-                        >
-                            <Users className="h-3.5 w-3.5 mr-1.5" />
-                            Team
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setFilterMode('mine')}
-                            className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'mine' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
-                        >
-                            <User className="h-3.5 w-3.5 mr-1.5" />
-                            My Deals
-                        </Button>
+                <div className="flex items-center justify-between gap-4">
+                    <div className="flex gap-2">
+                        <div className="flex bg-muted p-1 rounded-xl mr-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setFilterMode('all')}
+                                className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <Users className="h-3.5 w-3.5 mr-1.5" />
+                                Team
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setFilterMode('mine')}
+                                className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'mine' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <User className="h-3.5 w-3.5 mr-1.5" />
+                                My Deals
+                            </Button>
+                        </div>
+
+                        <div className="hidden md:flex bg-muted p-1 rounded-xl mr-2">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setViewMode('list')}
+                                className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <LayoutList className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setViewMode('board')}
+                                className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'board' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                            >
+                                <LayoutGrid className="h-4 w-4" />
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="hidden md:flex bg-[#1e1b4b] border border-indigo-900/50 p-1 rounded-xl mr-2">
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setViewMode('list')}
-                            className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'list' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
-                        >
-                            <LayoutList className="h-4 w-4" />
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
+                            <Filter className="h-4 w-4 mr-2" />
+                            Filter
                         </Button>
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setViewMode('board')}
-                            className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'board' ? 'bg-indigo-500/20 text-indigo-100' : 'text-indigo-300/60 hover:text-indigo-200'}`}
-                        >
-                            <LayoutGrid className="h-4 w-4" />
+                        <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
+                            <Download className="h-4 w-4 mr-2" />
+                            Export
+                        </Button>
+                        <Button size="sm" onClick={() => setIsCreateOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 rounded-xl">
+                            <Target className="mr-2 h-4 w-4" />
+                            Create Opportunity
                         </Button>
                     </div>
-
-                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex border-indigo-900/50 text-indigo-300 hover:text-white hover:bg-white/5">
-                        <Filter className="h-4 w-4 mr-2" />
-                        Filter
-                    </Button>
-                    <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex border-indigo-900/50 text-indigo-300 hover:text-white hover:bg-white/5">
-                        <Download className="h-4 w-4 mr-2" />
-                        Export
-                    </Button>
-                    <Button size="sm" onClick={() => setIsCreateOpen(true)} className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl">
-                        <Target className="mr-2 h-4 w-4" />
-                        Create Opportunity
-                    </Button>
                 </div>
             </div>
 
             {isLoading ? (
-                <div className="flex items-center justify-center p-12">
+                <div className="flex-1 flex items-center justify-center p-12">
                     <div className="flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
-                        <p className="text-sm text-indigo-300/70">Loading opportunities...</p>
+                        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                        <p className="text-sm text-muted-foreground">Loading opportunities...</p>
                     </div>
                 </div>
             ) : (
-                <div className={viewMode === 'list' ? "rounded-xl border border-indigo-900/50 bg-[#1e1b4b] text-white shadow-lg shadow-indigo-950/20 overflow-hidden" : ""}>
-                    {viewMode === 'list' ? (
-                        <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
-                    ) : (
-                        <KanbanBoard opportunities={filteredOpportunities} />
-                    )}
+                <div className={`flex-1 min-h-0 p-6 pt-2 ${viewMode === 'list' ? 'overflow-auto' : 'overflow-hidden'}`}>
+                    <div className={viewMode === 'list' ? "rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden" : "h-full"}>
+                        {viewMode === 'list' ? (
+                            <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
+                        ) : (
+                            <KanbanBoard opportunities={filteredOpportunities} />
+                        )}
+                    </div>
                 </div>
             )}
-
             <CreateOpportunityDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
         </div>
     )

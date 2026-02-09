@@ -76,12 +76,12 @@ export default function PipelinesPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Pipelines</h1>
-                    <p className="text-gray-500 mt-1">Configure deal stages and multiple pipelines.</p>
+                    <h1 className="text-3xl font-bold text-foreground">Pipelines</h1>
+                    <p className="text-muted-foreground mt-1">Configure deal stages and multiple pipelines.</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 rounded-xl">
+                        <Button className="bg-primary text-primary-foreground shadow-lg shadow-primary/25 rounded-xl">
                             <Plus className="h-4 w-4 mr-2" />
                             New Pipeline
                         </Button>
@@ -126,7 +126,7 @@ export default function PipelinesPage() {
 
             <div className="grid gap-6">
                 {isLoading ? (
-                    <div className="text-center py-10">Loading pipelines...</div>
+                    <div className="text-center py-10 text-muted-foreground">Loading pipelines...</div>
                 ) : pipelines.length > 0 ? (
                     pipelines.map((pipeline: Pipeline) => (
                         <Card key={pipeline.id}>
@@ -141,7 +141,7 @@ export default function PipelinesPage() {
                                     <CardDescription>Created on {new Date(pipeline.createdAt).toLocaleDateString()}</CardDescription>
                                 </div>
                                 {!pipeline.isDefault && (
-                                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => deleteMutation.mutate(pipeline.id)}>
+                                    <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteMutation.mutate(pipeline.id)}>
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
                                 )}
@@ -150,11 +150,11 @@ export default function PipelinesPage() {
                                 <div className="flex items-center gap-2 overflow-x-auto pb-2">
                                     {pipeline.stages?.map((stage, index) => (
                                         <div key={stage.id || index} className="flex items-center shrink-0">
-                                            <div className="px-3 py-1 bg-gray-100 dark:bg-gray-800 rounded-md text-sm font-medium border border-gray-200 dark:border-gray-700">
+                                            <div className="px-3 py-1 bg-muted rounded-md text-sm font-medium border border-border text-foreground">
                                                 {stage.name}
                                             </div>
                                             {index < pipeline.stages.length - 1 && (
-                                                <ArrowRight className="h-4 w-4 mx-2 text-gray-400" />
+                                                <ArrowRight className="h-4 w-4 mx-2 text-muted-foreground" />
                                             )}
                                         </div>
                                     ))}
@@ -163,10 +163,10 @@ export default function PipelinesPage() {
                         </Card>
                     ))
                 ) : (
-                    <div className="text-center py-10 border-2 border-dashed rounded-xl">
-                        <GitBranch className="h-10 w-10 mx-auto text-gray-400 mb-2" />
-                        <h3 className="text-lg font-medium">No Pipelines Found</h3>
-                        <p className="text-gray-500">Create your first sales pipeline to manage opportunities.</p>
+                    <div className="text-center py-10 border-2 border-dashed border-border rounded-xl">
+                        <GitBranch className="h-10 w-10 mx-auto text-muted-foreground mb-2" />
+                        <h3 className="text-lg font-medium text-foreground">No Pipelines Found</h3>
+                        <p className="text-muted-foreground">Create your first sales pipeline to manage opportunities.</p>
                     </div>
                 )}
             </div>

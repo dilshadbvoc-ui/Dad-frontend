@@ -313,6 +313,22 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         </FormItem>
                                     )}
                                 />
+                                <FormField
+                                    control={form.control}
+                                    name="configId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Configuration ID (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Meta Configuration ID" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for WhatsApp Embedded Signup.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
                             </>
                         )}
 
@@ -389,6 +405,22 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormControl>
                                                 <Input type="password" placeholder="Meta App Secret" {...field} />
                                             </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="configId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Configuration ID (Optional)</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Meta Configuration ID" {...field} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for WhatsApp Embedded Signup.
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}

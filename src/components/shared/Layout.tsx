@@ -15,6 +15,11 @@ export default function Layout() {
     const location = useLocation();
     const navigate = useNavigate();
     const isDashboard = location.pathname === '/dashboard';
+    const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
+        location.pathname.startsWith('/workflows') ||
+        location.pathname.startsWith('/whatsapp') ||
+        location.pathname.startsWith('/communications') ||
+        location.pathname.startsWith('/opportunities');
     const [collapsed, setCollapsed] = useState(() => {
         const saved = localStorage.getItem('sidebar-collapsed');
         return saved === 'true';
@@ -92,41 +97,56 @@ export default function Layout() {
 
             {/* Mobile Sidebar */}
             <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-64 transform transition-transform duration-300 ease-in-out lg:hidden",
+                "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl",
                 mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}>
                 <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
+                {/* Close button inside sidebar for better UX */}
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="absolute top-2 right-2 text-white/70 hover:text-white hover:bg-white/10 lg:hidden"
+                >
+                    <X className="h-5 w-5" />
+                </Button>
             </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 flex flex-col overflow-hidden w-full">
                 {/* Standardized Header Container */}
-                <div className="flex items-center justify-between lg:justify-end bg-card border-b border-border px-4 h-16 shadow-md shadow-black/5 shrink-0">
+                <div className="flex items-center justify-between lg:justify-end bg-card border-b border-border px-4 h-16 shadow-md shadow-black/5 shrink-0 z-20 relative">
                     <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="lg:hidden p-2 text-indigo-100"
+                        className="lg:hidden p-2 -ml-2 text-primary hover:bg-primary/10"
                     >
                         {mobileMenuOpen ? (
-                            <X className="h-5 w-5" />
+                            <X className="h-6 w-6" />
                         ) : (
-                            <Menu className="h-5 w-5" />
+                            <Menu className="h-6 w-6" />
                         )}
                     </Button>
-                    <Header className="flex-1 lg:flex-none" />
+                    <Header className="flex-1 lg:flex-none pl-4 lg:pl-0 overflow-x-auto" />
                 </div>
 
-                <main className="flex-1 overflow-y-auto">
-                    <div className="container max-w-7xl mx-auto">
+                <main className={cn(
+                    "flex-1 bg-background/50",
+                    isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden"
+                )}>
+                    <div className={cn(
+                        "w-full",
+                        isFullWidthPage ? "h-full" : "pb-20 lg:pb-8"
+                    )}>
                         {!isDashboard && (
-                            <div className="px-4 py-4 lg:px-6">
+                            <div className="px-4 py-3 lg:px-6 lg:py-4">
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => navigate(-1)}
-                                    className="group flex items-center gap-2 text-indigo-400/60 hover:text-white pl-0 hover:bg-transparent transition-colors"
+                                    className="group flex items-center gap-2 text-muted-foreground hover:text-primary pl-0 hover:bg-transparent transition-colors"
                                 >
-                                    <div className="p-1 rounded-full bg-indigo-500/10 group-hover:bg-indigo-500/20 transition-colors">
+                                    <div className="p-1 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                                         <ChevronLeft className="h-4 w-4" />
                                     </div>
                                     <span className="font-semibold text-xs uppercase tracking-wider">Back</span>
@@ -134,8 +154,7 @@ export default function Layout() {
                             </div>
                         )}
                         <div className={cn(
-                            "px-4 pb-8 lg:px-6",
-                            isDashboard ? "pt-6" : "pt-0"
+                            isFullWidthPage ? "p-0 h-full" : "px-4 lg:px-6 pt-4 lg:pt-6"
                         )}>
                             <Outlet />
                         </div>

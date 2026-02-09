@@ -91,7 +91,8 @@ export function DataTable<TData, TValue>({
                     />
                 </div>
             )}
-            <div className="rounded-md border overflow-x-auto">
+            {/* Mobile-optimized table wrapper */}
+            <div className="rounded-md border table-responsive-wrapper">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -120,7 +121,7 @@ export function DataTable<TData, TValue>({
                                     onDragOver={(e) => handleDragOver(e, row.id)}
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, row)}
-                                    className={`transition-colors ${dragOverRowId === row.id && onRowDrop ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200' : ''}`}
+                                    className={`transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${dragOverRowId === row.id && onRowDrop ? 'bg-accent border-primary' : ''}`}
                                 >
                                     {row.getVisibleCells().map((cell) => (
                                         <TableCell key={cell.id}>

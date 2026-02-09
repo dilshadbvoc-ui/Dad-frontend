@@ -33,6 +33,20 @@ api.interceptors.response.use(
                 window.location.href = '/login';
             }
         }
+        
+        // Handle 500 errors gracefully - return empty data instead of crashing
+        if (error.response && error.response.status === 500) {
+            console.error('Server error:', error.response.data);
+            // Return a resolved promise with empty data structure
+            return Promise.resolve({ 
+                data: { 
+                    data: [], 
+                    message: 'Unable to fetch data',
+                    error: true 
+                } 
+            });
+        }
+        
         return Promise.reject(error);
     }
 );

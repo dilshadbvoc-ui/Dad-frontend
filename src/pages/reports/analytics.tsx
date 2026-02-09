@@ -1,382 +1,243 @@
-
-import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/services/api'; // Use configured API client
-import {
-    XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-    PieChart, Pie, Cell, Legend, AreaChart, Area
-} from 'recharts';
-import {
-    TrendingUp,
-    Users,
-    DollarSign,
-    Target,
-    Download,
-    Calendar,
-    Briefcase,
-    ArrowUpRight,
-    ArrowDownRight,
-    Brain,
-    AlertCircle
-} from 'lucide-react';
+import { getSalesChartData, getLeadSourceAnalytics, getTopLeads } from '@/services/analyticsService';
+import { getLeads } from '@/services/leadService';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, BarChart, Bar } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ensureArray } from "@/hooks/useArrayData";
 
-
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-// Types matching backend
-interface DashboardStats {
-    totalLeads: number;
-    activeOpportunities: number;
-    salesRevenue: number;
-    winRate: number;
-    trends?: {
-        revenue: number;
-        leads: number;
-        winRate: number;
-    };
-}
-
-interface SalesDataPoint {
-    name: string;
-    total: number;
-}
-
-interface LeadSourceData {
-    source: string;
-    count: number;
-}
-
-interface TopLead {
-    id: string;
-    firstName: string;
-    lastName: string;
-    company: string;
-    email: string;
-    leadScore: number;
-}
-
-// COLORS for Charts
-const COLORS = ['#0ea5e9', '#22c55e', '#eab308', '#f97316', '#ef4444']; // Blue, Green, Yellow, Orange, Red
+const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
 export default function AnalyticsPage() {
-    const [timeRange, setTimeRange] = useState("6m");
+    const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ queryKey: ['salesChart'], queryFn: getSalesChartData });
+    const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
+    const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: getTopLeads });
 
-    // Fetch API Data
-    const { data: stats } = useQuery({
-        queryKey: ['analytics-stats'],
-        queryFn: async () => (await api.get<DashboardStats>('/analytics/dashboard')).data
+    const salesData = ensureArray<{ name: string; total: number }>(salesDataRaw);
+    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw);
+    const topLeads = ensureArray<{ name: string; value: number }>(topLeadsRaw);
+
+
+
+    const { data: leadsData, isLoading: leadsListLoading } = useQuery({
+        queryKey: ['leads', 'analytics-full'],
+        queryFn: () => getLeads({ pageSize: 1000 })
     });
 
-    const { data: salesData } = useQuery({
-        queryKey: ['analytics-sales'],
-        queryFn: async () => (await api.get<SalesDataPoint[]>('/analytics/sales-chart')).data
-    });
+    const leads = (leadsData as any)?.leads || [];
 
-    const { data: leadSources } = useQuery({
-        queryKey: ['analytics-sources'],
-        queryFn: async () => (await api.get<LeadSourceData[]>('/analytics/lead-sources')).data
-    });
+    // Process Leads vs Conversion (by Source)
+    const conversionData = (() => {
+        const dataMap: Record<string, { total: number; converted: number }> = {};
+        leads.forEach((l: any) => {
+            const key = l.source || 'Unknown';
+            if (!dataMap[key]) dataMap[key] = { total: 0, converted: 0 };
+            dataMap[key].total++;
+            if (l.status === 'converted') dataMap[key].converted++;
+        });
+        return Object.entries(dataMap).map(([name, stats]) => ({
+            name,
+            total: stats.total,
+            converted: stats.converted
+        }));
+    })();
 
-    const { data: topLeads } = useQuery({
-        queryKey: ['analytics-topleads'],
-        queryFn: async () => (await api.get<TopLead[]>('/analytics/top-leads')).data
-    });
-
-    interface Insight {
-        type: 'positive' | 'warning' | 'info';
-        title: string;
-        description: string;
-        icon: string;
-    }
-
-    const { data: insights } = useQuery({
-        queryKey: ['analytics-insights'],
-        queryFn: async () => (await api.get<Insight[]>('/analytics/insights')).data
-    });
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(amount);
-    };
+    // Process Pipeline (by Status)
+    const pipelineData = (() => {
+        const counts: Record<string, number> = {};
+        const pipelineOrder = ['new', 'contacted', 'qualified', 'nurturing', 'converted', 'lost'];
+        leads.forEach((l: any) => {
+            counts[l.status] = (counts[l.status] || 0) + 1;
+        });
+        return pipelineOrder
+            .filter(status => counts[status] !== undefined)
+            .concat(Object.keys(counts).filter(s => !pipelineOrder.includes(s)))
+            .map(status => ({
+                name: status.charAt(0).toUpperCase() + status.slice(1),
+                value: counts[status] || 0
+            }));
+    })();
 
     return (
-        <div className="space-y-8 pb-10">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">
-                        Advanced Analytics
-                    </h1>
-                    <p className="text-indigo-300/70 mt-1">Deep insights into your sales performance.</p>
-                </div>
-                <div className="flex items-center gap-2">
-                    <Select value={timeRange} onValueChange={setTimeRange}>
-                        <SelectTrigger className="w-[160px] bg-[#1e1b4b] border-indigo-900/50 text-white">
-                            <Calendar className="mr-2 h-4 w-4 text-indigo-400" />
-                            <SelectValue placeholder="Period" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-[#1e1b4b] border-indigo-900/50 text-white">
-                            <SelectItem value="1m">Last 30 Days</SelectItem>
-                            <SelectItem value="3m">Last Quarter</SelectItem>
-                            <SelectItem value="6m">Last 6 Months</SelectItem>
-                            <SelectItem value="1y">Year to Date</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <Button variant="outline" className="bg-[#1e1b4b] border-indigo-900/50 text-white hover:bg-white/5">
-                        <Download className="mr-2 h-4 w-4 text-indigo-400" />
-                        Export Report
-                    </Button>
-                </div>
+        <div className="p-8 space-y-8">
+            <div>
+                <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+                <p className="text-muted-foreground mt-2">Deep dive into your sales and marketing performance.</p>
             </div>
 
-            {/* KPI Cards */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-indigo-300/70">Total Revenue</p>
-                            <DollarSign className="h-4 w-4 text-emerald-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats ? formatCurrency(stats.salesRevenue) : '-'}
-                        </div>
-                        <p className="text-xs text-indigo-400/60 mt-1 flex items-center">
-                            {(stats?.trends?.revenue ?? 0) >= 0 ? (
-                                <>
-                                    <ArrowUpRight className="h-3 w-3 text-emerald-400 mr-1" />
-                                    <span className="text-emerald-400 font-medium">+{stats?.trends?.revenue || 0}%</span> from last month
-                                </>
-                            ) : (
-                                <>
-                                    <ArrowDownRight className="h-3 w-3 text-red-400 mr-1" />
-                                    <span className="text-red-400 font-medium">{stats?.trends?.revenue || 0}%</span> from last month
-                                </>
-                            )}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-indigo-300/70">Active Deals</p>
-                            <Briefcase className="h-4 w-4 text-indigo-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats?.activeOpportunities || '-'}
-                        </div>
-                        <p className="text-xs text-indigo-400/60 mt-1">
-                            Worth {formatCurrency(stats?.salesRevenue || 0)} estimated
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-indigo-300/70">Win Rate</p>
-                            <TrendingUp className="h-4 w-4 text-indigo-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats?.winRate || 0}%
-                        </div>
-                        <p className="text-xs text-indigo-400/60 mt-1 flex items-center">
-                            {(stats?.trends?.winRate ?? 0) >= 0 ? (
-                                <>
-                                    <ArrowUpRight className="h-3 w-3 text-emerald-400 mr-1" />
-                                    <span className="text-emerald-400 font-medium">+{stats?.trends?.winRate || 0}%</span> vs last month
-                                </>
-                            ) : (
-                                <>
-                                    <ArrowDownRight className="h-3 w-3 text-red-400 mr-1" />
-                                    <span className="text-red-400 font-medium">{stats?.trends?.winRate || 0}%</span> vs last month
-                                </>
-                            )}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-indigo-300/70">Total Leads</p>
-                            <Users className="h-4 w-4 text-indigo-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white">
-                            {stats?.totalLeads || '-'}
-                        </div>
-                        <p className="text-xs text-indigo-400/60 mt-1 flex items-center">
-                            {(stats?.trends?.leads ?? 0) >= 0 ? (
-                                <>
-                                    <ArrowUpRight className="h-3 w-3 text-emerald-400 mr-1" />
-                                    <span className="text-emerald-400 font-medium">+{stats?.trends?.leads || 0}%</span> from last month
-                                </>
-                            ) : (
-                                <>
-                                    <ArrowDownRight className="h-3 w-3 text-red-400 mr-1" />
-                                    <span className="text-red-400 font-medium">{stats?.trends?.leads || 0}%</span> from last month
-                                </>
-                            )}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Charts Section */}
-            <div className="grid gap-6 md:grid-cols-7">
-                {/* Revenue Trend - Main Chart */}
-                <Card className="md:col-span-4 lg:col-span-5">
-                    <CardHeader>
-                        <CardTitle>Revenue Trend</CardTitle>
-                        <CardDescription>Monthly sales performance over time</CardDescription>
-                    </CardHeader>
-                    <CardContent className="pl-0">
-                        <div className="h-[350px] w-full min-w-0">
-                            <ResponsiveContainer width="100%" height="100%">
+            {/* Sales Trend Chart */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>Sales Trend</CardTitle>
+                    <CardDescription>Revenue over time</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="h-[400px] w-full min-w-0 relative overflow-hidden">
+                        {salesLoading ? (
+                            <div className="h-full w-full flex items-center justify-center">
+                                <Skeleton className="h-[350px] w-full" />
+                            </div>
+                        ) : (
+                            <ResponsiveContainer width="99%" height="100%">
                                 <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#22c55e" stopOpacity={0.2} />
-                                            <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
+                                            <stop offset="5%" stopColor="#818cf8" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#818cf8" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
+                                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
                                     <XAxis dataKey="name" stroke="#888888" fontSize={12} tickLine={false} axisLine={false} />
-                                    <YAxis
-                                        stroke="#888888"
-                                        fontSize={12}
-                                        tickLine={false}
-                                        axisLine={false}
-                                        tickFormatter={(value) => `₹${value}`}
-                                    />
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+                                    <YAxis stroke="#888888" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(value) => `₹${value}`} />
                                     <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: '#1e1b4b',
-                                            borderRadius: '12px',
-                                            border: '1px solid rgba(99, 102, 241, 0.2)',
-                                            boxShadow: '0 4px 20px -2px rgb(0 0 0 / 0.3)',
-                                            color: '#fff'
-                                        }}
-                                        formatter={(value: number | undefined) => [`₹${(value || 0)}`, 'Revenue']}
+                                        contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                        itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                        formatter={(value: number | undefined) => [`₹${(value || 0).toLocaleString()}`, 'Revenue']}
                                     />
-                                    <Area
-                                        type="monotone"
-                                        dataKey="total"
-                                        stroke="#22c55e"
-                                        strokeWidth={3}
-                                        fillOpacity={1}
-                                        fill="url(#colorTotal)"
-                                        activeDot={{ r: 6, strokeWidth: 0 }}
-                                    />
+                                    <Area type="monotone" dataKey="total" stroke="#818cf8" fillOpacity={1} fill="url(#colorTotal)" />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
 
-                {/* Lead Sources - Donut Chart */}
-                <Card className="md:col-span-3 lg:col-span-2">
-                    <CardHeader>
-                        <CardTitle>Lead Sources</CardTitle>
-                        <CardDescription>Where are your leads coming from?</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[300px] w-full min-w-0">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={leadSources?.map(s => ({ name: s.source, count: s.count }))}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={60}
-                                        outerRadius={90}
-                                        paddingAngle={5}
-                                        dataKey="count"
-                                    >
-                                        {leadSources?.map((_entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                    <Legend
-                                        layout="horizontal"
-                                        verticalAlign="bottom"
-                                        align="center"
-                                        wrapperStyle={{ paddingTop: '20px' }}
-                                        formatter={(value) => <span className="text-sm font-medium text-indigo-300 ml-1">{value}</span>}
-                                    />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Top Leads Table */}
-            <div className="grid gap-6 md:grid-cols-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Lead Sources Pie Chart */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>High Value Opportunities</CardTitle>
-                        <CardDescription>Top leads with highest engagement scores</CardDescription>
+                        <CardTitle>Lead Sources</CardTitle>
+                        <CardDescription>Where your leads are coming from</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="space-y-6">
-                            {topLeads?.map((lead) => (
-                                <div key={lead.id} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="h-10 w-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold">
-                                            {lead.leadScore}
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-medium leading-none text-white">{lead.firstName} {lead.lastName}</p>
-                                            <p className="text-xs text-indigo-300/60 mt-1">{lead.company}</p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p className="text-sm font-medium text-white">{formatCurrency((lead.leadScore || 0) * 1000)}</p>
-                                        <p className="text-xs text-indigo-300/60">Est. Value</p>
-                                    </div>
+                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                            {sourcesLoading ? (
+                                <div className="h-full w-full flex items-center justify-center">
+                                    <Skeleton className="h-[300px] w-[300px] rounded-full" />
                                 </div>
-                            ))}
+                            ) : leadSources.length > 0 ? (
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <PieChart>
+                                        <Pie
+                                            data={leadSources}
+                                            cx="50%"
+                                            cy="50%"
+                                            innerRadius={60}
+                                            outerRadius={100}
+                                            paddingAngle={5}
+                                            dataKey="count"
+                                        >
+                                            {leadSources.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                            itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                        />
+                                        <Legend verticalAlign="bottom" height={36} />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-muted-foreground">No data available</div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
 
-                <Card className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white border-0 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-32 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                {/* Top Leads Bar Chart */}
+                <Card>
                     <CardHeader>
-                        <CardTitle className="text-white">AI Insights</CardTitle>
-                        <CardDescription className="text-indigo-100">Smart recommendations based on your data</CardDescription>
+                        <CardTitle>Top Leads</CardTitle>
+                        <CardDescription>Highest value opportunities</CardDescription>
                     </CardHeader>
-                    <CardContent className="relative z-10 space-y-4">
-                        {insights?.length === 0 && (
-                            <p className="text-sm text-indigo-200/80">Analysing your data...</p>
-                        )}
-                        {insights?.map((insight, index) => {
-                            const icons: Record<string, React.ComponentType<{ className?: string }>> = { Target, TrendingUp, AlertCircle, Brain };
-                            const IconComponent = icons[insight.icon] || Brain;
-                            return (
-                                <div key={index} className="bg-white/10 p-4 rounded-lg backdrop-blur-sm border border-white/10">
-                                    <div className="flex gap-3">
-                                        <IconComponent className={`h-5 w-5 shrink-0 ${insight.type === 'positive' ? 'text-green-300' : insight.type === 'warning' ? 'text-yellow-300' : 'text-indigo-200'}`} />
-                                        <div>
-                                            <h4 className="font-semibold text-sm">{insight.title}</h4>
-                                            <p className="text-xs text-indigo-100 mt-1 leading-relaxed">
-                                                {insight.description}
-                                            </p>
-                                        </div>
-                                    </div>
+                    <CardContent>
+                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                            {leadsLoading ? (
+                                <div className="h-full w-full flex items-center justify-center">
+                                    <Skeleton className="h-[300px] w-full" />
                                 </div>
-                            );
-                        })}
-
-                        <Button variant="secondary" className="w-full mt-2 bg-white text-indigo-900 hover:bg-indigo-50">
-                            Generate Full Report
-                        </Button>
+                            ) : topLeads.length > 0 ? (
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <BarChart data={topLeads} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
+                                        <XAxis type="number" hide />
+                                        <YAxis dataKey="name" type="category" width={100} fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip
+                                            contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
+                                            itemStyle={{ color: 'hsl(var(--foreground))' }}
+                                            formatter={(value: number | undefined) => [`₹${(value || 0).toLocaleString()}`, 'Value']}
+                                        />
+                                        <Bar dataKey="value" fill="#34d399" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="h-full flex items-center justify-center text-muted-foreground">No data available</div>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
+
+            {/* New Leads Analytics Section */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Leads vs Conversion Chart */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Leads vs Conversion</CardTitle>
+                        <CardDescription>Conversion performance by source</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                            {leadsListLoading ? (
+                                <div className="h-full w-full flex items-center justify-center">
+                                    <Skeleton className="h-[300px] w-full" />
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <BarChart data={conversionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                        <XAxis dataKey="name" />
+                                        <YAxis />
+                                        <Tooltip cursor={{ fill: 'transparent' }} />
+                                        <Legend />
+                                        <Bar dataKey="total" name="Total Leads" fill="#2dd4bf" radius={[4, 4, 0, 0]} barSize={20} />
+                                        <Bar dataKey="converted" name="Converted" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Sales Pipeline Chart */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Sales Pipeline</CardTitle>
+                        <CardDescription>Leads by status</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                            {leadsListLoading ? (
+                                <div className="h-full w-full flex items-center justify-center">
+                                    <Skeleton className="h-[300px] w-full" />
+                                </div>
+                            ) : (
+                                <ResponsiveContainer width="99%" height="100%">
+                                    <BarChart data={pipelineData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                                        <XAxis type="number" />
+                                        <YAxis dataKey="name" type="category" width={100} fontSize={12} tickLine={false} axisLine={false} />
+                                        <Tooltip cursor={{ fill: 'transparent' }} />
+                                        <Bar dataKey="value" name="Leads" fill="#6ee7b7" radius={[0, 4, 4, 0]} barSize={20} />
+                                    </BarChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
         </div>
     );
 }

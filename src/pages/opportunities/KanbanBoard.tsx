@@ -79,7 +79,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
     };
 
     return (
-        <div className="flex h-[calc(100vh-200px)] overflow-x-auto gap-4 p-4 pb-8">
+        <div className="flex h-full overflow-x-auto gap-4 pb-4">
             <TooltipProvider>
                 {STAGES.map((stage) => {
                     const stageOpps = columns[stage.id] || [];
@@ -88,22 +88,22 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                     return (
                         <div
                             key={stage.id}
-                            className="flex-shrink-0 w-80 bg-gray-50/50 dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800 flex flex-col"
+                            className="flex-shrink-0 w-80 bg-muted/50 rounded-xl border border-border flex flex-col"
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, stage.id)}
                         >
-                            <div className="p-3 border-b border-gray-100 dark:border-gray-800 flex flex-col gap-2 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm sticky top-0 rounded-t-xl z-10">
+                            <div className="p-3 border-b border-border flex flex-col gap-2 bg-background/50 backdrop-blur-sm sticky top-0 rounded-t-xl z-10">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Badge variant="secondary" className={`${stage.color} font-semibold`}>
                                             {stage.label}
                                         </Badge>
-                                        <span className="text-xs text-gray-500 font-medium bg-white dark:bg-gray-800 px-1.5 py-0.5 rounded-md border border-gray-100 dark:border-gray-700">
+                                        <span className="text-xs text-muted-foreground font-medium bg-background px-1.5 py-0.5 rounded-md border border-border">
                                             {stageOpps.length}
                                         </span>
                                     </div>
                                 </div>
-                                <div className="text-xs font-medium text-gray-500 pl-1">
+                                <div className="text-xs font-medium text-muted-foreground pl-1">
                                     {formatCurrency(totalValue)}
                                 </div>
                             </div>
@@ -120,25 +120,25 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                 key={opp.id}
                                                 draggable
                                                 onDragStart={(e) => handleDragStart(e, opp.id)}
-                                                className={`cursor-move hover:shadow-md transition-all duration-200 border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 group ${isStagnant ? 'border-l-4 border-l-red-400' : isWarning ? 'border-l-4 border-l-yellow-400' : ''
+                                                className={`cursor-move hover:shadow-md transition-all duration-200 border-border bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
                                                     }`}
                                             >
                                                 <CardContent className="p-3 space-y-3">
                                                     <div className="flex justify-between items-start gap-2">
                                                         <div className="space-y-1">
                                                             {opp.account && (
-                                                                <div className="text-[10px] font-medium text-gray-500 uppercase tracking-wide truncate max-w-[150px]">
+                                                                <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate max-w-[150px]">
                                                                     {opp.account.name}
                                                                 </div>
                                                             )}
                                                             <div className="flex items-start gap-2">
-                                                                <h4 className="font-semibold text-sm line-clamp-2 text-gray-900 dark:text-gray-100 leading-tight">
+                                                                <h4 className="font-semibold text-sm line-clamp-2 text-card-foreground leading-tight">
                                                                     {opp.name}
                                                                 </h4>
                                                                 {opp.paymentStatus === 'paid' && (
                                                                     <Tooltip>
                                                                         <TooltipTrigger>
-                                                                            <CheckCircle2 className="h-4 w-4 text-green-500 fill-green-50" />
+                                                                            <CheckCircle2 className="h-4 w-4 text-success fill-success/10" />
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>Payment Complete</TooltipContent>
                                                                     </Tooltip>
@@ -152,7 +152,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                     size="sm"
                                                                     className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
                                                                 >
-                                                                    <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                                                                    <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
@@ -199,25 +199,25 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                                 // Revert
                                                                             }
                                                                         }}
-                                                                        className="text-green-600 focus:text-green-700 focus:bg-green-50"
+                                                                        className="text-success focus:text-success focus:bg-success/10"
                                                                     >
                                                                         Mark as Paid
                                                                     </DropdownMenuItem>
                                                                 )}
 
-                                                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                                                             </DropdownMenuContent>
                                                         </DropdownMenu>
                                                     </div>
 
                                                     <div className="flex items-center gap-2">
-                                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-gray-200 text-gray-500">
+                                                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border text-muted-foreground">
                                                             {opp.leadSource || 'Direct'}
                                                         </Badge>
                                                         {(isStagnant || isWarning) && (
                                                             <Tooltip>
                                                                 <TooltipTrigger>
-                                                                    <div className={`p-0.5 rounded-full ${isStagnant ? 'text-red-500 bg-red-50' : 'text-yellow-500 bg-yellow-50'}`}>
+                                                                    <div className={`p-0.5 rounded-full ${isStagnant ? 'text-destructive bg-destructive/10' : 'text-warning bg-warning/10'}`}>
                                                                         <AlertCircle className="h-3 w-3" />
                                                                     </div>
                                                                 </TooltipTrigger>
@@ -228,30 +228,30 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                         )}
                                                     </div>
 
-                                                    <div className="flex items-end justify-between pt-2 border-t border-gray-50 dark:border-gray-800/50 mt-1">
+                                                    <div className="flex items-end justify-between pt-2 border-t border-border mt-1">
                                                         <div className="space-y-1">
                                                             {opp.amount > 0 && (
-                                                                <div className="flex items-center gap-1.5 text-sm text-gray-700 dark:text-gray-300 font-bold">
-                                                                    <DollarSign className="h-3.5 w-3.5 text-gray-400" />
+                                                                <div className="flex items-center gap-1.5 text-sm text-card-foreground font-bold">
+                                                                    <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
                                                                     {formatCurrency(opp.amount)}
                                                                 </div>
                                                             )}
-                                                            <div className="flex items-center gap-1.5 text-[10px] text-gray-400">
+                                                            <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                                                                 <Calendar className="h-3 w-3" />
                                                                 {opp.closeDate ? new Date(opp.closeDate).toLocaleDateString() : 'No date'}
                                                             </div>
                                                         </div>
 
                                                         <div className="flex items-center gap-2">
-                                                            <div className="text-[10px] text-gray-400 font-mono">
+                                                            <div className="text-[10px] text-muted-foreground font-mono">
                                                                 {opp.probability}%
                                                             </div>
                                                             {opp.owner && (
                                                                 <Tooltip>
                                                                     <TooltipTrigger>
-                                                                        <Avatar className="h-6 w-6 border border-white shadow-sm">
+                                                                        <Avatar className="h-6 w-6 border border-background shadow-sm">
                                                                             <AvatarImage src={opp.owner.profileImage} />
-                                                                            <AvatarFallback className="text-[9px] bg-indigo-50 text-indigo-600">
+                                                                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
                                                                                 {opp.owner.firstName?.[0]}
                                                                             </AvatarFallback>
                                                                         </Avatar>

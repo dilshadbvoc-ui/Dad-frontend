@@ -49,6 +49,7 @@ export interface IntegrationSettings {
     wabaId?: string;
     appId?: string;
     appSecret?: string;
+    configId?: string;
     channelId?: string;
     accountSid?: string;
     authToken?: string;

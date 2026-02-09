@@ -204,7 +204,7 @@ export default function SalesTargetsPage() {
             return (await api.get('/products')).data
         }
     })
-    const products = productsData || []
+    const products = Array.isArray(productsData) ? productsData : []
 
     const { data: myTargetsData, isLoading: isLoadingMy } = useQuery({
         queryKey: ['sales-targets', 'my'],
@@ -221,12 +221,13 @@ export default function SalesTargetsPage() {
         queryFn: getSubordinates
     })
 
-    const myTargets = myTargetsData?.targets || []
-    const teamTargets = teamTargetsData?.targets || []
-    const subordinates = subordinatesData?.subordinates || []
+    const myTargets = Array.isArray(myTargetsData?.targets) ? myTargetsData.targets : []
+    const teamTargets = Array.isArray(teamTargetsData?.targets) ? teamTargetsData.targets : []
+    const subordinates = Array.isArray(subordinatesData?.subordinates) ? subordinatesData.subordinates : []
 
     const targetTree = useMemo(() => {
-        return buildTargetTree(teamTargetsData?.targets || []);
+        const targets = Array.isArray(teamTargetsData?.targets) ? teamTargetsData.targets : [];
+        return buildTargetTree(targets);
     }, [teamTargetsData?.targets]);
 
     const [now] = useState<number>(() => Date.now()); // Fallback to current time, but useState initializer is only once per mount
@@ -409,7 +410,7 @@ export default function SalesTargetsPage() {
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem value="ALL">All Products (General Target)</SelectItem>
-                                                            {products.map((product: any) => (
+                                                            {products.map((product: { id: string; name: string }) => (
                                                                 <SelectItem key={product.id} value={product.id}>
                                                                     {product.name}
                                                                 </SelectItem>

@@ -60,7 +60,7 @@ export default function EmailListsPage() {
         createMutation.mutate(formData)
     }
 
-    const filteredLists = lists.filter((list: EmailList) =>
+    const filteredLists = (Array.isArray(lists) ? lists : []).filter((list: EmailList) =>
         list.name.toLowerCase().includes(searchQuery.toLowerCase())
     )
 
