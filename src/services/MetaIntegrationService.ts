@@ -373,22 +373,31 @@ export const MetaIntegrationService = {
      * Verify Webhook (GET request)
      */
     async verifyWebhook(req: any, res: any): Promise<void> {
-        const mode = req.query['hub.mode'];
-        const token = req.query['hub.verify_token'];
-        const challenge = req.query['hub.challenge'];
+        // Helper to grab param regardless of parsing style (dot notation or nested object)
+        const getParam = (name: string) => {
+            return req.query[name] || (req.query.hub && req.query.hub[name.replace('hub.', '')]);
+        };
+
+        const mode = getParam('hub.mode');
+        const token = getParam('hub.verify_token');
+        const challenge = getParam('hub.challenge');
 
         const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'my_secure_token';
 
+        logger.info(`[MetaWebhook] Verification Request: Mode=${mode}, Token=${token}, Challenge=${challenge}`, 'MetaWebhook');
+        logger.info(`[MetaWebhook] Expected Token: ${VERIFY_TOKEN}`, 'MetaWebhook');
+
         if (mode && token) {
             if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-                logger.info('Verified webhook', 'MetaWebhook');
-                res.status(200).send(challenge);
+                logger.info('[MetaWebhook] Verification SUCCESS', 'MetaWebhook');
+                // Meta expects plain text of the challenge
+                res.type('text/plain').status(200).send(challenge);
             } else {
-                logger.warn('Webhook verification failed - invalid token', 'MetaWebhook');
+                logger.warn(`[MetaWebhook] Verification FAILED. Received token: '${token}', Expected: '${VERIFY_TOKEN}'`, 'MetaWebhook');
                 res.sendStatus(403);
             }
         } else {
-            logger.warn('Webhook verification failed - missing parameters', 'MetaWebhook');
+            logger.warn('[MetaWebhook] Verification FAILED - Missing parameters', 'MetaWebhook');
             res.sendStatus(400);
         }
     }

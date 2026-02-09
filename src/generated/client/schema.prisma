@@ -88,6 +88,8 @@ model User {
   isActive                    Boolean                @default(true)
   lastLogin                   DateTime?
   integrations                Json?
+  metaAccessToken             String? // Facebook User Access Token
+  metaUserId                  String?
   notificationPreferences     Json?
   resetPasswordToken          String?
   resetPasswordExpire         DateTime?

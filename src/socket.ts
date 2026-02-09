@@ -11,12 +11,26 @@ declare module 'socket.io' {
 }
 
 export const initSocket = (httpServer: HttpServer) => {
+    const allowedOrigins = [
+        'http://localhost:5173',
+        'http://localhost:5174',
+        'http://localhost:3000',
+        'https://dad-frontend-psi.vercel.app',
+        'https://dad-frontend.vercel.app',
+        process.env.CLIENT_URL,
+        process.env.FRONTEND_URL
+    ].filter((origin): origin is string => Boolean(origin));
+
     const io = new SocketIOServer(httpServer, {
         cors: {
-            origin: ['http://localhost:5173', 'http://localhost:5174', 'https://dad-frontend-psi.vercel.app'],
+            origin: allowedOrigins,
             methods: ['GET', 'POST'],
-            credentials: true
-        }
+            credentials: true,
+            allowedHeaders: ['Content-Type', 'Authorization']
+        },
+        transports: ['websocket', 'polling'], // Allow both transports
+        pingTimeout: 60000,
+        pingInterval: 25000
     });
 
     ioInstance = io;

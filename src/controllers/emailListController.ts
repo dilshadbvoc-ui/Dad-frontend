@@ -66,8 +66,17 @@ export const createEmailList = async (req: Request, res: Response) => {
 
 export const getEmailListById = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const list = await prisma.emailList.findFirst({
-            where: { id: req.params.id, isDeleted: false }
+            where
         });
         if (!list) return res.status(404).json({ message: 'List not found' });
         res.json(list);

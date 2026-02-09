@@ -40,7 +40,12 @@ export const getCampaigns = async (req: AuthRequest, res: Response) => {
         res.json(campaigns);
     } catch (error: any) {
         console.error('Error in getCampaigns:', error);
-        res.status(500).json({ message: error.message });
+        // Return empty array instead of 500 error
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch campaigns',
+            campaigns: [],
+            error: true
+        });
     }
 };
 
@@ -52,7 +57,11 @@ export const getAdSets = async (req: AuthRequest, res: Response) => {
         res.json(adSets);
     } catch (error: any) {
         console.error('Error in getAdSets:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch ad sets',
+            adSets: [],
+            error: true
+        });
     }
 };
 
@@ -64,7 +73,11 @@ export const getAds = async (req: AuthRequest, res: Response) => {
         res.json(ads);
     } catch (error: any) {
         console.error('Error in getAds:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch ads',
+            ads: [],
+            error: true
+        });
     }
 };
 
@@ -76,7 +89,11 @@ export const getInsights = async (req: AuthRequest, res: Response) => {
         res.json(insights);
     } catch (error: any) {
         console.error('Error in getInsights:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch insights',
+            insights: [],
+            error: true
+        });
     }
 };
 
@@ -87,7 +104,11 @@ export const testConnection = async (req: AuthRequest, res: Response) => {
         res.json(result);
     } catch (error: any) {
         console.error('Error in testConnection:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            success: false,
+            message: error.message || 'Unable to test connection',
+            error: true
+        });
     }
 };
 
@@ -104,7 +125,11 @@ export const syncCampaigns = async (req: AuthRequest, res: Response) => {
         });
     } catch (error: any) {
         console.error('Error in syncCampaigns:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to sync campaigns',
+            campaigns: [],
+            error: true
+        });
     }
 };
 
@@ -115,7 +140,11 @@ export const getCampaignInsights = async (req: AuthRequest, res: Response) => {
         res.json(insights);
     } catch (error: any) {
         console.error('Error in getCampaignInsights:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch campaign insights',
+            insights: [],
+            error: true
+        });
     }
 };
 
@@ -126,7 +155,11 @@ export const getAccountInsights = async (req: AuthRequest, res: Response) => {
         res.json(insights);
     } catch (error: any) {
         console.error('Error in getAccountInsights:', error);
-        res.status(500).json({ message: error.message });
+        res.status(200).json({ 
+            message: error.message || 'Unable to fetch account insights',
+            insights: [],
+            error: true
+        });
     }
 };
 

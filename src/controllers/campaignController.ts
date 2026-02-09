@@ -75,8 +75,17 @@ export const createCampaign = async (req: Request, res: Response) => {
 
 export const getCampaignById = async (req: Request, res: Response) => {
     try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        const where: any = { id: req.params.id, isDeleted: false };
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
         const campaign = await prisma.campaign.findFirst({
-            where: { id: req.params.id, isDeleted: false },
+            where,
             include: { emailList: true }
         });
         if (!campaign) return res.status(404).json({ message: 'Campaign not found' });

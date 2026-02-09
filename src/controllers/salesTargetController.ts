@@ -337,7 +337,7 @@ const distributeToSubordinates = async (
     // THEN, if they have reports, it should distribute further.
 
     const totalMembers = directReports.length + 1;
-    const distributedValueForThisUser = targetValue; // The value passed IN is what THIS user is assigned.
+    // const distributedValueForThisUser = targetValue; // Removed unused variable
     // Wait, previous logic distributed the value BEFORE passing it.
     // Let's stick to: "Assign targetValue to userId, child of parentTargetId".
 

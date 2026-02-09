@@ -2,7 +2,9 @@ import { Router, Response } from 'express';
 import prisma from '../config/prisma';
 import { AuthRequest, protect } from '../middleware/authMiddleware';
 import axios from 'axios';
+import crypto from 'crypto';
 import { MetaLeadService } from '../services/MetaLeadService'; // Service for handling Meta leads
+import { MetaIntegrationService } from '../services/MetaIntegrationService';
 
 const router = Router();
 
@@ -16,8 +18,11 @@ const OAUTH_SCOPES = [
     'ads_management',
     'business_management',
     'pages_read_engagement',
-    'whatsapp_business_management',
-    'whatsapp_business_messaging'
+    'pages_show_list',
+    'pages_manage_ads',
+    'leads_retrieval',
+    'email',
+    'public_profile'
 ].join(',');
 
 /**
@@ -28,6 +33,7 @@ router.get('/auth', protect, (req: AuthRequest, res: Response) => {
     const appId = process.env.META_APP_ID;
     const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
     const serverUrl = process.env.SERVER_URL || 'http://localhost:5000';
+    const configId = process.env.META_CONFIG_ID;
 
     if (!appId) {
         return res.status(500).json({
@@ -50,6 +56,7 @@ router.get('/auth', protect, (req: AuthRequest, res: Response) => {
         `&redirect_uri=${encodeURIComponent(redirectUri)}` +
         `&scope=${encodeURIComponent(OAUTH_SCOPES)}` +
         `&state=${state}` +
+        (configId ? `&config_id=${configId}` : '') +
         `&response_type=code`;
 
     res.json({ url: authUrl });
@@ -60,6 +67,36 @@ router.get('/auth', protect, (req: AuthRequest, res: Response) => {
  * Handles the OAuth callback from Facebook
  */
 router.get('/callback', async (req, res) => {
+    // Check if this is a Webhook Verification Request
+    if (req.query['hub.mode']) {
+        // Helper to grab param regardless of parsing style (dot notation or nested object)
+        const getParam = (name: string) => {
+            return req.query[name] || (req.query.hub && (req.query.hub as any)[name.replace('hub.', '')]);
+        };
+
+        const mode = getParam('hub.mode');
+        const token = getParam('hub.verify_token');
+        const challenge = getParam('hub.challenge');
+
+        const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'my_secure_token';
+
+        console.log(`[MetaWebhook] Verification Request: Mode=${mode}, Token=${token}, Challenge=${challenge}`);
+
+        if (mode && token) {
+            if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+                console.log('[MetaWebhook] Verification SUCCESS');
+                // Meta expects plain text of the challenge
+                return res.type('text/plain').status(200).send(challenge);
+            } else {
+                console.warn(`[MetaWebhook] Verification FAILED. Received token: '${token}', Expected: '${VERIFY_TOKEN}'`);
+                return res.sendStatus(403);
+            }
+        } else {
+            console.warn('[MetaWebhook] Verification FAILED - Missing parameters');
+            return res.sendStatus(400);
+        }
+    }
+
     const { code, state, error, error_description } = req.query;
 
     // Decode state to get org info
@@ -240,6 +277,46 @@ router.get('/callback', async (req, res) => {
     } catch (err: any) {
         console.error('[Meta OAuth] Callback error:', err.response?.data || err.message);
         res.redirect(`${returnUrl}?error=callback_failed&message=${encodeURIComponent(err.message)}`);
+    }
+});
+
+/**
+ * POST /api/meta/callback
+ * Handles incoming webhook events from Meta
+ */
+router.post('/callback', async (req, res) => {
+    console.log('========== META WEBHOOK RECEIVED ==========');
+
+    // Signature Verification
+    const signature = req.headers['x-hub-signature-256'] as string;
+    const secret = process.env.META_WEBHOOK_SECRET;
+
+    if (secret) {
+        if (!signature) {
+            console.warn('Meta webhook missing signature');
+            return res.sendStatus(401);
+        }
+
+        const rawBody = (req as any).rawBody || JSON.stringify(req.body);
+        const hmac = crypto.createHmac('sha256', secret);
+        const digest = hmac.update(rawBody).digest('hex');
+        const expectedSignature = `sha256=${digest}`;
+
+        if (signature !== expectedSignature) {
+            console.warn('❌ Meta webhook invalid signature');
+            return res.sendStatus(401);
+        }
+        console.log('✅ Signature verified');
+    }
+
+    // Respond immediately
+    res.sendStatus(200);
+
+    // Process async
+    try {
+        await MetaIntegrationService.handleWebhook(req.body);
+    } catch (error) {
+        console.error('Webhook processing error:', error);
     }
 });
 

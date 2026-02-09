@@ -12,12 +12,21 @@ export const getUserStats = async (req: Request, res: Response) => {
         const userId = req.params.id;
         const currentUser = (req as any).user;
 
-        // Security: Check if user can view target user stats (Admin or Self or Manager)
-        if (currentUser.role !== 'super_admin' && currentUser.role !== 'admin' && currentUser.id !== userId) {
-            // Check if manager
-            const targetUser = await prisma.user.findUnique({ where: { id: userId } });
-            if (targetUser?.reportsToId !== currentUser.id) {
-                return res.status(403).json({ message: 'Not authorized to view stats' });
+        // Security: Verify existence and org match
+        const targetUser = await prisma.user.findUnique({ where: { id: userId } });
+        if (!targetUser) return res.status(404).json({ message: 'User not found' });
+
+        if (currentUser.role !== 'super_admin') {
+            const currentOrgId = getOrgId(currentUser);
+            if (targetUser.organisationId !== currentOrgId) {
+                return res.status(403).json({ message: 'Not authorized to view stats for this user' });
+            }
+
+            // Further role checks (if not admin/super_access, must be self or manager)
+            if (currentUser.role !== 'admin' && currentUser.id !== userId) {
+                if (targetUser.reportsToId !== currentUser.id) {
+                    return res.status(403).json({ message: 'Not authorized to view stats' });
+                }
             }
         }
 
@@ -400,8 +409,28 @@ export const inviteUser = async (req: Request, res: Response) => {
 
 export const deactivateUser = async (req: Request, res: Response) => {
     try {
+        const currentUser = (req as any).user;
+        const orgId = getOrgId(currentUser);
+        const userId = req.params.id;
+
+        const where: any = { id: userId };
+        if (currentUser.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            where.organisationId = orgId;
+        }
+
+        // Also ensure target exists first? Update throws if not found? 
+        // findFirst/updateMany or catch error. 
+        // Using update directly requires ID validation implicitly or it throws "Record to update not found."
+        // We can just add organisationId to the where clause of update, but prisma update `where` only accepts unique identifiers.
+        // So we need to use updateMany or findFirst then update.
+        // Using findFirst then update for safety.
+
+        const existing = await prisma.user.findFirst({ where });
+        if (!existing) return res.status(404).json({ message: 'User not found or access denied' });
+
         const user = await prisma.user.update({
-            where: { id: req.params.id },
+            where: { id: userId },
             data: { isActive: false }
         });
 

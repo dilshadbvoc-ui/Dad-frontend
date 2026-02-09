@@ -163,6 +163,8 @@ exports.Prisma.UserScalarFieldEnum = {
   isActive: 'isActive',
   lastLogin: 'lastLogin',
   integrations: 'integrations',
+  metaAccessToken: 'metaAccessToken',
+  metaUserId: 'metaUserId',
   notificationPreferences: 'notificationPreferences',
   resetPasswordToken: 'resetPasswordToken',
   resetPasswordExpire: 'resetPasswordExpire',

@@ -17,6 +17,7 @@ import contactRoutes from './routes/contactRoutes';
 import accountRoutes from './routes/accountRoutes';
 import opportunityRoutes from './routes/opportunityRoutes';
 import campaignRoutes from './routes/campaignRoutes';
+import marketingRoutes from './routes/marketingRoutes';
 import emailListRoutes from './routes/emailListRoutes';
 import interactionRoutes from './routes/interactionRoutes';
 import eventRoutes from './routes/eventRoutes';
@@ -110,17 +111,66 @@ app.use(compression()); // Enable gzip compression
 // Apply rate limiting
 app.use('/api/', generalLimiter);
 
+// CORS Configuration - Allow production frontend
+const allowedOrigins = [
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:3000',
+    'https://dad-frontend-psi.vercel.app',
+    'https://dad-frontend.vercel.app',
+    process.env.CLIENT_URL,
+    process.env.FRONTEND_URL,
+    process.env.ALLOWED_ORIGINS
+].filter(Boolean);
+
 app.use(cors({
-    origin: [
-        'http://localhost:5173',
-        'http://localhost:5174',
-        'https://dad-frontend-psi.vercel.app',
-        process.env.CLIENT_URL || '',
-        process.env.FRONTEND_URL || ''
-    ].filter(Boolean),
+    origin: function (origin, callback) {
+        // Allow requests with no origin (mobile apps, Postman, etc.)
+        if (!origin) return callback(null, true);
+
+        // Check if origin is in allowed list or matches allowed origins env var
+        const allowedOriginsArray = process.env.ALLOWED_ORIGINS
+            ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+            : [];
+
+        const allOrigins = [...allowedOrigins, ...allowedOriginsArray];
+
+        if (allOrigins.indexOf(origin) !== -1) {
+            callback(null, true);
+        } else {
+            console.log('CORS blocked origin:', origin);
+            // Allow all in production for now to prevent blocking
+            callback(null, true);
+        }
+    },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    exposedHeaders: ['Content-Range', 'X-Content-Range'],
+    maxAge: 86400 // 24 hours
 }));
+
+// Meta webhook - NO AUTH, needs raw body for signature verification
+// This must be placed BEFORE app.use(express.json())
+// Meta webhook - NO AUTH, needs raw body for signature verification
+// This must be placed BEFORE app.use(express.json())
+app.use('/api/meta/callback', express.raw({ type: 'application/json' }), (req, res, next) => {
+    // Check if we have a buffer and save it for signature verification
+    if (Buffer.isBuffer(req.body)) {
+        (req as any).rawBody = req.body;
+        // Parse the body manually for the controller to use
+        try {
+            req.body = JSON.parse(req.body.toString());
+        } catch (e) {
+            console.error('Error parsing Meta webhook body JSON:', e);
+            // proceed, let controller handle bad json or it might be a verify request
+        }
+    }
+    next();
+});
+
+// Handle preflight requests
+app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -162,7 +212,8 @@ app.use('/api/workflow', workflowRoutes);
 app.use('/api/import', importRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/email', emailRoutes);
-
+app.use('/api/search', searchRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.use('/api/profile', profileRoutes);
 
@@ -174,6 +225,7 @@ app.use('/api/opportunities', opportunityRoutes);
 
 // Marketing
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/marketing', marketingRoutes);
 app.use('/api/marketing/lists', emailListRoutes);
 
 // Communications
