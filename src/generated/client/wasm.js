@@ -324,6 +324,7 @@ exports.Prisma.ProductScalarFieldEnum = {
   maxQuantity: 'maxQuantity',
   imageUrl: 'imageUrl',
   isActive: 'isActive',
+  brochureUrl: 'brochureUrl',
   validFrom: 'validFrom',
   validUntil: 'validUntil',
   isDeleted: 'isDeleted',
@@ -1022,6 +1023,18 @@ exports.Prisma.DocumentScalarFieldEnum = {
   opportunityId: 'opportunityId'
 };
 
+exports.Prisma.ProductShareScalarFieldEnum = {
+  id: 'id',
+  slug: 'slug',
+  views: 'views',
+  notificationsEnabled: 'notificationsEnabled',
+  productId: 'productId',
+  createdById: 'createdById',
+  organisationId: 'organisationId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1161,7 +1174,8 @@ exports.Prisma.ModelName = {
   Commission: 'Commission',
   LandingPage: 'LandingPage',
   AuditLog: 'AuditLog',
-  Document: 'Document'
+  Document: 'Document',
+  ProductShare: 'ProductShare'
 };
 
 /**

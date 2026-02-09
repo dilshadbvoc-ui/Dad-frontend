@@ -192,3 +192,97 @@ export const deleteProduct = async (req: Request, res: Response) => {
         res.status(500).json({ message: (error as Error).message });
     }
 };
+
+export const generateProductShareLink = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const { productId } = req.params;
+
+        if (!orgId) return res.status(403).json({ message: 'No org' });
+
+        // Check if product exists and belongs to org
+        const product = await prisma.product.findFirst({
+            where: { id: productId, organisationId: orgId }
+        });
+
+        if (!product) return res.status(404).json({ message: 'Product not found' });
+
+        // Check if share link already exists
+        let share = await prisma.productShare.findFirst({
+            where: { productId }
+        });
+
+        if (!share) {
+            // Create new share link
+            // Generate a random slug (8 chars)
+            const slug = Math.random().toString(36).substring(2, 10);
+
+            share = await prisma.productShare.create({
+                data: {
+                    productId,
+                    organisationId: orgId,
+                    createdById: user.id,
+                    slug,
+                    notificationsEnabled: true
+                }
+            });
+        }
+
+        const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+        // Construct the full public URL
+        // If CLIENT_URL is localhost, we might need a different port or path depending on setup
+        // But usually CLIENT_URL points to the frontend
+        const shareUrl = `${baseUrl}/shared-product/${share.slug}`;
+
+        res.json({
+            slug: share.slug,
+            url: shareUrl,
+            views: share.views
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const getSharedProduct = async (req: Request, res: Response) => {
+    try {
+        const { slug } = req.params;
+
+        const share = await prisma.productShare.findUnique({
+            where: { slug },
+            include: {
+                product: true,
+                createdBy: { select: { firstName: true, lastName: true, id: true } }
+            }
+        });
+
+        if (!share) return res.status(404).json({ message: 'Product not found or link expired' });
+
+        // Increment views (async, don't await)
+        prisma.productShare.update({
+            where: { id: share.id },
+            data: { views: { increment: 1 } }
+        }).catch(console.error);
+
+        // Send Notification (if enabled)
+        if (share.notificationsEnabled) {
+            const { NotificationService } = await import('../services/NotificationService');
+            NotificationService.send(
+                share.createdById,
+                'Product Viewed',
+                `A customer is viewing your product: ${share.product.name}`,
+                'info'
+            ).catch(console.error);
+        }
+
+        res.json({
+            product: share.product,
+            seller: share.createdBy
+        });
+
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};

@@ -185,3 +185,24 @@ export const uploadGenericImage = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Upload failed: ' + (error as Error).message });
     }
 };
+
+export const uploadDocument = async (req: Request, res: Response) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        // Normalize path for frontend use (replace backslashes)
+        // Check for PDF extension or similar if needed, but multer filter handles it mostly
+        const fileUrl = `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/');
+
+        res.json({
+            message: 'Document uploaded successfully',
+            url: fileUrl,
+            originalName: req.file.originalname,
+            size: req.file.size
+        });
+    } catch (error) {
+        console.error('[Upload Document] Error:', error);
+        res.status(500).json({ message: 'Upload failed: ' + (error as Error).message });
+    }
+};

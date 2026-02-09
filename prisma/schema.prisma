@@ -71,6 +71,7 @@ model Organisation {
   teams             Team[]
   accountProducts   AccountProduct[]
   documents         Document[]
+  productShares     ProductShare[]
 }
 
 model User {
@@ -159,6 +160,7 @@ model User {
   team                        Team?                  @relation(fields: [teamId], references: [id])
   createdTeams                Team[]                 @relation("TeamCreator")
   managedTeams                Team[]                 @relation("TeamManager")
+  sharedProducts  ProductShare[]
 
   @@index([organisationId])
   @@index([email])
@@ -395,6 +397,7 @@ model Product {
   maxQuantity    Int?
   imageUrl       String?
   isActive       Boolean         @default(true)
+  brochureUrl    String?
   validFrom      DateTime?
   validUntil     DateTime?
   isDeleted      Boolean         @default(false)
@@ -408,6 +411,7 @@ model Product {
   accountProducts AccountProduct[]
   salesTargets    SalesTarget[]
   leads           LeadProduct[]
+  productShares   ProductShare[]
 }
 
 model LeadProduct {
@@ -1383,4 +1387,23 @@ model Document {
   @@index([contactId])
   @@index([accountId])
   @@index([opportunityId])
+}
+
+model ProductShare {
+  id                 String       @id @default(uuid())
+  slug               String       @unique
+  views              Int          @default(0)
+  notificationsEnabled Boolean    @default(true)
+  productId          String
+  product            Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdById        String
+  createdBy          User         @relation(fields: [createdById], references: [id])
+  organisationId     String
+  organisation       Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  @@index([slug])
+  @@index([organisationId])
+  @@index([productId])
 }

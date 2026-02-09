@@ -246,6 +246,8 @@ app.use('/api/tasks', taskRoutes);
 // Commerce
 app.use('/api/products', productRoutes);
 app.use('/api/quotes', quoteRoutes);
+import shareRoutes from './routes/shareRoutes';
+app.use('/api/share', shareRoutes);
 
 // Field & Support
 
