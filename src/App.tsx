@@ -9,6 +9,8 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import SharedProductPage from './pages/public/SharedProductPage';
+
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -194,6 +196,7 @@ function AppContent() {
           </Route>
 
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/shared-product/:slug" element={<SharedProductPage />} />
           <Route path="/" element={<LandingPage />} />
         </Routes>
       </Router>

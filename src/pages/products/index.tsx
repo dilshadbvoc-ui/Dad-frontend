@@ -1,14 +1,15 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getProducts, createProduct, deleteProduct, type Product, type CreateProductData } from "@/services/productService"
+import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, type Product, type CreateProductData } from "@/services/productService"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Package, DollarSign, Tag, Trash2, MoreHorizontal } from "lucide-react"
+import { Plus, Search, Package, DollarSign, Tag, Trash2, MoreHorizontal, Share2, FileText, Copy, Check } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
+import { toast } from "sonner"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -19,6 +20,10 @@ import {
 export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
+    const [sharedLinkData, setSharedLinkData] = useState<{ url: string, slug: string } | null>(null)
+    const [isCopied, setIsCopied] = useState(false)
+
     const queryClient = useQueryClient()
 
     const { data, isLoading } = useQuery({
@@ -33,24 +38,65 @@ export default function ProductsPage() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] })
             setIsDialogOpen(false)
-        }
+            toast.success("Product created successfully")
+        },
+        onError: (error: any) => toast.error(error.response?.data?.message || "Failed to create product")
     })
 
     const deleteMutation = useMutation({
         mutationFn: (id: string) => deleteProduct(id),
-        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] })
+            toast.success("Product deleted")
+        },
+        onError: (error: any) => toast.error("Failed to delete product")
     })
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const shareMutation = useMutation({
+        mutationFn: (id: string) => generateShareLink(id),
+        onSuccess: (data) => {
+            setSharedLinkData(data)
+            setIsShareDialogOpen(true)
+            setIsCopied(false)
+        },
+        onError: () => toast.error("Failed to generate share link")
+    })
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
+
+        // Handle Brochure Upload
+        const brochureFile = formData.get('brochure') as File
+        let brochureUrl = undefined
+
+        if (brochureFile && brochureFile.size > 0) {
+            try {
+                const uploadRes = await uploadBrochure(brochureFile)
+                brochureUrl = uploadRes.url
+            } catch (error) {
+                toast.error("Failed to upload brochure")
+                return
+            }
+        }
+
         createMutation.mutate({
             name: formData.get('name') as string,
             sku: formData.get('sku') as string || undefined,
             basePrice: parseFloat(formData.get('basePrice') as string),
             category: formData.get('category') as string || undefined,
             description: formData.get('description') as string || undefined,
+            brochureUrl
         })
+    }
+
+    const copyToClipboard = () => {
+        if (sharedLinkData?.url) {
+            navigator.clipboard.writeText(sharedLinkData.url)
+            setIsCopied(true)
+            toast.success("Link copied to clipboard")
+            setTimeout(() => setIsCopied(false), 2000)
+        }
     }
 
     const totalValue = products.reduce((acc: number, p: Product) => acc + p.basePrice, 0)
@@ -82,9 +128,38 @@ export default function ProductsPage() {
                                             </div>
                                             <div><Label>Category</Label><Input name="category" /></div>
                                             <div><Label>Description</Label><Input name="description" /></div>
+                                            <div>
+                                                <Label>Brochure (PDF/Image)</Label>
+                                                <Input name="brochure" type="file" accept=".pdf,image/*" className="cursor-pointer" />
+                                                <p className="text-xs text-muted-foreground mt-1">Upload a product brochure to share with customers.</p>
+                                            </div>
                                         </div>
-                                        <DialogFooter><Button type="submit">Add Product</Button></DialogFooter>
+                                        <DialogFooter><Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? 'Saving...' : 'Add Product'}</Button></DialogFooter>
                                     </form>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Share Dialog */}
+                            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Share Product</DialogTitle>
+                                    </DialogHeader>
+                                    <div className="flex items-center space-x-2">
+                                        <div className="grid flex-1 gap-2">
+                                            <Label htmlFor="link" className="sr-only">Link</Label>
+                                            <Input id="link" defaultValue={sharedLinkData?.url} readOnly />
+                                        </div>
+                                        <Button type="button" size="sm" className="px-3" onClick={copyToClipboard}>
+                                            <span className="sr-only">Copy</span>
+                                            {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                                        </Button>
+                                    </div>
+                                    <DialogFooter className="sm:justify-start">
+                                        <div className="text-sm text-muted-foreground">
+                                            Anyone with this link can view the product details and brochure.
+                                        </div>
+                                    </DialogFooter>
                                 </DialogContent>
                             </Dialog>
                         </div>
@@ -120,6 +195,14 @@ export default function ProductsPage() {
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => shareMutation.mutate(product.id)}>
+                                                            <Share2 className="h-4 w-4 mr-2" />Share
+                                                        </DropdownMenuItem>
+                                                        {product.brochureUrl && (
+                                                            <DropdownMenuItem onClick={() => window.open(product.brochureUrl, '_blank')}>
+                                                                <FileText className="h-4 w-4 mr-2" />View Brochure
+                                                            </DropdownMenuItem>
+                                                        )}
                                                         <DropdownMenuItem className="text-red-600" onClick={() => deleteMutation.mutate(product.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
