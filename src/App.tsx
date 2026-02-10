@@ -58,6 +58,7 @@ import CustomFieldsSettingsPage from './pages/settings/custom-fields';
 import TerritoriesSettingsPage from './pages/settings/territories';
 import SuperAdminDashboard from './pages/super-admin';
 import OrganisationDetailPage from './pages/super-admin/organisation/[id]';
+import OrganisationSettingsPage from './pages/settings/organisation';
 
 import LeadScoringSettingsPage from './pages/settings/lead-scoring';
 import AssignmentRulesPage from './pages/settings/assignment-rules';
@@ -165,6 +166,7 @@ function AppContent() {
             <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
             <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
+            <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
             <Route path="/automation/new" element={<CreateWorkflowPage />} />
             <Route path="/automation/:id" element={<WorkflowDetailPage />} />
             <Route path="/workflows" element={<WorkflowsPage />} />
