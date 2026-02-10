@@ -13,8 +13,19 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const statusColors: Record<string, string> = { new: 'bg-blue-100 text-blue-800', open: 'bg-yellow-100 text-yellow-800', in_progress: 'bg-purple-100 text-purple-800', resolved: 'bg-green-100 text-green-800', closed: 'bg-gray-100 text-gray-800' }
-const priorityColors: Record<string, string> = { low: 'text-gray-500', medium: 'text-yellow-500', high: 'text-orange-500', critical: 'text-red-500' }
+const statusColors: Record<string, string> = {
+    new: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+    open: 'bg-yellow-500/15 text-yellow-700 dark:text-yellow-300',
+    in_progress: 'bg-purple-500/15 text-purple-700 dark:text-purple-300',
+    resolved: 'bg-green-500/15 text-green-700 dark:text-green-300',
+    closed: 'bg-muted text-muted-foreground'
+}
+const priorityColors: Record<string, string> = {
+    low: 'text-muted-foreground',
+    medium: 'text-yellow-600 dark:text-yellow-400',
+    high: 'text-orange-600 dark:text-orange-400',
+    critical: 'text-destructive'
+}
 
 export default function SupportPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -49,15 +60,15 @@ export default function SupportPage() {
     const criticalCases = cases.filter((c: Case) => c.priority === 'critical').length
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="flex h-screen overflow-hidden bg-background">
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
-                            <div><h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Support</h1><p className="text-gray-500">Manage customer support cases</p></div>
+                            <div><h1 className="text-3xl font-bold text-foreground">Support</h1><p className="text-muted-foreground">Manage customer support cases</p></div>
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                <DialogTrigger asChild><Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"><Plus className="h-4 w-4 mr-2" />New Case</Button></DialogTrigger>
+                                <DialogTrigger asChild><Button className="shadow-lg shadow-primary/20"><Plus className="h-4 w-4 mr-2" />New Case</Button></DialogTrigger>
                                 <DialogContent>
                                     <form onSubmit={handleSubmit}>
                                         <DialogHeader><DialogTitle>Create Support Case</DialogTitle></DialogHeader>
@@ -77,10 +88,50 @@ export default function SupportPage() {
 
                         {/* Stats */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center"><Headphones className="h-5 w-5 text-blue-600" /></div><div><p className="text-2xl font-bold">{cases.length}</p><p className="text-xs text-blue-600">Total Cases</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/50"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-yellow-500/20 flex items-center justify-center"><Clock className="h-5 w-5 text-yellow-600" /></div><div><p className="text-2xl font-bold">{openCases}</p><p className="text-xs text-yellow-600">Open Cases</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center"><CheckCircle className="h-5 w-5 text-green-600" /></div><div><p className="text-2xl font-bold">{resolvedCases}</p><p className="text-xs text-green-600">Resolved</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-red-500/20 flex items-center justify-center"><AlertCircle className="h-5 w-5 text-red-600" /></div><div><p className="text-2xl font-bold">{criticalCases}</p><p className="text-xs text-red-600">Critical</p></div></CardContent></Card>
+                            <Card className="hover:shadow-md transition-shadow duration-200">
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                        <Headphones className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{cases.length}</p>
+                                        <p className="text-xs text-muted-foreground">Total Cases</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="hover:shadow-md transition-shadow duration-200">
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                                        <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{openCases}</p>
+                                        <p className="text-xs text-muted-foreground">Open Cases</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="hover:shadow-md transition-shadow duration-200">
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                        <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{resolvedCases}</p>
+                                        <p className="text-xs text-muted-foreground">Resolved</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="hover:shadow-md transition-shadow duration-200">
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
+                                        <AlertCircle className="h-5 w-5 text-destructive" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{criticalCases}</p>
+                                        <p className="text-xs text-muted-foreground">Critical</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
 
                         {/* Cases List */}
@@ -88,18 +139,20 @@ export default function SupportPage() {
                             <CardHeader><CardTitle>All Cases</CardTitle></CardHeader>
                             <CardContent>
                                 {isLoading ? (
-                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
+                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>
                                 ) : cases.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500"><Headphones className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No support cases yet</p></div>
+                                    <div className="text-center py-12 text-muted-foreground"><Headphones className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No support cases yet</p></div>
                                 ) : (
                                     <div className="space-y-3">
                                         {cases.map((c: Case) => (
-                                            <div key={c.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <div key={c.id} className="flex items-center justify-between p-4 rounded-xl border border-border hover:bg-muted/30 transition-colors">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center"><Headphones className="h-6 w-6 text-white" /></div>
+                                                    <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                                        <Headphones className="h-6 w-6 text-primary" />
+                                                    </div>
                                                     <div>
-                                                        <div className="flex items-center gap-2"><p className="font-semibold">{c.subject}</p><Badge className={statusColors[c.status]}>{c.status.replace('_', ' ')}</Badge></div>
-                                                        <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
+                                                        <div className="flex items-center gap-2"><p className="font-semibold text-foreground">{c.subject}</p><Badge className={statusColors[c.status]}>{c.status.replace('_', ' ')}</Badge></div>
+                                                        <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                                                             <span>{c.caseNumber}</span>
                                                             <span className={priorityColors[c.priority]}>• {c.priority}</span>
                                                             {c.contact && <span>• <User className="h-3 w-3 inline" /> {c.contact.firstName} {c.contact.lastName}</span>}
@@ -107,8 +160,8 @@ export default function SupportPage() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
-                                                    <p className="text-sm text-gray-500">{new Date(c.createdAt).toLocaleDateString()}</p>
-                                                    <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem><CheckCircle className="h-4 w-4 mr-2" />Resolve</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+                                                    <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</p>
+                                                    <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="hover:bg-muted"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem><CheckCircle className="h-4 w-4 mr-2" />Resolve</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
                                                 </div>
                                             </div>
                                         ))}

@@ -13,7 +13,12 @@ export function LeadSourcesWidget() {
         queryFn: getLeadSourceAnalytics
     });
 
-    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw);
+    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw)
+        .filter(item => item && typeof item === 'object')
+        .map(item => ({
+            name: String(item.source || 'Unknown'),
+            value: Number(item.count || 0)
+        }));
 
     return (
         <Card className="col-span-3 min-w-0 overflow-hidden shadow-sm border-0 rounded-[2rem]">
@@ -22,13 +27,13 @@ export function LeadSourcesWidget() {
                 <CardDescription className="text-muted-foreground">Acquisition channel distribution.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                <div className="min-w-0 relative overflow-hidden">
                     {isLoading ? (
                         <div className="h-full w-full flex items-center justify-center">
                             <Skeleton className="h-[300px] w-[300px] rounded-full" />
                         </div>
                     ) : leadSources.length > 0 ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                        <ResponsiveContainer width="100%" height={350} minWidth={0} debounce={50}>
                             <PieChart>
                                 <Pie
                                     data={leadSources}
@@ -37,7 +42,8 @@ export function LeadSourcesWidget() {
                                     innerRadius={60}
                                     outerRadius={100}
                                     paddingAngle={5}
-                                    dataKey="count"
+                                    dataKey="value"
+                                    nameKey="name"
                                 >
                                     {leadSources.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />

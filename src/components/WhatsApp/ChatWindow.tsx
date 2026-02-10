@@ -239,27 +239,27 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#0f172a]">
+        <div className="flex flex-col h-full bg-background">
             {/* Header */}
-            <div className="bg-[#1e1b4b] p-3 px-4 border-b border-indigo-900/50 flex items-center justify-between shadow-lg shadow-indigo-950/20 z-10">
+            <div className="bg-card p-3 px-4 border-b border-border flex items-center justify-between shadow-sm z-10">
                 <div className="flex items-center gap-3">
-                    <button onClick={onBack} className="md:hidden text-indigo-400 hover:text-white">
+                    <button onClick={onBack} className="md:hidden text-muted-foreground hover:text-foreground">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
                         </svg>
                     </button>
-                    <div className="w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center overflow-hidden shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-white">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center overflow-hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 text-primary">
                             <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
                         </svg>
                     </div>
                     <div>
-                        <h3 className="font-semibold text-white">{phoneNumber}</h3>
-                        <span className="text-xs text-indigo-400 block leading-tight">WhatsApp</span>
+                        <h3 className="font-semibold text-foreground">{phoneNumber}</h3>
+                        <span className="text-xs text-muted-foreground block leading-tight">WhatsApp</span>
                     </div>
                 </div>
                 <div className="hidden md:block">
-                    <button onClick={() => fetchMessages(true)} className="p-2 text-indigo-300 hover:text-white rounded-full hover:bg-white/10 transition-colors">
+                    <button onClick={() => fetchMessages(true)} className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/30 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 2.303A7 7 0 0010.63 2.31M4.68 5.68A7 7 0 002.31 10.63m4.385-4.385l-.01.01m0-1.667v1.667h1.667m10.133 10.133A7 7 0 0016.023 22.5m-5.393-22.5a7 7 0 01-5.393 2.222m5.393 15.185v-1.667h-1.667m1.667 1.667L10.63 21.69a7 7 0 005.393-2.222" />
                         </svg>
@@ -268,26 +268,26 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
             </div>
 
             {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col">
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 flex flex-col bg-muted/20">
                 {loading && messages.length === 0 ? (
                     <div className="flex-1 flex items-center justify-center">
-                        <div className="w-8 h-8 border-4 border-indigo-900 border-t-indigo-500 rounded-full animate-spin"></div>
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                     </div>
                 ) : messages.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-indigo-300/50">
-                        <p className="bg-white/5 px-4 py-2 rounded-full text-xs shadow-sm mb-4 uppercase font-bold tracking-widest border border-indigo-900/50">No messages yet</p>
+                    <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
+                        <p className="bg-card px-4 py-2 rounded-full text-xs shadow-sm mb-4 uppercase font-bold tracking-widest border border-border">No messages yet</p>
                         <p className="text-sm">Send a template or text to start chatting!</p>
                     </div>
                 ) : messages.map((msg) => (
                     <div key={msg.id} className={`flex flex-col ${msg.direction === 'outgoing' ? 'items-end' : 'items-start'}`}>
-                        <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 shadow-lg relative transition-all hover:shadow-xl ${msg.direction === 'outgoing' ? 'bg-indigo-600 text-white rounded-tr-none' : 'bg-[#1e1b4b] text-white border border-indigo-900/50 rounded-tl-none'}`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] rounded-2xl p-3 shadow-sm relative transition-all hover:shadow-md ${msg.direction === 'outgoing' ? 'bg-primary text-primary-foreground rounded-tr-none' : 'bg-card text-foreground border border-border rounded-tl-none'}`}>
                             {/* Message Content */}
                             <div className="text-sm break-words leading-relaxed whitespace-pre-wrap">
                                 {msg.messageType === 'text' && msg.content?.text}
 
                                 {msg.messageType === 'template' && (
                                     <div className="space-y-1">
-                                        <div className="flex items-center gap-1.5 text-[10px] text-indigo-200 font-bold uppercase tracking-wider mb-1">
+                                        <div className={`flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider mb-1 ${msg.direction === 'outgoing' ? 'text-primary-foreground/80' : 'text-muted-foreground'}`}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3 h-3">
                                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4.13-5.69z" clipRule="evenodd" />
                                             </svg>
@@ -296,17 +296,17 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                                         {/* Since we don't store the full body of the template, we show the template name and some variables if available */}
                                         {msg.content?.components?.[0]?.parameters ? (
                                             <div className="mt-2 space-y-2">
-                                                <p className="text-[10px] text-indigo-300/40 font-bold uppercase tracking-tight">Variables:</p>
+                                                <p className={`text-[10px] font-bold uppercase tracking-tight ${msg.direction === 'outgoing' ? 'text-primary-foreground/60' : 'text-muted-foreground/60'}`}>Variables:</p>
                                                 <div className="flex flex-wrap gap-1.5">
                                                     {msg.content.components[0].parameters.map((p: { text: string }, i: number) => (
-                                                        <span key={i} className="px-2 py-0.5 bg-white/10 text-white text-[10px] rounded border border-white/5 font-medium">
+                                                        <span key={i} className={`px-2 py-0.5 text-[10px] rounded border font-medium ${msg.direction === 'outgoing' ? 'bg-white/10 text-white border-white/20' : 'bg-muted text-foreground border-border'}`}>
                                                             {p.text}
                                                         </span>
                                                     ))}
                                                 </div>
                                             </div>
                                         ) : (
-                                            <p className="italic text-indigo-200/60 text-xs">Approved template message sent.</p>
+                                            <p className={`italic text-xs ${msg.direction === 'outgoing' ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>Approved template message sent.</p>
                                         )}
                                     </div>
                                 )}
@@ -341,7 +341,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                             </div>
 
                             {/* Metadata (Time & Status) */}
-                            <div className="flex items-center justify-end gap-1 mt-1 opacity-60">
+                            <div className="flex items-center justify-end gap-1 mt-1 opacity-70">
                                 <span className="text-[10px] min-w-[50px] text-right">
                                     {format(new Date(msg.createdAt), 'p')}
                                 </span>
@@ -349,9 +349,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                                     <span>
                                         {msg.status === 'sent' && <span className="text-[10px]">✓</span>}
                                         {msg.status === 'delivered' && <span className="text-[10px]">✓✓</span>}
-                                        {msg.status === 'read' && <span className="text-emerald-400 text-[10px]">✓✓</span>}
+                                        {msg.status === 'read' && <span className={`text-[10px] ${msg.direction === 'outgoing' ? 'text-blue-200' : 'text-primary'}`}>✓✓</span>}
                                         {(msg.status === 'failed' || msg.status === 'sending') && (
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${msg.status === 'failed' ? 'text-red-400' : 'text-indigo-200'}`}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className={`w-3 h-3 ${msg.status === 'failed' ? 'text-red-300' : 'text-current'}`}>
                                                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
                                             </svg>
                                         )}
@@ -365,9 +365,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
             </div>
 
             {/* Input Area */}
-            <form onSubmit={handleSend} className="bg-[#1e1b4b] p-3 px-4 border-t border-indigo-900/50 flex gap-2 items-end">
+            <form onSubmit={handleSend} className="bg-card p-3 px-4 border-t border-border flex gap-2 items-end">
                 <div className="flex gap-1">
-                    <label className="p-2 text-indigo-400 hover:text-white rounded-full hover:bg-white/10 mb-1 cursor-pointer transition-colors" title="Attach">
+                    <label className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/30 mb-1 cursor-pointer transition-colors" title="Attach">
                         <input type="file" className="hidden" onChange={handleMediaUpload} disabled={sending} />
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -376,7 +376,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                     <button
                         type="button"
                         onClick={() => setShowTemplatePicker(true)}
-                        className="p-2 text-indigo-400 hover:text-white rounded-full hover:bg-white/10 mb-1 transition-colors"
+                        className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/30 mb-1 transition-colors"
                         title="Send Template"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
@@ -384,9 +384,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                         </svg>
                     </button>
                 </div>
-                <div className="flex-1 bg-indigo-950/50 rounded-xl border border-indigo-900/50 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:border-indigo-500 p-2 transition-all">
+                <div className="flex-1 bg-muted/40 rounded-xl border border-input focus-within:ring-2 focus-within:ring-primary focus-within:border-primary p-2 transition-all">
                     <textarea
-                        className="w-full max-h-32 min-h-[40px] border-none bg-transparent outline-none resize-none text-sm text-white placeholder:text-indigo-300/30"
+                        className="w-full max-h-32 min-h-[40px] border-none bg-transparent outline-none resize-none text-sm text-foreground placeholder:text-muted-foreground"
                         placeholder="Type a message..."
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
@@ -402,7 +402,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
                 <button
                     type="submit"
                     disabled={!newMessage.trim() || sending}
-                    className="p-3 bg-indigo-600 text-white rounded-full hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed mb-1 transition-all shadow-lg shadow-indigo-600/30 active:scale-95"
+                    className="p-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed mb-1 transition-all shadow-md active:scale-95"
                 >
                     {sending ? (
                         <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>

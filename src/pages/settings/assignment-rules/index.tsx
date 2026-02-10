@@ -17,7 +17,7 @@ export default function AssignmentRulesPage() {
         queryFn: () => getAssignmentRules(),
     })
 
-    const rules = data?.assignmentRules || []
+    const rules = (data?.assignmentRules || []).filter((r: AssignmentRule) => r && typeof r === 'object' && r.assignTo);
 
     const deleteMutation = useMutation({
         mutationFn: deleteAssignmentRule,

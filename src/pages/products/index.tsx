@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, type Product, type CreateProductData } from "@/services/productService"
+import { getLeads, type Lead } from "@/services/leadService"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -16,12 +17,25 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [isShareDialogOpen, setIsShareDialogOpen] = useState(false)
-    const [sharedLinkData, setSharedLinkData] = useState<{ url: string, slug: string } | null>(null)
+
+    // Share Dialog States
+    const [isShareConfigOpen, setIsShareConfigOpen] = useState(false)
+    const [isShareResultOpen, setIsShareResultOpen] = useState(false)
+    const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+    const [leads, setLeads] = useState<Lead[]>([])
+    const [selectedLeadId, setSelectedLeadId] = useState<string>("none")
+    const [shareConfig, setShareConfig] = useState({
+        youtubeUrl: "",
+        customTitle: "",
+        customDescription: ""
+    })
+
+    const [sharedLinkData, setSharedLinkData] = useState<{ url: string, slug: string, youtubeUrl?: string, customTitle?: string, customDescription?: string, views?: number } | null>(null)
     const [isCopied, setIsCopied] = useState(false)
 
     const queryClient = useQueryClient()
@@ -40,7 +54,7 @@ export default function ProductsPage() {
             setIsDialogOpen(false)
             toast.success("Product created successfully")
         },
-        onError: (error: any) => toast.error(error.response?.data?.message || "Failed to create product")
+        onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to create product")
     })
 
     const deleteMutation = useMutation({
@@ -49,14 +63,20 @@ export default function ProductsPage() {
             queryClient.invalidateQueries({ queryKey: ['products'] })
             toast.success("Product deleted")
         },
-        onError: (error: any) => toast.error("Failed to delete product")
+        onError: () => toast.error("Failed to delete product")
     })
 
     const shareMutation = useMutation({
-        mutationFn: (id: string) => generateShareLink(id),
+        mutationFn: (data: { id: string, config: Record<string, unknown> }) => generateShareLink(data.id, data.config),
         onSuccess: (data) => {
-            setSharedLinkData(data)
-            setIsShareDialogOpen(true)
+            // Append leadId if selected
+            let finalUrl = data.url
+            if (selectedLeadId && selectedLeadId !== "none") {
+                finalUrl += `?leadId=${selectedLeadId}`
+            }
+            setSharedLinkData({ ...data, url: finalUrl })
+            setIsShareConfigOpen(false)
+            setIsShareResultOpen(true)
             setIsCopied(false)
         },
         onError: () => toast.error("Failed to generate share link")
@@ -74,7 +94,7 @@ export default function ProductsPage() {
             try {
                 const uploadRes = await uploadBrochure(brochureFile)
                 brochureUrl = uploadRes.url
-            } catch (error) {
+            } catch {
                 toast.error("Failed to upload brochure")
                 return
             }
@@ -87,6 +107,53 @@ export default function ProductsPage() {
             category: formData.get('category') as string || undefined,
             description: formData.get('description') as string || undefined,
             brochureUrl
+        })
+    }
+
+    const handleShareClick = async (product: Product) => {
+        setSelectedProductId(product.id)
+        setSelectedLeadId("none")
+
+        // Fetch leads
+        try {
+            const leadsData = await getLeads({ limit: 100 }) // Fetch top 100 leads for now
+            setLeads(leadsData.leads || [])
+        } catch (error) {
+            console.error("Failed to fetch leads", error)
+        }
+
+        // Reset to defaults first
+        setShareConfig({
+            youtubeUrl: "",
+            customTitle: product.name,
+            customDescription: product.description || ""
+        })
+
+        try {
+            // Fetch existing share config
+            const { getShareConfig } = await import("@/services/productService");
+            const existingConfig = await getShareConfig(product.id);
+
+            if (existingConfig.slug) {
+                setShareConfig({
+                    youtubeUrl: existingConfig.youtubeUrl || "",
+                    customTitle: existingConfig.customTitle || product.name,
+                    customDescription: existingConfig.customDescription || product.description || ""
+                })
+                setSharedLinkData(existingConfig) // Set existing link data so we can show result immediately if wanted, but for now just prep config
+            }
+        } catch (error) {
+            console.error("Failed to fetch share config", error)
+        }
+
+        setIsShareConfigOpen(true)
+    }
+
+    const handleGenerateLink = () => {
+        if (!selectedProductId) return
+        shareMutation.mutate({
+            id: selectedProductId,
+            config: shareConfig
         })
     }
 
@@ -110,12 +177,12 @@ export default function ProductsPage() {
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Products</h1>
-                                <p className="text-gray-500 mt-1">Manage your product catalog</p>
+                                <h1 className="text-3xl font-bold text-foreground">Products</h1>
+                                <p className="text-muted-foreground mt-1">Manage your product catalog</p>
                             </div>
                             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                 <DialogTrigger asChild>
-                                    <Button><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+                                    <Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
                                 </DialogTrigger>
                                 <DialogContent>
                                     <form onSubmit={handleSubmit}>
@@ -139,8 +206,71 @@ export default function ProductsPage() {
                                 </DialogContent>
                             </Dialog>
 
-                            {/* Share Dialog */}
-                            <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+                            {/* Share Configuration Dialog */}
+                            <Dialog open={isShareConfigOpen} onOpenChange={setIsShareConfigOpen}>
+                                <DialogContent className="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle className="flex justify-between items-center">
+                                            Customize Share Link
+                                            {sharedLinkData?.views !== undefined && (
+                                                <Badge variant="secondary" className="ml-2">
+                                                    {sharedLinkData.views} Views
+                                                </Badge>
+                                            )}
+                                        </DialogTitle>
+                                    </DialogHeader>
+                                    <div className="grid gap-4 py-4">
+                                        <div>
+                                            <Label>Select Lead (Optional)</Label>
+                                            <Select value={selectedLeadId} onValueChange={setSelectedLeadId}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select a lead to track views" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectItem value="none">None (Generic Link)</SelectItem>
+                                                    {leads.map((lead) => (
+                                                        <SelectItem key={lead.id} value={lead.id}>
+                                                            {lead.firstName} {lead.lastName} {lead.company ? `(${lead.company})` : ''}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <p className="text-xs text-muted-foreground mt-1">If selected, you'll be notified when this specific lead views the product.</p>
+                                        </div>
+                                        <div>
+                                            <Label>YouTube Video URL (Optional)</Label>
+                                            <Input
+                                                placeholder="https://youtu.be/..."
+                                                value={shareConfig.youtubeUrl}
+                                                onChange={(e) => setShareConfig({ ...shareConfig, youtubeUrl: e.target.value })}
+                                            />
+                                            <p className="text-xs text-muted-foreground mt-1">Video will be embedded on the shared page.</p>
+                                        </div>
+                                        <div>
+                                            <Label>Custom Title</Label>
+                                            <Input
+                                                value={shareConfig.customTitle}
+                                                onChange={(e) => setShareConfig({ ...shareConfig, customTitle: e.target.value })}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label>Custom Description</Label>
+                                            <Input
+                                                value={shareConfig.customDescription}
+                                                onChange={(e) => setShareConfig({ ...shareConfig, customDescription: e.target.value })}
+                                            />
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button onClick={handleGenerateLink} disabled={shareMutation.isPending}>
+                                            {shareMutation.isPending ? 'Generating...' : 'Generate Link'}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Share Result Dialog */}
+                            <Dialog open={isShareResultOpen} onOpenChange={setIsShareResultOpen}>
                                 <DialogContent className="sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Share Product</DialogTitle>
@@ -157,7 +287,7 @@ export default function ProductsPage() {
                                     </div>
                                     <DialogFooter className="sm:justify-start">
                                         <div className="text-sm text-muted-foreground">
-                                            Anyone with this link can view the product details and brochure.
+                                            Anyone with this link can view the product details, video, and brochure.
                                         </div>
                                     </DialogFooter>
                                 </DialogContent>
@@ -166,9 +296,39 @@ export default function ProductsPage() {
 
                         {/* Stats */}
                         <div className="grid gap-4 md:grid-cols-3">
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 border-blue-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center"><Package className="h-5 w-5 text-blue-600" /></div><div><p className="text-2xl font-bold">{products.length}</p><p className="text-xs text-blue-600">Total Products</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 border-green-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center"><DollarSign className="h-5 w-5 text-green-600" /></div><div><p className="text-2xl font-bold">${totalValue.toFixed(2)}</p><p className="text-xs text-green-600">Total Catalog Value</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 border-purple-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center"><Tag className="h-5 w-5 text-purple-600" /></div><div><p className="text-2xl font-bold">{activeCount}</p><p className="text-xs text-purple-600">Active Products</p></div></CardContent></Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                        <Package className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{products.length}</p>
+                                        <p className="text-xs text-muted-foreground">Total Products</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                        <DollarSign className="h-5 w-5 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">${totalValue.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Total Catalog Value</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                        <Tag className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{activeCount}</p>
+                                        <p className="text-xs text-muted-foreground">Active Products</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
 
                         {/* Search */}
@@ -178,48 +338,50 @@ export default function ProductsPage() {
                         </div>
 
                         {/* Products Grid */}
-                        {isLoading ? (
-                            <div className="flex justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
-                        ) : products.length === 0 ? (
-                            <div className="text-center py-12 text-gray-500"><Package className="h-12 w-12 mx-auto mb-3 opacity-20" /><p>No products found.</p></div>
-                        ) : (
-                            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                                {products.map((product: Product) => (
-                                    <Card key={product.id} className="hover:shadow-lg transition-shadow">
-                                        <CardContent className="p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <h3 className="font-semibold">{product.name}</h3>
-                                                    {product.sku && <p className="text-sm text-gray-500">SKU: {product.sku}</p>}
-                                                </div>
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem onClick={() => shareMutation.mutate(product.id)}>
-                                                            <Share2 className="h-4 w-4 mr-2" />Share
-                                                        </DropdownMenuItem>
-                                                        {product.brochureUrl && (
-                                                            <DropdownMenuItem onClick={() => window.open(product.brochureUrl, '_blank')}>
-                                                                <FileText className="h-4 w-4 mr-2" />View Brochure
+                        {
+                            isLoading ? (
+                                <div className="flex justify-center p-8"><div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" /></div>
+                            ) : products.length === 0 ? (
+                                <div className="text-center py-12 text-gray-500"><Package className="h-12 w-12 mx-auto mb-3 opacity-20" /><p>No products found.</p></div>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                                    {products.map((product: Product) => (
+                                        <Card key={product.id} className="hover:shadow-lg transition-shadow">
+                                            <CardContent className="p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div>
+                                                        <h3 className="font-semibold text-foreground">{product.name}</h3>
+                                                        {product.sku && <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>}
+                                                    </div>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleShareClick(product)}>
+                                                                <Share2 className="h-4 w-4 mr-2" />Share
                                                             </DropdownMenuItem>
-                                                        )}
-                                                        <DropdownMenuItem className="text-red-600" onClick={() => deleteMutation.mutate(product.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                            <div className="mt-4 flex items-center justify-between">
-                                                <span className="text-xl font-bold text-green-600">${product.basePrice.toFixed(2)}</span>
-                                                <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
-                                            </div>
-                                            {product.category && <Badge variant="outline" className="mt-2">{product.category}</Badge>}
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                </main>
-            </div>
-        </div>
+                                                            {product.brochureUrl && (
+                                                                <DropdownMenuItem onClick={() => window.open(product.brochureUrl, '_blank')}>
+                                                                    <FileText className="h-4 w-4 mr-2" />View Brochure
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(product.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                                <div className="mt-4 flex items-center justify-between">
+                                                    <span className="text-xl font-bold text-primary">${product.basePrice.toFixed(2)}</span>
+                                                    <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
+                                                </div>
+                                                {product.category && <Badge variant="outline" className="mt-2">{product.category}</Badge>}
+                                            </CardContent>
+                                        </Card>
+                                    ))}
+                                </div>
+                            )
+                        }
+                    </div >
+                </main >
+            </div >
+        </div >
     )
 }

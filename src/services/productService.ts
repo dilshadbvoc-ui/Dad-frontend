@@ -65,8 +65,19 @@ export const uploadBrochure = async (file: File) => {
 };
 
 // Generate Share Link
-export const generateShareLink = async (productId: string) => {
-    const response = await api.post(`/products/${productId}/share`);
+interface ShareConfig {
+    youtubeUrl?: string;
+    customTitle?: string;
+    customDescription?: string;
+}
+
+export const generateShareLink = async (productId: string, config?: ShareConfig) => {
+    const response = await api.post(`/products/${productId}/share`, config);
+    return response.data;
+};
+
+export const getShareConfig = async (productId: string) => {
+    const response = await api.get(`/products/${productId}/share`);
     return response.data;
 };
 

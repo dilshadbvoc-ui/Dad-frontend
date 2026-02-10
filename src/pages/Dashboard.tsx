@@ -7,127 +7,172 @@ import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget'
 import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
+import { Calendar, ArrowRight } from "lucide-react";
 import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Link } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 export default function Dashboard() {
-    // const [isMounted, setIsMounted] = useState(false);
+    const { data: stats, isLoading: statsLoading } = useQuery({
+        queryKey: ['dashboardStats'],
+        queryFn: getDashboardStats
+    });
 
-    // useEffect(() => {
-    //    const timer = setTimeout(() => {
-    //        setIsMounted(true);
-    //    }, 0);
-    //    return () => clearTimeout(timer);
-    // }, []);
+    const { data: forecast, isLoading: forecastLoading } = useQuery({
+        queryKey: ['forecast'],
+        queryFn: getSalesForecast
+    });
 
-    const { data: stats, isLoading: statsLoading } = useQuery({ queryKey: ['dashboardStats'], queryFn: getDashboardStats });
-    const { data: forecast, isLoading: forecastLoading } = useQuery({ queryKey: ['forecast'], queryFn: getSalesForecast });
-
+    if (statsLoading || forecastLoading) {
+        return (
+            <div className="p-8 space-y-8 animate-in fade-in duration-500">
+                <div className="flex items-center justify-between">
+                    <div className="space-y-2">
+                        <Skeleton className="h-10 w-48" />
+                        <Skeleton className="h-4 w-96" />
+                    </div>
+                </div>
+                <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                    {[...Array(6)].map((_, i) => (
+                        <Skeleton key={i} className="h-32 rounded-[2rem]" />
+                    ))}
+                </div>
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+                    <Skeleton className="col-span-4 h-[400px] rounded-[2rem]" />
+                    <Skeleton className="col-span-3 h-[400px] rounded-[2rem]" />
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-8">
-            {/* Daily Briefing & Achievement Notification */}
-            <DailyBriefingDialog />
-            <AchievementNotification />
-            <div className="flex items-center justify-between">
+        <div className="space-y-8 p-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1">Overview of your sales pipeline and performance.</p>
+                    <p className="text-muted-foreground mt-1">
+                        Here's your daily overview and performance metrics.
+                    </p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <ErrorBoundary name="DailyBriefingDialog">
+                        <DailyBriefingDialog />
+                    </ErrorBoundary>
+                    <Link to="/calendar">
+                        <Button variant="outline" className="gap-2 hidden sm:flex">
+                            <Calendar className="h-4 w-4" />
+                            <span>Schedule</span>
+                        </Button>
+                    </Link>
+                    <Link to="/leads/new">
+                        <Button className="gap-2 shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5">
+                            <ArrowRight className="h-4 w-4" />
+                            <span>New Lead</span>
+                        </Button>
+                    </Link>
                 </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-                {/* Expected Revenue */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <ErrorBoundary name="AchievementNotification">
+                <AchievementNotification />
+            </ErrorBoundary>
+
+            {/* Quick Stats Row */}
+            <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex flex-col items-center justify-center space-y-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
                             <TrendingUp className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground">Expected Revenue</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground text-center">Expected Revenue</h3>
                         <div className="text-2xl font-extrabold text-card-foreground">
-                            {forecastLoading ? <Skeleton className="h-8 w-24" /> :
-                                new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, notation: 'compact' }).format(forecast?.weightedForecast || 0)
-                            }
+                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, notation: 'compact' }).format(forecast?.weightedForecast || 0)}
                         </div>
                     </div>
                 </div>
 
-                {/* Deals In Pipeline */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex flex-col items-center justify-center space-y-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
                             <Check className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground">Deals In Pipeline</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground text-center">Deals In Pipeline</h3>
                         <div className="text-2xl font-extrabold text-card-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16" /> : stats?.activeOpportunities}
+                            {stats?.activeOpportunities || 0}
                         </div>
                     </div>
                 </div>
 
-                {/* Won Deals */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-success-light text-success">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex flex-col items-center justify-center space-y-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
                             <Trophy className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground">Won: {new Date().toLocaleString('default', { month: 'short' })}</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground text-center">Won This Month</h3>
                         <div className="text-2xl font-extrabold text-card-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16" /> : stats?.opportunities?.won || 0}
+                            {stats?.opportunities?.won || 0}
                         </div>
                     </div>
                 </div>
 
-                {/* Lost Deals */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-danger-light text-destructive">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex flex-col items-center justify-center space-y-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
                             <AlertCircle className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground">Lost Deals</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground text-center">Lost Deals</h3>
                         <div className="text-2xl font-extrabold text-card-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16" /> : stats?.opportunities?.lost || 0}
+                            {stats?.opportunities?.lost || 0}
                         </div>
                     </div>
                 </div>
 
-                {/* Conversion */}
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1">
-                    <div className="flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-warning-light text-warning">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative flex flex-col items-center justify-center space-y-3">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
                             <RefreshCw className="h-6 w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground">Conversion %</h3>
+                        <h3 className="text-sm font-bold text-muted-foreground text-center">Conversion Ratio</h3>
                         <div className="text-2xl font-extrabold text-card-foreground">
-                            {statsLoading ? <Skeleton className="h-8 w-16" /> : `${stats?.winRate || 0}%`}
+                            {stats?.winRate || 0}%
                         </div>
                     </div>
+                </div>
+
+                {/* License Widget */}
+                <ErrorBoundary name="LicenseUsageWidget">
+                    <LicenseUsageWidget />
+                </ErrorBoundary>
+            </div>
+
+            {/* Main Charts Row */}
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
+                <ErrorBoundary name="SalesChartWidget">
+                    <SalesChartWidget />
+                </ErrorBoundary>
+                <div className="col-span-3 space-y-6">
+                    <ErrorBoundary name="TopPerformersWidget">
+                        <TopPerformersWidget />
+                    </ErrorBoundary>
+                    <ErrorBoundary name="LeadSourcesWidget">
+                        <LeadSourcesWidget />
+                    </ErrorBoundary>
                 </div>
             </div>
 
-            <div className="grid gap-4 md:gap-6 grid-cols-1 lg:grid-cols-7">
-                {/* Sales Chart - Temporarily Disabled for Debugging */}
-                {/* Sales Chart */}
-                <SalesChartWidget />
-
-                {/* Top Performers Widget */}
-                <div className="col-span-3 min-w-0 overflow-hidden">
-                    <TopPerformersWidget />
-                </div>
-
-                {/* Lead Sources */}
-                <LeadSourcesWidget />
-
-                {/* Recent Activity - New */}
-                <div className="col-span-3">
+            {/* Activity Row */}
+            <div className="grid gap-6 md:grid-cols-1">
+                <ErrorBoundary name="RecentActivityWidget">
                     <RecentActivityWidget />
-                </div>
-
-                {/* License Usage - New */}
-                <div className="col-span-1">
-                    <LicenseUsageWidget />
-                </div>
+                </ErrorBoundary>
             </div>
         </div>
     );

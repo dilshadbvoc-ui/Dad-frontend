@@ -62,12 +62,12 @@ export default function TasksPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Tasks</h1>
-                    <p className="text-indigo-400/60 mt-1">Manage your to-dos and activities.</p>
+                    <h1 className="text-3xl font-bold text-foreground">Tasks</h1>
+                    <p className="text-muted-foreground mt-1">Manage your to-dos and activities.</p>
                 </div>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-none">
+                        <Button className="shadow-lg shadow-primary/25 rounded-xl">
                             <Plus className="mr-2 h-4 w-4" />
                             Create Task
                         </Button>

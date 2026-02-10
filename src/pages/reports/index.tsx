@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BarChart3, PieChart, Users, CalendarCheck, FileText, Phone } from "lucide-react";
+import { BarChart3, PieChart, Users, CalendarCheck, Phone } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function ReportsPage() {

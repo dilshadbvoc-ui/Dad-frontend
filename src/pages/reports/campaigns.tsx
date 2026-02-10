@@ -3,7 +3,7 @@ import { getEmailCampaigns, type Campaign } from "@/services/marketingService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, Mail, Send, Clock, AlertCircle } from "lucide-react";
+import { BarChart3, Mail, Send, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 

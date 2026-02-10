@@ -36,7 +36,7 @@ export default function CalendarPage() {
         queryFn: () => getEvents(startOfWeek.toISOString(), endOfWeek.toISOString()),
     })
 
-    const events = eventsData?.events || [];
+    const events = (eventsData?.events || []).filter((e: CalendarEvent | null) => e && typeof e === 'object');
 
 
     const createMutation = useMutation({
@@ -94,24 +94,24 @@ export default function CalendarPage() {
     }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-[#0f172a]">
+        <div className="flex h-screen overflow-hidden bg-background">
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Calendar</h1>
-                                <p className="text-indigo-300/70 mt-1">Schedule and manage your events.</p>
+                                <h1 className="text-3xl font-bold text-foreground">Calendar</h1>
+                                <p className="text-muted-foreground mt-1">Schedule and manage your events.</p>
                             </div>
                             <div className="flex flex-wrap items-center gap-4">
-                                <div className="flex items-center gap-2 bg-[#1e1b4b] rounded-xl border border-indigo-900/50 p-1 shadow-lg shadow-indigo-950/20">
-                                    <Button variant="ghost" size="icon" onClick={() => navigateWeek(-1)} className="text-indigo-300 hover:text-white hover:bg-white/5"><ChevronLeft className="h-4 w-4" /></Button>
-                                    <span className="font-semibold min-w-[200px] text-center text-sm text-indigo-100">{startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
-                                    <Button variant="ghost" size="icon" onClick={() => navigateWeek(1)} className="text-indigo-300 hover:text-white hover:bg-white/5"><ChevronRight className="h-4 w-4" /></Button>
+                                <div className="flex items-center gap-2 bg-card rounded-xl border border-border p-1 shadow-sm">
+                                    <Button variant="ghost" size="icon" onClick={() => navigateWeek(-1)} className="text-muted-foreground hover:text-foreground"><ChevronLeft className="h-4 w-4" /></Button>
+                                    <span className="font-semibold min-w-[200px] text-center text-sm text-foreground">{startOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - {endOfWeek.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                                    <Button variant="ghost" size="icon" onClick={() => navigateWeek(1)} className="text-muted-foreground hover:text-foreground"><ChevronRight className="h-4 w-4" /></Button>
                                 </div>
                                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                    <DialogTrigger asChild><Button className="bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white shadow-lg shadow-indigo-500/25 rounded-xl border-none"><Plus className="h-4 w-4 mr-2" />New Event</Button></DialogTrigger>
+                                    <DialogTrigger asChild><Button className="shadow-lg shadow-primary/25 rounded-xl"><Plus className="h-4 w-4 mr-2" />New Event</Button></DialogTrigger>
                                     <DialogContent>
                                         <form onSubmit={handleSubmit}>
                                             <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
@@ -145,47 +145,47 @@ export default function CalendarPage() {
 
                         {/* Stats */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
+                            <Card className="shadow-sm transition-all hover:-translate-y-1">
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-indigo-500/20 flex items-center justify-center">
-                                        <Calendar className="h-5 w-5 text-indigo-400" />
+                                    <div className="h-10 w-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                                        <Calendar className="h-5 w-5 text-indigo-500" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-white">{events.length}</p>
-                                        <p className="text-xs text-indigo-400 font-medium">This Week</p>
+                                        <p className="text-2xl font-bold text-foreground">{events.length}</p>
+                                        <p className="text-xs text-muted-foreground font-medium">This Week</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
+                            <Card className="shadow-sm transition-all hover:-translate-y-1">
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-emerald-500/20 flex items-center justify-center">
-                                        <Video className="h-5 w-5 text-emerald-400" />
+                                    <div className="h-10 w-10 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                        <Video className="h-5 w-5 text-emerald-500" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-white">{events.filter((e: CalendarEvent) => e.type === 'meeting').length}</p>
-                                        <p className="text-xs text-emerald-400 font-medium">Meetings</p>
+                                        <p className="text-2xl font-bold text-foreground">{events.filter((e: CalendarEvent) => e.type === 'meeting').length}</p>
+                                        <p className="text-xs text-muted-foreground font-medium">Meetings</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
+                            <Card className="shadow-sm transition-all hover:-translate-y-1">
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-violet-500/20 flex items-center justify-center">
-                                        <Users className="h-5 w-5 text-violet-400" />
+                                    <div className="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center">
+                                        <Users className="h-5 w-5 text-violet-500" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-white">{events.filter((e: CalendarEvent) => e.type === 'demo').length}</p>
-                                        <p className="text-xs text-violet-400 font-medium">Demos</p>
+                                        <p className="text-2xl font-bold text-foreground">{events.filter((e: CalendarEvent) => e.type === 'demo').length}</p>
+                                        <p className="text-xs text-muted-foreground font-medium">Demos</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-lg shadow-indigo-950/20 transition-all hover:-translate-y-1">
+                            <Card className="shadow-sm transition-all hover:-translate-y-1">
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-amber-500/20 flex items-center justify-center">
-                                        <Clock className="h-5 w-5 text-amber-400" />
+                                    <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                        <Clock className="h-5 w-5 text-amber-500" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-white">{events.filter((e: CalendarEvent) => e.status === 'completed').length}</p>
-                                        <p className="text-xs text-amber-400 font-medium">Completed</p>
+                                        <p className="text-2xl font-bold text-foreground">{events.filter((e: CalendarEvent) => e.status === 'completed').length}</p>
+                                        <p className="text-xs text-muted-foreground font-medium">Completed</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -195,41 +195,41 @@ export default function CalendarPage() {
                         {isLoading ? (
                             <div className="flex items-center justify-center p-12">
                                 <div className="flex flex-col items-center gap-3">
-                                    <div className="h-10 w-10 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
-                                    <p className="text-sm text-indigo-300/70">Loading calendar...</p>
+                                    <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                                    <p className="text-sm text-muted-foreground">Loading calendar...</p>
                                 </div>
                             </div>
                         ) : (
-                            <Card className="overflow-hidden border-indigo-900/50 bg-[#1e1b4b] shadow-xl shadow-indigo-950/50">
+                            <Card className="overflow-hidden shadow-md">
                                 <CardContent className="p-0">
-                                    <div className="grid grid-cols-8 border-b border-indigo-900/30">
-                                        <div className="p-4 border-r border-indigo-900/30 bg-black/10"></div>
+                                    <div className="grid grid-cols-8 border-b border-border">
+                                        <div className="p-4 border-r border-border bg-muted/30"></div>
                                         {weekDays.map((day, i) => {
                                             const date = new Date(startOfWeek)
                                             date.setDate(startOfWeek.getDate() + i)
                                             const isToday = date.toDateString() === new Date().toDateString()
                                             return (
-                                                <div key={day} className={`p-4 text-center border-r border-indigo-900/30 ${isToday ? 'bg-indigo-500/10' : ''}`}>
-                                                    <p className="text-xs font-bold text-indigo-400 uppercase tracking-widest">{day}</p>
-                                                    <p className={`text-xl font-bold mt-1 ${isToday ? 'text-white' : 'text-indigo-200'}`}>{date.getDate()}</p>
+                                                <div key={day} className={`p-4 text-center border-r border-border ${isToday ? 'bg-primary/5' : 'bg-background'}`}>
+                                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{day}</p>
+                                                    <p className={`text-xl font-bold mt-1 ${isToday ? 'text-primary' : 'text-foreground'}`}>{date.getDate()}</p>
                                                 </div>
                                             )
                                         })}
                                     </div>
                                     <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
                                         {hours.map(hour => (
-                                            <div key={hour} className="grid grid-cols-8 border-b border-indigo-900/30 min-h-[100px]">
-                                                <div className="p-2 border-r border-indigo-900/30 text-[10px] text-indigo-400 font-bold text-right pr-4 bg-black/10 uppercase tracking-tighter">{hour > 12 ? hour - 12 : hour} {hour >= 12 ? 'PM' : 'AM'}</div>
+                                            <div key={hour} className="grid grid-cols-8 border-b border-border min-h-[100px]">
+                                                <div className="p-2 border-r border-border text-[10px] text-muted-foreground font-bold text-right pr-4 bg-muted/30 uppercase tracking-tighter">{hour > 12 ? hour - 12 : hour} {hour >= 12 ? 'PM' : 'AM'}</div>
                                                 {weekDays.map((_, i) => {
                                                     const date = new Date(startOfWeek)
                                                     date.setDate(startOfWeek.getDate() + i)
                                                     const dayEvents = getEventsForDay(date).filter((e: CalendarEvent) => new Date(e.startTime).getHours() === hour)
                                                     return (
-                                                        <div key={i} className="border-r border-indigo-900/30 p-1 relative hover:bg-white/5 transition-colors">
+                                                        <div key={i} className="border-r border-border p-1 relative hover:bg-muted/10 transition-colors">
                                                             {dayEvents.map((event: CalendarEvent) => (
                                                                 <div
                                                                     key={event.id}
-                                                                    className={`${typeColors[event.type]} text-white text-[11px] p-2 rounded-lg shadow-lg mb-1 cursor-pointer hover:brightness-110 hover:scale-[1.02] transition-all border border-white/10`}
+                                                                    className={`${typeColors[event.type]} text-white text-[11px] p-2 rounded-lg shadow-sm mb-1 cursor-pointer hover:brightness-110 hover:scale-[1.02] transition-all`}
                                                                     onClick={() => handleEventClick(event)}
                                                                 >
                                                                     <div className="font-bold truncate">{event.title}</div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { syncToken } from '@/utils/mobileBridge';
+import { syncToken } from '../utils/mobileBridge';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 

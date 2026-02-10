@@ -9,11 +9,9 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -27,11 +25,10 @@ import {
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
-import { Plus, MoreHorizontal, Loader2, Check, X } from 'lucide-react';
+import { Plus, MoreHorizontal, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
 
@@ -82,7 +79,7 @@ export function PlansManagement() {
             toast.success('Plan created successfully');
             setIsCreateOpen(false);
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to create plan')
+        onError: (err: { response?: { data?: { message?: string } } }) => toast.error(err.response?.data?.message || 'Failed to create plan')
     });
 
     const updateMutation = useMutation({
@@ -94,7 +91,7 @@ export function PlansManagement() {
             toast.success('Plan updated successfully');
             setEditingPlan(null);
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to update plan')
+        onError: (err: { response?: { data?: { message?: string } } }) => toast.error(err.response?.data?.message || 'Failed to update plan')
     });
 
     const deleteMutation = useMutation({
@@ -105,7 +102,7 @@ export function PlansManagement() {
             queryClient.invalidateQueries({ queryKey: ['plans'] });
             toast.success('Plan deactivated successfully');
         },
-        onError: (err: any) => toast.error(err.response?.data?.message || 'Failed to delete plan')
+        onError: (err: { response?: { data?: { message?: string } } }) => toast.error(err.response?.data?.message || 'Failed to delete plan')
     });
 
     return (

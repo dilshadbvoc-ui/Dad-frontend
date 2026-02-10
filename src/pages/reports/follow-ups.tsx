@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { format, isToday, isPast, isFuture, parseISO, isSameDay } from "date-fns";
+import { format, isToday, isPast, isFuture, isSameDay } from "date-fns";
 import { ArrowLeft, Loader2 } from "lucide-react";
 
 // Helper
@@ -13,7 +13,7 @@ const formatDate = (dateString?: string) => {
     if (!dateString) return '-';
     try {
         return format(new Date(dateString), 'MMM d, yyyy');
-    } catch (e) {
+    } catch {
         return dateString;
     }
 };
@@ -28,7 +28,7 @@ export default function FollowUpReportsPage() {
         queryFn: () => getTasks({ status: 'all' }), // Ensure we get all tasks
     });
 
-    const tasks = (tasksResponse as any)?.tasks || [];
+    const tasks = (tasksResponse as { tasks: Task[] })?.tasks || [];
 
     // --- Filter Logic ---
     const getFilteredTasks = () => {

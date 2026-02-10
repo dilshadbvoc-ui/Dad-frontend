@@ -99,8 +99,8 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
         : 0;
 
     return (
-        <div className={`${level > 0 ? 'ml-8 border-l-2 border-dashed border-gray-200 dark:border-gray-700 pl-4' : ''}`}>
-            <div className="p-4 rounded-xl border bg-white dark:bg-gray-900 hover:shadow-md transition-all mb-3">
+        <div className={`${level > 0 ? 'ml-8 border-l-2 border-dashed border-border pl-4' : ''}`}>
+            <div className="p-4 rounded-xl border bg-card hover:shadow-md transition-all mb-3 text-card-foreground">
                 <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
                         {hasChildren && (
@@ -113,12 +113,12 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
                                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                             </Button>
                         )}
-                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${node.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${node.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'}`}>
                             <User className="h-5 w-5" />
                         </div>
                         <div>
-                            <p className="font-semibold">{node.assignedTo.firstName} {node.assignedTo.lastName}</p>
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <p className="font-semibold text-foreground">{node.assignedTo.firstName} {node.assignedTo.lastName}</p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 {node.autoDistributed && <Badge variant="outline" className="text-xs">Auto-distributed</Badge>}
                                 <Badge variant={node.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                                     {node.status}
@@ -139,8 +139,8 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right">
-                            <p className="font-bold text-lg">₹{node.achievedValue.toLocaleString()} <span className="text-gray-400 font-normal">/</span> ₹{node.targetValue.toLocaleString()}</p>
-                            <p className="text-sm text-gray-500">{achievementPercent}% achieved</p>
+                            <p className="font-bold text-lg text-foreground">₹{node.achievedValue.toLocaleString()} <span className="text-muted-foreground font-normal">/</span> ₹{node.targetValue.toLocaleString()}</p>
+                            <p className="text-sm text-muted-foreground">{achievementPercent}% achieved</p>
                         </div>
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -322,10 +322,10 @@ export default function SalesTargetsPage() {
                         {/* Header */}
                         <div className="flex justify-between items-center">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
+                                <h1 className="text-3xl font-bold text-foreground">
                                     Sales Targets
                                 </h1>
-                                <p className="text-gray-500">Manage hierarchical sales targets for your team</p>
+                                <p className="text-muted-foreground">Manage hierarchical sales targets for your team</p>
                             </div>
                             <div className="flex gap-2">
                                 <Button
@@ -338,7 +338,7 @@ export default function SalesTargetsPage() {
                                 </Button>
                                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                                     <DialogTrigger asChild>
-                                        <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+                                        <Button className="shadow-lg shadow-primary/25">
                                             <Plus className="h-4 w-4 mr-2" />Assign Target
                                         </Button>
                                     </DialogTrigger>
@@ -509,47 +509,47 @@ export default function SalesTargetsPage() {
 
                         {/* Stats Cards */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50">
+                            <Card>
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
                                         <Target className="h-5 w-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">₹{totalTargetValue.toLocaleString()}</p>
-                                        <p className="text-xs text-blue-600">My Total Target</p>
+                                        <p className="text-2xl font-bold text-foreground">₹{totalTargetValue.toLocaleString()}</p>
+                                        <p className="text-xs text-muted-foreground">My Total Target</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50">
+                            <Card>
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
                                         <TrendingUp className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">₹{totalAchieved.toLocaleString()}</p>
-                                        <p className="text-xs text-green-600">My Achieved</p>
+                                        <p className="text-2xl font-bold text-foreground">₹{totalAchieved.toLocaleString()}</p>
+                                        <p className="text-xs text-muted-foreground">My Achieved</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50">
+                            <Card>
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
                                         <Trophy className="h-5 w-5 text-purple-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">{completedCount}</p>
-                                        <p className="text-xs text-purple-600">Team Completed</p>
+                                        <p className="text-2xl font-bold text-foreground">{completedCount}</p>
+                                        <p className="text-xs text-muted-foreground">Team Completed</p>
                                     </div>
                                 </CardContent>
                             </Card>
-                            <Card className="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-950/50">
+                            <Card>
                                 <CardContent className="p-4 flex items-center gap-3">
-                                    <div className="h-10 w-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                                    <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
                                         <Users className="h-5 w-5 text-orange-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold">{activeCount}</p>
-                                        <p className="text-xs text-orange-600">Active Targets</p>
+                                        <p className="text-2xl font-bold text-foreground">{activeCount}</p>
+                                        <p className="text-xs text-muted-foreground">Active Targets</p>
                                     </div>
                                 </CardContent>
                             </Card>
@@ -586,15 +586,15 @@ export default function SalesTargetsPage() {
                                                     const daysLeft = Math.ceil((new Date(target.endDate).getTime() - now) / (1000 * 60 * 60 * 24));
 
                                                     return (
-                                                        <div key={target.id} className="p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                        <div key={target.id} className="p-4 rounded-xl border hover:bg-muted/30 transition-colors">
                                                             <div className="flex items-center justify-between mb-3">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${target.status === 'completed' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${target.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'}`}>
                                                                         {target.status === 'completed' ? <Trophy className="h-5 w-5" /> : <Target className="h-5 w-5" />}
                                                                     </div>
                                                                     <div>
-                                                                        <p className="font-semibold capitalize">{target.period} Target</p>
-                                                                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                                        <p className="font-semibold capitalize text-foreground">{target.period} Target</p>
+                                                                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                                                             <Badge variant="outline">{target.period}</Badge>
                                                                             <Calendar className="h-3 w-3" />
                                                                             <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}</span>
@@ -609,8 +609,8 @@ export default function SalesTargetsPage() {
                                                                 </div>
                                                                 <div className="flex items-center gap-4">
                                                                     <div className="text-right">
-                                                                        <p className="font-bold text-lg">₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}</p>
-                                                                        <p className="text-sm text-gray-500">{percent}% achieved</p>
+                                                                        <p className="font-bold text-lg text-foreground">₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}</p>
+                                                                        <p className="text-sm text-muted-foreground">{percent}% achieved</p>
                                                                     </div>
                                                                     {/* Note: Employees can't usually edit their own targets assigned by managers, blocking edit here for 'My Targets' view unless we want self-assigned targets logic. Assuming 'Team' view is where management happens. */}
                                                                 </div>

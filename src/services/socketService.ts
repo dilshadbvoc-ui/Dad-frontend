@@ -1,17 +1,37 @@
 import { io, Socket } from 'socket.io-client';
-import { API_URL } from '@/config';
+// Direct environment access to avoid circular dependency or initialization order issues
+const getSocketUrl = () => {
+    let url = import.meta.env.VITE_API_URL || 'http://localhost:5001';
 
-const SOCKET_URL = API_URL;
+    // Hard fallback for production if env var is missing/empty but we know we are in prod
+    if (import.meta.env.PROD && (!url || url === '/')) {
+        console.warn('VITE_API_URL missing or relative in production, defaulting to dad-backend.onrender.com');
+        url = 'https://dad-backend.onrender.com';
+    }
+
+    return url.replace(/\/$/, '').replace(/\/api$/, '');
+};
+
+const SOCKET_URL = getSocketUrl();
+
 
 class SocketService {
     private socket: Socket | null = null;
 
     connect(userId: string) {
         if (!this.socket) {
+            const userInfo = localStorage.getItem('userInfo');
+            const token = userInfo ? JSON.parse(userInfo).token : null;
+
+
+
             this.socket = io(SOCKET_URL, {
                 withCredentials: true,
                 autoConnect: true,
-                transports: ['websocket']
+                transports: ['websocket', 'polling'],
+                auth: {
+                    token
+                }
             });
 
             this.socket.on('connect', () => {
@@ -38,6 +58,10 @@ class SocketService {
 
     off(event: string) {
         this.socket?.off(event);
+    }
+
+    getSocket() {
+        return this.socket;
     }
 }
 

@@ -10,6 +10,7 @@ import { CommandCenter } from "@/components/shared/CommandCenter";
 import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 
 export default function Layout() {
     const location = useLocation();
@@ -73,10 +74,28 @@ export default function Layout() {
             }
         };
 
+        const handleNotification = (data: { title: string; message: string; type?: string }) => {
+            if (!data) return; // Safeguard against null data
+
+            // Map backend types to sonner toast types
+            const type = data.type === 'error' ? 'error' :
+                data.type === 'success' ? 'success' :
+                    data.type === 'warning' ? 'warning' : 'info';
+
+            toast[type](data.title, {
+                description: data.message,
+                duration: 5000,
+            });
+
+            // Optional: Play a sound?
+        };
+
         socketService.on('call_status_update', handleCallUpdate);
+        socketService.on('notification', handleNotification);
 
         return () => {
             socketService.off('call_status_update');
+            socketService.off('notification');
         };
     }, []);
 
@@ -92,7 +111,9 @@ export default function Layout() {
 
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
-                <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
+                <ErrorBoundary name="Sidebar">
+                    <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
+                </ErrorBoundary>
             </div>
 
             {/* Mobile Sidebar */}
@@ -100,7 +121,9 @@ export default function Layout() {
                 "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl",
                 mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
+                <ErrorBoundary name="MobileSidebar">
+                    <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
+                </ErrorBoundary>
                 {/* Close button inside sidebar for better UX */}
                 <Button
                     variant="ghost"
@@ -127,7 +150,9 @@ export default function Layout() {
                             <Menu className="h-6 w-6" />
                         )}
                     </Button>
-                    <Header className="flex-1 lg:flex-none pl-4 lg:pl-0 overflow-x-auto" />
+                    <ErrorBoundary name="Header">
+                        <Header className="flex-1 lg:flex-none pl-4 lg:pl-0 overflow-x-auto" />
+                    </ErrorBoundary>
                 </div>
 
                 <main className={cn(
@@ -156,14 +181,19 @@ export default function Layout() {
                         <div className={cn(
                             isFullWidthPage ? "p-0 h-full" : "px-4 lg:px-6 pt-4 lg:pt-6"
                         )}>
-                            <Outlet />
+                            <ErrorBoundary name="PageContent">
+                                <Outlet />
+                            </ErrorBoundary>
                         </div>
                     </div>
                 </main>
             </div>
-            <ViolationAlert />
-            <CommandCenter />
+            <ErrorBoundary name="ViolationAlert">
+                <ViolationAlert />
+            </ErrorBoundary>
+            <ErrorBoundary name="CommandCenter">
+                <CommandCenter />
+            </ErrorBoundary>
         </div>
     );
 }
-

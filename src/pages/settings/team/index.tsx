@@ -79,10 +79,10 @@ export default function TeamSettingsPage() {
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                     <div className="space-y-6">
                         <div className="flex justify-between items-center">
-                            <div><h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Team</h1><p className="text-gray-500">Manage your team members</p></div>
+                            <div><h1 className="text-3xl font-bold text-foreground">Team</h1><p className="text-muted-foreground">Manage your team members</p></div>
                             {isAdmin && (
                                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                    <DialogTrigger asChild><Button onClick={() => setSelectedUser(null)} className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"><Plus className="h-4 w-4 mr-2" />Add Member</Button></DialogTrigger>
+                                    <DialogTrigger asChild><Button onClick={() => setSelectedUser(null)}><Plus className="h-4 w-4 mr-2" />Add Member</Button></DialogTrigger>
                                     <DialogContent>
                                         <form onSubmit={handleSubmit}>
                                             <DialogHeader>
@@ -135,11 +135,11 @@ export default function TeamSettingsPage() {
                                                         defaultValue={selectedUser?.dailyLeadQuota ?? ''}
                                                         placeholder="Leave empty for unlimited"
                                                     />
-                                                    <p className="text-xs text-gray-500 mt-1">Max leads per day via auto-assignment (empty = unlimited)</p>
+                                                    <p className="text-xs text-muted-foreground mt-1">Max leads per day via auto-assignment (empty = unlimited)</p>
                                                 </div>
                                             </div>
                                             <DialogFooter>
-                                                <Button type="submit" isLoading={updateMutation.isPending || inviteMutation.isPending}>
+                                                <Button type="submit" disabled={updateMutation.isPending || inviteMutation.isPending}>
                                                     <Plus className="h-4 w-4 mr-2" />{selectedUser ? 'Save Changes' : 'Add Member'}
                                                 </Button>
                                             </DialogFooter>
@@ -153,15 +153,15 @@ export default function TeamSettingsPage() {
                             <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Team Members ({users.length})</CardTitle></CardHeader>
                             <CardContent>
                                 {isLoading ? (
-                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
+                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>
                                 ) : users.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500"><Users className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No team members yet</p></div>
+                                    <div className="text-center py-12 text-muted-foreground"><Users className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No team members yet</p></div>
                                 ) : (
                                     <div className="space-y-3">
                                         {users.map((user: User) => (
-                                            <div key={user.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                            <div key={user.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-muted/50 transition-colors">
                                                 <div className="flex items-center gap-4">
-                                                    <Avatar className="h-10 w-10"><AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback></Avatar>
+                                                    <Avatar className="h-10 w-10"><AvatarFallback className="bg-primary/10 text-primary">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback></Avatar>
                                                     <div>
                                                         <Link to={`/users/${user.id}`} className="hover:underline font-semibold">{user.firstName} {user.lastName}</Link>
                                                         <p className="text-sm text-gray-500">{user.email}</p>
@@ -170,14 +170,14 @@ export default function TeamSettingsPage() {
                                                 <div className="flex items-center gap-4">
                                                     <Badge variant={user.isActive ? "default" : "secondary"}>{user.isActive ? 'Active' : 'Inactive'}</Badge>
                                                     {user.dailyLeadQuota !== undefined && user.dailyLeadQuota !== null ? (
-                                                        <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300">
+                                                        <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
                                                             Quota: {user.dailyLeadQuota}
                                                         </Badge>
                                                     ) : (
-                                                        <Badge variant="outline" className="text-gray-500">No Quota</Badge>
+                                                        <Badge variant="outline" className="text-muted-foreground">No Quota</Badge>
                                                     )}
-                                                    {user.userId && <Badge variant="outline" className="font-mono">{user.userId}</Badge>}
-                                                    {user.role && <Badge variant="outline">{user.role.name}</Badge>}
+                                                    {user.userId && <Badge variant="outline" className="font-mono text-xs">{user.userId}</Badge>}
+                                                    {user.role && <Badge variant="secondary">{user.role.name}</Badge>}
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">

@@ -88,7 +88,8 @@ export function GlobalSearch() {
             try {
                 const response = await api.get(`/search/global?q=${encodeURIComponent(value)}&limit=20`)
                 const searchData = response.data.data || response.data;
-                setResults(Array.isArray(searchData.results) ? searchData.results : [])
+                const rawResults = Array.isArray(searchData.results) ? searchData.results : [];
+                setResults(rawResults.filter((r: unknown) => r && typeof r === 'object') as SearchResult[]);
             } catch (error) {
                 console.error("Search failed", error)
                 setResults([])
@@ -113,12 +114,12 @@ export function GlobalSearch() {
 
     const getIcon = (type: string) => {
         switch (type) {
-            case 'lead': return <User className="h-4 w-4 text-blue-500" />
-            case 'contact': return <User className="h-4 w-4 text-green-500" />
-            case 'account': return <Building className="h-4 w-4 text-purple-500" />
-            case 'opportunity': return <TrendingUp className="h-4 w-4 text-orange-500" />
-            case 'task': return <CheckSquare className="h-4 w-4 text-red-500" />
-            default: return <FileText className="h-4 w-4 text-gray-500" />
+            case 'lead': return <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            case 'contact': return <User className="h-4 w-4 text-green-600 dark:text-green-400" />
+            case 'account': return <Building className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            case 'opportunity': return <TrendingUp className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            case 'task': return <CheckSquare className="h-4 w-4 text-red-600 dark:text-red-400" />
+            default: return <FileText className="h-4 w-4 text-muted-foreground" />
         }
     }
 

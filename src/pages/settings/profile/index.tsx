@@ -99,7 +99,7 @@ export default function ProfileSettingsPage() {
                                     <div className="flex items-center gap-6">
                                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                             <Avatar className="h-24 w-24 border-2 border-primary/20">
-                                                <AvatarImage src={`${API_URL}${profile?.profileImage}`} className="object-cover" />
+                                                <AvatarImage src={profile?.profileImage ? `${API_URL}${profile.profileImage}` : undefined} className="object-cover" />
                                                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                                                     {profile?.firstName?.[0]}{profile?.lastName?.[0]}
                                                 </AvatarFallback>

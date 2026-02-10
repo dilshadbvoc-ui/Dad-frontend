@@ -12,7 +12,7 @@ export function RecentActivityWidget() {
         queryFn: async () => {
             try {
                 const res = await api.get('/audit-logs', { params: { limit: 10 } });
-                console.log('Recent Activity Raw:', res.data, 'Has logs:', !!res.data?.logs, 'Is Array:', Array.isArray(res.data?.logs));
+                // Log removed
                 return res.data;
             } catch (error) {
                 console.error('Error fetching recent activity:', error);
@@ -21,10 +21,10 @@ export function RecentActivityWidget() {
         }
     });
 
-    // Ensure logs is always an array
-    const logs = Array.isArray(data?.logs) ? data.logs : [];
+    // Ensure logs is always an array and filter out invalid entries
+    const logs = (Array.isArray(data?.logs) ? data.logs : []).filter((log: unknown) => log && typeof log === 'object');
 
-    console.log('Recent Activity Logs:', logs, 'Length:', logs.length);
+
 
     return (
         <Card className="col-span-3 rounded-3xl bg-card shadow-sm border-0">

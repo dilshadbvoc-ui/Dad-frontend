@@ -93,7 +93,7 @@ export default function WorkflowsPage() {
     return (
         <div className="flex h-full overflow-hidden bg-gray-50 dark:bg-gray-950">
             {/* Workflows List Sidebar */}
-            <div className="w-64 border-r bg-white dark:bg-gray-900 flex flex-col z-20 shadow-sm">
+            <div className="w-64 border-r bg-card flex flex-col z-20 shadow-sm">
                 <div className="p-4 border-b">
                     <div className="flex items-center justify-between mb-2">
                         <h2 className="font-semibold text-lg">Workflows</h2>
@@ -120,13 +120,13 @@ export default function WorkflowsPage() {
                                     key={workflow.id}
                                     onClick={() => setSelectedId(workflow.id)}
                                     className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${selectedId === workflow.id
-                                        ? 'bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800 ring-1 ring-blue-200 dark:ring-blue-800'
-                                        : 'bg-card border-border hover:border-gray-300 dark:hover:border-gray-700'
+                                        ? 'bg-primary/5 border-primary ring-1 ring-primary'
+                                        : 'bg-card border-border hover:bg-muted/50'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className={`p-1.5 rounded-md ${workflow.isActive ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 'bg-gray-100 text-gray-500'}`}>
+                                            <div className={`p-1.5 rounded-md ${workflow.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                                 <GitBranch className="h-4 w-4" />
                                             </div>
                                             <span className="font-medium text-sm truncate w-24">{workflow.name}</span>
@@ -188,14 +188,14 @@ export default function WorkflowsPage() {
 
             {/* Main Visual Canvas */}
             <div
-                className={`flex-1 flex flex-col bg-gray-50/50 dark:bg-black/20 relative overflow-hidden transition-colors ${draggedLeadId ? 'bg-blue-50/50 dark:bg-blue-900/10 border-2 border-dashed border-blue-300 dark:border-blue-700 m-2 rounded-xl' : ''}`}
+                className={`flex-1 flex flex-col bg-muted/20 relative overflow-hidden transition-colors ${draggedLeadId ? 'bg-primary/5 border-2 border-dashed border-primary/50 m-2 rounded-xl' : ''}`}
                 onDragOver={handleDragOver}
                 onDrop={handleDrop}
             >
                 {/* Canvas Header */}
-                <div className="h-16 border-b bg-white/80 dark:bg-gray-900/80 backdrop-blur w-full flex items-center justify-between px-6 z-10">
+                <div className="h-16 border-b bg-background/80 backdrop-blur w-full flex items-center justify-between px-6 z-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-900/20">
+                        <div className="p-2 rounded-lg bg-primary/10 text-primary">
                             <Zap className="h-5 w-5" />
                         </div>
                         <div>

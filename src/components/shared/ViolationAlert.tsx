@@ -77,20 +77,39 @@ export function ViolationAlert() {
 
     const handleSubmit = () => {
         if (!selectedViolation) return;
-        // Determine type based on what is missing and who I am? 
-        // Backend handles permission.
-        // If I am previous owner -> user explanation.
-        // If I am manager -> manager explanation.
-        // UI should probably let user choose if ambiguity, but standard flow:
-        // Try 'user' first? Or we need to know who I am.
-        // Let's assume for now default is 'user' unless specific role logic.
-        // To fix this accurately: we need current user info. 
-        // For MVP: Let's assume the user knows. Or try 'user' explanation.
+
+        // Determine type based on current user vs previous owner
+        const userInfoStr = localStorage.getItem('userInfo');
+        let explanationType: 'user' | 'manager' = 'user';
+
+        if (userInfoStr) {
+            try {
+                const userInfo = JSON.parse(userInfoStr);
+
+                // If current user's explanation is already provided, they must be the manager
+                if (selectedViolation.userExplanation && !selectedViolation.managerExplanation) {
+                    explanationType = 'manager';
+                }
+                // If neither explanation exists, check if current user was the previous owner
+                else if (!selectedViolation.userExplanation) {
+                    // User assigned to = current user means they are the one who got the lead
+                    // Previous owner = current user means they need to explain
+                    const assignedToName = `${selectedViolation.assignedTo?.firstName || ''} ${selectedViolation.assignedTo?.lastName || ''}`.trim();
+                    const currentUserName = `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim();
+
+                    if (assignedToName !== currentUserName) {
+                        explanationType = 'manager';
+                    }
+                }
+            } catch {
+                // Fallback to 'user' if parse fails
+            }
+        }
 
         mutation.mutate({
             leadId: selectedViolation.id,
             explanation,
-            type: 'user' // Logic needs refinement based on current user Role vs Lead Owner
+            type: explanationType
         });
     };
 
@@ -98,7 +117,7 @@ export function ViolationAlert() {
         <>
             <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
                 {pendingViolations.slice(0, 3).map(v => (
-                    <Alert key={v.id} variant="destructive" className="w-[350px] bg-red-50 dark:bg-red-900/10 border-red-200">
+                    <Alert key={v.id} variant="destructive" className="w-[350px] bg-destructive/5 dark:bg-destructive/10 border-destructive/20 text-destructive">
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>Lead Assignment Violation: {v.firstName} {v.lastName}</AlertTitle>
                         <AlertDescription className="mt-2 flex flex-col gap-2">
@@ -109,7 +128,7 @@ export function ViolationAlert() {
                             <Button
                                 variant="outline"
                                 size="sm"
-                                className="w-full bg-white dark:bg-black hover:bg-red-100"
+                                className="w-full bg-background hover:bg-destructive/10 border-destructive/20"
                                 onClick={() => setSelectedViolation(v)}
                             >
                                 Provide Explanation

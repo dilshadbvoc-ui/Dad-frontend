@@ -10,7 +10,7 @@ import { api } from '@/services/api';
 import { Loader2, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
-import axios, { isAxiosError } from 'axios';
+import { isAxiosError } from 'axios';
 
 interface CreateOpportunityDialogProps {
     open: boolean;
@@ -52,7 +52,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
     // Fetch Organisation Settings for Custom Labels
     const { data: org } = useQuery({
         queryKey: ['organisation'],
-        queryFn: async () => (await axios.get('/api/organisation')).data,
+        queryFn: async () => (await api.get('/organisation')).data,
         staleTime: 1000 * 60 * 5 // 5 mins
     });
 

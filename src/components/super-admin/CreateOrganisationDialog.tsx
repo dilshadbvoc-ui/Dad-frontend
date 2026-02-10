@@ -12,8 +12,6 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -21,6 +19,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { useQuery } from '@tanstack/react-query';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
 import { Plus, Loader2 } from 'lucide-react';
 
@@ -39,6 +40,16 @@ export function CreateOrganisationDialog() {
     const queryClient = useQueryClient();
     const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateOrgFormData>();
 
+    // Fetch Plans
+    const { data: plans } = useQuery({
+        queryKey: ['plans'],
+        queryFn: async () => {
+            const res = await api.get('/super-admin/plans');
+            return res.data.plans;
+        },
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
     const createOrgMutation = useMutation({
         mutationFn: async (data: CreateOrgFormData) => {
             const res = await api.post('/super-admin/organisations', data);
@@ -51,7 +62,7 @@ export function CreateOrganisationDialog() {
             setOpen(false);
             reset();
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } } }) => {
             toast.error(error.response?.data?.message || 'Failed to create organisation');
         }
     });
@@ -143,11 +154,26 @@ export function CreateOrganisationDialog() {
                         />
                     </div>
 
-                    {/* TODO: Fetch plans dynamically if needed, for now hardcoded or basic input */}
-                    {/* <div className="space-y-2">
-                        <Label>Plan</Label>
-                         <Select onValueChange={(val) => setValue('planId', val)}> ... </Select>
-                    </div> */}
+                    <div className="space-y-2">
+                        <Label htmlFor="planId" className="text-foreground">Subscription Plan</Label>
+                        <Select
+                            onValueChange={(val: string) => register('planId').onChange({ target: { value: val, name: 'planId' } })}
+                        >
+                            <SelectTrigger className="bg-background border-input">
+                                <SelectValue placeholder="Select a plan" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {plans?.map((plan: { id: string; name: string; price: number; currency: string }) => (
+                                    <SelectItem key={plan.id} value={plan.id}>
+                                        {plan.name} - {new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.price)}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <input type="hidden" {...register('planId', { required: 'Plan is required' })} />
+                        {errors.planId && <span className="text-xs text-destructive">{errors.planId.message}</span>}
+                    </div>
+
 
                     <DialogFooter>
                         <Button type="button" variant="ghost" onClick={() => setOpen(false)} className="text-muted-foreground hover:bg-muted">

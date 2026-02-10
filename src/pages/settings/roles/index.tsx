@@ -109,10 +109,10 @@ export default function RolesSettingsPage() {
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Roles & Permissions</h1>
-                                <p className="text-gray-500 mt-1">Manage user roles and access levels</p>
+                                <h1 className="text-3xl font-bold text-foreground">Roles & Permissions</h1>
+                                <p className="text-muted-foreground mt-1">Manage user roles and access levels</p>
                             </div>
-                            <Button onClick={openCreateDialog} className="bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg shadow-indigo-500/25">
+                            <Button onClick={openCreateDialog}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Role
                             </Button>
@@ -121,17 +121,16 @@ export default function RolesSettingsPage() {
                         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
                             {isLoading ? (
                                 <div className="col-span-full flex justify-center p-12">
-                                    <div className="h-8 w-8 rounded-full border-4 border-indigo-500 border-t-transparent animate-spin" />
+                                    <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
                                 </div>
                             ) : roles.length === 0 ? (
-                                <div className="col-span-full text-center py-12 text-gray-500 border-2 border-dashed rounded-xl">
+                                <div className="col-span-full text-center py-12 text-muted-foreground border-2 border-dashed rounded-xl">
                                     <Shield className="h-12 w-12 mx-auto mb-4 opacity-50" />
                                     <p>No roles defined</p>
                                 </div>
                             ) : (
                                 roles.map((role: Role) => (
-                                    <Card key={role.id} className="relative group overflow-hidden transition-all hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800">
-                                        <div className={`absolute top-0 left-0 w-1 h-full ${role.isSystemRole ? 'bg-gray-400' : 'bg-gradient-to-b from-indigo-500 to-purple-600'}`} />
+                                    <Card key={role.id} className="relative group overflow-hidden transition-all hover:shadow-md border-l-4 border-l-primary/50 hover:border-l-primary">
                                         <CardHeader className="pl-6 pb-2">
                                             <div className="flex justify-between items-start">
                                                 <div className="space-y-1">
@@ -144,11 +143,11 @@ export default function RolesSettingsPage() {
                                                     </CardDescription>
                                                 </div>
                                                 {!role.isSystemRole && (
-                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-white dark:bg-gray-900 shadow-sm rounded-md p-1 border">
+                                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background shadow-sm rounded-md p-1 border">
                                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(role)}>
                                                             <Edit className="h-3.5 w-3.5" />
                                                         </Button>
-                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500 hover:text-red-600" onClick={() => handleDelete(role.id)}>
+                                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => handleDelete(role.id)}>
                                                             <Trash2 className="h-3.5 w-3.5" />
                                                         </Button>
                                                     </div>
@@ -156,10 +155,10 @@ export default function RolesSettingsPage() {
                                             </div>
                                         </CardHeader>
                                         <CardContent className="pl-6 pt-2">
-                                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                                <div className="flex items-center gap-1.5 bg-gray-100 dark:bg-gray-800 px-2.5 py-1 rounded-full">
-                                                    <Users className="h-3.5 w-3.5 text-indigo-500" />
-                                                    <span className="font-medium text-gray-700 dark:text-gray-300">{role.userCount || 0} Users</span>
+                                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                                                <div className="flex items-center gap-1.5 bg-primary/10 px-2.5 py-1 rounded-full">
+                                                    <Users className="h-3.5 w-3.5 text-primary" />
+                                                    <span className="font-medium text-foreground">{role.userCount || 0} Users</span>
                                                 </div>
                                                 <div className="flex items-center gap-1.5">
                                                     <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
@@ -205,7 +204,7 @@ export default function RolesSettingsPage() {
                                     </div>
                                     <DialogFooter>
                                         <Button variant="outline" type="button" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
-                                        <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending} className="bg-indigo-600 hover:bg-indigo-700">
+                                        <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>
                                             {createMutation.isPending || updateMutation.isPending ? 'Saving...' : (editingRole ? 'Save Changes' : 'Create Role')}
                                         </Button>
                                     </DialogFooter>

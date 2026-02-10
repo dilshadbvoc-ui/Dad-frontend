@@ -7,6 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { setGlobalCurrency } from "@/lib/utils"
 
 interface UpsellConfig {
     itemLabel?: string;
@@ -155,6 +163,60 @@ export default function OrganisationSettingsPage() {
                             </div>
                             <div className="flex justify-end pt-4">
                                 <Button type="submit" disabled={updateMutation.isPending}>Save Settings</Button>
+                            </div>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Currency Settings</CardTitle>
+                        <CardDescription>Set the default currency for the application (e.g., USD, INR, EUR).</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={(e) => {
+                            e.preventDefault()
+                            const formData = new FormData(e.currentTarget)
+                            const currency = formData.get('currency') as string
+
+                            updateMutation.mutate({ currency }, {
+                                onSuccess: () => {
+                                    // Update global currency immediately
+                                    setGlobalCurrency(currency);
+
+                                    // Update localStorage to persist across reloads
+                                    const userInfo = localStorage.getItem('userInfo');
+                                    if (userInfo) {
+                                        const parsed = JSON.parse(userInfo);
+                                        if (parsed.organisation) {
+                                            parsed.organisation.currency = currency;
+                                            localStorage.setItem('userInfo', JSON.stringify(parsed));
+                                        }
+                                    }
+                                }
+                            })
+                        }} className="space-y-4">
+                            <div className="space-y-2">
+                                <Label>Default Currency</Label>
+                                <Select name="currency" defaultValue={org?.currency || 'USD'}>
+                                    <SelectTrigger className="w-[280px]">
+                                        <SelectValue placeholder="Select currency" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="USD">USD ($)</SelectItem>
+                                        <SelectItem value="INR">INR (₹)</SelectItem>
+                                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                                        <SelectItem value="GBP">GBP (£)</SelectItem>
+                                        <SelectItem value="AED">AED (د.إ)</SelectItem>
+                                        <SelectItem value="AUD">AUD ($)</SelectItem>
+                                        <SelectItem value="CAD">CAD ($)</SelectItem>
+                                        <SelectItem value="SGD">SGD ($)</SelectItem>
+                                        <SelectItem value="JPY">JPY (¥)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex justify-end pt-4">
+                                <Button type="submit" disabled={updateMutation.isPending}>Save Currency</Button>
                             </div>
                         </form>
                     </CardContent>

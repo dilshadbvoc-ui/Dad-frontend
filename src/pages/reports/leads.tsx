@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { format, isToday, parseISO, isSameDay } from "date-fns"; // Standard imports, check availability
-import { ArrowLeft, Loader2, PieChart as PieChartIcon, BarChart3 } from "lucide-react";
+import { format, isSameDay } from "date-fns"; // Standard imports, check availability
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 // Formatting helpers
@@ -14,7 +14,7 @@ const formatDate = (dateString: string) => {
     if (!dateString) return '-';
     try {
         return format(new Date(dateString), 'MMM d, yyyy');
-    } catch (e) {
+    } catch {
         return dateString;
     }
 };
@@ -31,7 +31,7 @@ export default function LeadReportsPage() {
         queryFn: () => getLeads({ limit: 1000 }), // Fetch larger set for reports
     });
 
-    const leads = (leadsResponse as any)?.leads || [];
+    const leads = (leadsResponse as { leads: Lead[] })?.leads || [];
 
     // --- Filter Logic ---
     const getFilteredLeads = () => {
@@ -87,15 +87,15 @@ export default function LeadReportsPage() {
         }
 
         if (viewType === 'status') {
-            const data = getLeadsByStatus();
+            const data = getLeadsByStatus().filter(item => item && typeof item === 'object');
             return (
                 <div className="space-y-8">
                     <Card>
                         <CardHeader><CardTitle>Leads by Status</CardTitle></CardHeader>
-                        <CardContent className="h-96">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={384}>
                                 <PieChart>
-                                    <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: any) => `${name} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={120} fill="#8884d8" dataKey="value">
+                                    <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={120} fill="#8884d8" dataKey="value">
                                         {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
                                     </Pie>
                                     <Tooltip />
@@ -110,13 +110,13 @@ export default function LeadReportsPage() {
         }
 
         if (viewType === 'source') {
-            const data = getLeadsBySource();
+            const data = getLeadsBySource().filter(item => item && typeof item === 'object');
             return (
                 <div className="space-y-8">
                     <Card>
                         <CardHeader><CardTitle>Leads by Source</CardTitle></CardHeader>
-                        <CardContent className="h-96">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={384}>
                                 <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis type="number" />
@@ -134,13 +134,13 @@ export default function LeadReportsPage() {
         }
 
         if (viewType === 'ownership') {
-            const data = getLeadsByOwner();
+            const data = getLeadsByOwner().filter(item => item && typeof item === 'object');
             return (
                 <div className="space-y-8">
                     <Card>
                         <CardHeader><CardTitle>Leads by Ownership</CardTitle></CardHeader>
-                        <CardContent className="h-96">
-                            <ResponsiveContainer width="100%" height="100%">
+                        <CardContent>
+                            <ResponsiveContainer width="100%" height={384}>
                                 <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" />

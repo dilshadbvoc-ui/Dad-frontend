@@ -10,8 +10,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Check, Plus, ShoppingCart, Trash2, Search } from "lucide-react"
+import { Check, ShoppingCart, Trash2, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -53,6 +52,7 @@ export function AddProductToLeadDialog({
                     product: p.product as Product, // Assumes product relation is populated
                     quantity: p.quantity
                 })).filter(p => p.product) // Safety check
+                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedProducts(mapped)
             } else {
                 setSelectedProducts([])

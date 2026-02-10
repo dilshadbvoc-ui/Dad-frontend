@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getAdAccounts, getMetaCampaigns, createMetaCampaign } from '../../services/marketingService';
+import { getAdAccounts, getMetaCampaigns, createMetaCampaign, type Campaign } from '../../services/marketingService';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
@@ -8,9 +8,9 @@ import { Label } from '../../components/ui/label';
 import { toast } from 'sonner';
 
 const AdsManager: React.FC = () => {
-    const [adAccounts, setAdAccounts] = useState<any[]>([]);
+    const [adAccounts, setAdAccounts] = useState<{ id: string; name: string; account_id: string }[]>([]);
     const [selectedAccount, setSelectedAccount] = useState<string>('');
-    const [campaigns, setCampaigns] = useState<any[]>([]);
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(false);
     const [metaConnected, setMetaConnected] = useState(true);
     const [newCampaign, setNewCampaign] = useState({ name: '', objective: 'OUTCOME_LEADS' });
@@ -28,6 +28,13 @@ const AdsManager: React.FC = () => {
     const fetchAdAccounts = async () => {
         try {
             const res = await getAdAccounts();
+
+            // Check for explicit not connected signal (even with 200 OK)
+            if (res.code === 'META_NOT_CONNECTED') {
+                setMetaConnected(false);
+                return;
+            }
+
             if (res.data && res.data.data) {
                 setAdAccounts(res.data.data);
                 if (res.data.data.length > 0) {
@@ -35,17 +42,20 @@ const AdsManager: React.FC = () => {
                 }
             } else if (res.data) {
                 // Handle direct array vs wrapper
-                setAdAccounts(Array.isArray(res.data) ? res.data : res.data.data || []);
-                if (res.data.data && res.data.data.length > 0) {
-                    setSelectedAccount(res.data.data[0].id);
+                const accounts = Array.isArray(res.data) ? res.data : res.data.data || [];
+                setAdAccounts(accounts);
+                if (accounts.length > 0) {
+                    setSelectedAccount(accounts[0].id);
                 }
             }
             setMetaConnected(true);
-        } catch (error: any) {
-            console.error('Failed to fetch ad accounts', error);
-            if (error.response?.status === 400 && error.response?.data?.code === 'META_NOT_CONNECTED') {
+        } catch (error: unknown) {
+            const err = error as { response?: { status: number; data?: { code?: string } } };
+            // Fallback for older API versions or if 400 persists
+            if (err.response?.status === 400 && err.response?.data?.code === 'META_NOT_CONNECTED') {
                 setMetaConnected(false);
             } else {
+                console.error('Failed to fetch ad accounts', error);
                 toast.error('Failed to load Ad Accounts.');
             }
         }
@@ -72,12 +82,14 @@ const AdsManager: React.FC = () => {
                 name: newCampaign.name,
                 objective: newCampaign.objective,
                 status: 'PAUSED',
-                special_ad_categories: []
-            });
+                special_ad_categories: [] // This might need a proper type or cast if strict
+            } as Partial<Campaign> & Record<string, unknown>);
+            // Re-evaluating: Campaign interface doesn't have special_ad_categories. I'll add Record<string, unknown> to createMetaCampaign to allow extended props.
+
             toast.success('Campaign Created Successfully!');
             fetchCampaigns(selectedAccount);
             setNewCampaign({ name: '', objective: 'OUTCOME_LEADS' });
-        } catch (error) {
+        } catch {
             toast.error('Failed to create campaign');
         }
     };
@@ -160,14 +172,14 @@ const AdsManager: React.FC = () => {
                         <p className="text-muted-foreground">No campaigns found.</p>
                     ) : (
                         <div className="space-y-2">
-                            {campaigns.map((camp: any) => (
+                            {campaigns.map((camp) => (
                                 <div key={camp.id} className="flex justify-between items-center p-3 border rounded-lg">
                                     <div>
                                         <p className="font-semibold">{camp.name}</p>
                                         <p className="text-sm text-gray-500">ID: {camp.id} | Status: {camp.status}</p>
                                     </div>
                                     <div className="text-sm font-medium bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                        {camp.objective}
+                                        {camp.objective || 'N/A'}
                                     </div>
                                 </div>
                             ))}

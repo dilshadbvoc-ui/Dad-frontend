@@ -14,6 +14,6 @@ export interface SubscriptionPlan {
 
 export const getSubscriptionPlans = async () => {
     // This endpoint should be public or accessible by authenticated users to view available plans
-    const response = await api.get<{ plans: SubscriptionPlan[] }>('/subscription-plans');
+    const response = await api.get<{ plans: SubscriptionPlan[] }>('/plans');
     return response.data;
 };

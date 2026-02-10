@@ -218,16 +218,16 @@ export function BulkActionsToolbar({
 
   return (
     <>
-      <div className={`flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 ${className}`}>
+      <div className={`flex items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 mb-4 ${className}`}>
         <div className="flex items-center gap-3">
-          <div className="text-sm font-medium text-blue-900">
+          <div className="text-sm font-medium text-primary">
             {selectedItems.length} {entityType} selected
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearSelection}
-            className="text-blue-700 hover:text-blue-900 hover:bg-blue-100"
+            className="text-primary/70 hover:text-primary hover:bg-primary/10"
           >
             Clear selection
           </Button>
@@ -240,11 +240,11 @@ export function BulkActionsToolbar({
                 variant="default"
                 size="sm"
                 disabled={isLoading}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 {isLoading ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
                     {currentAction}...
                   </>
                 ) : (
@@ -272,7 +272,7 @@ export function BulkActionsToolbar({
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => setShowDeleteDialog(true)}
-                className="flex items-center gap-2 cursor-pointer text-red-600 focus:text-red-600"
+                className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 <Trash2 className="h-4 w-4" />
                 Delete Selected
@@ -295,7 +295,7 @@ export function BulkActionsToolbar({
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteConfirm}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
             >
               Delete {selectedItems.length} {entityType}
             </AlertDialogAction>

@@ -108,12 +108,12 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
     };
 
     return (
-        <div className="flex-1 flex flex-col overflow-hidden bg-[#1e1b4b]">
-            <div className="p-3 bg-[#1e1b4b] border-b border-indigo-900/50">
+        <div className="flex-1 flex flex-col overflow-hidden bg-card">
+            <div className="p-3 bg-card border-b border-border">
                 <input
                     type="text"
                     placeholder="Search chats..."
-                    className="w-full px-4 py-2 bg-indigo-950/50 border border-indigo-900/50 rounded-lg text-sm text-white placeholder:text-indigo-400/50 focus:ring-2 focus:ring-indigo-500 focus:bg-indigo-900/50 outline-none transition-all"
+                    className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:bg-background outline-none transition-all"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -124,29 +124,29 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
                     <div className="p-4 space-y-4">
                         {[1, 2, 3].map(i => (
                             <div key={i} className="flex gap-3 animate-pulse">
-                                <div className="w-12 h-12 bg-indigo-950/50 rounded-full"></div>
+                                <div className="w-12 h-12 bg-muted rounded-full"></div>
                                 <div className="flex-1 space-y-2">
-                                    <div className="h-4 bg-indigo-950/50 rounded w-1/2"></div>
-                                    <div className="h-3 bg-indigo-950/50 rounded w-3/4"></div>
+                                    <div className="h-4 bg-muted rounded w-1/2"></div>
+                                    <div className="h-3 bg-muted rounded w-3/4"></div>
                                 </div>
                             </div>
                         ))}
                     </div>
                 ) : filteredConversations.length === 0 ? (
-                    <div className="p-8 text-center text-gray-400">
+                    <div className="p-8 text-center text-muted-foreground">
                         <p>No conversations found</p>
                     </div>
                 ) : (
-                    <div className="divide-y divide-indigo-900/30">
+                    <div className="divide-y divide-border">
                         {filteredConversations.map((conv) => (
                             <div
                                 key={conv.phoneNumber}
                                 onClick={() => onSelectConversation(conv.phoneNumber)}
-                                className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:bg-white/5 ${selectedPhone === conv.phoneNumber ? 'bg-indigo-500/20 shadow-inner' : ''
+                                className={`flex items-center gap-3 p-4 cursor-pointer transition-all hover:bg-muted/50 ${selectedPhone === conv.phoneNumber ? 'bg-muted shadow-inner' : ''
                                     }`}
                             >
                                 <div className="relative">
-                                    <div className="w-12 h-12 bg-indigo-600 rounded-full flex items-center justify-center text-white font-bold text-lg overflow-hidden shrink-0 shadow-lg">
+                                    <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg overflow-hidden shrink-0 shadow-lg">
                                         {conv.displayName.charAt(0).toUpperCase()}
                                     </div>
                                     {/* Online indicator could go here */}
@@ -154,21 +154,21 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
 
                                 <div className="flex-1 min-w-0">
                                     <div className="flex justify-between items-baseline mb-1">
-                                        <h3 className={`text-sm font-semibold truncate ${selectedPhone === conv.phoneNumber ? 'text-indigo-200' : 'text-white'}`}>
+                                        <h3 className={`text-sm font-semibold truncate ${selectedPhone === conv.phoneNumber ? 'text-foreground' : 'text-foreground'}`}>
                                             {conv.displayName}
                                         </h3>
                                         {conv.lastMessageAt && (
-                                            <span className={`text-[10px] shrink-0 font-medium ${conv.unreadCount && conv.unreadCount > 0 ? 'text-indigo-400' : 'text-indigo-300/40'}`}>
+                                            <span className={`text-[10px] shrink-0 font-medium ${conv.unreadCount && conv.unreadCount > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
                                                 {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: false }).replace('about ', '')}
                                             </span>
                                         )}
                                     </div>
                                     <div className="flex justify-between items-center gap-2">
-                                        <p className={`text-xs truncate flex-1 leading-relaxed ${conv.unreadCount && conv.unreadCount > 0 ? 'text-indigo-100 font-semibold' : 'text-indigo-300/60'}`}>
+                                        <p className={`text-xs truncate flex-1 leading-relaxed ${conv.unreadCount && conv.unreadCount > 0 ? 'text-foreground font-semibold' : 'text-muted-foreground'}`}>
                                             {getMessagePreview(conv)}
                                         </p>
                                         {conv.unreadCount && conv.unreadCount > 0 ? (
-                                            <span className="bg-indigo-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg shadow-indigo-500/30">
+                                            <span className="bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center shadow-lg shadow-primary/30">
                                                 {conv.unreadCount}
                                             </span>
                                         ) : null}

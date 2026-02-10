@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom"
+import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Settings, Zap, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -26,7 +27,7 @@ import { User, LogOut } from "lucide-react"
 
 export function Header({ className }: { className?: string }) {
     const navigate = useNavigate()
-    const { theme, setTheme, resolvedTheme } = useTheme()
+    const { setTheme, resolvedTheme } = useTheme()
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userInitials = userInfo.name
@@ -60,7 +61,11 @@ export function Header({ className }: { className?: string }) {
                     </QuickAddLeadDialog>
 
                     {/* Notifications */}
-                    <NotificationPopover />
+                    <DropdownMenu>
+                        <ErrorBoundary name="NotificationPopover">
+                            <NotificationPopover />
+                        </ErrorBoundary>
+                    </DropdownMenu>
 
                     {/* Theme Toggle */}
                     <Tooltip>
@@ -100,7 +105,7 @@ export function Header({ className }: { className?: string }) {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2">
                             <Avatar className="h-9 w-9 border border-border">
-                                <AvatarImage src={userInfo.avatar} alt={userInfo.name} />
+                                <AvatarImage src={userInfo.avatar?.includes('null') ? undefined : userInfo.avatar} alt={userInfo.name} />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
                                     {userInitials}
                                 </AvatarFallback>

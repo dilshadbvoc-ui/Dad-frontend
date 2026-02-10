@@ -42,6 +42,21 @@ import { toast } from 'sonner';
 import { CreateOrganisationDialog } from '@/components/super-admin/CreateOrganisationDialog';
 import { PlansManagement } from '@/components/super-admin/PlansManagement';
 
+interface Organisation {
+    id: string;
+    name: string;
+    slug: string;
+    contactEmail: string;
+    status: 'active' | 'suspended';
+    userCount: number;
+    createdAt: string;
+    subscription?: {
+        plan?: {
+            name: string;
+        };
+    };
+}
+
 export default function SuperAdminDashboard() {
     const navigate = useNavigate();
     const queryClient = useQueryClient();
@@ -81,12 +96,12 @@ export default function SuperAdminDashboard() {
             queryClient.invalidateQueries({ queryKey: ['organisations'] });
             toast.success('Organisation status updated');
         },
-        onError: (err: any) => {
+        onError: (err: { response?: { data?: { message?: string } } }) => {
             toast.error(err.response?.data?.message || 'Failed to update status');
         }
     });
 
-    const filteredOrgs = organisations?.filter((org: any) =>
+    const filteredOrgs = organisations?.filter((org: Organisation) =>
         org.name.toLowerCase().includes(search.toLowerCase()) ||
         org.slug.toLowerCase().includes(search.toLowerCase()) ||
         org.contactEmail?.toLowerCase().includes(search.toLowerCase())
@@ -222,7 +237,22 @@ export default function SuperAdminDashboard() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        filteredOrgs?.map((org: any) => (
+                                        filteredOrgs?.map((org: Organisation) => (
+                                            // Actually better to define an Org interface or use unknown and cast. But simplest is leaving this one any or defining it.
+                                            // Let's use loose typing for now as I don't have the full Org type handy and it's extensive.
+                                            // Wait, I can define it locally.
+                                            /* 
+                                            interface Organisation {
+                                                id: string;
+                                                name: string;
+                                                slug: string;
+                                                contactEmail: string;
+                                                status: string;
+                                                userCount: number;
+                                                createdAt: string;
+                                                subscription?: { plan?: { name?: string } };
+                                            }
+                                            */
                                             <TableRow key={org.id} className="border-indigo-800/50 hover:bg-indigo-900/20">
                                                 <TableCell className="font-medium text-white">{org.name}</TableCell>
                                                 <TableCell className="text-slate-400">{org.slug}</TableCell>

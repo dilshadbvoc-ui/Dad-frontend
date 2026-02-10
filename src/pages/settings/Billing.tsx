@@ -64,9 +64,14 @@ export default function BillingSettingsPage() {
             setIsLoading('portal');
             const { url } = await billingService.createPortalSession(organisationId);
             window.location.href = url;
-        } catch (error) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error('Failed to open billing portal. Ensure Stripe Portal URL is configured in backend settings.');
+            const err = error as { response?: { status: number } };
+            if (err.response?.status === 404) {
+                toast.error('No active subscription found to manage.');
+            } else {
+                toast.error('Failed to open billing portal. Ensure Stripe Portal URL is configured in backend settings.');
+            }
         } finally {
             setIsLoading(null);
         }
@@ -76,7 +81,7 @@ export default function BillingSettingsPage() {
         <div className="space-y-8">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                 <div>
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Billing & Subscription</h3>
+                    <h1 className="text-3xl font-bold text-foreground">Billing & Subscription</h1>
                     <p className="text-muted-foreground mt-1">
                         Manage your subscription plan and billing details.
                     </p>
@@ -84,19 +89,19 @@ export default function BillingSettingsPage() {
             </div>
 
             {/* Current Plan Card */}
-            <Card className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 border-gray-200 dark:border-gray-800">
+            <Card>
                 <CardHeader>
                     <div className="flex items-center justify-between">
                         <div>
                             <CardTitle className="text-lg">Current Subscription</CardTitle>
                             <CardDescription>
-                                You are currently on the <span className="font-semibold text-primary">{currentPlanName}</span> plan.
+                                You are currently on the <span className="font-semibold text-foreground">{currentPlanName}</span> plan.
                             </CardDescription>
                         </div>
-                        <CreditCard className="h-8 w-8 text-primary opacity-20" />
+                        <CreditCard className="h-8 w-8 text-primary/20" />
                     </div>
                 </CardHeader>
-                <CardFooter className="bg-gray-50/50 dark:bg-gray-900/50 border-t pt-4">
+                <CardFooter className="bg-muted/50 border-t pt-4">
                     <Button variant="outline" onClick={handleManageSubscription} disabled={isLoading === 'portal'}>
                         {isLoading === 'portal' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                         Manage Billing & Invoices
@@ -112,7 +117,7 @@ export default function BillingSettingsPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                     </div>
                 ) : plans.length === 0 ? (
-                    <div className="text-center py-12 border rounded-xl bg-gray-50 dark:bg-gray-900/50">
+                    <div className="text-center py-12 border rounded-xl bg-muted/20">
                         <p className="text-muted-foreground">No subscription plans available at the moment.</p>
                     </div>
                 ) : (
@@ -122,7 +127,7 @@ export default function BillingSettingsPage() {
                             const isPopular = plan.name.toLowerCase().includes('pro') || plan.name.toLowerCase().includes('business');
 
                             return (
-                                <Card key={plan.id} className={`flex flex-col transition-all duration-200 hover:shadow-lg ${isPopular ? 'border-primary shadow-md scale-[1.02] relative' : ''}`}>
+                                <Card key={plan.id} className={`flex flex-col transition-all duration-200 hover:shadow-lg ${isPopular ? 'border-primary shadow-sm scale-[1.02] relative' : 'border-border'}`}>
                                     {isPopular && (
                                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold shadow-sm flex items-center gap-1">
                                             <Sparkles className="h-3 w-3" /> Most Popular
@@ -139,19 +144,19 @@ export default function BillingSettingsPage() {
                                     <CardContent className="flex-1">
                                         <ul className="space-y-3 text-sm">
                                             <li className="flex items-center gap-2">
-                                                <div className="h-5 w-5 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center shrink-0">
-                                                    <Check className="h-3 w-3 text-green-600 dark:text-green-400" />
+                                                <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                                    <Check className="h-3 w-3 text-primary" />
                                                 </div>
-                                                <span className="text-gray-600 dark:text-gray-300">
+                                                <span className="text-muted-foreground">
                                                     Up to {plan.maxUsers} Users
                                                 </span>
                                             </li>
                                             {plan.billingType === 'per_user' && (
                                                 <li className="flex items-center gap-2">
-                                                    <div className="h-5 w-5 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center shrink-0">
-                                                        <Check className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                                    <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                                                        <Check className="h-3 w-3 text-primary" />
                                                     </div>
-                                                    <span className="text-gray-600 dark:text-gray-300">
+                                                    <span className="text-muted-foreground">
                                                         Billed per user
                                                     </span>
                                                 </li>

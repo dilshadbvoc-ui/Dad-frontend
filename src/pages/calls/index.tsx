@@ -92,14 +92,14 @@ export default function CallsPage() {
 
     const getDirectionIcon = (direction: string) => {
         return direction === 'inbound'
-            ? <PhoneIncoming className="h-4 w-4 text-green-500" />
-            : <PhoneOutgoing className="h-4 w-4 text-blue-500" />;
+            ? <PhoneIncoming className="h-4 w-4 text-green-600 dark:text-green-400" />
+            : <PhoneOutgoing className="h-4 w-4 text-blue-600 dark:text-blue-400" />;
     };
 
     const getStatusBadge = (status?: string) => {
         switch (status) {
             case 'completed':
-                return <Badge variant="default" className="bg-green-100 text-green-700">Completed</Badge>;
+                return <Badge variant="default" className="bg-green-500/15 text-green-700 dark:text-green-300 hover:bg-green-500/25 border-0">Completed</Badge>;
             case 'missed':
                 return <Badge variant="destructive">Missed</Badge>;
             case 'busy':
@@ -131,14 +131,14 @@ export default function CallsPage() {
     };
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="flex h-screen overflow-hidden bg-background">
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                     <div className="space-y-6">
                         {/* Header */}
                         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                <h1 className="text-3xl font-bold text-foreground">
                                     Call Logs
                                 </h1>
                                 <p className="text-muted-foreground mt-1">
@@ -155,69 +155,69 @@ export default function CallsPage() {
 
                         {/* Stats Cards */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 dark:to-blue-900/50 border-blue-200 dark:border-blue-800">
+                            <Card className="hover:shadow-md transition-shadow">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm font-medium text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                                        <Phone className="h-4 w-4" />
+                                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                         Total Calls
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-3xl font-bold text-blue-900 dark:text-blue-100">
+                                    <p className="text-3xl font-bold text-foreground">
                                         {stats?.totalCalls ?? '-'}
                                     </p>
-                                    <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         This {period}
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 dark:to-green-900/50 border-green-200 dark:border-green-800">
+                            <Card className="hover:shadow-md transition-shadow">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400 flex items-center gap-2">
-                                        <Clock className="h-4 w-4" />
+                                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
                                         Avg Duration
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-3xl font-bold text-green-900 dark:text-green-100">
+                                    <p className="text-3xl font-bold text-foreground">
                                         {formatDuration(stats?.avgDuration)}
                                     </p>
-                                    <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         minutes
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/50 dark:to-red-900/50 border-red-200 dark:border-red-800">
+                            <Card className="hover:shadow-md transition-shadow">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 flex items-center gap-2">
-                                        <PhoneMissed className="h-4 w-4" />
+                                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <PhoneMissed className="h-4 w-4 text-destructive" />
                                         Missed Calls
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-3xl font-bold text-red-900 dark:text-red-100">
+                                    <p className="text-3xl font-bold text-foreground">
                                         {stats?.missedCalls ?? '-'}
                                     </p>
-                                    <p className="text-xs text-red-600 dark:text-red-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         {stats?.totalCalls ? ((stats.missedCalls / stats.totalCalls) * 100).toFixed(0) : 0}% of total
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 dark:to-purple-900/50 border-purple-200 dark:border-purple-800">
+                            <Card className="hover:shadow-md transition-shadow">
                                 <CardHeader className="pb-2">
-                                    <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-400 flex items-center gap-2">
-                                        <Mic className="h-4 w-4" />
+                                    <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <Mic className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                                         Recordings
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-3xl font-bold text-purple-900 dark:text-purple-100">
+                                    <p className="text-3xl font-bold text-foreground">
                                         {stats?.callsWithRecording ?? '-'}
                                     </p>
-                                    <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
+                                    <p className="text-xs text-muted-foreground mt-1">
                                         calls with recordings
                                     </p>
                                 </CardContent>
@@ -232,6 +232,7 @@ export default function CallsPage() {
                                     variant={period === p ? 'default' : 'outline'}
                                     size="sm"
                                     onClick={() => setPeriod(p)}
+                                    className={period === p ? "shadow-md" : ""}
                                 >
                                     <Calendar className="h-4 w-4 mr-1" />
                                     {p.charAt(0).toUpperCase() + p.slice(1)}
@@ -247,7 +248,7 @@ export default function CallsPage() {
                                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                                         <Input
                                             placeholder="Search by name or phone..."
-                                            className="pl-10"
+                                            className="pl-10 bg-background"
                                             value={searchQuery}
                                             onChange={(e) => setSearchQuery(e.target.value)}
                                             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -257,7 +258,7 @@ export default function CallsPage() {
                                         value={filters.direction}
                                         onValueChange={(v) => handleFilterChange('direction', v)}
                                     >
-                                        <SelectTrigger className="w-full md:w-[150px]">
+                                        <SelectTrigger className="w-full md:w-[150px] bg-background">
                                             <SelectValue placeholder="Direction" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -270,7 +271,7 @@ export default function CallsPage() {
                                         value={filters.status}
                                         onValueChange={(v) => handleFilterChange('status', v)}
                                     >
-                                        <SelectTrigger className="w-full md:w-[150px]">
+                                        <SelectTrigger className="w-full md:w-[150px] bg-background">
                                             <SelectValue placeholder="Status" />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -290,13 +291,13 @@ export default function CallsPage() {
                             <CardContent className="p-0">
                                 {isLoading ? (
                                     <div className="flex items-center justify-center h-64">
-                                        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
                                     </div>
                                 ) : (
                                     <>
                                         <Table>
                                             <TableHeader>
-                                                <TableRow>
+                                                <TableRow className="bg-muted/50 hover:bg-muted/50">
                                                     <TableHead className="w-[180px]">Date & Time</TableHead>
                                                     <TableHead className="w-[60px]">Dir</TableHead>
                                                     <TableHead>Contact</TableHead>
@@ -316,8 +317,8 @@ export default function CallsPage() {
                                                     </TableRow>
                                                 ) : (
                                                     callsData?.calls.map((call) => (
-                                                        <TableRow key={call.id}>
-                                                            <TableCell className="font-medium">
+                                                        <TableRow key={call.id} className="hover:bg-muted/30 transition-colors">
+                                                            <TableCell className="font-medium text-foreground">
                                                                 {format(new Date(call.date), 'MMM d, yyyy h:mm a')}
                                                             </TableCell>
                                                             <TableCell>
@@ -325,7 +326,7 @@ export default function CallsPage() {
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div>
-                                                                    <p className="font-medium">{getContactName(call)}</p>
+                                                                    <p className="font-medium text-foreground">{getContactName(call)}</p>
                                                                     {call.createdBy && (
                                                                         <p className="text-xs text-muted-foreground">
                                                                             by {call.createdBy.firstName} {call.createdBy.lastName}
@@ -333,10 +334,10 @@ export default function CallsPage() {
                                                                     )}
                                                                 </div>
                                                             </TableCell>
-                                                            <TableCell className="font-mono text-sm">
+                                                            <TableCell className="font-mono text-sm text-foreground">
                                                                 {call.phoneNumber || '-'}
                                                             </TableCell>
-                                                            <TableCell>
+                                                            <TableCell className="text-foreground">
                                                                 {formatDuration(call.duration)}
                                                             </TableCell>
                                                             <TableCell>
@@ -359,7 +360,7 @@ export default function CallsPage() {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
-                                                                                className="h-8 w-8"
+                                                                                className="h-8 w-8 hover:bg-muted text-muted-foreground hover:text-foreground"
                                                                                 onClick={() => handleDownload(call.recordingUrl!)}
                                                                             >
                                                                                 <Download className="h-4 w-4" />
@@ -367,7 +368,7 @@ export default function CallsPage() {
                                                                             <Button
                                                                                 variant="ghost"
                                                                                 size="icon"
-                                                                                className="h-8 w-8 text-red-500 hover:text-red-600"
+                                                                                className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
                                                                                 onClick={() => {
                                                                                     if (confirm('Delete this recording?')) {
                                                                                         deleteMutation.mutate(call.id);

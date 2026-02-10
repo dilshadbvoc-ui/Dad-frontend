@@ -17,7 +17,7 @@ export function NotificationPopover() {
     const { data } = useQuery({
         queryKey: ['notifications'],
         queryFn: () => getNotifications(1),
-        // refetchInterval: 30000 // Poll every 30s
+        refetchInterval: 30000 // Poll every 30s
     })
 
     const notifications = Array.isArray(data?.notifications) ? data.notifications : []
@@ -37,9 +37,9 @@ export function NotificationPopover() {
         <DropdownMenu open={open} onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative">
-                    <Bell className="h-5 w-5 text-gray-500" />
+                    <Bell className="h-5 w-5 text-muted-foreground" />
                     {unreadCount > 0 && (
-                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-600 animate-pulse border border-white" />
+                        <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-destructive animate-pulse border border-background" />
                     )}
                 </Button>
             </DropdownMenuTrigger>
@@ -71,11 +71,11 @@ export function NotificationPopover() {
                             {notifications.map((notif: CRMNotification) => (
                                 <div
                                     key={notif.id}
-                                    className={`p-4 hover:bg-muted/50 transition-colors cursor-pointer ${!notif.isRead ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+                                    className={`p-4 hover:bg-muted/50 transition-colors cursor-pointer ${!notif.isRead ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                                     onClick={() => !notif.isRead && markReadMutation.mutate(notif.id)}
                                 >
                                     <div className="flex gap-3 items-start">
-                                        <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-blue-500' : 'bg-transparent'}`} />
+                                        <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-primary' : 'bg-transparent'}`} />
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium leading-none">{notif.title}</p>
                                             <p className="text-sm text-muted-foreground line-clamp-2">

@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getSalesChartData, getLeadSourceAnalytics, getTopLeads } from '@/services/analyticsService';
-import { getLeads } from '@/services/leadService';
+import { getLeads, type Lead } from '@/services/leadService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, BarChart, Bar } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,9 +13,9 @@ export default function AnalyticsPage() {
     const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
     const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: getTopLeads });
 
-    const salesData = ensureArray<{ name: string; total: number }>(salesDataRaw);
-    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw);
-    const topLeads = ensureArray<{ name: string; value: number }>(topLeadsRaw);
+    const salesData = ensureArray<{ name: string; total: number }>(salesDataRaw).filter(item => item && typeof item === 'object');
+    const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw).filter(item => item && typeof item === 'object');
+    const topLeads = ensureArray<{ name: string; value: number }>(topLeadsRaw).filter(item => item && typeof item === 'object');
 
 
 
@@ -24,12 +24,12 @@ export default function AnalyticsPage() {
         queryFn: () => getLeads({ pageSize: 1000 })
     });
 
-    const leads = (leadsData as any)?.leads || [];
+    const leads = (leadsData as { leads: Lead[] })?.leads || [];
 
     // Process Leads vs Conversion (by Source)
     const conversionData = (() => {
         const dataMap: Record<string, { total: number; converted: number }> = {};
-        leads.forEach((l: any) => {
+        leads.forEach((l: Lead) => {
             const key = l.source || 'Unknown';
             if (!dataMap[key]) dataMap[key] = { total: 0, converted: 0 };
             dataMap[key].total++;
@@ -46,8 +46,9 @@ export default function AnalyticsPage() {
     const pipelineData = (() => {
         const counts: Record<string, number> = {};
         const pipelineOrder = ['new', 'contacted', 'qualified', 'nurturing', 'converted', 'lost'];
-        leads.forEach((l: any) => {
-            counts[l.status] = (counts[l.status] || 0) + 1;
+        leads.forEach((l: Lead) => {
+            const status = l.status || 'new'; // valid status fallback or assert type
+            counts[status] = (counts[status] || 0) + 1;
         });
         return pipelineOrder
             .filter(status => counts[status] !== undefined)
@@ -72,13 +73,13 @@ export default function AnalyticsPage() {
                     <CardDescription>Revenue over time</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <div className="h-[400px] w-full min-w-0 relative overflow-hidden">
+                    <div className="min-w-0 relative overflow-hidden">
                         {salesLoading ? (
                             <div className="h-full w-full flex items-center justify-center">
                                 <Skeleton className="h-[350px] w-full" />
                             </div>
                         ) : (
-                            <ResponsiveContainer width="99%" height="100%">
+                            <ResponsiveContainer width="100%" height={400} minWidth={0}>
                                 <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -110,13 +111,13 @@ export default function AnalyticsPage() {
                         <CardDescription>Where your leads are coming from</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                        <div className="min-w-0 relative overflow-hidden">
                             {sourcesLoading ? (
                                 <div className="h-full w-full flex items-center justify-center">
                                     <Skeleton className="h-[300px] w-[300px] rounded-full" />
                                 </div>
                             ) : leadSources.length > 0 ? (
-                                <ResponsiveContainer width="99%" height="100%">
+                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
                                     <PieChart>
                                         <Pie
                                             data={leadSources}
@@ -152,13 +153,13 @@ export default function AnalyticsPage() {
                         <CardDescription>Highest value opportunities</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                        <div className="min-w-0 relative overflow-hidden">
                             {leadsLoading ? (
                                 <div className="h-full w-full flex items-center justify-center">
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : topLeads.length > 0 ? (
-                                <ResponsiveContainer width="99%" height="100%">
+                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
                                     <BarChart data={topLeads} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
                                         <XAxis type="number" hide />
@@ -188,13 +189,13 @@ export default function AnalyticsPage() {
                         <CardDescription>Conversion performance by source</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                        <div className="min-w-0 relative overflow-hidden">
                             {leadsListLoading ? (
                                 <div className="h-full w-full flex items-center justify-center">
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : (
-                                <ResponsiveContainer width="99%" height="100%">
+                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
                                     <BarChart data={conversionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="name" />
@@ -217,13 +218,13 @@ export default function AnalyticsPage() {
                         <CardDescription>Leads by status</CardDescription>
                     </CardHeader>
                     <CardContent>
-                        <div className="h-[350px] w-full min-w-0 relative overflow-hidden">
+                        <div className="min-w-0 relative overflow-hidden">
                             {leadsListLoading ? (
                                 <div className="h-full w-full flex items-center justify-center">
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : (
-                                <ResponsiveContainer width="99%" height="100%">
+                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
                                     <BarChart data={pipelineData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                                         <XAxis type="number" />

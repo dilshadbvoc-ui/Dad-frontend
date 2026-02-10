@@ -32,12 +32,12 @@ export interface CheckIn {
     };
 }
 
-export const getCheckIns = async (params?: { date?: string; userId?: string }) => {
+export const getCheckIns = async (params?: { date?: string; userId?: string; limit?: number; offset?: number }) => {
     const response = await api.get('/checkins', { params });
     return response.data;
 };
 
-export const createCheckIn = async (data: any) => {
+export const createCheckIn = async (data: Partial<CheckIn>) => {
     const response = await api.post('/checkins', data);
     return response.data;
 };

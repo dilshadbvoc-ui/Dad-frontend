@@ -63,8 +63,8 @@ export function CollaborationBadge({ resourceId }: { resourceId: string }) {
                         <TooltipProvider>
                             <Tooltip>
                                 <TooltipTrigger>
-                                    <Avatar className="h-8 w-8 border-2 border-white dark:border-slate-950 ring-2 ring-blue-500/20 shadow-sm">
-                                        <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-bold">
+                                    <Avatar className="h-8 w-8 border-2 border-background ring-2 ring-primary/20 shadow-sm">
+                                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-bold">
                                             {idx + 1}
                                         </AvatarFallback>
                                     </Avatar>
@@ -78,7 +78,7 @@ export function CollaborationBadge({ resourceId }: { resourceId: string }) {
                 ))}
             </AnimatePresence>
             {activeUsers.length > 0 && (
-                <span className="pl-4 text-xs font-medium text-blue-600 dark:text-blue-400 animate-pulse">
+                <span className="pl-4 text-xs font-medium text-primary animate-pulse">
                     LIVE
                 </span>
             )}

@@ -3,10 +3,10 @@ import { getCheckIns, type CheckIn } from "@/services/checkInService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Users, Calendar, Navigation } from "lucide-react";
+import { MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 export default function FieldForceReportsPage() {
     const { data: checkIns, isLoading, isError } = useQuery<CheckIn[]>({

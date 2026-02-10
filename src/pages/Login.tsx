@@ -22,7 +22,14 @@ const Login = () => {
 
         try {
             const { data } = await api.post('/auth/login', { email, password });
-            localStorage.setItem('userInfo', JSON.stringify(data));
+            const sanitizedData = { ...data };
+            if (sanitizedData.profileImage && sanitizedData.profileImage.includes('null')) {
+                sanitizedData.profileImage = null;
+            }
+            if (sanitizedData.avatar && sanitizedData.avatar.includes('null')) {
+                sanitizedData.avatar = null;
+            }
+            localStorage.setItem('userInfo', JSON.stringify(sanitizedData));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (err: unknown) {
@@ -34,7 +41,7 @@ const Login = () => {
                 // Server responded with a status code outside 2xx
             } else if (error.request) {
                 // Request was made but no response received
-                console.log("No response received. Possible Network/CORS issue.");
+
                 errorMessage = 'Network Error: Cannot reach server. Check your connection or API configuration.';
             } else {
                 // Something else happened
@@ -89,6 +96,8 @@ const Login = () => {
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     id="email"
+                                    name="email"
+                                    type="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -102,6 +111,7 @@ const Login = () => {
                                 </div>
                                 <Input
                                     id="password"
+                                    name="password"
                                     type="password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}

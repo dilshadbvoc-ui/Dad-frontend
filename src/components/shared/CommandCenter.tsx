@@ -59,7 +59,8 @@ export function CommandCenter() {
             const response = await api.get(`/search/global?q=${encodeURIComponent(q)}&limit=10`);
             // Standardizing response extraction
             const searchData = response.data.data || response.data;
-            setResults(searchData.results || []);
+            const rawResults = searchData.results || [];
+            setResults(Array.isArray(rawResults) ? rawResults.filter((r: unknown) => r && typeof r === 'object') as SearchResult[] : []);
             setSelectedIndex(0);
         } catch (error) {
             console.error("Search failed", error);
@@ -95,29 +96,29 @@ export function CommandCenter() {
 
     const getIcon = (type: string) => {
         switch (type) {
-            case 'lead': return <User className="h-4 w-4 text-blue-500" />
-            case 'contact': return <User className="h-4 w-4 text-green-500" />
-            case 'account': return <Building className="h-4 w-4 text-purple-500" />
-            case 'opportunity': return <TrendingUp className="h-4 w-4 text-orange-500" />
-            case 'task': return <CheckSquare className="h-4 w-4 text-red-500" />
-            default: return <Briefcase className="h-4 w-4 text-gray-500" />
+            case 'lead': return <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+            case 'contact': return <User className="h-4 w-4 text-green-600 dark:text-green-400" />
+            case 'account': return <Building className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+            case 'opportunity': return <TrendingUp className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+            case 'task': return <CheckSquare className="h-4 w-4 text-red-600 dark:text-red-400" />
+            default: return <Briefcase className="h-4 w-4 text-muted-foreground" />
         }
     };
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent className="p-0 border-none shadow-2xl max-w-2xl bg-white dark:bg-slate-950 overflow-hidden rounded-2xl">
-                <div className="flex items-center border-b px-4">
-                    <Search className="h-4 w-4 shrink-0 opacity-50 mr-2" />
+            <DialogContent className="p-0 border-none shadow-2xl max-w-2xl bg-popover overflow-hidden rounded-2xl">
+                <div className="flex items-center border-b border-border px-4">
+                    <Search className="h-4 w-4 shrink-0 opacity-50 mr-2 text-muted-foreground" />
                     <Input
-                        className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none border-none focus-visible:ring-0 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                        className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none border-none focus-visible:ring-0 placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 text-foreground"
                         placeholder="Search anything... (Leads, Contacts, Tasks)"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         onKeyDown={handleKeyDown}
                         autoFocus
                     />
-                    <div className="flex items-center gap-1.5 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 ml-auto">
+                    <div className="flex items-center gap-1.5 rounded border border-border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 ml-auto text-muted-foreground">
                         <span className="text-xs">ESC</span>
                     </div>
                 </div>
@@ -129,11 +130,11 @@ export function CommandCenter() {
                             <p>Type to search across the CRM</p>
                             <div className="flex items-center justify-center gap-4 mt-4">
                                 <div className="flex items-center gap-1.5 text-xs">
-                                    <span className="p-1 px-1.5 border rounded bg-slate-50 dark:bg-slate-900 border-b-2">↑↓</span>
+                                    <span className="p-1 px-1.5 border border-border rounded bg-muted border-b-2">↑↓</span>
                                     <span>to navigate</span>
                                 </div>
                                 <div className="flex items-center gap-1.5 text-xs">
-                                    <span className="p-1 px-1.5 border rounded bg-slate-50 dark:bg-slate-900 border-b-2">ENTER</span>
+                                    <span className="p-1 px-1.5 border border-border rounded bg-muted border-b-2">ENTER</span>
                                     <span>to select</span>
                                 </div>
                             </div>
@@ -142,7 +143,7 @@ export function CommandCenter() {
 
                     {isLoading && (
                         <div className="flex items-center justify-center py-6">
-                            <Loader2 className="h-6 w-6 animate-spin text-blue-500" />
+                            <Loader2 className="h-6 w-6 animate-spin text-primary" />
                         </div>
                     )}
 
@@ -154,15 +155,15 @@ export function CommandCenter() {
                                     className={cn(
                                         "w-full flex items-center gap-3 px-4 py-3 text-left rounded-xl transition-all duration-200 outline-none",
                                         selectedIndex === index
-                                            ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400 ring-1 ring-blue-500/10"
-                                            : "hover:bg-slate-50 dark:hover:bg-slate-900"
+                                            ? "bg-accent text-accent-foreground ring-1 ring-primary/10"
+                                            : "hover:bg-muted/50 text-foreground"
                                     )}
                                     onClick={() => handleSelect(result)}
                                     onMouseEnter={() => setSelectedIndex(index)}
                                 >
                                     <div className={cn(
-                                        "p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-800",
-                                        selectedIndex === index && "border-blue-200 dark:border-blue-800"
+                                        "p-2 rounded-lg bg-card shadow-sm border border-border",
+                                        selectedIndex === index && "border-primary/50"
                                     )}>
                                         {getIcon(result.type)}
                                     </div>

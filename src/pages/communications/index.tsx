@@ -20,7 +20,7 @@ export default function CommunicationsPage() {
         queryFn: () => getInteractions({ type: (filterType as 'call' | 'email' | 'meeting' | '') || undefined }),
     })
 
-    const interactions = interactionsData?.interactions || []
+    const interactions = (interactionsData?.interactions || []).filter((i: Interaction) => i && typeof i === 'object');
 
     const getIcon = (type: string) => {
         switch (type) {

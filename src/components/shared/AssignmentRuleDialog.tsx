@@ -51,7 +51,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
         queryFn: getUsers
     })
 
-    const users = data?.users || []
+    const users = (data?.users || []).filter((u: any) => u && typeof u === 'object');
 
     const form = useForm<CreateAssignmentRuleData>({
         defaultValues: {
@@ -232,7 +232,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                                             )}
                                         />
                                         <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                            <Trash2 className="h-4 w-4 text-red-500" />
+                                            <Trash2 className="h-4 w-4 text-destructive" />
                                         </Button>
                                     </div>
                                 ))}
@@ -309,7 +309,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                                         </FormControl>
                                         <div className="space-y-1 leading-none">
                                             <FormLabel>Enable Auto-Rotation</FormLabel>
-                                            <p className="text-sm text-gray-500">
+                                            <p className="text-sm text-muted-foreground">
                                                 Automatically re-assign leads if not acted upon within a time limit.
                                             </p>
                                         </div>
@@ -367,7 +367,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                                         const currentUsers = form.watch('assignTo.users') || [];
                                         const isSelected = currentUsers.includes(user.id);
                                         return (
-                                            <label key={user.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded">
+                                            <label key={user.id} className="flex items-center gap-2 cursor-pointer hover:bg-muted p-1 rounded">
                                                 <input
                                                     type="checkbox"
                                                     checked={isSelected}
@@ -379,17 +379,17 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                                                             form.setValue('assignTo.users', prev.filter((id: string) => id !== user.id));
                                                         }
                                                     }}
-                                                    className="rounded border-gray-300"
+                                                    className="rounded border-input"
                                                 />
                                                 <span className="text-sm">{user.firstName} {user.lastName}</span>
                                                 {user.dailyLeadQuota && (
-                                                    <span className="text-xs text-gray-400">({user.dailyLeadQuota}/day)</span>
+                                                    <span className="text-xs text-muted-foreground">({user.dailyLeadQuota}/day)</span>
                                                 )}
                                             </label>
                                         );
                                     })}
                                 </div>
-                                <p className="text-xs text-gray-500">Leads will be distributed round-robin among selected users</p>
+                                <p className="text-xs text-muted-foreground">Leads will be distributed round-robin among selected users</p>
                             </div>
                         )}
 

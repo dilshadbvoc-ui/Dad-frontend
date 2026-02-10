@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { Socket } from 'socket.io-client';
+import { socketService } from '@/services/socketService';
 
 
 import { SocketContext } from './SocketContextObject';
@@ -10,70 +11,34 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        let socketInstance: Socket | null = null;
+        const userInfoStr = localStorage.getItem('userInfo');
 
-        const manageConnection = async () => {
-            const userInfoStr = localStorage.getItem('userInfo');
+        if (userInfoStr) {
+            try {
+                const userInfo = JSON.parse(userInfoStr);
+                if (userInfo.token) {
+                    // Use the singleton service to connect
+                    socketService.connect(userInfo.id || userInfo._id);
 
-            // Case 1: Connect if authenticated and not connected
-            if (userInfoStr && !socketInstance) {
-                try {
-                    const { API_URL } = await import('@/config');
-                    let token = null;
-                    try {
-                        const userInfo = JSON.parse(userInfoStr);
-                        token = userInfo.token;
-                    } catch (e) {
-                        console.error('Error parsing userInfo for socket:', e);
-                        return;
+                    // Sync state from service
+                    const socketInstance = socketService.getSocket();
+                    if (socketInstance) {
+                        // eslint-disable-next-line react-hooks/set-state-in-effect
+                        setSocket(socketInstance);
+                        setConnected(socketInstance.connected);
                     }
 
-                    if (!token) return;
-
-                    socketInstance = io(API_URL, {
-                        withCredentials: true,
-                        transports: ['websocket', 'polling'],
-                        auth: { token }
-                    });
-
-                    socketInstance.on('connect', () => {
-                        setConnected(true);
-                    });
-
-                    socketInstance.on('disconnect', () => {
-                        setConnected(false);
-                    });
-
-                    socketInstance.on('connect_error', (error) => {
-                        // Suppress 401 errors globally or log them?
-                        // Log mostly for debugging, but prevent spam if possible?
-                        // User complained about spam.
-                        // If token is invalid (expired), we might want to close socket to stop retry spam?
-                        console.error('Socket connection error:', error.message);
-                    });
-
-                    setSocket(socketInstance);
-                } catch (e) {
-                    console.error('Failed to initialize socket:', e);
+                    socketService.on('connect', () => setConnected(true));
+                    socketService.on('disconnect', () => setConnected(false));
                 }
+            } catch (e) {
+                console.error('Error parsing userInfo for socket:', e);
             }
-            // Case 2: Disconnect if logged out and connected
-            else if (!userInfoStr && socketInstance) {
-                socketInstance.close();
-                socketInstance = null;
-                setSocket(null);
-                setConnected(false);
-            }
-        };
-
-        manageConnection(); // Initial check
-        const intervalId = setInterval(manageConnection, 2000); // Poll every 2s for login/logout state
+        }
 
         return () => {
-            clearInterval(intervalId);
-            if (socketInstance) {
-                socketInstance.close();
-            }
+            socketService.disconnect();
+            setConnected(false);
         };
     }, []);
 

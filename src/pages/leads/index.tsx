@@ -1,37 +1,47 @@
-import { useState } from "react"
+
 import { useQuery } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
-import { getSalesForecast } from "@/services/analyticsService"
+
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
 import {
     Plus,
-    Download,
-    Filter,
-    Users,
-    TrendingUp,
-    Target,
-    Clock,
-    X,
-    BadgeDollarSign,
     Phone,
-    CalendarCheck,
-    BarChart3,
-    PieChart
+    CalendarCheck
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { api } from "@/services/api"
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+    SelectGroup,
+    SelectLabel
+} from "@/components/ui/select"
+
+// --- Sidebar Item Component ---
+const SidebarItem = ({ view, label, count, currentView, handleViewChange }: { view: string, label: string, count?: number, currentView: string, handleViewChange: (view: string) => void }) => (
+    <button
+        onClick={() => handleViewChange(view)}
+        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === view
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+            }`}
+    >
+        <span>{label}</span>
+        {count !== undefined && (
+            <span className="text-xs bg-background border border-border px-1.5 py-0.5 rounded-md shadow-sm">
+                {count}
+            </span>
+        )}
+    </button>
+);
+
+
 import { format, isSameDay, isPast, isFuture, isToday } from "date-fns"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
@@ -73,7 +83,8 @@ function TaskTable({ tasks }: { tasks: Task[] }) {
 }
 
 // Chart Components
-const StatusPieChart = ({ data }: { data: any[] }) => (
+// Chart Components
+const StatusPieChart = ({ data }: { data: { name: string; value: number }[] }) => (
     <ResponsiveContainer width="100%" height={300}>
         <RechartsPie>
             <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
@@ -85,7 +96,7 @@ const StatusPieChart = ({ data }: { data: any[] }) => (
     </ResponsiveContainer>
 );
 
-const VerticalBarChart = ({ data }: { data: any[] }) => (
+const VerticalBarChart = ({ data }: { data: { name: string; value: number }[] }) => (
     <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -103,9 +114,8 @@ export default function LeadsPage() {
     // Default view is 'all-leads' if not specified
     const currentView = searchParams.get('view') || 'all-leads';
 
-    // State for local filters (only applies when view is ALL or generic list)
-    // For specific views like 'today', we override filtering logic.
-    const [statusFilter, setStatusFilter] = useState<string | null>(null);
+
+
 
     // --- Data Fetching ---
     // 1. Leads
@@ -120,8 +130,8 @@ export default function LeadsPage() {
         queryFn: () => getTasks({ status: 'all' }),
     });
 
-    const leads = (leadData as any)?.leads || [];
-    const tasks = (taskData as any)?.tasks || [];
+    const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
+    const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
 
 
     // --- View Logic ---
@@ -183,61 +193,11 @@ export default function LeadsPage() {
 
     const isLoading = leadsLoading || tasksLoading;
 
-    // --- Analytics Logic ---
-    const [conversionMetric, setConversionMetric] = useState<'source' | 'owner'>('source');
 
-    const getConversionData = () => {
-        const dataMap: Record<string, { total: number; converted: number }> = {};
 
-        leads.forEach((l: Lead) => {
-            const key = conversionMetric === 'source'
-                ? (l.source || 'Unknown')
-                : (l.assignedTo ? `${l.assignedTo.firstName} ${l.assignedTo.lastName}` : 'Unassigned');
 
-            if (!dataMap[key]) dataMap[key] = { total: 0, converted: 0 };
-            dataMap[key].total++;
-            if (l.status === 'converted') dataMap[key].converted++;
-        });
-
-        return Object.entries(dataMap).map(([name, stats]) => ({
-            name,
-            total: stats.total,
-            converted: stats.converted
-        }));
-    };
-
-    const getPipelineData = () => {
-        const counts: Record<string, number> = {};
-        const pipelineOrder = ['new', 'contacted', 'qualified', 'nurturing', 'converted', 'lost'];
-
-        leads.forEach((l: Lead) => {
-            counts[l.status] = (counts[l.status] || 0) + 1;
-        });
-
-        // Ensure order
-        return pipelineOrder
-            .filter(status => counts[status] !== undefined) // Only show statuses that exist? Or show all?
-            .concat(Object.keys(counts).filter(s => !pipelineOrder.includes(s))) // Add any custom statuses
-            .map(status => ({
-                name: status.charAt(0).toUpperCase() + status.slice(1),
-                value: counts[status] || 0
-            }));
-    };
 
     const isAnalyticsView = currentView === 'leads-analytics';
-
-    // --- Sidebar Item Component ---
-    const SidebarItem = ({ view, label, count }: { view: string, label: string, count?: number }) => (
-        <button
-            onClick={() => handleViewChange(view)}
-            className={`w-full text-left px-4 py-2 text-sm rounded-md transition-colors flex justify-between items-center
-                ${currentView === view ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'}
-            `}
-        >
-            {label}
-            {count !== undefined && <span className="text-xs bg-muted px-2 py-0.5 rounded-full text-muted-foreground">{count}</span>}
-        </button>
-    );
 
     return (
         <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-100px)]">
@@ -249,14 +209,14 @@ export default function LeadsPage() {
                         <h3 className="font-semibold text-foreground">Leads</h3>
                     </div>
                     <div className="space-y-1">
-                        <SidebarItem view="all-leads" label="All Leads" />
-                        <SidebarItem view="no-activity-leads" label="No Activity Leads" />
-                        <SidebarItem view="today-leads" label="Today's Leads" />
-                        <SidebarItem view="leads-by-status" label="Leads by Status" />
-                        <SidebarItem view="leads-by-source" label="Leads by Source" />
-                        <SidebarItem view="leads-by-ownership" label="Leads by Ownership" />
-                        <SidebarItem view="converted-leads" label="Converted Leads" />
-                        <SidebarItem view="lost-leads" label="Lost Leads" />
+                        <SidebarItem view="all-leads" label="All Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="no-activity-leads" label="No Activity Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="today-leads" label="Today's Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="leads-by-status" label="Leads by Status" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="leads-by-source" label="Leads by Source" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="leads-by-ownership" label="Leads by Ownership" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="converted-leads" label="Converted Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="lost-leads" label="Lost Leads" currentView={currentView} handleViewChange={handleViewChange} />
                     </div>
                 </div>
 
@@ -268,10 +228,10 @@ export default function LeadsPage() {
                         <h3 className="font-semibold text-foreground">Follow Ups</h3>
                     </div>
                     <div className="space-y-1">
-                        <SidebarItem view="overdue-followups" label="Overdue Follow Ups" />
-                        <SidebarItem view="today-followups" label="Today's Follow Ups" />
-                        <SidebarItem view="upcoming-followups" label="Upcoming Follow Ups" />
-                        <SidebarItem view="all-followups" label="All Follow Ups" />
+                        <SidebarItem view="overdue-followups" label="Overdue Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="today-followups" label="Today's Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="upcoming-followups" label="Upcoming Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                        <SidebarItem view="all-followups" label="All Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
                     </div>
                 </div>
             </div>
@@ -290,7 +250,36 @@ export default function LeadsPage() {
                         </p>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                        <Select value={currentView} onValueChange={handleViewChange}>
+                            <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder="Select View" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectGroup>
+                                    <SelectLabel>Leads</SelectLabel>
+                                    <SelectItem value="all-leads">All Leads</SelectItem>
+                                    <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
+                                    <SelectItem value="today-leads">Today's Leads</SelectItem>
+                                    <SelectItem value="converted-leads">Converted Leads</SelectItem>
+                                    <SelectItem value="lost-leads">Lost Leads</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                    <SelectLabel>Analysis</SelectLabel>
+                                    <SelectItem value="leads-by-status">Leads by Status</SelectItem>
+                                    <SelectItem value="leads-by-source">Leads by Source</SelectItem>
+                                    <SelectItem value="leads-by-ownership">Leads by Ownership</SelectItem>
+                                </SelectGroup>
+                                <SelectGroup>
+                                    <SelectLabel>Follow Ups</SelectLabel>
+                                    <SelectItem value="overdue-followups">Overdue Follow Ups</SelectItem>
+                                    <SelectItem value="today-followups">Today's Follow Ups</SelectItem>
+                                    <SelectItem value="upcoming-followups">Upcoming Follow Ups</SelectItem>
+                                    <SelectItem value="all-followups">All Follow Ups</SelectItem>
+                                </SelectGroup>
+                            </SelectContent>
+                        </Select>
+
                         {!isTaskView && !isChartView && !isAnalyticsView && (
                             <Link to="/leads/new">
                                 <Button size="sm" className="bg-primary text-primary-foreground shadow-lg shadow-primary/25">

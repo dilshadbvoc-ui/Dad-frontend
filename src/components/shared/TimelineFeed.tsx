@@ -28,12 +28,12 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
     });
 
     if (isLoading) {
-        return <div className="flex justify-center p-4"><Loader2 className="animate-spin text-blue-500" /></div>;
+        return <div className="flex justify-center p-4"><Loader2 className="animate-spin text-primary" /></div>;
     }
 
     if (!timeline || timeline.length === 0) {
         return (
-            <div className="text-center py-8 text-gray-500 border rounded-lg bg-gray-50">
+            <div className="text-center py-8 text-muted-foreground border rounded-lg bg-muted/30">
                 <Clock className="mx-auto h-8 w-8 mb-2 opacity-50" />
                 No activity history found.
             </div>
@@ -57,11 +57,11 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
 
     const getColor = (item: { type: string }) => {
         switch (item.type) {
-            case 'interaction': return 'bg-blue-100 text-blue-600';
-            case 'task': return 'bg-green-100 text-green-600';
-            case 'event': return 'bg-purple-100 text-purple-600';
-            case 'audit': return 'bg-gray-100 text-gray-600';
-            default: return 'bg-gray-100 text-gray-600';
+            case 'interaction': return 'bg-primary/10 text-primary ring-primary/20';
+            case 'task': return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
+            case 'event': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20';
+            case 'audit': return 'bg-muted text-muted-foreground ring-border';
+            default: return 'bg-muted text-muted-foreground ring-border';
         }
     };
 
@@ -69,34 +69,34 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
         <Card>
             <CardHeader className="pb-3">
                 <CardTitle className="text-lg font-medium flex items-center gap-2">
-                    <HistoryIcon className="h-5 w-5 text-gray-500" />
+                    <HistoryIcon className="h-5 w-5 text-muted-foreground" />
                     Activity Timeline
                 </CardTitle>
             </CardHeader>
             <CardContent>
-                <div className="relative pl-6 border-l-2 border-gray-100 dark:border-gray-800 space-y-8">
+                <div className="relative pl-6 border-l-2 border-border space-y-8">
                     {timeline.map((item: { id: string, type: string, title: string, description?: string, meta?: { direction?: string }, date: string, actor?: { firstName: string } }) => (
                         <div key={item.id} className="relative">
-                            <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-white dark:ring-gray-950 ${getColor(item)}`}>
+                            <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
                                 {getIcon(item)}
                             </div>
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start">
                                 <div>
-                                    <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    <h4 className="text-sm font-semibold text-foreground">
                                         {item.title}
                                     </h4>
-                                    <p className="text-sm text-gray-500 mt-1 max-w-xl">
+                                    <p className="text-sm text-muted-foreground mt-1 max-w-xl">
                                         {item.description || 'No description'}
                                     </p>
 
                                     {/* Detailed Metadata rendering could go here */}
                                     {item.type === 'interaction' && item.meta?.direction && (
-                                        <span className="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600 mt-2 inline-block">
+                                        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block">
                                             {item.meta.direction}
                                         </span>
                                     )}
                                 </div>
-                                <div className="mt-2 sm:mt-0 text-xs text-gray-400 whitespace-nowrap text-right">
+                                <div className="mt-2 sm:mt-0 text-xs text-muted-foreground whitespace-nowrap text-right">
                                     <div>{format(new Date(item.date), 'MMM d, h:mm a')}</div>
                                     {item.actor && (
                                         <div className="mt-0.5">by {item.actor.firstName}</div>

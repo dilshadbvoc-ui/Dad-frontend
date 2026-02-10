@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { Button } from "@/components/ui/button";
@@ -39,14 +39,8 @@ export default function IntegrationsPage() {
         queryFn: getOrganisation
     });
 
-    // Debug: Check Facebook SDK Status
-    useEffect(() => {
-        if (window.FB) {
-            window.FB.getLoginStatus(function (response: any) {
-                console.log('FB Login Status:', response);
-            });
-        }
-    }, []);
+
+
 
     const integrations = orgData?.integrations || {};
 
@@ -270,7 +264,7 @@ export default function IntegrationsPage() {
                             )}
 
                             {/* Debug: Client-side Login Button */}
-                            {integration.id === 'facebook' && (
+                            {integration.id === 'facebook' && window.location.protocol === 'https:' && (
                                 <div className="mb-4 p-2 bg-indigo-950/30 rounded border border-indigo-500/20 text-center">
                                     <p className="text-xs text-indigo-400 mb-2">Client SDK Test</p>
                                     <div

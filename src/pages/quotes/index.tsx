@@ -44,24 +44,54 @@ export default function QuotesPage() {
     const acceptedCount = quotes.filter((q: Quote) => q.status === 'accepted').length
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="flex h-screen overflow-hidden bg-background">
 
             <div className="flex-1 flex flex-col overflow-hidden">
                 <main className="flex-1 overflow-y-auto p-6 lg:p-8">
                     <div className="space-y-6">
                         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                             <div>
-                                <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Quotes</h1>
-                                <p className="text-gray-500 mt-1">Create and manage customer quotes</p>
+                                <h1 className="text-3xl font-bold text-foreground">Quotes</h1>
+                                <p className="text-muted-foreground mt-1">Create and manage customer quotes</p>
                             </div>
-                            <Button><Plus className="h-4 w-4 mr-2" />New Quote</Button>
+                            <Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />New Quote</Button>
                         </div>
 
                         {/* Stats */}
                         <div className="grid gap-4 md:grid-cols-3">
-                            <Card className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/50 border-blue-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-blue-500/20 flex items-center justify-center"><FileText className="h-5 w-5 text-blue-600" /></div><div><p className="text-2xl font-bold">{quotes.length}</p><p className="text-xs text-blue-600">Total Quotes</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/50 border-green-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-green-500/20 flex items-center justify-center"><DollarSign className="h-5 w-5 text-green-600" /></div><div><p className="text-2xl font-bold">${totalValue.toFixed(2)}</p><p className="text-xs text-green-600">Total Value</p></div></CardContent></Card>
-                            <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/50 border-purple-200"><CardContent className="p-4 flex items-center gap-3"><div className="h-10 w-10 rounded-lg bg-purple-500/20 flex items-center justify-center"><CheckCircle className="h-5 w-5 text-purple-600" /></div><div><p className="text-2xl font-bold">{acceptedCount}</p><p className="text-xs text-purple-600">Accepted</p></div></CardContent></Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                        <FileText className="h-5 w-5 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{quotes.length}</p>
+                                        <p className="text-xs text-muted-foreground">Total Quotes</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+                                        <DollarSign className="h-5 w-5 text-green-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">${totalValue.toFixed(2)}</p>
+                                        <p className="text-xs text-muted-foreground">Total Value</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card>
+                                <CardContent className="p-4 flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                                        <CheckCircle className="h-5 w-5 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <p className="text-2xl font-bold text-foreground">{acceptedCount}</p>
+                                        <p className="text-xs text-muted-foreground">Accepted</p>
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
 
                         {/* Search */}

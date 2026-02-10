@@ -6,7 +6,7 @@ export interface EmailList {
     description?: string;
     createdAt?: string;
     updatedAt?: string;
-    contacts?: any[];
+    contacts?: Record<string, unknown>[];
 }
 
 export interface Campaign {
@@ -21,6 +21,7 @@ export interface Campaign {
     };
     sentAt?: string;
     createdAt?: string;
+    objective?: string; // Added for AdsManager
 }
 
 export const getAdAccounts = async () => {
@@ -39,12 +40,12 @@ export const getEmailCampaigns = async () => {
     return response.data.campaigns;
 };
 
-export const createMetaCampaign = async (adAccountId: string, data: any) => {
+export const createMetaCampaign = async (adAccountId: string, data: Partial<Campaign> & Record<string, unknown>) => {
     const response = await api.post(`/marketing/${adAccountId}/campaigns`, data);
     return response.data;
 };
 
-export const createEmailCampaign = async (data: any) => {
+export const createEmailCampaign = async (data: Partial<Campaign> & Record<string, unknown>) => {
     const response = await api.post('/campaigns', data);
     return response.data;
 };
@@ -54,7 +55,7 @@ export const getEmailLists = async () => {
     return response.data;
 };
 
-export const createEmailList = async (data: any) => {
+export const createEmailList = async (data: Partial<EmailList>) => {
     const response = await api.post('/marketing/lists', data);
     return response.data;
 };

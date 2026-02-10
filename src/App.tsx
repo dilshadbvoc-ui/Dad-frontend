@@ -58,7 +58,7 @@ import CustomFieldsSettingsPage from './pages/settings/custom-fields';
 import TerritoriesSettingsPage from './pages/settings/territories';
 import SuperAdminDashboard from './pages/super-admin';
 import OrganisationDetailPage from './pages/super-admin/organisation/[id]';
-import OrganisationSettingsPage from './pages/settings/organisation';
+
 import LeadScoringSettingsPage from './pages/settings/lead-scoring';
 import AssignmentRulesPage from './pages/settings/assignment-rules';
 import HierarchyPage from './pages/organisation/hierarchy';
@@ -75,12 +75,7 @@ import FollowUpReportsPage from './pages/reports/follow-ups';
 import IntegrationsSettingsPage from './pages/settings/Integrations';
 import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
-import ImportPage from './pages/settings/import';
-import DeveloperSettingsPage from './pages/settings/developer';
-import CallRecordingSettingsPage from './pages/settings/call-recording';
-import BillingSettingsPage from './pages/settings/Billing';
-import AuditLogsPage from './pages/settings/audit-logs';
-import CallsPage from './pages/calls';
+
 
 
 import SSOCallback from './pages/SSOCallback';
@@ -109,8 +104,15 @@ function AppContent() {
         if (parsed.token) {
           syncToken(parsed.token);
         }
+        // Initialize global currency if available
+        if (parsed.organisation?.currency) {
+          // Lazy import to avoid circular dependency if any, though utils is safe
+          import('./lib/utils').then(({ setGlobalCurrency }) => {
+            setGlobalCurrency(parsed.organisation.currency);
+          });
+        }
       } catch (e) {
-        console.error('Failed to parse user info for token sync', e);
+        console.error('Failed to parse user info', e);
       }
     }
   }, []);
@@ -148,7 +150,7 @@ function AppContent() {
             <Route path="/marketing/whatsapp" element={<WhatsAppCampaignsPage />} />
             <Route path="/communications" element={<CommunicationsPage />} />
             <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
-            <Route path="/calls" element={<CallsPage />} />
+
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/settings" element={<SettingsPage />} />
@@ -183,16 +185,12 @@ function AppContent() {
             {/* Super Admin & Organisation Settings */}
             <Route path="/super-admin" element={<SuperAdminDashboard />} />
             <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
-            <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
+
             <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
             <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
             <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
             <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
-            <Route path="/settings/import" element={<ImportPage />} />
-            <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
-            <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
-            <Route path="/settings/billing" element={<BillingSettingsPage />} />
-            <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
+
           </Route>
 
           <Route path="/privacy" element={<PrivacyPolicy />} />
