@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import axios from "axios"
+import { api } from "@/services/api"
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+// ... rest of imports
 import { BulkImportLeads } from "@/components/organisation/BulkImportLeads"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -28,14 +29,14 @@ export default function OrganisationSettingsPage() {
     const { data: org, isLoading } = useQuery({
         queryKey: ['organisation'],
         queryFn: async () => {
-            const res = await axios.get('/api/organisation')
+            const res = await api.get('/organisation')
             return res.data
         }
     })
 
     const updateMutation = useMutation({
         mutationFn: async (data: Record<string, unknown>) => {
-            const res = await axios.put('/api/organisation', data)
+            const res = await api.put('/organisation', data)
             return res.data
         },
         onSuccess: () => {
@@ -108,7 +109,7 @@ export default function OrganisationSettingsPage() {
                                     variant="outline"
                                     onClick={async () => {
                                         try {
-                                            await axios.post('/api/organisation/send-test-report')
+                                            await api.post('/organisation/send-test-report')
                                             toast.success('Test report sent successfully')
                                         } catch (err: unknown) {
                                             const error = err as { response?: { data?: { message?: string } } };
