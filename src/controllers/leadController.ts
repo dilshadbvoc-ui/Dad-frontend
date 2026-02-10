@@ -721,11 +721,25 @@ export const convertLead = async (req: Request, res: Response) => {
     }
 };
 
+import fs from 'fs';
+import path from 'path';
+
+const logDebug = (msg: string) => {
+    try {
+        const logPath = path.join(__dirname, '../../debug_crash.log');
+        fs.appendFileSync(logPath, `${new Date().toISOString()} - [Leads] ${msg}\n`);
+    } catch (e) {
+        console.error('Failed to write log', e);
+    }
+};
+
 export const getViolations = async (req: Request, res: Response) => {
     try {
+        logDebug('Entered getViolations');
         const user = (req as any).user;
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
+        logDebug(`User: ${user?.id}, Role: ${user?.role}`);
 
         // User sees violations where they were the PREVIOUS owner (the one who failed)
         // OR if they are a manager, seeing violations of their subordinates?
@@ -743,8 +757,11 @@ export const getViolations = async (req: Request, res: Response) => {
 
             let subordinateIds: string[] = [];
             try {
+                logDebug('Fetching subordinates...');
                 subordinateIds = await getSubordinateIds(user.id);
+                logDebug(`Subordinates found: ${subordinateIds.length}`);
             } catch (subError) {
+                logDebug(`Error fetching subordinates: ${(subError as Error).message}`);
                 console.error('[getViolations] Error fetching subordinates:', subError);
                 // Continue with just the user's own violations
             }
@@ -756,11 +773,14 @@ export const getViolations = async (req: Request, res: Response) => {
             // Guard against empty array which causes Prisma issues
             const orConditions: any[] = [{ previousOwnerId: user.id }];
             if (subordinateIds.length > 0) {
+                // orConditions.push({ previousOwnerId: { in: subordinateIds } });
+                // FIX: Use explicit string array to avoid Prisma serialization issues if any
                 orConditions.push({ previousOwnerId: { in: subordinateIds } });
             }
             where.OR = orConditions;
         }
 
+        logDebug(`[Leads] Querying Prisma with where: ${JSON.stringify(where)}`);
         const violations = await prisma.lead.findMany({
             where,
             include: {
@@ -772,10 +792,13 @@ export const getViolations = async (req: Request, res: Response) => {
             orderBy: { violationTime: 'desc' }
         });
 
+        logDebug(`[Leads] Violations found: ${violations.length}`);
+
         const total = await prisma.lead.count({ where });
         res.json({ violations, page, pages: Math.ceil(total / pageSize), total });
 
     } catch (error) {
+        logDebug(`getViolations CRASHED: ${(error as Error).message}\nStack: ${(error as Error).stack}`);
         console.error('[getViolations] Error:', error);
         res.status(500).json({ message: (error as Error).message });
     }

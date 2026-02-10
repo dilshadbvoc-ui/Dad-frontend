@@ -248,7 +248,11 @@ export const updateOrganisation = async (req: Request, res: Response) => {
 
         const org = await prisma.organisation.update({
             where: { id: orgId },
-            data: data
+            data: {
+                ...data,
+                // Ensure currency is allowed if passed
+                currency: data.currency
+            }
         });
 
         // Audit Log
@@ -311,13 +315,13 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
             entityId: orgId,
             actorId: (req as any).user.id,
             organisationId: orgId,
-            details: { 
+            details: {
                 name: org.name,
                 note: 'Organisation soft deleted - data preserved for recovery'
             }
         });
 
-        res.json({ 
+        res.json({
             message: 'Organisation marked as deleted (data preserved for recovery)',
             canRestore: true,
             deletedAt: new Date()
@@ -369,13 +373,13 @@ export const restoreOrganisation = async (req: Request, res: Response) => {
             entityId: orgId,
             actorId: (req as any).user.id,
             organisationId: orgId,
-            details: { 
+            details: {
                 name: org.name,
                 note: 'Organisation restored from soft delete'
             }
         });
 
-        res.json({ 
+        res.json({
             message: 'Organisation restored successfully',
             restoredAt: new Date()
         });

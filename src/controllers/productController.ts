@@ -193,11 +193,46 @@ export const deleteProduct = async (req: Request, res: Response) => {
     }
 };
 
+export const getProductShareConfig = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const { productId } = req.params;
+
+        if (!orgId) return res.status(403).json({ message: 'No org' });
+
+        const share = await prisma.productShare.findFirst({
+            where: { productId, organisationId: orgId }
+        });
+
+        if (!share) {
+            // Return empty config if not shared yet
+            return res.json({
+                youtubeUrl: '',
+                customTitle: '',
+                customDescription: ''
+            });
+        }
+
+        res.json({
+            youtubeUrl: share.youtubeUrl || '',
+            customTitle: share.customTitle || '',
+            customDescription: share.customDescription || '',
+            slug: share.slug,
+            views: share.views,
+            url: `${process.env.CLIENT_URL || 'http://localhost:5173'}/shared-product/${share.slug}`
+        });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
 export const generateProductShareLink = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
         const { productId } = req.params;
+        const { youtubeUrl, customTitle, customDescription } = req.body;
 
         if (!orgId) return res.status(403).json({ message: 'No org' });
 
@@ -224,21 +259,34 @@ export const generateProductShareLink = async (req: Request, res: Response) => {
                     organisationId: orgId,
                     createdById: user.id,
                     slug,
-                    notificationsEnabled: true
+                    notificationsEnabled: true,
+                    youtubeUrl,
+                    customTitle,
+                    customDescription
+                }
+            });
+        } else {
+            // Update existing share with new details if provided
+            share = await prisma.productShare.update({
+                where: { id: share.id },
+                data: {
+                    youtubeUrl,
+                    customTitle,
+                    customDescription
                 }
             });
         }
 
         const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
-        // Construct the full public URL
-        // If CLIENT_URL is localhost, we might need a different port or path depending on setup
-        // But usually CLIENT_URL points to the frontend
         const shareUrl = `${baseUrl}/shared-product/${share.slug}`;
 
         res.json({
             slug: share.slug,
             url: shareUrl,
-            views: share.views
+            views: share.views,
+            youtubeUrl: share.youtubeUrl,
+            customTitle: share.customTitle,
+            customDescription: share.customDescription
         });
 
     } catch (error) {
@@ -249,12 +297,13 @@ export const generateProductShareLink = async (req: Request, res: Response) => {
 export const getSharedProduct = async (req: Request, res: Response) => {
     try {
         const { slug } = req.params;
+        const leadId = req.query.leadId as string | undefined;
 
         const share = await prisma.productShare.findUnique({
             where: { slug },
             include: {
                 product: true,
-                createdBy: { select: { firstName: true, lastName: true, id: true } }
+                createdBy: { select: { firstName: true, lastName: true, id: true, email: true, phone: true } }
             }
         });
 
@@ -269,17 +318,40 @@ export const getSharedProduct = async (req: Request, res: Response) => {
         // Send Notification (if enabled)
         if (share.notificationsEnabled) {
             const { NotificationService } = await import('../services/NotificationService');
+            const time = new Date().toLocaleTimeString();
+            let viewerName = 'A customer';
+
+            // If leadId is provided, try to fetch lead details
+            if (leadId) {
+                try {
+                    const lead = await prisma.lead.findUnique({
+                        where: { id: leadId },
+                        select: { firstName: true, lastName: true, company: true }
+                    });
+                    if (lead) {
+                        viewerName = `${lead.firstName} ${lead.lastName}${lead.company ? ` from ${lead.company}` : ''}`;
+                    }
+                } catch (e) {
+                    console.error('Error fetching lead for view tracking:', e);
+                }
+            }
+
             NotificationService.send(
                 share.createdById,
                 'Product Viewed',
-                `A customer is viewing your product: ${share.product.name}`,
+                `${viewerName} viewed your product "${share.product.name}" at ${time}.`,
                 'info'
             ).catch(console.error);
         }
 
         res.json({
             product: share.product,
-            seller: share.createdBy
+            seller: share.createdBy,
+            shareConfig: {
+                youtubeUrl: share.youtubeUrl,
+                customTitle: share.customTitle,
+                customDescription: share.customDescription
+            }
         });
 
     } catch (error) {

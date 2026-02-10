@@ -1,15 +1,34 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import fs from 'fs';
+import path from 'path';
+
+const logDebug = (msg: string) => {
+    try {
+        const logPath = path.join(__dirname, '../../debug_crash.log');
+        fs.appendFileSync(logPath, `${new Date().toISOString()} - ${msg}\n`);
+    } catch (e) {
+        console.error('Failed to write log', e);
+    }
+};
 
 export const getDashboardStats = async (req: Request, res: Response) => {
+    logDebug('Entered getDashboardStats');
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
+        logDebug(`[Analytics] User: ${user?.id}, Org: ${orgId}`);
+
+        logDebug('[Analytics] Importing hierarchyUtils...');
         const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+
+        logDebug('[Analytics] Fetching subordinateIds...');
         const subordinateIds = await getSubordinateIds(user.id);
+        logDebug(`[Analytics] Subordinates: ${subordinateIds.length}`);
 
         if (!orgId) {
+            logDebug('[Analytics] No Org ID');
             return res.status(400).json({ message: 'Organisation not found' });
         }
 
@@ -153,8 +172,12 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             accounts: { total: totalAccounts }
         });
     } catch (error) {
+        logDebug(`getDashboardStats CRASHED: ${(error as Error).message}\nStack: ${(error as Error).stack}`);
         console.error('getDashboardStats Error:', error);
-        res.status(500).json({ message: (error as Error).message });
+        res.status(500).json({
+            message: (error as Error).message,
+            debug: 'Check debug_crash.log'
+        });
     }
 };
 

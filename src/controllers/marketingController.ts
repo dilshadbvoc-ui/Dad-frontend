@@ -15,8 +15,8 @@ export const getAdAccounts = async (req: AuthRequest, res: Response) => {
         });
 
         if (!user || !user.metaAccessToken) {
-            // Return 400 instead of 401 to prevent auto-logout
-            return res.status(400).json({
+            // Return 200 instead of 400 to prevent console errors, handle graciously in frontend
+            return res.status(200).json({
                 success: false,
                 code: 'META_NOT_CONNECTED',
                 message: 'User not connected to Meta'
@@ -45,8 +45,8 @@ export const getCampaigns = async (req: AuthRequest, res: Response) => {
         });
 
         if (!user || !user.metaAccessToken) {
-            // Return 400 instead of 401 to prevent auto-logout
-            return res.status(400).json({
+            // Return 200 instead of 400 to prevent console errors, handle graciously in frontend
+            return res.status(200).json({
                 success: false,
                 code: 'META_NOT_CONNECTED',
                 message: 'User not connected to Meta'
@@ -77,8 +77,8 @@ export const createCampaign = async (req: AuthRequest, res: Response) => {
         });
 
         if (!user || !user.metaAccessToken) {
-            // Return 400 instead of 401 to prevent auto-logout
-            return res.status(400).json({
+            // Return 200 instead of 400 to prevent console errors, handle graciously in frontend
+            return res.status(200).json({
                 success: false,
                 code: 'META_NOT_CONNECTED',
                 message: 'User not connected to Meta'

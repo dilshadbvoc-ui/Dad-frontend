@@ -136,6 +136,7 @@ exports.Prisma.OrganisationScalarFieldEnum = {
   userLimit: 'userLimit',
   contactLimit: 'contactLimit',
   storageLimit: 'storageLimit',
+  currency: 'currency',
   userIdCounter: 'userIdCounter',
   apiKey: 'apiKey',
   integrations: 'integrations',
@@ -1031,6 +1032,9 @@ exports.Prisma.ProductShareScalarFieldEnum = {
   productId: 'productId',
   createdById: 'createdById',
   organisationId: 'organisationId',
+  youtubeUrl: 'youtubeUrl',
+  customTitle: 'customTitle',
+  customDescription: 'customDescription',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

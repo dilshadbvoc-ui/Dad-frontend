@@ -14,13 +14,32 @@ export const createCheckIn = async (req: AuthRequest, res: Response) => {
 
         const latitude = rawLat !== undefined ? parseFloat(String(rawLat)) : null;
         const longitude = rawLng !== undefined ? parseFloat(String(rawLng)) : null;
-        const address = rawAddr;
+        let address = rawAddr;
 
         const userId = req.user?.id;
         const organisationId = req.user?.organisationId;
 
         if (!userId || !organisationId) {
             return res.status(401).json({ error: 'Unauthorized' });
+        }
+
+        // Reverse Geocoding if address is missing or placeholder
+        if ((!address || address === 'Fetching address...') && latitude && longitude) {
+            try {
+                // Use global fetch (Node 18+) or ensure node-fetch is available
+                const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+                const geoRes = await fetch(nominatimUrl, {
+                    headers: { 'User-Agent': 'LeadHostix-CRM/1.0' }
+                });
+                const geoData: any = await geoRes.json();
+                if (geoData && geoData.display_name) {
+                    address = geoData.display_name;
+                }
+            } catch (geoError) {
+                console.error('Reverse Geocoding Failed:', geoError);
+                // Fallback to coordinates string if geocoding fails
+                if (!address) address = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+            }
         }
 
         const checkIn = await prisma.checkIn.create({
@@ -76,6 +95,9 @@ export const getCheckIns = async (req: AuthRequest, res: Response) => {
             where.userId = userId as string;
         }
 
+        const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+        const offset = req.query.offset ? parseInt(req.query.offset as string) : undefined;
+
         const checkIns = await prisma.checkIn.findMany({
             where,
             include: {
@@ -84,6 +106,8 @@ export const getCheckIns = async (req: AuthRequest, res: Response) => {
                 contact: { select: { firstName: true, lastName: true } },
                 account: { select: { name: true } }
             },
+            take: limit,
+            skip: offset,
             orderBy: { createdAt: 'desc' }
         });
 

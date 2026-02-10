@@ -23,6 +23,7 @@ model Organisation {
   userLimit         Int              @default(5)
   contactLimit      Int              @default(500)
   storageLimit      Int              @default(1000) // MB
+  currency          String           @default("USD")
   userIdCounter     Int              @default(0)
   apiKey            String?
   integrations      Json?
@@ -1400,6 +1401,12 @@ model ProductShare {
   createdBy          User         @relation(fields: [createdById], references: [id])
   organisationId     String
   organisation       Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  
+  // New Fields for Enhanced Sharing
+  youtubeUrl         String?
+  customTitle        String?
+  customDescription  String?
+  
   createdAt          DateTime     @default(now())
   updatedAt          DateTime     @updatedAt
 
