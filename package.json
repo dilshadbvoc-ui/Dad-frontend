@@ -44,6 +44,7 @@
     "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
     "express-session": "^1.19.0",
+    "helmet": "^8.1.0",
     "joi": "^17.12.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.21.0",
@@ -61,10 +62,12 @@
     "ts-node": "^10.9.2",
     "twilio": "^5.11.2",
     "typescript": "^5.3.3",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "zxcvbn": "^4.4.2"
   },
   "devDependencies": {
     "@types/node-cron": "^3.0.11",
+    "@types/zxcvbn": "^4.4.5",
     "@typescript-eslint/eslint-plugin": "^8.53.0",
     "@typescript-eslint/parser": "^8.53.0",
     "eslint": "^8.56.0",
