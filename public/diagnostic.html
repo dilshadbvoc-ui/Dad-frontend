@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM Diagnostic Tool</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 900px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-top: 0; }
+        h2 { color: #555; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px 0; }
+        .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #ffc107; }
+        .error { background: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #dc3545; }
+        .success { background: #d4edda; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #28a745; }
+        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+        .copy-btn { background: #28a745; font-size: 12px; padding: 5px 10px; }
+        .copy-btn:hover { background: #218838; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; font-weight: 600; }
+        .status-good { color: #28a745; font-weight: bold; }
+        .status-bad { color: #dc3545; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🔍 CRM Diagnostic Tool</h1>
+        <p>This tool will help diagnose why data isn't syncing between PCs.</p>
+        <button onclick="runDiagnostics()">Run Full Diagnostic</button>
+        <button onclick="copyResults()">Copy Results</button>
+    </div>
+
+    <div id="results"></div>
+
+    <script>
+        let diagnosticResults = '';
+
+        async function runDiagnostics() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<div class="info">Running diagnostics...</div>';
+            
+            let html = '';
+            diagnosticResults = '=== CRM DIAGNOSTIC REPORT ===\n\n';
+
+            // 1. Environment Check
+            html += '<div class="card"><h2>1. Environment Check</h2>';
+            const currentURL = window.location.href;
+            const hostname = window.location.hostname;
+            const isProduction = hostname.includes('vercel.app') || hostname.includes('dad-frontend');
+            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
+            
+            html += '<table>';
+            html += `<tr><th>Current URL</th><td>${currentURL}</td></tr>`;
+            html += `<tr><th>Hostname</th><td>${hostname}</td></tr>`;
+            html += `<tr><th>Environment</th><td class="${isProduction ? 'status-good' : 'status-bad'}">${isProduction ? 'PRODUCTION ✓' : isLocal ? 'LOCAL (WRONG!)' : 'UNKNOWN'}</td></tr>`;
+            html += '</table>';
+
+            diagnosticResults += `Current URL: ${currentURL}\n`;
+            diagnosticResults += `Environment: ${isProduction ? 'PRODUCTION' : isLocal ? 'LOCAL' : 'UNKNOWN'}\n\n`;
+
+            if (!isProduction) {
+                html += '<div class="error"><strong>❌ PROBLEM FOUND:</strong> You are NOT on production! Use: https://dad-frontend-psi.vercel.app</div>';
+                diagnosticResults += '❌ PROBLEM: Not on production URL\n\n';
+            } else {
+                html += '<div class="success">✓ Correct: Using production URL</div>';
+                diagnosticResults += '✓ Using production URL\n\n';
+            }
+            html += '</div>';
+
+            // 2. User Info Check
+            html += '<div class="card"><h2>2. Logged In User</h2>';
+            const userInfo = localStorage.getItem('userInfo');
+            if (userInfo) {
+                try {
+                    const parsed = JSON.parse(userInfo);
+                    html += '<table>';
+                    html += `<tr><th>Email</th><td>${parsed.email || 'N/A'}</td></tr>`;
+                    html += `<tr><th>Role</th><td>${parsed.role || 'N/A'}</td></tr>`;
+                    html += `<tr><th>Organisation</th><td>${parsed.organisation?.name || 'N/A'}</td></tr>`;
+                    html += `<tr><th>Organisation ID</th><td><code>${parsed.organisation?.id || 'N/A'}</code></td></tr>`;
+                    html += '</table>';
+
+                    diagnosticResults += `Email: ${parsed.email}\n`;
+                    diagnosticResults += `Organisation: ${parsed.organisation?.name}\n`;
+                    diagnosticResults += `Organisation ID: ${parsed.organisation?.id}\n\n`;
+                } catch (e) {
+                    html += '<div class="error">❌ Invalid user data in localStorage</div>';
+                    diagnosticResults += '❌ Invalid user data\n\n';
+                }
+            } else {
+                html += '<div class="warning">⚠️ Not logged in</div>';
+                diagnosticResults += '⚠️ Not logged in\n\n';
+            }
+            html += '</div>';
+
+            // 3. API Configuration
+            html += '<div class="card"><h2>3. API Configuration</h2>';
+            const expectedBackend = isProduction ? 'https://dad-backend.onrender.com' : 'http://localhost:5001';
+            html += '<table>';
+            html += `<tr><th>Expected Backend</th><td>${expectedBackend}</td></tr>`;
+            html += `<tr><th>API Base URL</th><td><code>${expectedBackend}/api</code></td></tr>`;
+            html += '</table>';
+
+            diagnosticResults += `Expected Backend: ${expectedBackend}\n\n`;
+
+            // Test API connection
+            html += '<p>Testing API connection...</p>';
+            try {
+                const response = await fetch(`${expectedBackend}/health`);
+                if (response.ok) {
+                    html += '<div class="success">✓ Backend is reachable</div>';
+                    diagnosticResults += '✓ Backend is reachable\n\n';
+                } else {
+                    html += `<div class="error">❌ Backend returned status: ${response.status}</div>`;
+                    diagnosticResults += `❌ Backend status: ${response.status}\n\n`;
+                }
+            } catch (error) {
+                html += `<div class="error">❌ Cannot reach backend: ${error.message}</div>`;
+                diagnosticResults += `❌ Cannot reach backend: ${error.message}\n\n`;
+            }
+            html += '</div>';
+
+            // 4. Cache Status
+            html += '<div class="card"><h2>4. Browser Cache</h2>';
+            const cacheKeys = Object.keys(localStorage);
+            html += `<p>LocalStorage items: ${cacheKeys.length}</p>`;
+            html += '<div class="info">Cached data may be causing sync issues. Try clearing cache if problems persist.</div>';
+            html += '<button onclick="clearAllCache()">Clear All Cache</button>';
+            html += '</div>';
+
+            diagnosticResults += `LocalStorage items: ${cacheKeys.length}\n\n`;
+
+            // 5. Recommendations
+            html += '<div class="card"><h2>5. Recommendations</h2>';
+            html += '<ul>';
+            
+            if (!isProduction) {
+                html += '<li class="error"><strong>CRITICAL:</strong> Switch to production URL: <code>https://dad-frontend-psi.vercel.app</code></li>';
+                diagnosticResults += 'CRITICAL: Switch to production URL\n';
+            }
+            
+            if (!userInfo) {
+                html += '<li class="warning">Login to your account</li>';
+                diagnosticResults += 'WARNING: Not logged in\n';
+            }
+            
+            html += '<li>Clear browser cache (Ctrl+Shift+Delete)</li>';
+            html += '<li>Logout and login again</li>';
+            html += '<li>Use the same URL on all PCs</li>';
+            html += '<li>Check that you\'re logged in with the same email</li>';
+            html += '</ul>';
+            html += '</div>';
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function clearAllCache() {
+            if (confirm('This will clear all cached data and reload the page. Continue?')) {
+                localStorage.clear();
+                sessionStorage.clear();
+                location.reload(true);
+            }
+        }
+
+        function copyResults() {
+            if (!diagnosticResults) {
+                alert('Please run diagnostics first!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(diagnosticResults).then(() => {
+                alert('Diagnostic results copied to clipboard! Paste this in your message.');
+            }).catch(() => {
+                alert('Could not copy. Please select and copy the text manually.');
+            });
+        }
+
+        // Auto-run on load
+        window.onload = () => {
+            runDiagnostics();
+        };
+    </script>
+</body>
+</html>
