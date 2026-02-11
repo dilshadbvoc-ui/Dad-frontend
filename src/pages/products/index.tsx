@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, type Product, type CreateProductData } from "@/services/productService"
+import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
 import { getLeads, type Lead } from "@/services/leadService"
 
 import { Card, CardContent } from "@/components/ui/card"
@@ -60,10 +60,7 @@ export default function ProductsPage() {
     })
 
     const updateMutation = useMutation({
-        mutationFn: ({ id, data }: { id: string, data: Partial<CreateProductData> }) => {
-            const { updateProduct } = require("@/services/productService");
-            return updateProduct(id, data);
-        },
+        mutationFn: ({ id, data }: { id: string, data: Partial<CreateProductData> }) => updateProduct(id, data),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['products'] })
             setIsEditDialogOpen(false)
