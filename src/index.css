@@ -144,7 +144,7 @@
 
   /* Finance Breeze Card - Soft, Round, Floating */
   .finance-card {
-    @apply bg-card text-card-foreground rounded-[2rem] border-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] transition-all duration-300;
+    @apply bg-card text-card-foreground rounded-[2rem] border-0 shadow-[0_8px_30px_rgb(0, 0, 0, 0.04)] hover:shadow-[0_8px_30px_rgb(0, 0, 0, 0.08)] transition-all duration-300;
   }
 
   /* Vibrant Gradient Buttons - Adjusted for lighter theme */
@@ -177,7 +177,7 @@
 
   /* Finance Standard Card */
   .card-ocean {
-    @apply bg-white dark:bg-card text-card-foreground rounded-[1.5rem] border-0 shadow-[0_2px_20px_rgb(0,0,0,0.02)] hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] transition-all duration-300;
+    @apply bg-white dark:bg-card text-card-foreground rounded-[1.5rem] border-0 shadow-[0_2px_20px_rgb(0, 0, 0, 0.02)] hover:shadow-[0_8px_30px_rgb(0, 0, 0, 0.06)] transition-all duration-300;
   }
 
   /* Gradient Card Variants - Softened */
@@ -506,27 +506,27 @@
   }
 
   /* Improved scrollbars */
-  .scrollbar-thin {
+  @utility scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted)) transparent;
-  }
 
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
 
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
+    &::-webkit-scrollbar-track {
+      background: transparent;
+    }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted));
-    border-radius: 3px;
-  }
+    &::-webkit-scrollbar-thumb {
+      background-color: hsl(var(--muted));
+      border-radius: 3px;
+    }
 
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground));
+    &::-webkit-scrollbar-thumb:hover {
+      background-color: hsl(var(--muted-foreground));
+    }
   }
 
   /* Loading states */
@@ -678,7 +678,7 @@
   .scrollbar-none::-webkit-scrollbar {
     display: none;
   }
-  
+
   .mobile-card-grid {
     @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3;
   }
