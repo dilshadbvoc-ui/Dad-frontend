@@ -6,203 +6,380 @@
     <title>CRM Diagnostic Tool</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             max-width: 900px;
-            margin: 20px auto;
+            margin: 40px auto;
             padding: 20px;
             background: #f5f5f5;
         }
         .card {
             background: white;
             border-radius: 8px;
-            padding: 20px;
+            padding: 24px;
             margin-bottom: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        h1 { color: #333; margin-top: 0; }
-        h2 { color: #555; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
-        .info { background: #e3f2fd; padding: 15px; border-radius: 5px; margin: 10px 0; }
-        .warning { background: #fff3cd; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #ffc107; }
-        .error { background: #f8d7da; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #dc3545; }
-        .success { background: #d4edda; padding: 15px; border-radius: 5px; margin: 10px 0; border-left: 4px solid #28a745; }
-        code { background: #f4f4f4; padding: 2px 6px; border-radius: 3px; font-family: monospace; }
+        h1 {
+            color: #333;
+            margin-top: 0;
+        }
+        h2 {
+            color: #666;
+            font-size: 18px;
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 8px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .label {
+            font-weight: 600;
+            color: #666;
+        }
+        .value {
+            color: #333;
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            text-align: right;
+            max-width: 60%;
+        }
+        .status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
         button {
             background: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
+            padding: 12px 24px;
+            border-radius: 6px;
             cursor: pointer;
             font-size: 14px;
-            margin: 5px;
+            font-weight: 600;
+            margin-right: 10px;
         }
-        button:hover { background: #0056b3; }
-        .copy-btn { background: #28a745; font-size: 12px; padding: 5px 10px; }
-        .copy-btn:hover { background: #218838; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
-        th { background: #f8f9fa; font-weight: 600; }
-        .status-good { color: #28a745; font-weight: bold; }
-        .status-bad { color: #dc3545; font-weight: bold; }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+        }
+        .lead-item {
+            padding: 12px;
+            margin: 8px 0;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+        .lead-item strong {
+            color: #333;
+        }
+        .lead-item small {
+            color: #666;
+            display: block;
+            margin-top: 4px;
+        }
+        .token-info {
+            background: #fff3cd;
+            padding: 12px;
+            border-radius: 6px;
+            margin-top: 12px;
+            font-size: 12px;
+        }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>🔍 CRM Diagnostic Tool</h1>
-        <p>This tool will help diagnose why data isn't syncing between PCs.</p>
-        <button onclick="runDiagnostics()">Run Full Diagnostic</button>
-        <button onclick="copyResults()">Copy Results</button>
+        <p>This tool helps diagnose data sync issues across different devices.</p>
+        <button id="runDiagnostic">Run Diagnostic</button>
+        <button id="copyResults" style="display:none; background: #28a745;">Copy Results</button>
     </div>
 
     <div id="results"></div>
 
     <script>
-        let diagnosticResults = '';
+        const API_URL = window.location.hostname === 'localhost' 
+            ? 'http://localhost:5001'
+            : 'https://dad-backend.onrender.com';
 
-        async function runDiagnostics() {
+        let diagnosticData = null;
+
+        document.getElementById('runDiagnostic').addEventListener('click', runDiagnostic);
+        document.getElementById('copyResults').addEventListener('click', copyResults);
+
+        async function runDiagnostic() {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = '<div class="info">Running diagnostics...</div>';
+            resultsDiv.innerHTML = '<div class="card"><div class="loading">Running diagnostic...</div></div>';
+
+            const token = localStorage.getItem('token');
             
-            let html = '';
-            diagnosticResults = '=== CRM DIAGNOSTIC REPORT ===\n\n';
-
-            // 1. Environment Check
-            html += '<div class="card"><h2>1. Environment Check</h2>';
-            const currentURL = window.location.href;
-            const hostname = window.location.hostname;
-            const isProduction = hostname.includes('vercel.app') || hostname.includes('dad-frontend');
-            const isLocal = hostname === 'localhost' || hostname === '127.0.0.1';
-            
-            html += '<table>';
-            html += `<tr><th>Current URL</th><td>${currentURL}</td></tr>`;
-            html += `<tr><th>Hostname</th><td>${hostname}</td></tr>`;
-            html += `<tr><th>Environment</th><td class="${isProduction ? 'status-good' : 'status-bad'}">${isProduction ? 'PRODUCTION ✓' : isLocal ? 'LOCAL (WRONG!)' : 'UNKNOWN'}</td></tr>`;
-            html += '</table>';
-
-            diagnosticResults += `Current URL: ${currentURL}\n`;
-            diagnosticResults += `Environment: ${isProduction ? 'PRODUCTION' : isLocal ? 'LOCAL' : 'UNKNOWN'}\n\n`;
-
-            if (!isProduction) {
-                html += '<div class="error"><strong>❌ PROBLEM FOUND:</strong> You are NOT on production! Use: https://dad-frontend-psi.vercel.app</div>';
-                diagnosticResults += '❌ PROBLEM: Not on production URL\n\n';
-            } else {
-                html += '<div class="success">✓ Correct: Using production URL</div>';
-                diagnosticResults += '✓ Using production URL\n\n';
+            if (!token) {
+                resultsDiv.innerHTML = '<div class="card"><div class="error-message">❌ No authentication token found. Please login first at the main CRM page.</div></div>';
+                return;
             }
-            html += '</div>';
 
-            // 2. User Info Check
-            html += '<div class="card"><h2>2. Logged In User</h2>';
-            const userInfo = localStorage.getItem('userInfo');
-            if (userInfo) {
-                try {
-                    const parsed = JSON.parse(userInfo);
-                    html += '<table>';
-                    html += `<tr><th>Email</th><td>${parsed.email || 'N/A'}</td></tr>`;
-                    html += `<tr><th>Role</th><td>${parsed.role || 'N/A'}</td></tr>`;
-                    html += `<tr><th>Organisation</th><td>${parsed.organisation?.name || 'N/A'}</td></tr>`;
-                    html += `<tr><th>Organisation ID</th><td><code>${parsed.organisation?.id || 'N/A'}</code></td></tr>`;
-                    html += '</table>';
-
-                    diagnosticResults += `Email: ${parsed.email}\n`;
-                    diagnosticResults += `Organisation: ${parsed.organisation?.name}\n`;
-                    diagnosticResults += `Organisation ID: ${parsed.organisation?.id}\n\n`;
-                } catch (e) {
-                    html += '<div class="error">❌ Invalid user data in localStorage</div>';
-                    diagnosticResults += '❌ Invalid user data\n\n';
-                }
-            } else {
-                html += '<div class="warning">⚠️ Not logged in</div>';
-                diagnosticResults += '⚠️ Not logged in\n\n';
-            }
-            html += '</div>';
-
-            // 3. API Configuration
-            html += '<div class="card"><h2>3. API Configuration</h2>';
-            const expectedBackend = isProduction ? 'https://dad-backend.onrender.com' : 'http://localhost:5001';
-            html += '<table>';
-            html += `<tr><th>Expected Backend</th><td>${expectedBackend}</td></tr>`;
-            html += `<tr><th>API Base URL</th><td><code>${expectedBackend}/api</code></td></tr>`;
-            html += '</table>';
-
-            diagnosticResults += `Expected Backend: ${expectedBackend}\n\n`;
-
-            // Test API connection
-            html += '<p>Testing API connection...</p>';
             try {
-                const response = await fetch(`${expectedBackend}/health`);
-                if (response.ok) {
-                    html += '<div class="success">✓ Backend is reachable</div>';
-                    diagnosticResults += '✓ Backend is reachable\n\n';
-                } else {
-                    html += `<div class="error">❌ Backend returned status: ${response.status}</div>`;
-                    diagnosticResults += `❌ Backend status: ${response.status}\n\n`;
+                // Environment Info
+                const envInfo = {
+                    hostname: window.location.hostname,
+                    protocol: window.location.protocol,
+                    apiUrl: API_URL,
+                    userAgent: navigator.userAgent,
+                    timestamp: new Date().toISOString(),
+                    tokenPreview: token.substring(0, 20) + '...'
+                };
+
+                // Fetch user info
+                const userResponse = await fetch(`${API_URL}/api/auth/me`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!userResponse.ok) {
+                    throw new Error(`Failed to fetch user data: ${userResponse.status} ${userResponse.statusText}`);
                 }
+                
+                const userData = await userResponse.json();
+
+                // Fetch leads
+                const leadsResponse = await fetch(`${API_URL}/api/leads?pageSize=100`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (!leadsResponse.ok) {
+                    throw new Error(`Failed to fetch leads: ${leadsResponse.status} ${leadsResponse.statusText}`);
+                }
+                
+                const leadsData = await leadsResponse.json();
+
+                // Store for copying
+                diagnosticData = { env: envInfo, user: userData, leads: leadsData };
+
+                // Display results
+                displayResults(envInfo, userData, leadsData);
+                document.getElementById('copyResults').style.display = 'inline-block';
+
             } catch (error) {
-                html += `<div class="error">❌ Cannot reach backend: ${error.message}</div>`;
-                diagnosticResults += `❌ Cannot reach backend: ${error.message}\n\n`;
+                resultsDiv.innerHTML = `<div class="card"><div class="error-message">❌ Error: ${error.message}</div></div>`;
+                console.error('Diagnostic error:', error);
             }
-            html += '</div>';
-
-            // 4. Cache Status
-            html += '<div class="card"><h2>4. Browser Cache</h2>';
-            const cacheKeys = Object.keys(localStorage);
-            html += `<p>LocalStorage items: ${cacheKeys.length}</p>`;
-            html += '<div class="info">Cached data may be causing sync issues. Try clearing cache if problems persist.</div>';
-            html += '<button onclick="clearAllCache()">Clear All Cache</button>';
-            html += '</div>';
-
-            diagnosticResults += `LocalStorage items: ${cacheKeys.length}\n\n`;
-
-            // 5. Recommendations
-            html += '<div class="card"><h2>5. Recommendations</h2>';
-            html += '<ul>';
-            
-            if (!isProduction) {
-                html += '<li class="error"><strong>CRITICAL:</strong> Switch to production URL: <code>https://dad-frontend-psi.vercel.app</code></li>';
-                diagnosticResults += 'CRITICAL: Switch to production URL\n';
-            }
-            
-            if (!userInfo) {
-                html += '<li class="warning">Login to your account</li>';
-                diagnosticResults += 'WARNING: Not logged in\n';
-            }
-            
-            html += '<li>Clear browser cache (Ctrl+Shift+Delete)</li>';
-            html += '<li>Logout and login again</li>';
-            html += '<li>Use the same URL on all PCs</li>';
-            html += '<li>Check that you\'re logged in with the same email</li>';
-            html += '</ul>';
-            html += '</div>';
-
-            resultsDiv.innerHTML = html;
         }
 
-        function clearAllCache() {
-            if (confirm('This will clear all cached data and reload the page. Continue?')) {
-                localStorage.clear();
-                sessionStorage.clear();
-                location.reload(true);
-            }
+        function displayResults(env, user, leads) {
+            const isProduction = env.hostname !== 'localhost';
+            
+            const html = `
+                <div class="card">
+                    <h2>🌍 Environment</h2>
+                    <div class="info-row">
+                        <span class="label">Environment:</span>
+                        <span class="value">
+                            <span class="status ${isProduction ? 'success' : 'warning'}">
+                                ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}
+                            </span>
+                        </span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Hostname:</span>
+                        <span class="value">${env.hostname}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">API Endpoint:</span>
+                        <span class="value">${env.apiUrl}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Timestamp:</span>
+                        <span class="value">${new Date(env.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="token-info">
+                        <strong>🔑 Token Preview:</strong> ${env.tokenPreview}
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>👤 User Information</h2>
+                    <div class="info-row">
+                        <span class="label">User ID:</span>
+                        <span class="value">${user.id || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Name:</span>
+                        <span class="value">${user.firstName} ${user.lastName}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Email:</span>
+                        <span class="value">${user.email}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Role:</span>
+                        <span class="value">${user.role}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Organisation ID:</span>
+                        <span class="value">${user.organisationId || 'N/A'}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Organisation Name:</span>
+                        <span class="value">${user.organisation?.name || 'N/A'}</span>
+                    </div>
+                    ${user.reportsToId ? `
+                    <div class="info-row">
+                        <span class="label">Reports To:</span>
+                        <span class="value">${user.reportsToId}</span>
+                    </div>
+                    ` : ''}
+                </div>
+
+                <div class="card">
+                    <h2>📊 Data Summary</h2>
+                    <div class="info-row">
+                        <span class="label">Total Leads:</span>
+                        <span class="value"><strong style="font-size: 18px; color: #007bff;">${leads.total || 0}</strong></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Leads Fetched:</span>
+                        <span class="value">${leads.leads?.length || 0}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label">Current Page:</span>
+                        <span class="value">${leads.page || 1} of ${leads.pages || 1}</span>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Recent Leads (Last 10)</h2>
+                    ${leads.leads && leads.leads.length > 0 
+                        ? leads.leads.slice(0, 10).map((lead, index) => `
+                            <div class="lead-item">
+                                <strong>${index + 1}. ${lead.firstName} ${lead.lastName}</strong>
+                                <small>
+                                    📧 ${lead.email || 'No email'} | 
+                                    📊 Status: ${lead.status} | 
+                                    👤 Assigned: ${lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : 'Unassigned'}
+                                </small>
+                                <small>
+                                    🆔 Lead ID: ${lead.id} | 
+                                    📅 Created: ${new Date(lead.createdAt).toLocaleString()}
+                                </small>
+                            </div>
+                        `).join('')
+                        : '<p style="color: #666; padding: 12px;">No leads found in this organisation</p>'
+                    }
+                </div>
+
+                <div class="card">
+                    <h2>💡 Comparison Instructions</h2>
+                    <div class="success-message">
+                        <strong>✅ Run this diagnostic on BOTH PCs and compare the following:</strong>
+                    </div>
+                    <ul style="margin-top: 16px;">
+                        <li><strong>User ID</strong> - Must be IDENTICAL (if same account)</li>
+                        <li><strong>Organisation ID</strong> - Must be IDENTICAL (if same account)</li>
+                        <li><strong>Total Leads</strong> - Must be IDENTICAL (if same organisation)</li>
+                        <li><strong>API Endpoint</strong> - Must be IDENTICAL (both should use production)</li>
+                        <li><strong>Recent Leads</strong> - Should show the same leads</li>
+                    </ul>
+                    <div class="token-info" style="margin-top: 16px;">
+                        <strong>⚠️ If values differ:</strong>
+                        <ul style="margin: 8px 0 0 20px;">
+                            <li>Different User IDs = You're logged into different accounts</li>
+                            <li>Different Org IDs = Accounts belong to different organisations</li>
+                            <li>Different Total Leads = Data is actually different (not a sync issue)</li>
+                            <li>Different API Endpoints = One PC is using wrong backend</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('results').innerHTML = html;
         }
 
         function copyResults() {
-            if (!diagnosticResults) {
-                alert('Please run diagnostics first!');
-                return;
-            }
-            
-            navigator.clipboard.writeText(diagnosticResults).then(() => {
-                alert('Diagnostic results copied to clipboard! Paste this in your message.');
-            }).catch(() => {
-                alert('Could not copy. Please select and copy the text manually.');
+            if (!diagnosticData) return;
+
+            const text = `
+CRM DIAGNOSTIC RESULTS
+======================
+Timestamp: ${new Date(diagnosticData.env.timestamp).toLocaleString()}
+
+ENVIRONMENT
+-----------
+Hostname: ${diagnosticData.env.hostname}
+API Endpoint: ${diagnosticData.env.apiUrl}
+
+USER INFORMATION
+----------------
+User ID: ${diagnosticData.user.id}
+Name: ${diagnosticData.user.firstName} ${diagnosticData.user.lastName}
+Email: ${diagnosticData.user.email}
+Role: ${diagnosticData.user.role}
+Organisation ID: ${diagnosticData.user.organisationId}
+Organisation Name: ${diagnosticData.user.organisation?.name || 'N/A'}
+
+DATA SUMMARY
+------------
+Total Leads: ${diagnosticData.leads.total || 0}
+Leads Fetched: ${diagnosticData.leads.leads?.length || 0}
+
+RECENT LEADS
+------------
+${diagnosticData.leads.leads?.slice(0, 10).map((lead, i) => 
+    `${i + 1}. ${lead.firstName} ${lead.lastName} (${lead.email}) - ${lead.status}`
+).join('\n') || 'No leads'}
+            `.trim();
+
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('copyResults');
+                const originalText = btn.textContent;
+                btn.textContent = '✓ Copied!';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2000);
             });
         }
-
-        // Auto-run on load
-        window.onload = () => {
-            runDiagnostics();
-        };
     </script>
 </body>
 </html>
