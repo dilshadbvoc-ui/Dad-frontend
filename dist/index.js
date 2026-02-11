@@ -33,6 +33,7 @@ const workflowRoutes_1 = __importDefault(require("./routes/workflowRoutes"));
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const quoteRoutes_1 = __importDefault(require("./routes/quoteRoutes"));
 const shareRoutes_1 = __importDefault(require("./routes/shareRoutes"));
+const documentRoutes_1 = __importDefault(require("./routes/documentRoutes"));
 const caseRoutes_1 = __importDefault(require("./routes/caseRoutes"));
 const goalRoutes_1 = __importDefault(require("./routes/goalRoutes"));
 const territoryRoutes_1 = __importDefault(require("./routes/territoryRoutes"));
@@ -258,6 +259,7 @@ app.use('/api/tasks', taskRoutes_1.default);
 app.use('/api/products', productRoutes_1.default);
 app.use('/api/quotes', quoteRoutes_1.default);
 app.use('/api/share', shareRoutes_1.default);
+app.use('/api/documents', documentRoutes_1.default);
 // Field & Support
 app.use('/api/cases', caseRoutes_1.default);
 // Advanced

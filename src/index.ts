@@ -33,6 +33,7 @@ import workflowRoutes from './routes/workflowRoutes';
 import productRoutes from './routes/productRoutes';
 import quoteRoutes from './routes/quoteRoutes';
 import shareRoutes from './routes/shareRoutes';
+import documentRoutes from './routes/documentRoutes';
 
 import caseRoutes from './routes/caseRoutes';
 import goalRoutes from './routes/goalRoutes';
@@ -297,6 +298,7 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/quotes', quoteRoutes);
 app.use('/api/share', shareRoutes);
+app.use('/api/documents', documentRoutes);
 
 // Field & Support
 

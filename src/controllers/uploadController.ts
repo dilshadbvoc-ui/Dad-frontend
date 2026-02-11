@@ -191,15 +191,51 @@ export const uploadDocument = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
+
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        
         // Normalize path for frontend use (replace backslashes)
-        // Check for PDF extension or similar if needed, but multer filter handles it mostly
         const fileUrl = `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/');
+
+        // Get optional metadata from request body
+        const { name, description, category, leadId, contactId, accountId, opportunityId } = req.body;
+
+        // Save document to database
+        const document = await prisma.document.create({
+            data: {
+                name: name || req.file.originalname,
+                description: description || null,
+                fileKey: req.file.filename,
+                fileUrl: fileUrl,
+                fileType: req.file.mimetype,
+                fileSize: req.file.size,
+                category: category || 'other',
+                tags: [],
+                organisationId: orgId || user.organisationId,
+                createdById: user.id,
+                leadId: leadId || null,
+                contactId: contactId || null,
+                accountId: accountId || null,
+                opportunityId: opportunityId || null
+            }
+        });
 
         res.json({
             message: 'Document uploaded successfully',
             url: fileUrl,
             originalName: req.file.originalname,
-            size: req.file.size
+            size: req.file.size,
+            documentId: document.id,
+            document: {
+                id: document.id,
+                name: document.name,
+                fileUrl: document.fileUrl,
+                fileType: document.fileType,
+                fileSize: document.fileSize,
+                category: document.category,
+                createdAt: document.createdAt
+            }
         });
     } catch (error) {
         console.error('[Upload Document] Error:', error);
