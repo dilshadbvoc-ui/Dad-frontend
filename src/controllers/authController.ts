@@ -6,7 +6,7 @@ import bcrypt from 'bcryptjs';
 import { UserRole } from '../generated/client';
 import { logAudit } from '../utils/auditLogger';
 import { EmailService } from '../services/EmailService';
-import crypto from 'crypto';
+import { validatePassword } from '../utils/passwordValidator';
 
 // @desc    Auth user & get token
 // @route   POST /api/auth/login
@@ -92,8 +92,21 @@ export const registerUser = async (req: Request, res: Response) => {
             return;
         }
 
-        if (password.length < 8) {
-            res.status(400).json({ message: 'Password must be at least 8 characters long' });
+        if (password.length < 12) {
+            res.status(400).json({ message: 'Password must be at least 12 characters long' });
+            return;
+        }
+
+        // Enhanced password validation
+        const { PasswordValidator } = await import('../utils/passwordValidator');
+        const passwordValidation = PasswordValidator.validate(password, [email, firstName, lastName]);
+        
+        if (!passwordValidation.isValid) {
+            res.status(400).json({ 
+                message: 'Password does not meet security requirements',
+                errors: passwordValidation.errors,
+                suggestions: passwordValidation.suggestions
+            });
             return;
         }
 

@@ -1,12 +1,19 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { createServer } from 'http';
 import { initSocket } from './socket';
-import { generalLimiter } from './middleware/rateLimiter';
+import { generalLimiter, authLimiter } from './middleware/rateLimiter';
+import { auditSecurity, detectBruteForce } from './middleware/securityAudit';
+import { setCSRFToken, verifyCSRFToken } from './middleware/csrfProtection';
+import { EnvironmentValidator } from './utils/envValidator';
 
 dotenv.config();
+
+// Validate environment variables on startup
+EnvironmentValidator.initializeValidation();
 
 
 
@@ -82,6 +89,31 @@ setupPassport();
 // Trust Proxy for Render/Vercel
 app.set('trust proxy', 1);
 
+// Security Headers
+app.use(helmet({
+    contentSecurityPolicy: {
+        directives: {
+            defaultSrc: ["'self'"],
+            styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+            fontSrc: ["'self'", "https://fonts.gstatic.com"],
+            imgSrc: ["'self'", "data:", "https:", "blob:"],
+            scriptSrc: ["'self'"],
+            connectSrc: ["'self'", "https://api.facebook.com", "https://graph.facebook.com"],
+            frameSrc: ["'none'"],
+            objectSrc: ["'none'"],
+            baseUri: ["'self'"],
+            formAction: ["'self'"],
+            upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
+        },
+    },
+    crossOriginEmbedderPolicy: false, // Disable for Meta integration
+    hsts: {
+        maxAge: 31536000,
+        includeSubDomains: true,
+        preload: true
+    }
+}));
+
 app.use(session({
     secret: process.env.JWT_SECRET || 'secret_sso_key',
     resave: false,
@@ -126,8 +158,10 @@ const allowedOrigins = [
 
 app.use(cors({
     origin: function (origin, callback) {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin) return callback(null, true);
+        // Allow requests with no origin only in development (mobile apps, Postman, etc.)
+        if (!origin && process.env.NODE_ENV === 'development') {
+            return callback(null, true);
+        }
 
         // Check if origin is in allowed list or matches allowed origins env var
         const allowedOriginsArray = process.env.ALLOWED_ORIGINS
@@ -136,17 +170,16 @@ app.use(cors({
 
         const allOrigins = [...allowedOrigins, ...allowedOriginsArray];
 
-        if (allOrigins.indexOf(origin) !== -1) {
+        if (origin && allOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             console.log('CORS blocked origin:', origin);
-            // Allow all in production for now to prevent blocking
-            callback(null, true);
+            callback(new Error('Not allowed by CORS policy'), false);
         }
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-CSRF-Token'],
     exposedHeaders: ['Content-Range', 'X-Content-Range'],
     maxAge: 86400 // 24 hours
 }));
@@ -176,6 +209,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// Security Middleware
+app.use(auditSecurity); // Security audit logging
+app.use(setCSRFToken); // CSRF token generation
+app.use(generalLimiter); // General rate limiting
+
 // Initialize Socket.io
 const io = initSocket(httpServer);
 app.set('io', io);
@@ -201,20 +239,28 @@ app.get('/health', (req, res) => {
     res.status(200).send('OK');
 });
 
+// CSRF Token endpoint
+app.get('/api/csrf-token', setCSRFToken, (req: any, res) => {
+    res.json({
+        csrfToken: req.csrfToken || req.session?.csrfToken,
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+    });
+});
+
 
 
 // Public Routes (No Auth)
 app.use('/api/public', publicRoutes);
 
-// Auth & Core
-app.use('/api/auth', authRoutes);
-app.use('/api/analytics', analyticsRoutes);
-app.use('/api/workflow', workflowRoutes);
-app.use('/api/import', importRoutes);
-app.use('/api/ai', aiRoutes);
-app.use('/api/email', emailRoutes);
+// Auth & Core (with enhanced security)
+app.use('/api/auth', authLimiter, detectBruteForce, authRoutes);
+app.use('/api/analytics', verifyCSRFToken, analyticsRoutes);
+app.use('/api/workflow', verifyCSRFToken, workflowRoutes);
+app.use('/api/import', verifyCSRFToken, importRoutes);
+app.use('/api/ai', verifyCSRFToken, aiRoutes);
+app.use('/api/email', verifyCSRFToken, emailRoutes);
 app.use('/api/search', searchRoutes);
-app.use('/api/reports', reportRoutes);
+app.use('/api/reports', verifyCSRFToken, reportRoutes);
 
 app.use('/api/profile', profileRoutes);
 

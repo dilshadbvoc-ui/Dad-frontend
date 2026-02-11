@@ -382,7 +382,12 @@ export const MetaIntegrationService = {
         const token = getParam('hub.verify_token');
         const challenge = getParam('hub.challenge');
 
-        const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN || 'my_secure_token';
+        const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
+        
+        if (!VERIFY_TOKEN) {
+            logger.error('[MetaWebhook] META_VERIFY_TOKEN not configured', 'MetaWebhook');
+            return res.status(500).json({ error: 'Server configuration error' });
+        }
 
         logger.info(`[MetaWebhook] Verification Request: Mode=${mode}, Token=${token}, Challenge=${challenge}`, 'MetaWebhook');
         logger.info(`[MetaWebhook] Expected Token: ${VERIFY_TOKEN}`, 'MetaWebhook');
