@@ -182,11 +182,12 @@ export const registerUser = async (req: Request, res: Response) => {
 
             res.status(201).json({
                 _id: user.id,
+                id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                organisation: org.id,
+                organisationId: org.id,
                 token: generateToken(user.id),
             });
         } else {

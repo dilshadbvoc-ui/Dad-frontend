@@ -119,18 +119,22 @@ export const getUsers = async (req: Request, res: Response) => {
         // logger.debug(`Query where: ${JSON.stringify(where)}`, 'UserController');
         logger.info(`Users found: ${users.length}`, 'UserController');
 
-        // Transform results to match frontend expectations
-        const transformedUsers = users.map(u => ({
-            ...u,
-            _id: u.id, // Frontend might still expect _id in some places, keeping it for safety
-            id: u.id,
-            role: { id: u.role, name: u.role }, // Frontend expects role as object with id/name
-            reportsTo: u.reportsTo ? {
-                ...u.reportsTo,
-                id: u.reportsTo.id,
-                _id: u.reportsTo.id
-            } : null
-        }));
+        // Transform results to match frontend expectations and ensure security
+        const transformedUsers = users.map(u => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { password, ...userWithoutPassword } = u;
+            return {
+                ...userWithoutPassword,
+                _id: u.id,
+                id: u.id,
+                role: { id: u.role, name: u.role },
+                reportsTo: u.reportsTo ? {
+                    ...u.reportsTo,
+                    id: u.reportsTo.id,
+                    _id: u.reportsTo.id
+                } : null
+            };
+        });
 
         res.json({ users: transformedUsers });
     } catch (error) {
@@ -278,6 +282,10 @@ export const createUser = async (req: Request, res: Response) => {
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email already exists' });
+        }
+
+        if (!password || password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -444,7 +452,10 @@ export const deactivateUser = async (req: Request, res: Response) => {
             details: { email: user.email }
         });
 
-        res.json({ message: 'User deactivated', user });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _pw, ...sanitizedUser } = user;
+
+        res.json({ message: 'User deactivated', user: sanitizedUser });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }

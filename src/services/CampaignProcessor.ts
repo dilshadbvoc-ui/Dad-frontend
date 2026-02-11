@@ -135,13 +135,17 @@ export class CampaignProcessor {
                 throw new Error(`Campaign is already in ${campaign.status} state`);
             }
 
-            // Get recipients - For now, pull all leads from the organization
-            // In a full implementation, we would filter by emailList
+            // Get recipients - Filter by emailList if provided, otherwise fallback to all leads with emails
             const recipients = await prisma.lead.findMany({
                 where: {
                     organisationId: campaign.organisationId,
                     isDeleted: false,
-                    email: { not: null }
+                    email: { not: null },
+                    ...(campaign.emailListId ? {
+                        emailLists: {
+                            some: { id: campaign.emailListId }
+                        }
+                    } : {})
                 },
                 select: { id: true, email: true, firstName: true, lastName: true, company: true }
             });

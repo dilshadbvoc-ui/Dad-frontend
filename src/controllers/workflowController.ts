@@ -124,9 +124,11 @@ export const updateWorkflow = async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        const { organisationId: _orgId, createdById: _createdById, executionCount: _count, ...updateData } = req.body;
+
         const workflow = await prisma.workflow.update({
             where: { id: workflowId },
-            data: req.body
+            data: updateData
         });
 
         // Audit Log
