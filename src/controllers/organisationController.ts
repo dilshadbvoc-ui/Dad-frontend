@@ -528,10 +528,26 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
         // 10. Delete API keys
         await prisma.apiKey.deleteMany({ where: { organisationId: orgId } });
         
-        // 11. Delete users
+        // 11. Get all user IDs from this organisation
+        const userIds = await prisma.user.findMany({
+            where: { organisationId: orgId },
+            select: { id: true }
+        });
+        
+        // 12. Delete notifications for these users (foreign key constraint)
+        await prisma.notification.deleteMany({
+            where: { recipientId: { in: userIds.map(u => u.id) } }
+        });
+        
+        // 13. Delete search history for these users (no organisationId)
+        await prisma.searchHistory.deleteMany({
+            where: { userId: { in: userIds.map(u => u.id) } }
+        });
+        
+        // 14. Delete users
         await prisma.user.deleteMany({ where: { organisationId: orgId } });
         
-        // 12. Finally, delete the organisation
+        // 15. Finally, delete the organisation
         await prisma.organisation.delete({ where: { id: orgId } });
 
         // Audit Log
