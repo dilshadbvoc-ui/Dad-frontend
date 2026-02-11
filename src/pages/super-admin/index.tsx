@@ -8,7 +8,8 @@ import {
     CreditCard,
     Shield,
     Search,
-    MoreHorizontal
+    MoreHorizontal,
+    Database
 } from 'lucide-react';
 import {
     Card,
@@ -120,6 +121,7 @@ export default function SuperAdminDashboard() {
                 <TabsList className="bg-[#1e1b4b] border border-indigo-900/50">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Overview</TabsTrigger>
                     <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">License Plans</TabsTrigger>
+                    <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Database</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="overview" className="space-y-8">
@@ -321,6 +323,53 @@ export default function SuperAdminDashboard() {
 
                 <TabsContent value="plans">
                     <PlansManagement />
+                </TabsContent>
+
+                <TabsContent value="database">
+                    <Card className="bg-[#1e1b4b] border-indigo-900/50">
+                        <CardHeader>
+                            <CardTitle className="text-white">Database Viewer</CardTitle>
+                            <CardDescription className="text-slate-400">
+                                View and manage database tables (Prisma Studio)
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="space-y-4">
+                                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-lg p-6">
+                                    <p className="text-slate-300 mb-4">
+                                        Access Prisma Studio to view and edit database records directly.
+                                    </p>
+                                    <div className="flex gap-4">
+                                        <Button
+                                            onClick={() => window.open('http://localhost:5555', '_blank')}
+                                            className="bg-indigo-600 hover:bg-indigo-700"
+                                        >
+                                            Open Prisma Studio (Local)
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            onClick={() => {
+                                                toast.info('Prisma Studio must be started manually on the server');
+                                            }}
+                                            className="border-indigo-700 text-indigo-300 hover:bg-indigo-900/30"
+                                        >
+                                            Instructions
+                                        </Button>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                                    <h4 className="text-amber-300 font-semibold mb-2">⚠️ Important Notes:</h4>
+                                    <ul className="text-amber-200/80 text-sm space-y-1 list-disc list-inside">
+                                        <li>Prisma Studio runs on port 5555 by default</li>
+                                        <li>For local development: Run <code className="bg-amber-900/30 px-1 rounded">npx prisma studio</code> in the server directory</li>
+                                        <li>For production: Prisma Studio should be run securely with authentication</li>
+                                        <li>Be careful when editing data directly - changes are immediate</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
                 </TabsContent>
             </Tabs>
         </div>
