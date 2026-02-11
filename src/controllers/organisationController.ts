@@ -292,8 +292,7 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'You cannot delete your own organisation' });
         }
 
-        // CRITICAL FIX: Use SOFT DELETE instead of hard delete to prevent data loss
-        // This marks the organisation as deleted but preserves all data
+        // SOFT DELETE
         await prisma.organisation.update({
             where: { id: orgId },
             data: {
@@ -331,7 +330,6 @@ export const deleteOrganisation = async (req: Request, res: Response) => {
     }
 };
 
-// NEW: Restore a soft-deleted organisation
 export const restoreOrganisation = async (req: Request, res: Response) => {
     try {
         if ((req as any).user.role !== 'super_admin') {
@@ -488,350 +486,110 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
             });
         }
 
-        console.log(`⚠️  PERMANENT DELETE: Organisation "${org.name}" (${orgId}) by ${user.email}`);
+        console.log(`⚠️  PERMANENT DELETE STARTED: Organisation "${org.name}" (${orgId}) by ${user.email}`);
 
-        // Delete all related data in correct order (respecting foreign key constraints)
-
-        // 1. Delete product shares
-        await prisma.productShare.deleteMany({ where: { organisationId: orgId } });
-
-        // 2. Delete interactions
-        await prisma.interaction.deleteMany({ where: { organisationId: orgId } });
-
-        // 3. Delete tasks
-        await prisma.task.deleteMany({ where: { organisationId: orgId } });
-
-        // 4. Delete lead history
-        const leadIds = await prisma.lead.findMany({
-            where: { organisationId: orgId },
-            select: { id: true }
-        });
-        await prisma.leadHistory.deleteMany({
-            where: { leadId: { in: leadIds.map(l => l.id) } }
-        });
-
-        // 5. Delete leads
-        await prisma.lead.deleteMany({ where: { organisationId: orgId } });
-
-        // 6. Delete products
-        await prisma.product.deleteMany({ where: { organisationId: orgId } });
-
-        // 7. Delete campaigns
-        await prisma.campaign.deleteMany({ where: { organisationId: orgId } });
-
-        // 8. Delete goals
-        await prisma.goal.deleteMany({ where: { organisationId: orgId } });
-
-        // 9. Delete licenses
-        await prisma.license.deleteMany({ where: { organisationId: orgId } });
-
-        // 10. Delete API keys
-        await prisma.apiKey.deleteMany({ where: { organisationId: orgId } });
-
-        // 11. Get all user IDs from this organisation
+        // Get all user IDs to handle cross-references
         const userIds = await prisma.user.findMany({
             where: { organisationId: orgId },
             select: { id: true }
         });
 
-        // 12. Delete notifications for these users (foreign key constraint)
-        await prisma.notification.deleteMany({
-            where: { recipientId: { in: userIds.map(u => u.id) } }
-        });
+        const userIdList = userIds.map(u => u.id);
 
-        // 13. Delete search history for these users (no organisationId)
-        await prisma.searchHistory.deleteMany({
-            where: { userId: { in: userIds.map(u => u.id) } }
-        });
+        /**
+         * 1. DELETE JUNCTION TABLES AND SECONDARY CHILDREN
+         * These must be deleted first as they depend on main entities.
+         */
 
-        // 14. Delete all user-created records that have foreign key constraints to users
-        // These must be deleted BEFORE deleting users to avoid foreign key violations
+        // Lead junctions
+        await prisma.leadProduct.deleteMany({ where: { lead: { organisationId: orgId } } });
+        await prisma.leadHistory.deleteMany({ where: { lead: { organisationId: orgId } } });
 
-        // Delete calendar events created by users
-        await prisma.calendarEvent.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Quote junctions  
+        await prisma.quoteLineItem.deleteMany({ where: { quote: { organisationId: orgId } } });
 
-        // Delete quotes created by users
-        await prisma.quote.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // User junctions/secondary data
+        await prisma.searchHistory.deleteMany({ where: { userId: { in: userIdList } } });
+        await prisma.userLeadQuotaTracker.deleteMany({ where: { userId: { in: userIdList } } });
 
-        // Delete goals created by users
-        await prisma.goal.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Account products
+        await prisma.accountProduct.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete cases created by users
-        await prisma.case.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Product shares
+        await prisma.productShare.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete import jobs created by users
-        await prisma.importJob.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        /**
+         * 2. DELETE MAIN ENTITIES LINKED TO ORG
+         */
 
-        // Delete API keys created by users
-        await prisma.apiKey.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // CRM Core
+        await prisma.interaction.deleteMany({ where: { organisationId: orgId } });
+        await prisma.opportunity.deleteMany({ where: { organisationId: orgId } });
+        await prisma.lead.deleteMany({ where: { organisationId: orgId } });
+        await prisma.contact.deleteMany({ where: { organisationId: orgId } });
+        await prisma.account.deleteMany({ where: { organisationId: orgId } });
+        await prisma.task.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete assignment rules created by users
-        await prisma.assignmentRule.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Sales & Marketing
+        await prisma.quote.deleteMany({ where: { organisationId: orgId } });
+        await prisma.product.deleteMany({ where: { organisationId: orgId } });
+        await prisma.salesTarget.deleteMany({ where: { organisationId: orgId } });
+        await prisma.commission.deleteMany({ where: { organisationId: orgId } });
+        await prisma.goal.deleteMany({ where: { organisationId: orgId } });
+        await prisma.campaign.deleteMany({ where: { organisationId: orgId } });
+        await prisma.landingPage.deleteMany({ where: { organisationId: orgId } });
+        await prisma.webForm.deleteMany({ where: { organisationId: orgId } });
+        await prisma.emailList.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete campaigns created by users
-        await prisma.campaign.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Support & Communication
+        await prisma.case.deleteMany({ where: { organisationId: orgId } });
+        await prisma.callSettings.deleteMany({ where: { organisationId: orgId } });
+        await prisma.whatsAppMessage.deleteMany({ where: { organisationId: orgId } });
+        await prisma.whatsAppCampaign.deleteMany({ where: { organisationId: orgId } });
+        await prisma.sMSCampaign.deleteMany({ where: { organisationId: orgId } });
+        await prisma.webhook.deleteMany({ where: { organisationId: orgId } });
+        await prisma.checkIn.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete custom fields created by users
-        await prisma.customField.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
+        // Infrastructure & Workspace
+        await prisma.workflowRule.deleteMany({ where: { organisationId: orgId } });
+        await prisma.workflowQueue.deleteMany({ where: { organisationId: orgId } });
+        await prisma.workflow.deleteMany({ where: { organisationId: orgId } });
+        await prisma.pipeline.deleteMany({ where: { organisationId: orgId } });
+        await prisma.calendarEvent.deleteMany({ where: { organisationId: orgId } });
+        await prisma.document.deleteMany({ where: { organisationId: orgId } });
+        await prisma.team.deleteMany({ where: { organisationId: orgId } });
+        await prisma.territory.deleteMany({ where: { organisationId: orgId } });
+        await prisma.customField.deleteMany({ where: { organisationId: orgId } });
+        await prisma.apiKey.deleteMany({ where: { organisationId: orgId } });
+        await prisma.assignmentRule.deleteMany({ where: { organisationId: orgId } });
+        await prisma.importJob.deleteMany({ where: { organisationId: orgId } });
+        await prisma.license.deleteMany({ where: { organisationId: orgId } });
 
-        // Delete email lists created by users
-        await prisma.emailList.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete interactions created by users
-        await prisma.interaction.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete pipelines created by users
-        await prisma.pipeline.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete web forms created by users
-        await prisma.webForm.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete SMS campaigns created by users
-        await prisma.sMSCampaign.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete WhatsApp campaigns created by users
-        await prisma.whatsAppCampaign.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete commissions created by users
-        await prisma.commission.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete landing pages created by users
-        await prisma.landingPage.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete documents created by users
-        await prisma.document.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete webhooks created by users
-        await prisma.webhook.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete workflows created by users
-        await prisma.workflow.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete workflow rules created by users
-        await prisma.workflowRule.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete sales targets created by users
-        await prisma.salesTarget.deleteMany({
-            where: { assignedById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete teams created by users
-        await prisma.team.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete product shares created by users
-        await prisma.productShare.deleteMany({
-            where: { createdById: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete user lead quota trackers
-        await prisma.userLeadQuotaTracker.deleteMany({
-            where: { userId: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete lead history records where users are referenced
-        await prisma.leadHistory.deleteMany({
-            where: {
-                OR: [
-                    { oldOwnerId: { in: userIds.map(u => u.id) } },
-                    { newOwnerId: { in: userIds.map(u => u.id) } },
-                    { changedById: { in: userIds.map(u => u.id) } }
-                ]
-            }
-        });
-
-        // Update records that reference users but shouldn't be deleted
-        // Set user references to null for records that should remain
-
-        // Update leads that are assigned to these users
-        await prisma.lead.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
-        });
-
-        // Update leads that have previous owners
-        await prisma.lead.updateMany({
-            where: { previousOwnerId: { in: userIds.map(u => u.id) } },
-            data: { previousOwnerId: null }
-        });
-
-        // Update contacts owned by these users
-        await prisma.contact.updateMany({
-            where: { ownerId: { in: userIds.map(u => u.id) } },
-            data: { ownerId: null }
-        });
-
-        // Update accounts owned by these users
-        await prisma.account.updateMany({
-            where: { ownerId: { in: userIds.map(u => u.id) } },
-            data: { ownerId: null }
-        });
-
-        // Update opportunities owned by these users
-        await prisma.opportunity.updateMany({
-            where: { ownerId: { in: userIds.map(u => u.id) } },
-            data: { ownerId: null }
-        });
-
-        // Update tasks assigned to these users
-        await prisma.task.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
-        });
-
-        // Update tasks created by these users
-        await prisma.task.updateMany({
-            where: { createdById: { in: userIds.map(u => u.id) } },
-            data: { createdById: null }
-        });
-
-        // Update quotes assigned to these users
-        await prisma.quote.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
-        });
-
-        // Update cases assigned to these users
-        await prisma.case.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
-        });
-
-        // Update sales targets assigned to these users
-        await prisma.salesTarget.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
-        });
-
-        // Delete goals assigned to these users (cannot set to null as assignedToId is required)
-        await prisma.goal.deleteMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } }
-        });
-
-        // Update territories managed by these users
-        await prisma.territory.updateMany({
-            where: { managerId: { in: userIds.map(u => u.id) } },
-            data: { managerId: null }
-        });
-
-        // Update assignment rules that reference these users
-        await prisma.assignmentRule.updateMany({
-            where: { lastAssignedUserId: { in: userIds.map(u => u.id) } },
-            data: { lastAssignedUserId: null }
-        });
-
-        await prisma.assignmentRule.updateMany({
-            where: { targetManagerId: { in: userIds.map(u => u.id) } },
-            data: { targetManagerId: null }
-        });
-
-        // Update teams managed by these users
-        await prisma.team.updateMany({
-            where: { managerId: { in: userIds.map(u => u.id) } },
-            data: { managerId: null }
-        });
-
-        // Update user hierarchy (reports to relationships)
-        await prisma.user.updateMany({
-            where: { reportsToId: { in: userIds.map(u => u.id) } },
-            data: { reportsToId: null }
-        });
-
-        // Update licenses activated/cancelled by these users
-        await prisma.license.updateMany({
-            where: { activatedById: { in: userIds.map(u => u.id) } },
-            data: { activatedById: null }
-        });
-
-        await prisma.license.updateMany({
-            where: { cancelledById: { in: userIds.map(u => u.id) } },
-            data: { cancelledById: null }
-        });
-
-        // Update WhatsApp messages assigned to these users
-        await prisma.whatsAppMessage.updateMany({
-            where: { agentId: { in: userIds.map(u => u.id) } },
-            data: { agentId: null }
-        });
-
-        // Delete commissions for these users (cannot set to null as userId is required)
-        await prisma.commission.deleteMany({
-            where: { userId: { in: userIds.map(u => u.id) } }
-        });
-
-        // Delete check-ins by these users (cannot set to null as userId is required)
-        await prisma.checkIn.deleteMany({
-            where: { userId: { in: userIds.map(u => u.id) } }
-        });
-
-        // 15. Delete audit logs for this org (before deleting users/org)
+        // 3. System Logs for this org
+        await prisma.notification.deleteMany({ where: { recipientId: { in: userIdList } } });
         await prisma.auditLog.deleteMany({ where: { organisationId: orgId } });
 
-        // 16. Delete users (after all foreign key constraints are handled)
+        // 4. Delete Users
         await prisma.user.deleteMany({ where: { organisationId: orgId } });
 
-        // 15. Finally, delete the organisation
+        // 5. Finally delete the Organisation
         await prisma.organisation.delete({ where: { id: orgId } });
 
-        // Audit Log
-        logAudit({
+        // 6. Audit Log (Logged AFTER successful deletion with 'system' org)
+        await logAudit({
             action: 'PERMANENT_DELETE_ORGANISATION',
             entity: 'Organisation',
             entityId: orgId,
             actorId: user.id,
-            organisationId: getOrgId(user) || 'system', // Use user's org or system
+            organisationId: 'system',
             details: {
                 name: org.name,
-                deletedUsers: org._count.users,
-                deletedLeads: org._count.leads,
-                deletedProducts: org._count.products,
-                deletedTasks: org._count.tasks,
-                warning: 'PERMANENT DELETION - DATA CANNOT BE RECOVERED'
+                deletedUsersCount: userIdList.length,
+                warning: 'PERMANENT DELETION SUCCESSFUL'
             }
         });
+
+        console.log(`✅  PERMANENT DELETE SUCCESSFUL: "${org.name}"`);
 
         res.json({
             message: 'Organisation permanently deleted',
@@ -841,8 +599,7 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
                 leads: org._count.leads,
                 products: org._count.products,
                 tasks: org._count.tasks
-            },
-            warning: 'This action cannot be undone'
+            }
         });
     } catch (error) {
         console.error('Permanent delete error:', error);
