@@ -102,6 +102,46 @@ export default function SuperAdminDashboard() {
         }
     });
 
+    // Permanent Delete Mutation
+    const permanentDeleteMutation = useMutation({
+        mutationFn: async (id: string) => {
+            const res = await api.delete(`/super-admin/organisations/${id}/permanent`, {
+                data: { confirm: 'PERMANENTLY_DELETE' }
+            });
+            return res.data;
+        },
+        onSuccess: (data) => {
+            queryClient.invalidateQueries({ queryKey: ['organisations'] });
+            queryClient.invalidateQueries({ queryKey: ['super-admin-stats'] });
+            toast.success(`Organisation permanently deleted: ${data.deletedData.users} users, ${data.deletedData.leads} leads, ${data.deletedData.products} products`);
+        },
+        onError: (err: { response?: { data?: { message?: string } } }) => {
+            toast.error(err.response?.data?.message || 'Failed to delete organisation');
+        }
+    });
+
+    const handlePermanentDelete = (org: Organisation) => {
+        const confirmed = window.confirm(
+            `⚠️ PERMANENT DELETE WARNING ⚠️\n\n` +
+            `This will PERMANENTLY delete "${org.name}" and ALL its data:\n` +
+            `- All users in this organisation\n` +
+            `- All leads\n` +
+            `- All products\n` +
+            `- All tasks and interactions\n\n` +
+            `This action CANNOT be undone!\n\n` +
+            `Type the organisation name to confirm: "${org.name}"`
+        );
+
+        if (confirmed) {
+            const typedName = window.prompt(`Type "${org.name}" to confirm permanent deletion:`);
+            if (typedName === org.name) {
+                permanentDeleteMutation.mutate(org.id);
+            } else {
+                toast.error('Organisation name did not match. Deletion cancelled.');
+            }
+        }
+    };
+
     const filteredOrgs = organisations?.filter((org: Organisation) =>
         org.name.toLowerCase().includes(search.toLowerCase()) ||
         org.slug.toLowerCase().includes(search.toLowerCase()) ||
@@ -309,6 +349,13 @@ export default function SuperAdminDashboard() {
                                                                     Restore Organisation
                                                                 </DropdownMenuItem>
                                                             )}
+                                                            <DropdownMenuSeparator className="bg-indigo-800" />
+                                                            <DropdownMenuItem
+                                                                onClick={() => handlePermanentDelete(org)}
+                                                                className="text-red-600 hover:text-red-400 hover:bg-red-950/50 focus:bg-red-950/50 cursor-pointer font-semibold"
+                                                            >
+                                                                ⚠️ Permanent Delete
+                                                            </DropdownMenuItem>
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </TableCell>

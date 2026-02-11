@@ -2,6 +2,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
 import { getLeads, type Lead } from "@/services/leadService"
+import { getAssetUrl } from "@/lib/utils"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -461,7 +462,7 @@ export default function ProductsPage() {
                                                                 <Share2 className="h-4 w-4 mr-2" />Share
                                                             </DropdownMenuItem>
                                                             {product.brochureUrl && (
-                                                                <DropdownMenuItem onClick={() => window.open(product.brochureUrl, '_blank')}>
+                                                                <DropdownMenuItem onClick={() => window.open(getAssetUrl(product.brochureUrl), '_blank')}>
                                                                     <FileText className="h-4 w-4 mr-2" />View Brochure
                                                                 </DropdownMenuItem>
                                                             )}

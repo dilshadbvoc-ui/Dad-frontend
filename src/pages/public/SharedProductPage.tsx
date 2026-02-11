@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { useParams, useSearchParams } from "react-router-dom"
 import { api } from "@/services/api"
+import { getAssetUrl } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -30,20 +31,6 @@ interface SharedProductData {
 }
 
 // Helper to construct safe URL for brochure
-const getAssetUrl = (path?: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-
-    // In development, always use localhost to avoid React Router conflicts
-    if (import.meta.env.DEV) {
-        return `http://localhost:5001${path}`;
-    }
-
-    // In production, construct full URL to backend
-    const backendUrl = import.meta.env.VITE_API_URL || 'https://dad-backend.onrender.com';
-    return `${backendUrl}${path}`;
-}
-
 export default function SharedProductPage() {
     const { slug } = useParams()
     const [searchParams] = useSearchParams()

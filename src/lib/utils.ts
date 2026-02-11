@@ -18,3 +18,21 @@ export function formatCurrency(amount: number) {
         currency: currentCurrency,
     }).format(amount)
 }
+
+/**
+ * Helper to construct safe URL for assets (brochures, images, etc.)
+ * Ensures URLs bypass React Router and go directly to backend
+ */
+export function getAssetUrl(path?: string): string {
+    if (!path) return '';
+    if (path.startsWith('http')) return path;
+
+    // In development, always use localhost to avoid React Router conflicts
+    if (import.meta.env.DEV) {
+        return `http://localhost:5001${path}`;
+    }
+
+    // In production, construct full URL to backend
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://dad-backend.onrender.com';
+    return `${backendUrl}${path}`;
+}
