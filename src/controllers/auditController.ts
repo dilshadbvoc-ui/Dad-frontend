@@ -6,10 +6,13 @@ export const getAuditLogs = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { entity, action, userId, startDate, endDate, page = 1, limit = 20 } = req.query;
 
-        // Base where clause - restricted to user's organisation
-        const where: any = {
-            organisationId: user.organisationId
-        };
+        // Base where clause - super admin sees all orgs, others see their own
+        const where: any = {};
+        if (user.organisationId) {
+            where.organisationId = user.organisationId;
+        } else if (user.role !== 'super_admin') {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
 
         // Filters
         if (entity) where.entity = String(entity);
