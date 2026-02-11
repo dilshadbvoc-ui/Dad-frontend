@@ -32,6 +32,7 @@ import taskRoutes from './routes/taskRoutes';
 import workflowRoutes from './routes/workflowRoutes';
 import productRoutes from './routes/productRoutes';
 import quoteRoutes from './routes/quoteRoutes';
+import shareRoutes from './routes/shareRoutes';
 
 import caseRoutes from './routes/caseRoutes';
 import goalRoutes from './routes/goalRoutes';
@@ -227,7 +228,9 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+const staticPath = path.join(__dirname, '../uploads');
+console.log('Serving static files from:', staticPath);
+app.use('/uploads', express.static(staticPath));
 
 app.get('/', (req, res) => {
     console.log('Health check ping received at /');
@@ -293,7 +296,6 @@ app.use('/api/tasks', taskRoutes);
 // Commerce
 app.use('/api/products', productRoutes);
 app.use('/api/quotes', quoteRoutes);
-import shareRoutes from './routes/shareRoutes';
 app.use('/api/share', shareRoutes);
 
 // Field & Support
