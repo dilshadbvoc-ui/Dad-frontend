@@ -1,7 +1,11 @@
 {
     "rewrites": [
         {
-            "source": "/((?!assets/|.*\\..*).*)",
+            "source": "/shared-product/:slug",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/((?!api|_next|static|favicon.ico|.*\\..*).*)",
             "destination": "/index.html"
         }
     ]
