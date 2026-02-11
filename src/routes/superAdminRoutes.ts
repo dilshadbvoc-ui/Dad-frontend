@@ -6,7 +6,7 @@ import {
     suspendOrganisation,
     getOrganisationStats
 } from '../controllers/superAdminController';
-import { deleteOrganisation, restoreOrganisation } from '../controllers/organisationController';
+import { deleteOrganisation, restoreOrganisation, permanentlyDeleteOrganisation } from '../controllers/organisationController';
 import {
     getPlans,
     createPlan,
@@ -22,7 +22,8 @@ router.get('/organisations', protect, getAllOrganisations);
 router.post('/organisations', protect, createOrganisation);
 router.put('/organisations/:id', protect, updateOrganisationAdmin);
 router.delete('/organisations/:id', protect, deleteOrganisation); // Soft delete
-router.post('/organisations/:id/restore', protect, restoreOrganisation); // NEW: Restore deleted org
+router.delete('/organisations/:id/permanent', protect, permanentlyDeleteOrganisation); // Permanent delete (super admin only)
+router.post('/organisations/:id/restore', protect, restoreOrganisation); // Restore deleted org
 router.post('/organisations/:id/suspend', protect, suspendOrganisation);
 
 // License Plans Management

@@ -430,3 +430,140 @@ export const sendTestReport = async (req: Request, res: Response) => {
         res.status(500).json({ message: (error as Error).message });
     }
 };
+
+/**
+ * Permanently delete an organisation and all its data
+ * SUPER ADMIN ONLY - This is irreversible!
+ */
+export const permanentlyDeleteOrganisation = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        
+        // Only super admin can permanently delete
+        if (user.role !== 'super_admin') {
+            return res.status(403).json({ message: 'Only super admins can permanently delete organisations' });
+        }
+
+        const orgId = req.params.id;
+        
+        // Verify organisation exists
+        const org = await prisma.organisation.findUnique({
+            where: { id: orgId },
+            include: {
+                _count: {
+                    select: {
+                        users: true,
+                        leads: true,
+                        products: true,
+                        tasks: true
+                    }
+                }
+            }
+        });
+
+        if (!org) {
+            return res.status(404).json({ message: 'Organisation not found' });
+        }
+
+        // Prevent super admin from deleting their own organisation
+        const userOrgId = getOrgId(user);
+        if (userOrgId === orgId) {
+            return res.status(400).json({ message: 'You cannot delete your own organisation' });
+        }
+
+        // Require confirmation parameter
+        const { confirm } = req.body;
+        if (confirm !== 'PERMANENTLY_DELETE') {
+            return res.status(400).json({ 
+                message: 'Confirmation required',
+                instruction: 'Send { "confirm": "PERMANENTLY_DELETE" } in request body to proceed',
+                warning: 'This will permanently delete all data including users, leads, products, and tasks',
+                dataToBeDeleted: {
+                    organisation: org.name,
+                    users: org._count.users,
+                    leads: org._count.leads,
+                    products: org._count.products,
+                    tasks: org._count.tasks
+                }
+            });
+        }
+
+        console.log(`⚠️  PERMANENT DELETE: Organisation "${org.name}" (${orgId}) by ${user.email}`);
+
+        // Delete all related data in correct order (respecting foreign key constraints)
+        
+        // 1. Delete product shares
+        await prisma.productShare.deleteMany({ where: { organisationId: orgId } });
+        
+        // 2. Delete interactions
+        await prisma.interaction.deleteMany({ where: { organisationId: orgId } });
+        
+        // 3. Delete tasks
+        await prisma.task.deleteMany({ where: { organisationId: orgId } });
+        
+        // 4. Delete lead history
+        const leadIds = await prisma.lead.findMany({
+            where: { organisationId: orgId },
+            select: { id: true }
+        });
+        await prisma.leadHistory.deleteMany({
+            where: { leadId: { in: leadIds.map(l => l.id) } }
+        });
+        
+        // 5. Delete leads
+        await prisma.lead.deleteMany({ where: { organisationId: orgId } });
+        
+        // 6. Delete products
+        await prisma.product.deleteMany({ where: { organisationId: orgId } });
+        
+        // 7. Delete campaigns
+        await prisma.campaign.deleteMany({ where: { organisationId: orgId } });
+        
+        // 8. Delete goals
+        await prisma.goal.deleteMany({ where: { organisationId: orgId } });
+        
+        // 9. Delete licenses
+        await prisma.license.deleteMany({ where: { organisationId: orgId } });
+        
+        // 10. Delete API keys
+        await prisma.apiKey.deleteMany({ where: { organisationId: orgId } });
+        
+        // 11. Delete users
+        await prisma.user.deleteMany({ where: { organisationId: orgId } });
+        
+        // 12. Finally, delete the organisation
+        await prisma.organisation.delete({ where: { id: orgId } });
+
+        // Audit Log
+        logAudit({
+            action: 'PERMANENT_DELETE_ORGANISATION',
+            entity: 'Organisation',
+            entityId: orgId,
+            actorId: user.id,
+            organisationId: null, // Org no longer exists
+            details: {
+                name: org.name,
+                deletedUsers: org._count.users,
+                deletedLeads: org._count.leads,
+                deletedProducts: org._count.products,
+                deletedTasks: org._count.tasks,
+                warning: 'PERMANENT DELETION - DATA CANNOT BE RECOVERED'
+            }
+        });
+
+        res.json({
+            message: 'Organisation permanently deleted',
+            deletedData: {
+                organisation: org.name,
+                users: org._count.users,
+                leads: org._count.leads,
+                products: org._count.products,
+                tasks: org._count.tasks
+            },
+            warning: 'This action cannot be undone'
+        });
+    } catch (error) {
+        console.error('Permanent delete error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
