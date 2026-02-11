@@ -57,9 +57,12 @@ export default function SharedProductPage() {
             try {
                 // Use the public API endpoint, passing leadId if available
                 const url = leadId ? `/share/${slug}?leadId=${leadId}` : `/share/${slug}`
+                console.log('Fetching shared product:', url);
                 const response = await api.get(url)
+                console.log('Shared product response:', response.data);
                 setData(response.data)
             } catch (err: unknown) {
+                console.error('Error fetching shared product:', err);
                 const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to load product";
                 setError(errorMessage);
             } finally {
