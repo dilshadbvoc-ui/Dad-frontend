@@ -1,5 +1,5 @@
 
-import { useQuery, useQueryClient } from "@tanstack:react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
