@@ -1,5 +1,6 @@
 
 import { Request, Response } from 'express';
+import crypto from 'crypto';
 import prisma from '../config/prisma';
 import generateToken from '../utils/generateToken';
 import bcrypt from 'bcryptjs';
@@ -100,9 +101,9 @@ export const registerUser = async (req: Request, res: Response) => {
         // Enhanced password validation
         const { PasswordValidator } = await import('../utils/passwordValidator');
         const passwordValidation = PasswordValidator.validate(password, [email, firstName, lastName]);
-        
+
         if (!passwordValidation.isValid) {
-            res.status(400).json({ 
+            res.status(400).json({
                 message: 'Password does not meet security requirements',
                 errors: passwordValidation.errors,
                 suggestions: passwordValidation.suggestions

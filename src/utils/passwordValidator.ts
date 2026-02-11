@@ -74,7 +74,7 @@ export class PasswordValidator {
             score: zxcvbnResult.score,
             errors,
             suggestions,
-            estimatedCrackTime: zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second
+            estimatedCrackTime: String(zxcvbnResult.crack_times_display.offline_slow_hashing_1e4_per_second)
         };
     }
 
@@ -88,7 +88,7 @@ export class PasswordValidator {
             'dragon', 'master', 'shadow', 'superman', 'michael'
         ];
 
-        return commonPasswords.some(common => 
+        return commonPasswords.some(common =>
             password.toLowerCase().includes(common.toLowerCase())
         );
     }

@@ -1161,7 +1161,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/retro/Documents/D/MERN CRM/Dad-backend-main/MERN-CRM/server/src/generated/client",
+      "value": "/Users/retro/Documents/D/MERN CRM/src/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -1179,12 +1179,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/retro/Documents/D/MERN CRM/Dad-backend-main/MERN-CRM/server/prisma/schema.prisma",
+    "sourceFilePath": "/Users/retro/Documents/D/MERN CRM/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../../prisma",
   "clientVersion": "5.22.0",
@@ -1193,6 +1192,7 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

@@ -746,10 +746,9 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
             data: { assignedToId: null }
         });
 
-        // Update goals assigned to these users
-        await prisma.goal.updateMany({
-            where: { assignedToId: { in: userIds.map(u => u.id) } },
-            data: { assignedToId: null }
+        // Delete goals assigned to these users (cannot set to null as assignedToId is required)
+        await prisma.goal.deleteMany({
+            where: { assignedToId: { in: userIds.map(u => u.id) } }
         });
 
         // Update territories managed by these users
@@ -798,16 +797,14 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
             data: { agentId: null }
         });
 
-        // Update commissions for these users
-        await prisma.commission.updateMany({
-            where: { userId: { in: userIds.map(u => u.id) } },
-            data: { userId: null }
+        // Delete commissions for these users (cannot set to null as userId is required)
+        await prisma.commission.deleteMany({
+            where: { userId: { in: userIds.map(u => u.id) } }
         });
 
-        // Update check-ins by these users
-        await prisma.checkIn.updateMany({
-            where: { userId: { in: userIds.map(u => u.id) } },
-            data: { userId: null }
+        // Delete check-ins by these users (cannot set to null as userId is required)
+        await prisma.checkIn.deleteMany({
+            where: { userId: { in: userIds.map(u => u.id) } }
         });
 
         // 15. Delete audit logs for this org (before deleting users/org)

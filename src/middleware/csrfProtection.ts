@@ -3,7 +3,7 @@ import crypto from 'crypto';
 
 interface CSRFRequest extends Request {
     csrfToken?: string;
-    session?: any;
+    session: any; // Match augmented required session from express-session
 }
 
 /**
@@ -27,14 +27,16 @@ export class CSRFProtection {
      */
     static setToken() {
         return (req: CSRFRequest, res: Response, next: NextFunction) => {
+            const session = req.session as any;
+
             // Generate new token if not exists
-            if (!req.session?.csrfToken) {
+            if (!session?.csrfToken) {
                 req.session = req.session || {};
-                req.session.csrfToken = CSRFProtection.generateToken();
+                (req.session as any).csrfToken = CSRFProtection.generateToken();
             }
 
             // Set token in cookie for client access
-            res.cookie(CSRFProtection.CSRF_COOKIE_NAME, req.session.csrfToken, {
+            res.cookie(CSRFProtection.CSRF_COOKIE_NAME, (req.session as any).csrfToken, {
                 httpOnly: false, // Client needs to read this
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'strict',
@@ -42,7 +44,7 @@ export class CSRFProtection {
             });
 
             // Make token available to request
-            req.csrfToken = req.session.csrfToken;
+            req.csrfToken = (req.session as any).csrfToken;
             next();
         };
     }
@@ -67,7 +69,8 @@ export class CSRFProtection {
                 return next();
             }
 
-            const sessionToken = req.session?.csrfToken;
+            const session = req.session;
+            const sessionToken = session?.csrfToken;
             const headerToken = req.headers[CSRFProtection.CSRF_HEADER_NAME.toLowerCase()] as string;
             const cookieToken = req.cookies[CSRFProtection.CSRF_COOKIE_NAME];
 
@@ -110,8 +113,9 @@ export class CSRFProtection {
      */
     static getTokenEndpoint() {
         return (req: CSRFRequest, res: Response) => {
+            const session = req.session as any;
             res.json({
-                csrfToken: req.csrfToken || req.session?.csrfToken,
+                csrfToken: req.csrfToken || session?.csrfToken,
                 expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
             });
         };

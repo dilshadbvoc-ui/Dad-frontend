@@ -41,7 +41,7 @@ export class SecurityAuditMiddleware {
             const originalSend = res.send;
 
             // Override response to capture status
-            res.send = function(body: any) {
+            res.send = function (body: any) {
                 const responseTime = Date.now() - startTime;
                 SecurityAuditMiddleware.analyzeRequest(req, res, responseTime);
                 return originalSend.call(this, body);
@@ -63,7 +63,7 @@ export class SecurityAuditMiddleware {
         const statusCode = res.statusCode;
 
         // Check for suspicious patterns in request
-        this.checkSuspiciousPatterns(req, ip, userAgent);
+        this.checkSuspiciousPatterns(req, ip || 'unknown', (userAgent as string) || 'unknown');
 
         // Check for failed authentication attempts
         if (path.includes('/auth/login') && statusCode === 401) {
@@ -81,12 +81,12 @@ export class SecurityAuditMiddleware {
                 type: 'ACCESS_DENIED',
                 severity: 'HIGH',
                 description: 'Privilege escalation attempt',
-                metadata: { 
-                    userId: user.id, 
-                    role: user.role, 
+                metadata: {
+                    userId: user.id,
+                    role: user.role,
                     attemptedPath: path,
-                    ip, 
-                    userAgent 
+                    ip,
+                    userAgent
                 }
             }, req);
         }
@@ -124,10 +124,10 @@ export class SecurityAuditMiddleware {
                     type: 'SECURITY_VIOLATION',
                     severity: 'HIGH',
                     description: `Suspicious pattern detected: ${pattern.source}`,
-                    metadata: { 
-                        ip, 
-                        userAgent, 
-                        path: req.path, 
+                    metadata: {
+                        ip,
+                        userAgent,
+                        path: req.path,
                         method: req.method,
                         matchedPattern: pattern.source
                     }
@@ -142,7 +142,7 @@ export class SecurityAuditMiddleware {
      */
     private static logSensitiveAccess(req: Request, res: Response, user: any) {
         const severity = this.getSensitivityLevel(req.path);
-        
+
         this.logSecurityEvent({
             type: 'SUSPICIOUS_ACTIVITY',
             severity,
@@ -174,7 +174,7 @@ export class SecurityAuditMiddleware {
      */
     private static logSecurityEvent(event: SecurityEvent, req: Request) {
         const user = (req as any).user;
-        
+
         // Log to audit system
         if (user?.organisationId) {
             logAudit({
@@ -247,7 +247,7 @@ export class SecurityAuditMiddleware {
 
             // Check if this is a failed attempt (will be determined after response)
             const originalSend = res.send;
-            res.send = function(body: any) {
+            res.send = function (body: any) {
                 if (res.statusCode === 401 || res.statusCode === 403) {
                     current.count++;
                     current.lastAttempt = now;
@@ -258,9 +258,9 @@ export class SecurityAuditMiddleware {
                             type: 'SUSPICIOUS_ACTIVITY',
                             severity: 'HIGH',
                             description: 'Brute force attack detected',
-                            metadata: { 
-                                ip, 
-                                path: req.path, 
+                            metadata: {
+                                ip,
+                                path: req.path,
                                 attempts: current.count,
                                 timeWindow: WINDOW_MS / 1000 / 60 + ' minutes'
                             }
