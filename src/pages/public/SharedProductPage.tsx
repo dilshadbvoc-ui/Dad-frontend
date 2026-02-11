@@ -34,11 +34,12 @@ const getAssetUrl = (path?: string) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    // In development, use relative path to leverage Vite proxy
-    if (import.meta.env.DEV) return path;
+    // In development, always use localhost to avoid React Router conflicts
+    if (import.meta.env.DEV) {
+        return `http://localhost:5001${path}`;
+    }
 
     // In production, construct full URL to backend
-    // The API_URL from config already has the backend URL
     const backendUrl = import.meta.env.VITE_API_URL || 'https://dad-backend.onrender.com';
     return `${backendUrl}${path}`;
 }
