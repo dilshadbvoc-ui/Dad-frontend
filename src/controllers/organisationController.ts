@@ -540,7 +540,7 @@ export const permanentlyDeleteOrganisation = async (req: Request, res: Response)
             entity: 'Organisation',
             entityId: orgId,
             actorId: user.id,
-            organisationId: null, // Org no longer exists
+            organisationId: getOrgId(user) || 'system', // Use user's org or system
             details: {
                 name: org.name,
                 deletedUsers: org._count.users,
