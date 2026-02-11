@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, Package, DollarSign, Tag, Trash2, MoreHorizontal, Share2, FileText, Copy, Check, Edit } from "lucide-react"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import {
@@ -240,7 +240,10 @@ export default function ProductsPage() {
                                 </DialogTrigger>
                                 <DialogContent>
                                     <form onSubmit={handleSubmit}>
-                                        <DialogHeader><DialogTitle>Add New Product</DialogTitle></DialogHeader>
+                                        <DialogHeader>
+                                            <DialogTitle>Add New Product</DialogTitle>
+                                            <DialogDescription>Create a new product with details and optional brochure.</DialogDescription>
+                                        </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div><Label>Name</Label><Input name="name" required /></div>
                                             <div className="grid grid-cols-2 gap-4">
@@ -264,7 +267,10 @@ export default function ProductsPage() {
                             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
                                 <DialogContent>
                                     <form onSubmit={handleEditSubmit}>
-                                        <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+                                        <DialogHeader>
+                                            <DialogTitle>Edit Product</DialogTitle>
+                                            <DialogDescription>Update product details including name, price, category, and brochure.</DialogDescription>
+                                        </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div><Label>Name</Label><Input name="name" defaultValue={editingProduct?.name} required /></div>
                                             <div className="grid grid-cols-2 gap-4">
