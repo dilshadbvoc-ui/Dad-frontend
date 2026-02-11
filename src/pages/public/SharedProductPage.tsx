@@ -71,11 +71,11 @@ export default function SharedProductPage() {
         </div>
     )
 
-    if (!data) return null
+    if (!data || !data.product) return null
 
     const { product, seller, shareConfig } = data
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
-    const brochureFullUrl = getAssetUrl(product.brochureUrl);
+    const brochureFullUrl = product.brochureUrl ? getAssetUrl(product.brochureUrl) : '';
     
     console.log('Product brochure URL:', product.brochureUrl);
     console.log('Constructed brochure URL:', brochureFullUrl);

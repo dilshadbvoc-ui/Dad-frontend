@@ -34,17 +34,12 @@ api.interceptors.response.use(
             }
         }
         
-        // Handle 500 errors gracefully - return empty data instead of crashing
+        // Handle 500 errors gracefully for generic requests, 
+        // but let specific pages handle their own errors if needed.
+        // Actually, it's better to just log and let the caller handle it, 
+        // OR return a structure that doesn't crash callers.
         if (error.response && error.response.status === 500) {
             console.error('Server error:', error.response.data);
-            // Return a resolved promise with empty data structure
-            return Promise.resolve({ 
-                data: { 
-                    data: [], 
-                    message: 'Unable to fetch data',
-                    error: true 
-                } 
-            });
         }
         
         return Promise.reject(error);

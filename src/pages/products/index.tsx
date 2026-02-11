@@ -176,6 +176,7 @@ export default function ProductsPage() {
     const handleShareClick = async (product: Product) => {
         setSelectedProductId(product.id)
         setSelectedLeadId("none")
+        setSharedLinkData(null) // Reset previous share data
 
         // Fetch leads
         try {
