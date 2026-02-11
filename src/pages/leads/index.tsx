@@ -4,6 +4,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
+import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -238,6 +239,9 @@ export default function LeadsPage() {
 
             {/* Main Content */}
             <div className="flex-1 overflow-hidden flex flex-col space-y-6">
+
+                {/* Environment Warning */}
+                <EnvironmentWarning />
 
                 {/* Header Area */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">

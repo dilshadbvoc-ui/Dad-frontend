@@ -117,6 +117,12 @@ function AppContent() {
         console.error('Failed to parse user info', e);
       }
     }
+
+    // Log environment info and warn if local
+    import('./utils/environmentChecker').then(({ logEnvironmentInfo, warnIfLocalEnvironment }) => {
+      logEnvironmentInfo();
+      warnIfLocalEnvironment();
+    });
   }, []);
 
   return (
