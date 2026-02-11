@@ -70,7 +70,11 @@ export default function ProductsPage() {
             setEditingProduct(null)
             toast.success("Product updated successfully")
         },
-        onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to update product")
+        onError: (error: any) => {
+            const errorMessage = error.response?.data?.message || error.message || "Failed to update product";
+            console.error("Update error:", error);
+            toast.error(errorMessage);
+        }
     })
 
     const deleteMutation = useMutation({
@@ -134,28 +138,35 @@ export default function ProductsPage() {
 
         // Handle Brochure Upload
         const brochureFile = formData.get('brochure') as File
-        let brochureUrl = editingProduct.brochureUrl
+        let brochureUrl = editingProduct.brochureUrl // Keep existing brochure by default
 
         if (brochureFile && brochureFile.size > 0) {
             try {
                 const uploadRes = await uploadBrochure(brochureFile)
                 brochureUrl = uploadRes.url
-            } catch {
+            } catch (error) {
+                console.error("Brochure upload error:", error);
                 toast.error("Failed to upload brochure")
                 return
             }
         }
 
+        const updateData: Partial<CreateProductData> = {
+            name: formData.get('name') as string,
+            sku: formData.get('sku') as string || undefined,
+            basePrice: parseFloat(formData.get('basePrice') as string),
+            category: formData.get('category') as string || undefined,
+            description: formData.get('description') as string || undefined,
+        };
+
+        // Only include brochureUrl if it exists
+        if (brochureUrl) {
+            updateData.brochureUrl = brochureUrl;
+        }
+
         updateMutation.mutate({
             id: editingProduct.id,
-            data: {
-                name: formData.get('name') as string,
-                sku: formData.get('sku') as string || undefined,
-                basePrice: parseFloat(formData.get('basePrice') as string),
-                category: formData.get('category') as string || undefined,
-                description: formData.get('description') as string || undefined,
-                brochureUrl
-            }
+            data: updateData
         })
     }
 
