@@ -117,14 +117,13 @@ class CampaignProcessor {
                 if (campaign.status === 'completed' || campaign.status === 'failed') {
                     throw new Error(`Campaign is already in ${campaign.status} state`);
                 }
-                // Get recipients - For now, pull all leads from the organization
-                // In a full implementation, we would filter by emailList
+                // Get recipients - Filter by emailList if provided, otherwise fallback to all leads with emails
                 const recipients = yield prisma_1.default.lead.findMany({
-                    where: {
-                        organisationId: campaign.organisationId,
-                        isDeleted: false,
-                        email: { not: null }
-                    },
+                    where: Object.assign({ organisationId: campaign.organisationId, isDeleted: false, email: { not: null } }, (campaign.emailListId ? {
+                        emailLists: {
+                            some: { id: campaign.emailListId }
+                        }
+                    } : {})),
                     select: { id: true, email: true, firstName: true, lastName: true, company: true }
                 });
                 if (recipients.length === 0)

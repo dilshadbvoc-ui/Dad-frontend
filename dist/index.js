@@ -32,6 +32,7 @@ const taskRoutes_1 = __importDefault(require("./routes/taskRoutes"));
 const workflowRoutes_1 = __importDefault(require("./routes/workflowRoutes"));
 const productRoutes_1 = __importDefault(require("./routes/productRoutes"));
 const quoteRoutes_1 = __importDefault(require("./routes/quoteRoutes"));
+const shareRoutes_1 = __importDefault(require("./routes/shareRoutes"));
 const caseRoutes_1 = __importDefault(require("./routes/caseRoutes"));
 const goalRoutes_1 = __importDefault(require("./routes/goalRoutes"));
 const territoryRoutes_1 = __importDefault(require("./routes/territoryRoutes"));
@@ -202,7 +203,9 @@ app.use((req, res, next) => {
     }
     next();
 });
-app.use('/uploads', express_1.default.static(path_1.default.join(__dirname, '../uploads')));
+const staticPath = path_1.default.join(__dirname, '../uploads');
+console.log('Serving static files from:', staticPath);
+app.use('/uploads', express_1.default.static(staticPath));
 app.get('/', (req, res) => {
     console.log('Health check ping received at /');
     res.send('API is running...');
@@ -254,7 +257,6 @@ app.use('/api/tasks', taskRoutes_1.default);
 // Commerce
 app.use('/api/products', productRoutes_1.default);
 app.use('/api/quotes', quoteRoutes_1.default);
-const shareRoutes_1 = __importDefault(require("./routes/shareRoutes"));
 app.use('/api/share', shareRoutes_1.default);
 // Field & Support
 app.use('/api/cases', caseRoutes_1.default);

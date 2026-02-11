@@ -69,7 +69,7 @@ const generateContent = (req, res) => __awaiter(void 0, void 0, void 0, function
                 userPrompt = topic;
         }
         const completion = yield openai.chat.completions.create({
-            model: "gpt-3.5-turbo",
+            model: "gpt-4o-mini",
             messages: [
                 { role: "system", content: systemPrompt },
                 { role: "user", content: userPrompt }

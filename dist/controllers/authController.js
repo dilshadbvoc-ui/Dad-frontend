@@ -207,11 +207,12 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
             });
             res.status(201).json({
                 _id: user.id,
+                id: user.id,
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
-                organisation: org.id,
+                organisationId: org.id,
                 token: (0, generateToken_1.default)(user.id),
             });
         }

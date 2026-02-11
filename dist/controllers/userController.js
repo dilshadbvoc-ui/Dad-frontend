@@ -166,8 +166,12 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         // logger.debug(`Query where: ${JSON.stringify(where)}`, 'UserController');
         logger_1.logger.info(`Users found: ${users.length}`, 'UserController');
-        // Transform results to match frontend expectations
-        const transformedUsers = users.map(u => (Object.assign(Object.assign({}, u), { _id: u.id, id: u.id, role: { id: u.role, name: u.role }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null })));
+        // Transform results to match frontend expectations and ensure security
+        const transformedUsers = users.map(u => {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const { password } = u, userWithoutPassword = __rest(u, ["password"]);
+            return Object.assign(Object.assign({}, userWithoutPassword), { _id: u.id, id: u.id, role: { id: u.role, name: u.role }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null });
+        });
         res.json({ users: transformedUsers });
     }
     catch (error) {
@@ -299,6 +303,9 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const existingUser = yield prisma_1.default.user.findUnique({ where: { email } });
         if (existingUser) {
             return res.status(409).json({ message: 'User with this email already exists' });
+        }
+        if (!password || password.length < 8) {
+            return res.status(400).json({ message: 'Password must be at least 8 characters' });
         }
         const hashedPassword = yield bcryptjs_1.default.hash(password, 10);
         const newUser = yield prisma_1.default.user.create({
@@ -446,7 +453,9 @@ const deactivateUser = (req, res) => __awaiter(void 0, void 0, void 0, function*
             organisationId: user.organisationId || req.user.organisationId,
             details: { email: user.email }
         });
-        res.json({ message: 'User deactivated', user });
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { password: _pw } = user, sanitizedUser = __rest(user, ["password"]);
+        res.json({ message: 'User deactivated', user: sanitizedUser });
     }
     catch (error) {
         res.status(500).json({ message: error.message });

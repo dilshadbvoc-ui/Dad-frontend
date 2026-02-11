@@ -345,11 +345,16 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { slug },
             include: {
                 product: true,
-                createdBy: { select: { firstName: true, lastName: true, id: true, email: true, phone: true } }
+                createdBy: { select: { firstName: true, lastName: true, id: true, email: true, phone: true } },
+                organisation: { select: { isDeleted: true } }
             }
         });
         if (!share)
-            return res.status(404).json({ message: 'Product not found or link expired' });
+            return res.status(404).json({ message: 'Product link not found' });
+        // Security checks: ensure product and organisation are not deleted
+        if (share.product.isDeleted || share.organisation.isDeleted) {
+            return res.status(404).json({ message: 'Product is no longer available' });
+        }
         // Increment views (async, don't await)
         prisma_1.default.productShare.update({
             where: { id: share.id },
@@ -369,8 +374,8 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 year: 'numeric'
             });
             let viewerName = 'A customer';
-            // If leadId is provided, try to fetch lead details
-            if (leadId) {
+            // If leadId is provided, try to fetch lead details (with UUID validation)
+            if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
                 try {
                     const lead = yield prisma_1.default.lead.findUnique({
                         where: { id: leadId },
