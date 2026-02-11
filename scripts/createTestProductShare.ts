@@ -93,6 +93,23 @@ startxref
         fs.writeFileSync(testFilePath, testContent);
         console.log(`Created test PDF: ${testFileName}\n`);
 
+        // Create document record in database
+        const document = await prisma.document.create({
+            data: {
+                name: 'Test Product Brochure',
+                description: 'Auto-generated test brochure for product share testing',
+                fileKey: testFileName,
+                fileUrl: `/uploads/documents/${testFileName}`,
+                fileType: 'application/pdf',
+                fileSize: Buffer.byteLength(testContent),
+                category: 'brochure',
+                tags: ['test', 'auto-generated'],
+                organisationId: user.organisationId,
+                createdById: user.id
+            }
+        });
+        console.log(`Created document record in database (ID: ${document.id})\n`);
+
         // Create or find a product
         let product = await prisma.product.findFirst({
             where: {
