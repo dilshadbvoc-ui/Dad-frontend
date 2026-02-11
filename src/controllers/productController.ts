@@ -128,15 +128,28 @@ export const updateProduct = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const where: any = { id: req.params.id };
+        const { id } = req.params;
 
-        if (user.role !== 'super_admin') {
-            if (!orgId) return res.status(403).json({ message: 'No org' });
-            where.organisationId = orgId;
+        // First, verify the product exists and belongs to the organization
+        const existingProduct = await prisma.product.findUnique({
+            where: { id }
+        });
+
+        if (!existingProduct) {
+            return res.status(404).json({ message: 'Product not found' });
         }
 
+        // Check organization ownership (unless super admin)
+        if (user.role !== 'super_admin') {
+            if (!orgId) return res.status(403).json({ message: 'No org' });
+            if (existingProduct.organisationId !== orgId) {
+                return res.status(403).json({ message: 'Not authorized to update this product' });
+            }
+        }
+
+        // Update the product
         const product = await prisma.product.update({
-            where,
+            where: { id },
             data: req.body
         });
 
@@ -153,7 +166,7 @@ export const updateProduct = async (req: Request, res: Response) => {
 
         res.json(product);
     } catch (error) {
-        res.status(500).json({ message: (error as Error).message }); // Handle RecordNotFound gracefully if needed
+        res.status(500).json({ message: (error as Error).message });
     }
 };
 
