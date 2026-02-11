@@ -252,7 +252,7 @@ export function LogCallDialog({ open, onOpenChange, leadId, leadPhone, onSuccess
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
                 <DialogHeader>
                     <DialogTitle>Log or Make Call</DialogTitle>
                 </DialogHeader>

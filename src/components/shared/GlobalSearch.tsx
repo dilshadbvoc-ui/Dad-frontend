@@ -161,7 +161,7 @@ export function GlobalSearch() {
 
             {/* Suggestions dropdown */}
             {showSuggestions && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-[200px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[300px] overflow-y-auto filter backdrop-blur-sm bg-popover/95">
                     <div className="py-2">
                         <div className="px-4 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
                             Suggestions
@@ -182,7 +182,7 @@ export function GlobalSearch() {
 
             {/* Search results dropdown */}
             {showResults && query.length >= 2 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-lg z-50 max-h-[400px] overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[70vh] sm:max-h-[400px] overflow-y-auto filter backdrop-blur-sm bg-popover/95">
                     {isLoading ? (
                         <div className="p-8 flex flex-col items-center justify-center text-sm text-muted-foreground">
                             <Loader2 className="h-6 w-6 animate-spin mb-2" />
@@ -196,10 +196,10 @@ export function GlobalSearch() {
                             {results.map((result) => (
                                 <button
                                     key={`${result.type}-${result.id}`}
-                                    className="w-full px-4 py-3 text-left hover:bg-muted flex items-start gap-4 transition-colors border-b border-border last:border-b-0"
+                                    className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-muted flex items-start gap-2 sm:gap-4 transition-colors border-b border-border last:border-b-0"
                                     onClick={() => handleSelect(result)}
                                 >
-                                    <div className="shrink-0 mt-1 p-2 rounded-lg bg-muted">
+                                    <div className="shrink-0 mt-1 p-1.5 sm:p-2 rounded-lg bg-muted">
                                         {getIcon(result.type)}
                                     </div>
                                     <div className="min-w-0 flex-1">

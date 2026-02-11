@@ -58,8 +58,8 @@ export function TopPerformersWidget() {
                                         <p className="text-xs text-muted-foreground">{user.dealsWon} deals won</p>
                                     </div>
                                 </div>
-                                <div className="text-right">
-                                    <p className="text-sm font-bold text-primary">
+                                <div className="text-right shrink-0">
+                                    <p className="text-xs sm:text-sm font-bold text-primary">
                                         {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(user.totalRevenue)}
                                     </p>
                                 </div>

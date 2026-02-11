@@ -26,7 +26,7 @@ export function LeadSourcesWidget() {
                 <CardTitle className="text-xl text-foreground">Lead Sources</CardTitle>
                 <CardDescription className="text-muted-foreground">Acquisition channel distribution.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-2 sm:p-6">
                 <div className="min-w-0 relative overflow-hidden">
                     {isLoading ? (
                         <div className="h-full w-full flex items-center justify-center">

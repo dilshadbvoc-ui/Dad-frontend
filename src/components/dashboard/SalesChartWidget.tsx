@@ -24,7 +24,7 @@ export function SalesChartWidget() {
                 <CardTitle className="text-xl text-foreground">Sales Overview</CardTitle>
                 <CardDescription className="text-muted-foreground">Revenue trend over the last 6 months.</CardDescription>
             </CardHeader>
-            <CardContent className="pl-0">
+            <CardContent className="px-1 sm:px-6">
                 <div className="min-w-0 relative overflow-hidden">
                     {isLoading ? (
                         <div className="h-full w-full flex items-center justify-center">

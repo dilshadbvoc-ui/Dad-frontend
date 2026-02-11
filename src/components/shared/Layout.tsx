@@ -135,51 +135,51 @@ export default function Layout() {
                 </Button>
             </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden w-full">
+            <div className="flex-1 flex flex-col overflow-hidden w-full relative">
                 {/* Standardized Header Container */}
-                <div className="flex items-center justify-between lg:justify-end bg-card border-b border-border px-4 h-16 shadow-md shadow-black/5 shrink-0 z-20 relative">
+                <div className="flex items-center justify-between bg-card border-b border-border px-2 sm:px-4 h-16 shadow-md shadow-black/5 shrink-0 z-20 relative transition-all duration-300">
                     <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="lg:hidden p-2 -ml-2 text-primary hover:bg-primary/10"
+                        className="lg:hidden h-10 w-10 text-primary hover:bg-primary/10 transition-colors"
                     >
                         {mobileMenuOpen ? (
-                            <X className="h-6 w-6" />
+                            <X className="h-6 w-6 transform rotate-90 transition-transform duration-300" />
                         ) : (
-                            <Menu className="h-6 w-6" />
+                            <Menu className="h-6 w-6 transform rotate-0 transition-transform duration-300" />
                         )}
                     </Button>
                     <ErrorBoundary name="Header">
-                        <Header className="flex-1 lg:flex-none pl-4 lg:pl-0 overflow-x-auto" />
+                        <Header className="flex-1 pl-2 sm:pl-4" />
                     </ErrorBoundary>
                 </div>
 
                 <main className={cn(
-                    "flex-1 bg-background/50",
-                    isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden"
+                    "flex-1 bg-background/50 safe-bottom",
+                    isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden scrollbar-thin"
                 )}>
                     <div className={cn(
-                        "w-full",
-                        isFullWidthPage ? "h-full" : "pb-20 lg:pb-8"
+                        "w-full max-w-[2000px] mx-auto",
+                        isFullWidthPage ? "h-full" : "pb-24 lg:pb-8"
                     )}>
                         {!isDashboard && (
-                            <div className="px-4 py-3 lg:px-6 lg:py-4">
+                            <div className="px-4 py-3 lg:px-6 lg:py-4 flex items-center">
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => navigate(-1)}
-                                    className="group flex items-center gap-2 text-muted-foreground hover:text-primary pl-0 hover:bg-transparent transition-colors"
+                                    className="group flex items-center gap-2 text-muted-foreground hover:text-primary pl-0 hover:bg-transparent transition-colors touch-safe"
                                 >
-                                    <div className="p-1 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                                    <div className="p-1.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
                                         <ChevronLeft className="h-4 w-4" />
                                     </div>
-                                    <span className="font-semibold text-xs uppercase tracking-wider">Back</span>
+                                    <span className="font-bold text-[10px] uppercase tracking-widest hidden xs:inline">Back</span>
                                 </Button>
                             </div>
                         )}
                         <div className={cn(
-                            isFullWidthPage ? "p-0 h-full" : "px-4 lg:px-6 pt-4 lg:pt-6"
+                            isFullWidthPage ? "p-0 h-full" : "px-4 sm:px-6 pt-0 sm:pt-4"
                         )}>
                             <ErrorBoundary name="PageContent">
                                 <Outlet />

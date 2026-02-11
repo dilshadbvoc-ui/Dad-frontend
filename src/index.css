@@ -505,13 +505,7 @@
     }
   }
 
-  /* Improved focus states for accessibility */
-  .focus-enhanced:focus {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
-
-  /* Better scrollbars */
+  /* Improved scrollbars */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: hsl(var(--muted)) transparent;
@@ -670,6 +664,38 @@
   }
 }
 
+/* Base Responsive & Touch Utilities */
+@layer utilities {
+  .touch-safe {
+    @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+  }
+
+  .scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .mobile-card-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .tap-highlight-none {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
 /* Print styles */
 @media print {
   .no-print {
@@ -713,6 +739,7 @@
   margin-bottom: 1rem;
   border-radius: var(--radius);
   border: 1px solid hsl(var(--border));
+  @apply scrollbar-thin;
 }
 
 /* Utilities for visibility control */
@@ -738,6 +765,7 @@
     margin-bottom: 1rem;
     background: hsl(var(--card));
     border-radius: var(--radius);
+    @apply shadow-sm;
   }
 
   .table-stacked td {
@@ -745,12 +773,14 @@
     justify-content: space-between;
     padding: 0.5rem 0;
     border: none;
+    @apply text-sm;
   }
 
   .table-stacked td::before {
     content: attr(data-label);
     font-weight: 600;
-    color: hsl(var(--muted-foreground));
+    color: hsl(var(--active-foreground) / 0.6);
     margin-right: 1rem;
+    @apply uppercase text-[10px] tracking-wider;
   }
 }

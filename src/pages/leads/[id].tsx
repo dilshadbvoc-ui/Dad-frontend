@@ -170,61 +170,94 @@ export default function LeadDetailPage() {
     return (
         <div className="space-y-6">
             {/* Header */}
-            <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/leads')}>
-                    <ArrowLeft className="h-5 w-5" />
-                </Button>
-                <div>
-                    <h1 className="text-3xl font-bold flex items-center gap-3">
-                        {lead.firstName} {lead.lastName}
-                        {id && <CollaborationBadge resourceId={`leads/${id}`} />}
-                        <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)}>
-                            <Calendar className="h-4 w-4 mr-2" />
-                            Set Follow-up
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)}>
-                            <UserPlus className="h-4 w-4 mr-2" />
-                            Assign
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)}>
-                            <Mail className="w-4 h-4 mr-2" />
-                            Email
-                        </Button>
-                        <Button variant="default" size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => setIsConvertOpen(true)} disabled={lead.status === 'converted'}>
-                            <CheckCircle2 className="h-4 w-4 mr-2" />
-                            {lead.status === 'converted' ? 'Converted' : 'Convert'}
-                        </Button>
-                    </h1>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                        <Building className="h-4 w-4" /> {lead.company}
+            <div className="flex flex-col gap-4 sm:gap-6">
+                <div className="flex items-start gap-4">
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/leads')} className="h-10 w-10 shrink-0">
+                        <ArrowLeft className="h-5 w-5" />
+                    </Button>
+
+                    <div className="flex-1 min-w-0">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                            <h1 className="text-xl sm:text-3xl font-bold truncate">
+                                {lead.firstName} {lead.lastName}
+                            </h1>
+                            <div className="flex items-center gap-2">
+                                {id && <CollaborationBadge resourceId={`leads/${id}`} />}
+                                <Badge variant="outline" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5">
+                                    {lead.status}
+                                </Badge>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                            <Building className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="truncate">{lead.company}</span>
+                        </div>
                     </div>
-                </div>
-                <div className="ml-auto flex items-center gap-3">
-                    <Select value={lead.stage || "New"} onValueChange={(val) => updateStageMutation.mutate(val)}>
-                        <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Select Stage" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="New">New</SelectItem>
-                            <SelectItem value="Contacted">Contacted</SelectItem>
-                            <SelectItem value="Qualified">Qualified</SelectItem>
-                            <SelectItem value="Proposal">Proposal</SelectItem>
-                            <SelectItem value="Negotiation">Negotiation</SelectItem>
-                            <SelectItem value="Won">Won</SelectItem>
-                            <SelectItem value="Lost">Lost</SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <div className="flex flex-col items-end">
-                        <Badge>{lead.status}</Badge>
+
+                    <div className="hidden sm:flex flex-col items-end shrink-0">
                         {lead.potentialValue > 0 && (
-                            <span className="text-xs font-semibold text-green-600 mt-1">
-                                Value: ${lead.potentialValue.toLocaleString()}
+                            <span className="text-sm font-bold text-success mb-1">
+                                ${lead.potentialValue.toLocaleString()}
                             </span>
                         )}
+                    </div>
+                </div>
+
+                {/* Mobile Dashboard Actions / Desktop Full Actions */}
+                <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
+                    <div className="flex-1 min-w-[140px] sm:hidden">
+                        <Select value={lead.stage || "New"} onValueChange={(val) => updateStageMutation.mutate(val)}>
+                            <SelectTrigger className="w-full h-9 text-xs">
+                                <SelectValue placeholder="Stage" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {["New", "Contacted", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map(s => (
+                                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="hidden sm:block">
+                        <Select value={lead.stage || "New"} onValueChange={(val) => updateStageMutation.mutate(val)}>
+                            <SelectTrigger className="w-[160px] h-9 text-xs">
+                                <SelectValue placeholder="Select Stage" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {["New", "Contacted", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map(s => (
+                                    <SelectItem key={s} value={s}>{s}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 ml-auto sm:ml-0 overflow-x-auto pb-1 no-scrollbar">
+                        <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
+                            <Calendar className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Follow-up</span>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
+                            <Pencil className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Edit</span>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setAssignDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
+                            <UserPlus className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Assign</span>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setEmailDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
+                            <Mail className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Email</span>
+                        </Button>
+                        <Button
+                            variant="default"
+                            size="sm"
+                            className="h-9 px-3 sm:px-4 text-xs bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/20"
+                            onClick={() => setIsConvertOpen(true)}
+                            disabled={lead.status === 'converted'}
+                        >
+                            <CheckCircle2 className="h-4 w-4 sm:mr-2" />
+                            <span>{lead.status === 'converted' ? 'Converted' : 'Convert'}</span>
+                        </Button>
                     </div>
                 </div>
             </div>

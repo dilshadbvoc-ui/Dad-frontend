@@ -23,12 +23,14 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     searchKey?: string
     onRowDrop?: (e: React.DragEvent, row: TData) => void
+    mobileCardRender?: (row: TData) => React.ReactNode
 }
 
 export function DataTable<TData, TValue>({
@@ -36,6 +38,7 @@ export function DataTable<TData, TValue>({
     data,
     searchKey,
     onRowDrop,
+    mobileCardRender
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -78,28 +81,49 @@ export function DataTable<TData, TValue>({
     }
 
     return (
-        <div>
+        <div className="space-y-4">
             {searchKey && (
-                <div className="flex items-center py-4 px-2 sm:px-0">
+                <div className="flex items-center px-4 sm:px-0">
                     <Input
                         placeholder="Search..."
                         value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
                         onChange={(event) =>
                             table.getColumn(searchKey)?.setFilterValue(event.target.value)
                         }
-                        className="max-w-sm"
+                        className="max-w-sm h-10 shadow-sm"
                     />
                 </div>
             )}
-            {/* Mobile-optimized table wrapper */}
-            <div className="rounded-md border table-responsive-wrapper">
+
+            {/* Mobile Card View (visible below lg) */}
+            {mobileCardRender && (
+                <div className="grid grid-cols-1 gap-4 lg:hidden px-4">
+                    {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                            <div key={row.id}>
+                                {mobileCardRender(row.original)}
+                            </div>
+                        ))
+                    ) : (
+                        <div className="text-center py-10 text-muted-foreground border rounded-lg bg-card">
+                            No results found.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Desktop Table View (visible on lg and above, or always if no mobileCardRender) */}
+            <div className={cn(
+                "rounded-md border table-responsive-wrapper shadow-sm bg-card",
+                mobileCardRender ? "hidden lg:block" : "block"
+            )}>
                 <Table>
-                    <TableHeader>
+                    <TableHeader className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
+                            <TableRow key={headerGroup.id} className="hover:bg-transparent">
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id}>
+                                        <TableHead key={header.id} className="font-bold text-xs uppercase tracking-wider h-12">
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -121,10 +145,13 @@ export function DataTable<TData, TValue>({
                                     onDragOver={(e) => handleDragOver(e, row.id)}
                                     onDragLeave={handleDragLeave}
                                     onDrop={(e) => handleDrop(e, row)}
-                                    className={`transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${dragOverRowId === row.id && onRowDrop ? 'bg-accent border-primary' : ''}`}
+                                    className={cn(
+                                        "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
+                                        dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
+                                    )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
+                                        <TableCell key={cell.id} className="py-3">
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -137,7 +164,7 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center"
+                                    className="h-24 text-center text-muted-foreground"
                                 >
                                     No results.
                                 </TableCell>
@@ -146,23 +173,31 @@ export function DataTable<TData, TValue>({
                     </TableBody>
                 </Table>
             </div>
-            <div className="flex items-center justify-end space-x-2 py-4">
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.previousPage()}
-                    disabled={!table.getCanPreviousPage()}
-                >
-                    Previous
-                </Button>
-                <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => table.nextPage()}
-                    disabled={!table.getCanNextPage()}
-                >
-                    Next
-                </Button>
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2">
+                <div className="text-xs text-muted-foreground">
+                    Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+                </div>
+                <div className="flex items-center space-x-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.previousPage()}
+                        disabled={!table.getCanPreviousPage()}
+                        className="h-8 touch-safe"
+                    >
+                        Previous
+                    </Button>
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => table.nextPage()}
+                        disabled={!table.getCanNextPage()}
+                        className="h-8 touch-safe"
+                    >
+                        Next
+                    </Button>
+                </div>
             </div>
         </div>
     )

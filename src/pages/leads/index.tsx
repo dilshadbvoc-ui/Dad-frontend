@@ -111,6 +111,66 @@ const VerticalBarChart = ({ data }: { data: { name: string; value: number }[] })
 );
 
 
+// --- Mobile Lead Card ---
+const LeadCard = ({ lead }: { lead: Lead }) => (
+    <Card className="shadow-sm border-l-4 border-l-primary overflow-hidden">
+        <CardContent className="p-4 space-y-3">
+            <div className="flex items-start justify-between">
+                <div className="min-w-0">
+                    <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
+                    <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+                </div>
+                <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter">
+                    {lead.status}
+                </Badge>
+            </div>
+
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1">
+                    <RefreshCw className="h-3 w-3" />
+                    <span>Score: {lead.leadScore}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                    <Plus className="h-3 w-3" />
+                    <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
+                </div>
+            </div>
+
+            <div className="pt-2 flex items-center justify-between border-t border-border">
+                <div className="flex gap-2">
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-9 w-9 p-0 text-success hover:bg-success/10 rounded-full"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(`https://wa.me/${lead.phone?.replace(/\D/g, '') || ''}`, '_blank');
+                        }}
+                    >
+                        <Phone className="h-4 w-4" />
+                    </Button>
+                    <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-9 w-9 p-0 text-info hover:bg-info/10 rounded-full"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            window.location.href = `tel:${lead.phone?.replace(/\D/g, '') || ''}`;
+                        }}
+                    >
+                        <CalendarCheck className="h-4 w-4" />
+                    </Button>
+                </div>
+                <Link to={`/leads/${lead.id}`}>
+                    <Button size="sm" variant="outline" className="text-xs h-8 px-3 rounded-full">
+                        View Details
+                    </Button>
+                </Link>
+            </div>
+        </CardContent>
+    </Card>
+);
+
 export default function LeadsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
@@ -122,8 +182,6 @@ export default function LeadsPage() {
         queryClient.invalidateQueries({ queryKey: ['leads'] });
         queryClient.invalidateQueries({ queryKey: ['tasks'] });
     };
-
-
 
     // --- Data Fetching ---
     // 1. Leads
@@ -201,16 +259,12 @@ export default function LeadsPage() {
 
     const isLoading = leadsLoading || tasksLoading;
 
-
-
-
-
     const isAnalyticsView = currentView === 'leads-analytics';
 
     return (
-        <div className="flex flex-col md:flex-row gap-6 h-[calc(100vh-100px)]">
-            {/* Sidebar */}
-            <div className="w-full md:w-64 flex-shrink-0 space-y-6 overflow-y-auto pr-2 pb-10">
+        <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0">
+            {/* Sidebar - Desktop Only or hidden on mobile in favor of Select dropdown */}
+            <div className="hidden lg:flex w-64 flex-shrink-0 flex-col space-y-6 overflow-y-auto pr-2 pb-10">
                 <div>
                     <div className="flex items-center gap-2 mb-2 px-2">
                         <Phone className="h-4 w-4 text-primary" />
@@ -228,8 +282,6 @@ export default function LeadsPage() {
                     </div>
                 </div>
 
-
-
                 <div>
                     <div className="flex items-center gap-2 mb-2 px-2">
                         <CalendarCheck className="h-4 w-4 text-primary" />
@@ -245,68 +297,81 @@ export default function LeadsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 overflow-hidden flex flex-col space-y-6">
+            <div className="flex-1 flex flex-col space-y-6 min-w-0">
 
-                {/* Environment Warning */}
-                <EnvironmentWarning />
+                {/* Environment Warning - Optional on mobile */}
+                <div className="hidden sm:block">
+                    <EnvironmentWarning />
+                </div>
 
                 {/* Header Area */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-foreground capitalize">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2 sm:px-0">
+                    <div className="min-w-0">
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground capitalize truncate">
                             {currentView.replace(/-/g, ' ')}
                         </h1>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            {isTaskView ? 'Manage your follow-up tasks' : isAnalyticsView ? 'Visualize lead performance' : 'Track and manage your leads'}
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate">
+                            {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Lead performance' : 'Manage your leads'}
                         </p>
                     </div>
 
-                    <div className="flex gap-2 items-center">
-                        <Select value={currentView} onValueChange={handleViewChange}>
-                            <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Select View" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectGroup>
-                                    <SelectLabel>Leads</SelectLabel>
-                                    <SelectItem value="all-leads">All Leads</SelectItem>
-                                    <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
-                                    <SelectItem value="today-leads">Today's Leads</SelectItem>
-                                    <SelectItem value="converted-leads">Converted Leads</SelectItem>
-                                    <SelectItem value="lost-leads">Lost Leads</SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                    <SelectLabel>Analysis</SelectLabel>
-                                    <SelectItem value="leads-by-status">Leads by Status</SelectItem>
-                                    <SelectItem value="leads-by-source">Leads by Source</SelectItem>
-                                    <SelectItem value="leads-by-ownership">Leads by Ownership</SelectItem>
-                                </SelectGroup>
-                                <SelectGroup>
-                                    <SelectLabel>Follow Ups</SelectLabel>
-                                    <SelectItem value="overdue-followups">Overdue Follow Ups</SelectItem>
-                                    <SelectItem value="today-followups">Today's Follow Ups</SelectItem>
-                                    <SelectItem value="upcoming-followups">Upcoming Follow Ups</SelectItem>
-                                    <SelectItem value="all-followups">All Follow Ups</SelectItem>
-                                </SelectGroup>
-                            </SelectContent>
-                        </Select>
+                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <div className="lg:hidden flex-1 min-w-[140px]">
+                            <Select value={currentView} onValueChange={handleViewChange}>
+                                <SelectTrigger className="w-full h-9 text-xs">
+                                    <SelectValue placeholder="Select View" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectLabel>Leads</SelectLabel>
+                                        <SelectItem value="all-leads">All Leads</SelectItem>
+                                        <SelectItem value="no-activity-leads">No Activity</SelectItem>
+                                        <SelectItem value="today-leads">Today's Leads</SelectItem>
+                                        <SelectItem value="converted-leads">Converted</SelectItem>
+                                        <SelectItem value="lost-leads">Lost</SelectItem>
+                                    </SelectGroup>
+                                    <SelectGroup>
+                                        <SelectLabel>Analysis</SelectLabel>
+                                        <SelectItem value="leads-by-status">By Status</SelectItem>
+                                        <SelectItem value="leads-by-source">By Source</SelectItem>
+                                        <SelectItem value="leads-by-ownership">By Ownership</SelectItem>
+                                    </SelectGroup>
+                                    <SelectGroup>
+                                        <SelectLabel>Follow Ups</SelectLabel>
+                                        <SelectItem value="overdue-followups">Overdue</SelectItem>
+                                        <SelectItem value="today-followups">Today's</SelectItem>
+                                        <SelectItem value="upcoming-followups">Upcoming</SelectItem>
+                                        <SelectItem value="all-followups">All Follow Ups</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                        </div>
 
-                        <Button 
-                            size="sm" 
+                        <Button
+                            size="sm"
                             variant="outline"
                             onClick={handleRefresh}
                             disabled={leadsFetching}
-                            className="gap-2"
+                            className="h-9 px-3 gap-2 text-xs"
                         >
-                            <RefreshCw className={`h-4 w-4 ${leadsFetching ? 'animate-spin' : ''}`} />
-                            Refresh
+                            <RefreshCw className={`h-3.5 w-3.5 ${leadsFetching ? 'animate-spin' : ''}`} />
+                            <span className="hidden xs:inline">Refresh</span>
                         </Button>
 
                         {!isTaskView && !isChartView && !isAnalyticsView && (
-                            <Link to="/leads/new">
-                                <Button size="sm" className="bg-primary text-primary-foreground shadow-lg shadow-primary/25">
+                            <Link to="/leads/new" className="hidden sm:block">
+                                <Button size="sm" className="h-9 px-4 bg-primary text-primary-foreground shadow-lg shadow-primary/25 text-xs">
                                     <Plus className="h-4 w-4 mr-2" />
                                     New Lead
+                                </Button>
+                            </Link>
+                        )}
+
+                        {/* Mobile FAB or specific button if needed */}
+                        {!isTaskView && !isChartView && !isAnalyticsView && (
+                            <Link to="/leads/new" className="sm:hidden flex-shrink-0">
+                                <Button size="icon" className="h-9 w-9 bg-primary text-primary-foreground shadow-lg shadow-primary/25 rounded-full">
+                                    <Plus className="h-5 w-5" />
                                 </Button>
                             </Link>
                         )}
@@ -314,37 +379,41 @@ export default function LeadsPage() {
                 </div>
 
                 {/* Content Area */}
-                <div className="flex-1 overflow-auto bg-card rounded-xl border shadow-sm p-0">
+                <div className="flex-1 min-h-0 bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm overflow-hidden flex flex-col">
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-full">
+                        <div className="flex items-center justify-center h-64 lg:h-full">
                             <div className="flex flex-col items-center gap-3">
-                                <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                                <p className="text-sm text-muted-foreground">Loading data...</p>
+                                <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+                                <p className="text-xs text-muted-foreground">Loading...</p>
                             </div>
                         </div>
                     ) : (
-                        <>
+                        <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
                             {isChartView ? (
-                                <div className="p-6">
-                                    <Card>
-                                        <CardHeader><CardTitle className="capitalize">{currentView.replace(/-/g, ' ')}</CardTitle></CardHeader>
-                                        <CardContent>
+                                <div className="p-2 sm:p-6">
+                                    <Card className="border-0 sm:border shadow-sm">
+                                        <CardHeader className="p-4 sm:p-6"><CardTitle className="text-lg capitalize">{currentView.replace(/-/g, ' ')}</CardTitle></CardHeader>
+                                        <CardContent className="p-2 sm:p-6 sm:pt-0">
                                             {currentView === 'leads-by-status' && <StatusPieChart data={getChartData()} />}
                                             {currentView !== 'leads-by-status' && <VerticalBarChart data={getChartData()} />}
                                         </CardContent>
                                     </Card>
                                 </div>
                             ) : isTaskView ? (
-                                <div className="p-4">
+                                <div className="p-2 sm:p-4">
                                     <TaskTable tasks={displayData as Task[]} />
                                 </div>
                             ) : (
                                 <div className="p-0">
-                                    {/* Use existing DataTable for leads */}
-                                    <DataTable columns={columns} data={displayData as Lead[]} searchKey="email" />
+                                    <DataTable
+                                        columns={columns}
+                                        data={displayData as Lead[]}
+                                        searchKey="email"
+                                        mobileCardRender={(lead) => <LeadCard lead={lead} />}
+                                    />
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
                 </div>
             </div>

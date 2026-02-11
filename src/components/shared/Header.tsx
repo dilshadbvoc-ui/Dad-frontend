@@ -40,19 +40,22 @@ export function Header({ className }: { className?: string }) {
     };
 
     return (
-        <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-4 bg-transparent", className)}>
+        <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-2 sm:gap-4 bg-transparent px-2 sm:px-4", className)}>
 
-            <div className="w-full flex-1">
-                {/* Search Bar */}
-                <GlobalSearch />
+            <div className="flex-1 min-w-0">
+                {/* Search Bar - Hidden on extra small screens or condensed */}
+                <div className="max-w-[180px] sm:max-w-md">
+                    <GlobalSearch />
+                </div>
             </div>
-            <div className="flex items-center gap-2">
+
+            <div className="flex items-center gap-1 sm:gap-2">
                 <TooltipProvider>
-                    {/* Quick Add Lead */}
+                    {/* Quick Add Lead - Only icon on mobile */}
                     <QuickAddLeadDialog>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="text-warning hover:text-warning/80 hover:bg-warning/10">
+                                <Button variant="ghost" size="icon" className="h-9 w-9 text-warning hover:text-warning/80 hover:bg-warning/10">
                                     <Zap className="h-5 w-5 fill-current" />
                                 </Button>
                             </TooltipTrigger>
@@ -67,46 +70,51 @@ export function Header({ className }: { className?: string }) {
                         </ErrorBoundary>
                     </DropdownMenu>
 
-                    {/* Theme Toggle */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                                className="text-foreground/70 hover:text-foreground"
-                            >
-                                {resolvedTheme === 'dark' ? (
-                                    <Sun className="h-5 w-5" />
-                                ) : (
-                                    <Moon className="h-5 w-5" />
-                                )}
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>{resolvedTheme === 'dark' ? 'Light mode' : 'Dark mode'}</TooltipContent>
-                    </Tooltip>
+                    {/* Theme Toggle - Hidden on very small screens to save space */}
+                    <div className="hidden xs:block">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
+                                    className="h-9 w-9 text-foreground/70 hover:text-foreground"
+                                >
+                                    {resolvedTheme === 'dark' ? (
+                                        <Sun className="h-5 w-5" />
+                                    ) : (
+                                        <Moon className="h-5 w-5" />
+                                    )}
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>{resolvedTheme === 'dark' ? 'Light' : 'Dark'}</TooltipContent>
+                        </Tooltip>
+                    </div>
 
-                    {/* Settings */}
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => navigate('/settings')}
-                            >
-                                <Settings className="h-5 w-5 text-foreground/70 hover:text-foreground" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Settings</TooltipContent>
-                    </Tooltip>
+                    {/* Settings - Desktop Only or through user menu on mobile if needed */}
+                    <div className="hidden md:block">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => navigate('/settings')}
+                                    className="h-9 w-9"
+                                >
+                                    <Settings className="h-5 w-5 text-foreground/70 hover:text-foreground" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Settings</TooltipContent>
+                        </Tooltip>
+                    </div>
                 </TooltipProvider>
 
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2">
-                            <Avatar className="h-9 w-9 border border-border">
+                        <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2 p-0">
+                            <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-border">
                                 <AvatarImage src={userInfo.avatar?.includes('null') ? undefined : userInfo.avatar} alt={userInfo.name} />
-                                <AvatarFallback className="bg-primary text-primary-foreground text-xs font-bold">
+                                <AvatarFallback className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold">
                                     {userInitials}
                                 </AvatarFallback>
                             </Avatar>
@@ -115,8 +123,8 @@ export function Header({ className }: { className?: string }) {
                     <DropdownMenuContent className="w-56 bg-popover border-border text-popover-foreground" align="end" forceMount>
                         <DropdownMenuLabel className="font-normal">
                             <div className="flex flex-col space-y-1">
-                                <p className="text-sm font-semibold leading-none text-foreground">{userInfo.name}</p>
-                                <p className="text-xs leading-none text-muted-foreground">{userInfo.email}</p>
+                                <p className="text-sm font-semibold leading-none text-foreground truncate">{userInfo.name}</p>
+                                <p className="text-xs leading-none text-muted-foreground truncate">{userInfo.email}</p>
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator className="bg-border" />
@@ -128,7 +136,7 @@ export function Header({ className }: { className?: string }) {
                             <span>View Profile</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                            className="focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                            className="focus:bg-accent focus:text-accent-foreground cursor-pointer md:hidden"
                             onClick={() => navigate('/settings')}
                         >
                             <Settings className="mr-2 h-4 w-4" />

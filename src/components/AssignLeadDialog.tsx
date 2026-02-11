@@ -136,7 +136,7 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
     return (
         <Dialog open={finalOpen} onOpenChange={handleOpenChange}>
             {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
-            <DialogContent className="sm:max-w-[425px]">
+            <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
                 <DialogHeader>
                     <DialogTitle>Assign Lead</DialogTitle>
                     <DialogDescription>

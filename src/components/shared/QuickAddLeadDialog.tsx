@@ -104,10 +104,10 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             <DialogTrigger asChild>
                 {children}
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Quick Add Lead</DialogTitle>
-                    <DialogDescription>
+            <DialogContent className="w-[95vw] max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
+                <DialogHeader className="text-left">
+                    <DialogTitle className="text-xl font-bold">Quick Add Lead</DialogTitle>
+                    <DialogDescription className="text-sm">
                         Add a new lead to your pipeline quickly.
                     </DialogDescription>
                 </DialogHeader>
@@ -119,12 +119,12 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 name="firstName"
                                 rules={{ required: "First name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>First Name</FormLabel>
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="John" {...field} />
+                                            <Input placeholder="John" className="h-11 sm:h-10" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-[10px]" />
                                     </FormItem>
                                 )}
                             />
@@ -133,12 +133,12 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 name="lastName"
                                 rules={{ required: "Last name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                                 render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Last Name</FormLabel>
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name</FormLabel>
                                         <FormControl>
-                                            <Input placeholder="Doe" {...field} />
+                                            <Input placeholder="Doe" className="h-11 sm:h-10" {...field} />
                                         </FormControl>
-                                        <FormMessage />
+                                        <FormMessage className="text-[10px]" />
                                     </FormItem>
                                 )}
                             />
@@ -153,12 +153,12 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 }
                             }}
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email</FormLabel>
+                                <FormItem className="space-y-1">
+                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="john@example.com" {...field} />
+                                        <Input placeholder="john@example.com" className="h-11 sm:h-10" {...field} />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-[10px]" />
                                 </FormItem>
                             )}
                         />
@@ -173,13 +173,14 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 }
                             }}
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Phone</FormLabel>
+                                <FormItem className="space-y-1">
+                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="9876543210"
                                             {...field}
                                             maxLength={10}
+                                            className="h-11 sm:h-10"
                                             onChange={(e) => {
                                                 // Allow only digits
                                                 const value = e.target.value.replace(/\D/g, '');
@@ -187,7 +188,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                             }}
                                         />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-[10px]" />
                                 </FormItem>
                             )}
                         />
@@ -195,12 +196,12 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                             control={form.control}
                             name="company"
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Company</FormLabel>
+                                <FormItem className="space-y-1">
+                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</FormLabel>
                                     <FormControl>
-                                        <Input placeholder="Acme Inc" {...field} />
+                                        <Input placeholder="Acme Inc" className="h-11 sm:h-10" {...field} />
                                     </FormControl>
-                                    <FormMessage />
+                                    <FormMessage className="text-[10px]" />
                                 </FormItem>
                             )}
                         />
@@ -260,8 +261,16 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 )}
                             />
                         </div>
-                        <DialogFooter>
-                            <Button type="submit" isLoading={mutation.isPending}>
+                        <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => finalOnOpenChange?.(false)}
+                                className="h-11 sm:h-10 flex-1 sm:flex-none"
+                            >
+                                Cancel
+                            </Button>
+                            <Button type="submit" isLoading={mutation.isPending} className="h-11 sm:h-10 flex-1 sm:flex-none">
                                 Create Lead
                             </Button>
                         </DialogFooter>

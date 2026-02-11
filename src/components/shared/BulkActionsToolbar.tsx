@@ -218,29 +218,29 @@ export function BulkActionsToolbar({
 
   return (
     <>
-      <div className={`flex items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 mb-4 ${className}`}>
-        <div className="flex items-center gap-3">
-          <div className="text-sm font-medium text-primary">
+      <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 gap-3 mb-4 ${className}`}>
+        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+          <div className="text-sm font-medium text-primary whitespace-nowrap">
             {selectedItems.length} {entityType} selected
           </div>
           <Button
             variant="ghost"
             size="sm"
             onClick={onClearSelection}
-            className="text-primary/70 hover:text-primary hover:bg-primary/10"
+            className="text-primary/70 hover:text-primary hover:bg-primary/10 h-8 px-2 text-xs"
           >
             Clear selection
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="default"
                 size="sm"
                 disabled={isLoading}
-                className="bg-primary hover:bg-primary/90"
+                className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-9"
               >
                 {isLoading ? (
                   <>

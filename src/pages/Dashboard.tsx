@@ -48,12 +48,12 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="space-y-8 p-8 animate-in fade-in duration-500">
+        <div className="space-y-6 sm:space-y-8 p-4 sm:p-8 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-                    <p className="text-muted-foreground mt-1">
+                    <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
+                    <p className="text-muted-foreground mt-1 text-sm sm:text-base">
                         Here's your daily overview and performance metrics.
                     </p>
                 </div>
@@ -82,66 +82,66 @@ export default function Dashboard() {
 
             {/* Quick Stats Row */}
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                            <TrendingUp className="h-6 w-6" />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+                            <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground text-center">Expected Revenue</h3>
-                        <div className="text-2xl font-extrabold text-card-foreground">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2, notation: 'compact' }).format(forecast?.weightedForecast || 0)}
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Expected Revenue</h3>
+                        <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
+                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0, notation: 'compact' }).format(forecast?.weightedForecast || 0)}
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
-                            <Check className="h-6 w-6" />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+                            <Check className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground text-center">Deals In Pipeline</h3>
-                        <div className="text-2xl font-extrabold text-card-foreground">
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Deals In Pipeline</h3>
+                        <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
                             {stats?.activeOpportunities || 0}
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
-                            <Trophy className="h-6 w-6" />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+                            <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground text-center">Won This Month</h3>
-                        <div className="text-2xl font-extrabold text-card-foreground">
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Won This Month</h3>
+                        <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
                             {stats?.opportunities?.won || 0}
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
-                            <AlertCircle className="h-6 w-6" />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
+                            <AlertCircle className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground text-center">Lost Deals</h3>
-                        <div className="text-2xl font-extrabold text-card-foreground">
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Lost Deals</h3>
+                        <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
                             {stats?.opportunities?.lost || 0}
                         </div>
                     </div>
                 </div>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    <div className="relative flex flex-col items-center justify-center space-y-3">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-                            <RefreshCw className="h-6 w-6" />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                        <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+                            <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-sm font-bold text-muted-foreground text-center">Conversion Ratio</h3>
-                        <div className="text-2xl font-extrabold text-card-foreground">
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Conversion Ratio</h3>
+                        <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
                             {stats?.winRate || 0}%
                         </div>
                     </div>
