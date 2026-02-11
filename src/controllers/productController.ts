@@ -318,7 +318,16 @@ export const getSharedProduct = async (req: Request, res: Response) => {
         // Send Notification (if enabled)
         if (share.notificationsEnabled) {
             const { NotificationService } = await import('../services/NotificationService');
-            const time = new Date().toLocaleTimeString();
+            const viewedAt = new Date();
+            const time = viewedAt.toLocaleString('en-US', { 
+                timeZone: 'Asia/Kolkata',
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true,
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
             let viewerName = 'A customer';
 
             // If leadId is provided, try to fetch lead details
