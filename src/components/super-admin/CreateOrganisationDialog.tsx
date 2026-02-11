@@ -38,7 +38,12 @@ interface CreateOrgFormData {
 export function CreateOrganisationDialog() {
     const [open, setOpen] = useState(false);
     const queryClient = useQueryClient();
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<CreateOrgFormData>();
+    const { register, handleSubmit, reset, setValue, formState: { errors } } = useForm<CreateOrgFormData>();
+
+    // Register planId manually with validation
+    useState(() => {
+        register('planId', { required: 'Plan is required' });
+    });
 
     // Fetch Plans
     const { data: plans } = useQuery({
@@ -157,7 +162,7 @@ export function CreateOrganisationDialog() {
                     <div className="space-y-2">
                         <Label htmlFor="planId" className="text-foreground">Subscription Plan</Label>
                         <Select
-                            onValueChange={(val: string) => register('planId').onChange({ target: { value: val, name: 'planId' } })}
+                            onValueChange={(val: string) => setValue('planId', val, { shouldValidate: true })}
                         >
                             <SelectTrigger className="bg-background border-input">
                                 <SelectValue placeholder="Select a plan" />
@@ -170,7 +175,6 @@ export function CreateOrganisationDialog() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <input type="hidden" {...register('planId', { required: 'Plan is required' })} />
                         {errors.planId && <span className="text-xs text-destructive">{errors.planId.message}</span>}
                     </div>
 
