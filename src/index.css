@@ -168,7 +168,12 @@
 
   /* Finance Breeze Card - Soft, Round, Floating */
   .finance-card {
-    @apply bg-card text-card-foreground rounded-[2rem] border-0 shadow-[0_8px_30px_rgb(0, 0, 0, 0.04)] hover:shadow-[0_8px_30px_rgb(0, 0, 0, 0.08)] transition-all duration-300;
+    @apply bg-card text-card-foreground rounded-[2rem] border-0 transition-all duration-300;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+  }
+
+  .finance-card:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
   }
 
   /* Vibrant Gradient Buttons - Adjusted for lighter theme */
@@ -201,7 +206,12 @@
 
   /* Finance Standard Card */
   .card-ocean {
-    @apply bg-white dark:bg-card text-card-foreground rounded-[1.5rem] border-0 shadow-[0_2px_20px_rgb(0, 0, 0, 0.02)] hover:shadow-[0_8px_30px_rgb(0, 0, 0, 0.06)] transition-all duration-300;
+    @apply bg-white dark:bg-card text-card-foreground rounded-[1.5rem] border-0 transition-all duration-300;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.02);
+  }
+
+  .card-ocean:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
   }
 
   /* Gradient Card Variants - Softened */
