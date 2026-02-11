@@ -33,6 +33,7 @@ import CreateCampaignPage from './pages/marketing/new-campaign';
 import CommunicationsPage from './pages/communications';
 import CalendarPage from './pages/calendar';
 import TasksPage from './pages/tasks';
+import CallsPage from './pages/calls';
 import SettingsPage from './pages/settings';
 import AutomationPage from './pages/automation';
 import ProductsPage from './pages/products';
@@ -154,6 +155,7 @@ function AppContent() {
 
             <Route path="/calendar" element={<CalendarPage />} />
             <Route path="/tasks" element={<TasksPage />} />
+            <Route path="/calls" element={<CallsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/ai-writer" element={<AiWriterPage />} />
             <Route path="/analytics" element={<AnalyticsPage />} />
