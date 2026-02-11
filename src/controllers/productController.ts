@@ -382,6 +382,17 @@ export const getSharedProduct = async (req: Request, res: Response) => {
             }
         });
 
+        // Debug logging
+        console.log('Shared product data sent:', {
+            productName: share.product.name,
+            hasBrochure: !!share.product.brochureUrl,
+            brochureUrl: share.product.brochureUrl,
+            hasYoutubeUrl: !!share.youtubeUrl,
+            youtubeUrl: share.youtubeUrl,
+            customTitle: share.customTitle,
+            customDescription: share.customDescription
+        });
+
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }
