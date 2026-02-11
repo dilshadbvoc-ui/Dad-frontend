@@ -1,5 +1,5 @@
 
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack:react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
@@ -11,7 +11,8 @@ import { Link, useSearchParams } from "react-router-dom"
 import {
     Plus,
     Phone,
-    CalendarCheck
+    CalendarCheck,
+    RefreshCw
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -112,15 +113,21 @@ const VerticalBarChart = ({ data }: { data: { name: string; value: number }[] })
 
 export default function LeadsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
+    const queryClient = useQueryClient();
     // Default view is 'all-leads' if not specified
     const currentView = searchParams.get('view') || 'all-leads';
 
+    // Manual refresh function
+    const handleRefresh = () => {
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
+        queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    };
 
 
 
     // --- Data Fetching ---
     // 1. Leads
-    const { data: leadData, isLoading: leadsLoading } = useQuery({
+    const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
         queryKey: ['leads', 'all'], // Fetch all for sorting/filtering client side for report views
         queryFn: () => getLeads({ pageSize: 1000 }),
     });
@@ -283,6 +290,17 @@ export default function LeadsPage() {
                                 </SelectGroup>
                             </SelectContent>
                         </Select>
+
+                        <Button 
+                            size="sm" 
+                            variant="outline"
+                            onClick={handleRefresh}
+                            disabled={leadsFetching}
+                            className="gap-2"
+                        >
+                            <RefreshCw className={`h-4 w-4 ${leadsFetching ? 'animate-spin' : ''}`} />
+                            Refresh
+                        </Button>
 
                         {!isTaskView && !isChartView && !isAnalyticsView && (
                             <Link to="/leads/new">

@@ -87,9 +87,10 @@ const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
+      staleTime: 1000 * 30, // 30 seconds (reduced from 5 minutes)
       gcTime: 1000 * 60 * 30, // 30 minutes
-      refetchOnWindowFocus: false,
+      refetchOnWindowFocus: true, // Refetch when window regains focus
+      refetchOnMount: true, // Refetch when component mounts
       retry: 1
     },
   },
