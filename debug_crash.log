@@ -1,0 +1,52 @@
+2026-02-11T10:53:04.608Z - Entered getDashboardStats
+2026-02-11T10:53:04.609Z - [Analytics] User: ce8e3946-d9ea-4de3-aef1-aab79111b400, Org: f14f6c41-3229-4628-b666-d1ce683842a6, SuperAdmin: false
+2026-02-11T10:53:04.609Z - [Analytics] Importing hierarchyUtils...
+2026-02-11T10:53:04.610Z - [Analytics] Fetching subordinateIds...
+2026-02-11T10:53:04.650Z - [Leads] Entered getViolations
+2026-02-11T10:53:04.650Z - [Leads] User: ce8e3946-d9ea-4de3-aef1-aab79111b400, Role: admin
+2026-02-11T10:53:04.650Z - [Leads] Fetching subordinates...
+2026-02-11T10:53:05.129Z - [Analytics] Subordinates: 1
+2026-02-11T10:53:05.150Z - [Leads] Subordinates found: 1
+2026-02-11T10:53:05.150Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"f14f6c41-3229-4628-b666-d1ce683842a6","OR":[{"previousOwnerId":"ce8e3946-d9ea-4de3-aef1-aab79111b400"},{"previousOwnerId":{"in":["ce8e3946-d9ea-4de3-aef1-aab79111b400"]}}]}
+2026-02-11T10:53:05.674Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:53:55.646Z - Entered getDashboardStats
+2026-02-11T10:53:55.647Z - [Analytics] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Org: null, SuperAdmin: true
+2026-02-11T10:53:55.647Z - [Analytics] Importing hierarchyUtils...
+2026-02-11T10:53:55.648Z - [Analytics] Fetching subordinateIds...
+2026-02-11T10:53:56.176Z - [Analytics] Subordinates: 1
+2026-02-11T10:53:56.700Z - [Leads] Entered getViolations
+2026-02-11T10:53:56.701Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:53:56.701Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:53:57.225Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:55:08.485Z - [Leads] Entered getViolations
+2026-02-11T10:55:08.486Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:55:08.486Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:55:09.118Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:56:10.146Z - [Leads] Entered getViolations
+2026-02-11T10:56:10.146Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:56:10.147Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:56:10.454Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:57:11.145Z - [Leads] Entered getViolations
+2026-02-11T10:57:11.146Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:57:11.146Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:57:11.420Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:58:15.940Z - [Leads] Entered getViolations
+2026-02-11T10:58:15.941Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:58:15.941Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:58:16.539Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:00:17.849Z - [Leads] Entered getViolations
+2026-02-11T11:00:17.851Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:00:17.851Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:00:18.479Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:02:19.812Z - [Leads] Entered getViolations
+2026-02-11T11:02:19.813Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:02:19.813Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:02:20.423Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:02:49.952Z - [Leads] Entered getViolations
+2026-02-11T11:02:49.953Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:02:49.953Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:02:50.452Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:03:51.539Z - [Leads] Entered getViolations
+2026-02-11T11:03:51.540Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:03:51.541Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:03:52.078Z - [Leads] [Leads] Violations found: 0
