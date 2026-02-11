@@ -34,14 +34,13 @@ const getAssetUrl = (path?: string) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    // In development, use relative path to leverage Vite proxy (avoids Mixed Content: HTTPS page loading HTTP resource)
+    // In development, use relative path to leverage Vite proxy
     if (import.meta.env.DEV) return path;
 
-    // In production, construct full URL
-    // Assumes api.defaults.baseURL is set to the API root (e.g. https://api.domain.com/api)
-    // We strip /api to get the root for static files
-    const baseUrl = api.defaults.baseURL?.replace(/\/api\/?$/, '') || '';
-    return `${baseUrl}${path}`;
+    // In production, construct full URL to backend
+    // The API_URL from config already has the backend URL
+    const backendUrl = import.meta.env.VITE_API_URL || 'https://dad-backend.onrender.com';
+    return `${backendUrl}${path}`;
 }
 
 export default function SharedProductPage() {
@@ -58,11 +57,14 @@ export default function SharedProductPage() {
                 // Use the public API endpoint, passing leadId if available
                 const url = leadId ? `/share/${slug}?leadId=${leadId}` : `/share/${slug}`
                 console.log('Fetching shared product:', url);
+                console.log('API Base URL:', api.defaults.baseURL);
+                console.log('Full URL:', `${api.defaults.baseURL}${url}`);
                 const response = await api.get(url)
                 console.log('Shared product response:', response.data);
                 setData(response.data)
             } catch (err: unknown) {
                 console.error('Error fetching shared product:', err);
+                console.error('Error details:', (err as any).response);
                 const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to load product";
                 setError(errorMessage);
             } finally {
@@ -85,6 +87,10 @@ export default function SharedProductPage() {
 
     const { product, seller, shareConfig } = data
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
+    const brochureFullUrl = getAssetUrl(product.brochureUrl);
+    
+    console.log('Product brochure URL:', product.brochureUrl);
+    console.log('Constructed brochure URL:', brochureFullUrl);
 
     // Determine content to display
     const displayTitle = shareConfig?.customTitle || product.name
@@ -181,13 +187,13 @@ export default function SharedProductPage() {
                                                 <div className="aspect-[3/2] w-full relative group">
                                                     {/* We use an iframe to preview the PDF. For better UX, consider react-pdf */}
                                                     <iframe
-                                                        src={`${getAssetUrl(product.brochureUrl)}#toolbar=0`}
+                                                        src={`${brochureFullUrl}#toolbar=0`}
                                                         className="w-full h-full"
                                                         title="Brochure Preview"
                                                     />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                         <Button asChild variant="secondary">
-                                                            <a href={getAssetUrl(product.brochureUrl)} target="_blank" rel="noopener noreferrer">
+                                                            <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
                                                                 <Download className="mr-2 h-4 w-4" /> Download Full PDF
                                                             </a>
                                                         </Button>
@@ -197,13 +203,13 @@ export default function SharedProductPage() {
                                         ) : (
                                             <div className="border border-border rounded-xl overflow-hidden shadow-sm">
                                                 <img
-                                                    src={getAssetUrl(product.brochureUrl)}
+                                                    src={brochureFullUrl}
                                                     alt="Brochure"
                                                     className="w-full h-auto"
                                                 />
                                                 <div className="p-3 bg-muted/20 border-t border-border flex justify-end">
                                                     <Button asChild variant="outline" size="sm">
-                                                        <a href={getAssetUrl(product.brochureUrl)} target="_blank" rel="noopener noreferrer">
+                                                        <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
                                                             <Download className="mr-2 h-4 w-4" /> Download Image
                                                         </a>
                                                     </Button>
