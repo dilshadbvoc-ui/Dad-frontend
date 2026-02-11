@@ -7,7 +7,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Search, Package, DollarSign, Tag, Trash2, MoreHorizontal, Share2, FileText, Copy, Check } from "lucide-react"
+import { Plus, Search, Package, DollarSign, Tag, Trash2, MoreHorizontal, Share2, FileText, Copy, Check, Edit } from "lucide-react"
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
@@ -22,6 +22,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function ProductsPage() {
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null)
 
     // Share Dialog States
     const [isShareConfigOpen, setIsShareConfigOpen] = useState(false)
@@ -55,6 +57,20 @@ export default function ProductsPage() {
             toast.success("Product created successfully")
         },
         onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to create product")
+    })
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string, data: Partial<CreateProductData> }) => {
+            const { updateProduct } = require("@/services/productService");
+            return updateProduct(id, data);
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['products'] })
+            setIsEditDialogOpen(false)
+            setEditingProduct(null)
+            toast.success("Product updated successfully")
+        },
+        onError: (error: { response?: { data?: { message?: string } } }) => toast.error(error.response?.data?.message || "Failed to update product")
     })
 
     const deleteMutation = useMutation({
@@ -108,6 +124,44 @@ export default function ProductsPage() {
             description: formData.get('description') as string || undefined,
             brochureUrl
         })
+    }
+
+    const handleEditSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault()
+        if (!editingProduct) return
+
+        const formData = new FormData(e.currentTarget)
+
+        // Handle Brochure Upload
+        const brochureFile = formData.get('brochure') as File
+        let brochureUrl = editingProduct.brochureUrl
+
+        if (brochureFile && brochureFile.size > 0) {
+            try {
+                const uploadRes = await uploadBrochure(brochureFile)
+                brochureUrl = uploadRes.url
+            } catch {
+                toast.error("Failed to upload brochure")
+                return
+            }
+        }
+
+        updateMutation.mutate({
+            id: editingProduct.id,
+            data: {
+                name: formData.get('name') as string,
+                sku: formData.get('sku') as string || undefined,
+                basePrice: parseFloat(formData.get('basePrice') as string),
+                category: formData.get('category') as string || undefined,
+                description: formData.get('description') as string || undefined,
+                brochureUrl
+            }
+        })
+    }
+
+    const handleEditClick = (product: Product) => {
+        setEditingProduct(product)
+        setIsEditDialogOpen(true)
     }
 
     const handleShareClick = async (product: Product) => {
@@ -202,6 +256,36 @@ export default function ProductsPage() {
                                             </div>
                                         </div>
                                         <DialogFooter><Button type="submit" disabled={createMutation.isPending}>{createMutation.isPending ? 'Saving...' : 'Add Product'}</Button></DialogFooter>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+
+                            {/* Edit Product Dialog */}
+                            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                                <DialogContent>
+                                    <form onSubmit={handleEditSubmit}>
+                                        <DialogHeader><DialogTitle>Edit Product</DialogTitle></DialogHeader>
+                                        <div className="grid gap-4 py-4">
+                                            <div><Label>Name</Label><Input name="name" defaultValue={editingProduct?.name} required /></div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div><Label>SKU</Label><Input name="sku" defaultValue={editingProduct?.sku} placeholder="Optional" /></div>
+                                                <div><Label>Price</Label><Input name="basePrice" type="number" step="0.01" defaultValue={editingProduct?.basePrice} required /></div>
+                                            </div>
+                                            <div><Label>Category</Label><Input name="category" defaultValue={editingProduct?.category} /></div>
+                                            <div><Label>Description</Label><Input name="description" defaultValue={editingProduct?.description} /></div>
+                                            <div>
+                                                <Label>Brochure (PDF/Image)</Label>
+                                                {editingProduct?.brochureUrl && (
+                                                    <div className="mb-2 text-sm text-muted-foreground flex items-center gap-2">
+                                                        <FileText className="h-4 w-4" />
+                                                        <span>Current: {editingProduct.brochureUrl.split('/').pop()}</span>
+                                                    </div>
+                                                )}
+                                                <Input name="brochure" type="file" accept=".pdf,image/*" className="cursor-pointer" />
+                                                <p className="text-xs text-muted-foreground mt-1">Upload a new brochure to replace the existing one (optional).</p>
+                                            </div>
+                                        </div>
+                                        <DialogFooter><Button type="submit" disabled={updateMutation.isPending}>{updateMutation.isPending ? 'Updating...' : 'Update Product'}</Button></DialogFooter>
                                     </form>
                                 </DialogContent>
                             </Dialog>
@@ -356,6 +440,9 @@ export default function ProductsPage() {
                                                     <DropdownMenu>
                                                         <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleEditClick(product)}>
+                                                                <Edit className="h-4 w-4 mr-2" />Edit
+                                                            </DropdownMenuItem>
                                                             <DropdownMenuItem onClick={() => handleShareClick(product)}>
                                                                 <Share2 className="h-4 w-4 mr-2" />Share
                                                             </DropdownMenuItem>
