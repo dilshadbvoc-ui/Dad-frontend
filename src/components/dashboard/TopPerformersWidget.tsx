@@ -61,31 +61,49 @@ export function TopPerformersWidget() {
                     </div>
                 ) : (
                     <div className="space-y-6 mt-4">
-                        {performersList.map((user: { id: string, name: string, image?: string, dealsWon: number, totalRevenue: number }, index: number) => (
-                            <div key={user.id} className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${index === 0 ? 'bg-warning/20 text-warning' :
-                                        index === 1 ? 'bg-muted text-muted-foreground' :
-                                            index === 2 ? 'bg-orange-500/20 text-orange-600' : 'text-muted-foreground'
-                                        }`}>
-                                        {index + 1}
+                        {performersList.map((user: any, index: number) => {
+                            // Validate user data
+                            if (!user || !user.id || !user.name) {
+                                console.warn('Invalid user data:', user);
+                                return null;
+                            }
+                            
+                            return (
+                                <div key={user.id} className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${index === 0 ? 'bg-warning/20 text-warning' :
+                                            index === 1 ? 'bg-muted text-muted-foreground' :
+                                                index === 2 ? 'bg-orange-500/20 text-orange-600' : 'text-muted-foreground'
+                                            }`}>
+                                            {index + 1}
+                                        </div>
+                                        <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
+                                            <AvatarImage src={user.image} />
+                                            <AvatarFallback>{user.name[0] || '?'}</AvatarFallback>
+                                        </Avatar>
+                                        <div>
+                                            <p className="text-sm font-medium text-foreground">{user.name}</p>
+                                            <p className="text-xs text-muted-foreground">{user.dealsWon || 0} deals won</p>
+                                        </div>
                                     </div>
-                                    <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                                        <AvatarImage src={user.image} />
-                                        <AvatarFallback>{user.name[0]}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <p className="text-sm font-medium text-foreground">{user.name}</p>
-                                        <p className="text-xs text-muted-foreground">{user.dealsWon} deals won</p>
+                                    <div className="text-right shrink-0">
+                                        <p className="text-xs sm:text-sm font-bold text-primary">
+                                            {(() => {
+                                                try {
+                                                    return formatCurrency(user.totalRevenue || 0, undefined, { 
+                                                        minimumFractionDigits: 0,
+                                                        maximumFractionDigits: 0 
+                                                    });
+                                                } catch (error) {
+                                                    console.error('Currency format error:', error);
+                                                    return `$${(user.totalRevenue || 0).toFixed(0)}`;
+                                                }
+                                            })()}
+                                        </p>
                                     </div>
                                 </div>
-                                <div className="text-right shrink-0">
-                                    <p className="text-xs sm:text-sm font-bold text-primary">
-                                        {formatCurrency(user.totalRevenue, undefined, { maximumFractionDigits: 0 })}
-                                    </p>
-                                </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                         {performersList.length === 0 && (
                             <p className="text-center text-sm text-muted-foreground py-8">No performance data yet</p>
                         )}
