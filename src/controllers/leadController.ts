@@ -524,45 +524,67 @@ export const createBulkLeads = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'No org' });
 
-        // Import GeoLocationService for country detection
+        // Import services
         const { GeoLocationService } = await import('../services/GeoLocationService');
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
 
-        // Prisma createMany does not support nested relations logic per row easily if validating constraints one by one?
-        // Actually createMany is supported but it's "all or nothing" validation usually or simple insert.
-        // And it doesn't return created objects, just count.
-
-        const leadsToInsert = leadsData.map(l => {
-            // Try to detect country from phone if not provided
-            let geoData = null;
-            if (!l.country && !l.countryCode && l.phone) {
-                geoData = GeoLocationService.detectCountryFromPhone(l.phone);
-            }
-
-            return {
-                firstName: l.firstName,
-                lastName: l.lastName || '',
-                phone: l.phone,
-                email: l.email,
-                company: l.company,
-                country: l.country || geoData?.country || undefined,
-                countryCode: l.countryCode || geoData?.countryCode || undefined,
-                phoneCountryCode: l.phoneCountryCode || geoData?.phoneCountryCode || undefined,
-                organisationId: orgId,
-                assignedToId: l.assignedTo || user.id,
-                source: l.source || LeadSource.import,
-                status: l.status || LeadStatus.new,
-                leadScore: l.leadScore || 0
-            };
-        });
-
-        // Create individually to run Distribution logic (Round Robin updates)
-        // prisma.createMany does not support side-effects like DistributionService
         let createdCount = 0;
-        for (const data of leadsToInsert) {
+        let duplicateCount = 0;
+        let reEnquiryCount = 0;
+        const errors: any[] = [];
+
+        for (const l of leadsData) {
             try {
-                // Check duplicate if needed or rely on database constraints? 
-                // createMany had skipDuplicates: true. 
-                // We'll try create and catch error to simulate skipDuplicates
+                // Sanitize phone
+                let cleanPhone = l.phone?.toString().replace(/\D/g, '') || '';
+                if (cleanPhone.length > 10) {
+                    cleanPhone = cleanPhone.slice(-10);
+                }
+
+                // Check for duplicates
+                const duplicateCheck = await DuplicateLeadService.checkDuplicate(cleanPhone, l.email, orgId);
+
+                if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                    // Handle as re-enquiry
+                    await DuplicateLeadService.handleReEnquiry(
+                        duplicateCheck.existingLead,
+                        {
+                            firstName: l.firstName,
+                            lastName: l.lastName || '',
+                            email: l.email,
+                            phone: cleanPhone,
+                            company: l.company,
+                            source: l.source || 'import',
+                            sourceDetails: l.sourceDetails
+                        },
+                        orgId
+                    );
+                    reEnquiryCount++;
+                    continue;
+                }
+
+                // Try to detect country from phone if not provided
+                let geoData = null;
+                if (!l.country && !l.countryCode && cleanPhone) {
+                    geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
+                }
+
+                const data = {
+                    firstName: l.firstName,
+                    lastName: l.lastName || '',
+                    phone: cleanPhone,
+                    email: l.email,
+                    company: l.company,
+                    country: l.country || geoData?.country || undefined,
+                    countryCode: l.countryCode || geoData?.countryCode || undefined,
+                    phoneCountryCode: l.phoneCountryCode || geoData?.phoneCountryCode || undefined,
+                    organisationId: orgId,
+                    assignedToId: l.assignedTo || user.id,
+                    source: l.source || LeadSource.import,
+                    status: l.status || LeadStatus.new,
+                    leadScore: l.leadScore || 0
+                };
+
                 const lead = await prisma.lead.create({ data });
 
                 // Distribute
@@ -574,15 +596,18 @@ export const createBulkLeads = async (req: Request, res: Response) => {
                 });
 
                 createdCount++;
-            } catch {
-                // Ignore duplicates (unique constraint violations)
-                // Console log if needed
+            } catch (error: any) {
+                errors.push({ lead: l, error: error.message });
+                duplicateCount++;
             }
         }
 
         res.status(201).json({
-            message: `Successfully imported leads`,
-            count: createdCount
+            message: `Bulk import completed`,
+            created: createdCount,
+            reEnquiries: reEnquiryCount,
+            duplicates: duplicateCount,
+            errors: errors.length > 0 ? errors : undefined
         });
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });

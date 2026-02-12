@@ -81,13 +81,45 @@ export const submitWebForm = async (req: Request, res: Response) => {
 
         const orgId = webForm.organisationId;
 
+        // Sanitize phone
+        let cleanPhone = formData.phone?.toString().replace(/\D/g, '') || '';
+        if (cleanPhone.length > 10) {
+            cleanPhone = cleanPhone.slice(-10);
+        }
+
+        // Check for duplicates
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
+        const duplicateCheck = await DuplicateLeadService.checkDuplicate(cleanPhone, formData.email, orgId);
+
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            await DuplicateLeadService.handleReEnquiry(
+                duplicateCheck.existingLead,
+                {
+                    firstName: formData.firstName || 'Unknown',
+                    lastName: formData.lastName || '',
+                    email: formData.email,
+                    phone: cleanPhone,
+                    company: formData.company,
+                    source: 'website',
+                    sourceDetails: { webFormId: id, ...formData.customFields }
+                },
+                orgId
+            );
+
+            return res.status(200).json({
+                message: 'Thank you for your interest! We will contact you soon.',
+                isReEnquiry: true
+            });
+        }
+
         // 1. Create Lead
         const lead = await prisma.lead.create({
             data: {
                 firstName: formData.firstName || 'Unknown',
                 lastName: formData.lastName || '',
                 email: formData.email,
-                phone: formData.phone,
+                phone: cleanPhone,
                 company: formData.company,
                 source: 'website',
                 organisationId: orgId,

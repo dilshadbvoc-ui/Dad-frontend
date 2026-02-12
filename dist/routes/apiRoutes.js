@@ -69,20 +69,26 @@ router.post('/leads', apiKeyMiddleware_1.verifyApiKey, (req, res) => __awaiter(v
         let cleanPhone = phone === null || phone === void 0 ? void 0 : phone.toString().replace(/\D/g, '');
         if (cleanPhone && cleanPhone.length > 10)
             cleanPhone = cleanPhone.slice(-10);
-        // Check Duplicates (by email or phone)
-        const existing = yield prisma_1.default.lead.findFirst({
-            where: {
-                organisationId: orgId,
-                OR: [
-                    { email: email || 'invalid' },
-                    { phone: cleanPhone || 'invalid' }
-                ]
-            }
-        });
-        if (existing) {
-            // For API, we might usually perform an UPSERT or return 200 with existing ID
-            // Let's return 409 for now to be strict
-            return res.status(409).json({ message: 'Lead already exists', id: existing.id });
+        // Check for duplicates using DuplicateLeadService
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
+        const duplicateCheck = yield DuplicateLeadService.checkDuplicate(cleanPhone, email, orgId);
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            yield DuplicateLeadService.handleReEnquiry(duplicateCheck.existingLead, {
+                firstName: firstName || 'Unknown',
+                lastName: lastName || '',
+                email,
+                phone: cleanPhone,
+                company,
+                source: source || 'api',
+                sourceDetails: { message }
+            }, orgId);
+            return res.status(200).json({
+                message: 'Lead already exists. Marked as re-enquiry.',
+                id: duplicateCheck.existingLead.id,
+                isReEnquiry: true,
+                matchedBy: duplicateCheck.matchedBy
+            });
         }
         const lead = yield prisma_1.default.lead.create({
             data: {

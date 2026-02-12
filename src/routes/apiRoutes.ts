@@ -27,21 +27,32 @@ router.post('/leads', verifyApiKey, async (req, res) => {
         let cleanPhone = phone?.toString().replace(/\D/g, '');
         if (cleanPhone && cleanPhone.length > 10) cleanPhone = cleanPhone.slice(-10);
 
-        // Check Duplicates (by email or phone)
-        const existing = await prisma.lead.findFirst({
-            where: {
-                organisationId: orgId,
-                OR: [
-                    { email: email || 'invalid' },
-                    { phone: cleanPhone || 'invalid' }
-                ]
-            }
-        });
+        // Check for duplicates using DuplicateLeadService
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
+        const duplicateCheck = await DuplicateLeadService.checkDuplicate(cleanPhone, email, orgId);
 
-        if (existing) {
-            // For API, we might usually perform an UPSERT or return 200 with existing ID
-            // Let's return 409 for now to be strict
-            return res.status(409).json({ message: 'Lead already exists', id: existing.id });
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            await DuplicateLeadService.handleReEnquiry(
+                duplicateCheck.existingLead,
+                {
+                    firstName: firstName || 'Unknown',
+                    lastName: lastName || '',
+                    email,
+                    phone: cleanPhone,
+                    company,
+                    source: source || 'api',
+                    sourceDetails: { message }
+                },
+                orgId
+            );
+
+            return res.status(200).json({
+                message: 'Lead already exists. Marked as re-enquiry.',
+                id: duplicateCheck.existingLead.id,
+                isReEnquiry: true,
+                matchedBy: duplicateCheck.matchedBy
+            });
         }
 
         const lead = await prisma.lead.create({

@@ -82,20 +82,41 @@ export class ImportJobService {
                         throw new Error('Missing required fields (Name and at least Phone or Email)');
                     }
 
-                    // Strict Deduplication (Organisation Scoped)
-                    const existing = await prisma.lead.findFirst({
-                        where: {
-                            organisationId: job.organisationId,
-                            isDeleted: false,
-                            OR: [
-                                leadData.phone ? { phone: String(leadData.phone) } : {},
-                                leadData.email ? { email: String(leadData.email) } : {}
-                            ].filter(q => Object.keys(q).length > 0)
+                    // Sanitize phone
+                    if (leadData.phone) {
+                        leadData.phone = leadData.phone.toString().replace(/\D/g, '');
+                        if (leadData.phone.length > 10) {
+                            leadData.phone = leadData.phone.slice(-10);
                         }
-                    });
+                    }
 
-                    if (existing) {
-                        throw new Error(`Potential duplicate found (Phone/Email: ${leadData.phone || leadData.email})`);
+                    // Check for duplicates using DuplicateLeadService
+                    const { DuplicateLeadService } = await import('./DuplicateLeadService');
+                    const duplicateCheck = await DuplicateLeadService.checkDuplicate(
+                        leadData.phone,
+                        leadData.email,
+                        job.organisationId
+                    );
+
+                    if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                        // Handle as re-enquiry instead of creating duplicate
+                        await DuplicateLeadService.handleReEnquiry(
+                            duplicateCheck.existingLead,
+                            {
+                                firstName: leadData.firstName,
+                                lastName: leadData.lastName,
+                                email: leadData.email,
+                                phone: leadData.phone,
+                                company: leadData.company,
+                                source: 'import',
+                                sourceDetails: { importJobId: jobId }
+                            },
+                            job.organisationId
+                        );
+                        
+                        // Count as success (re-enquiry handled)
+                        successCount++;
+                        continue;
                     }
 
                     const createdLead = await prisma.lead.create({ data: leadData });

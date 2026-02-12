@@ -203,20 +203,44 @@ exports.WhatsAppIntegrationService = {
                 });
                 // Create lead if none exists and link to message
                 if (!lead && !contactId) {
-                    const newLead = yield prisma_1.default.lead.create({
-                        data: {
+                    // Sanitize phone
+                    let cleanPhone = message.from.replace(/\D/g, '');
+                    if (cleanPhone.length > 10) {
+                        cleanPhone = cleanPhone.slice(-10);
+                    }
+                    // Check for duplicates
+                    const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('./DuplicateLeadService')));
+                    const duplicateCheck = yield DuplicateLeadService.checkDuplicate(cleanPhone, null, organisationId);
+                    let leadToLink;
+                    if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                        // Use existing lead and mark as re-enquiry
+                        yield DuplicateLeadService.handleReEnquiry(duplicateCheck.existingLead, {
                             firstName: contactName.split(' ')[0] || contactName,
                             lastName: contactName.split(' ').slice(1).join(' ') || '',
-                            phone: message.from,
+                            phone: cleanPhone,
                             source: 'whatsapp',
-                            status: 'new',
-                            organisationId
-                        }
-                    });
-                    // Update message to link to newly created lead
+                            sourceDetails: { whatsappMessageId: message.id }
+                        }, organisationId);
+                        leadToLink = duplicateCheck.existingLead;
+                    }
+                    else {
+                        // Create new lead
+                        const newLead = yield prisma_1.default.lead.create({
+                            data: {
+                                firstName: contactName.split(' ')[0] || contactName,
+                                lastName: contactName.split(' ').slice(1).join(' ') || '',
+                                phone: cleanPhone,
+                                source: 'whatsapp',
+                                status: 'new',
+                                organisationId
+                            }
+                        });
+                        leadToLink = newLead;
+                    }
+                    // Update message to link to lead
                     yield prisma_1.default.whatsAppMessage.update({
                         where: { id: messageRecord.id },
-                        data: { leadId: newLead.id }
+                        data: { leadId: leadToLink.id }
                     });
                 }
                 console.log(`[WhatsAppWebhook] Saved incoming message from ${message.from}`);

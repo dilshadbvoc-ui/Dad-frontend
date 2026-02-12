@@ -163,21 +163,50 @@ export const WhatsAppIntegrationService = {
 
             // Create lead if none exists and link to message
             if (!lead && !contactId) {
-                const newLead = await prisma.lead.create({
-                    data: {
-                        firstName: contactName.split(' ')[0] || contactName,
-                        lastName: contactName.split(' ').slice(1).join(' ') || '',
-                        phone: message.from,
-                        source: 'whatsapp',
-                        status: 'new',
-                        organisationId
-                    }
-                });
+                // Sanitize phone
+                let cleanPhone = message.from.replace(/\D/g, '');
+                if (cleanPhone.length > 10) {
+                    cleanPhone = cleanPhone.slice(-10);
+                }
 
-                // Update message to link to newly created lead
+                // Check for duplicates
+                const { DuplicateLeadService } = await import('./DuplicateLeadService');
+                const duplicateCheck = await DuplicateLeadService.checkDuplicate(cleanPhone, null, organisationId);
+
+                let leadToLink;
+                if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                    // Use existing lead and mark as re-enquiry
+                    await DuplicateLeadService.handleReEnquiry(
+                        duplicateCheck.existingLead,
+                        {
+                            firstName: contactName.split(' ')[0] || contactName,
+                            lastName: contactName.split(' ').slice(1).join(' ') || '',
+                            phone: cleanPhone,
+                            source: 'whatsapp',
+                            sourceDetails: { whatsappMessageId: message.id }
+                        },
+                        organisationId
+                    );
+                    leadToLink = duplicateCheck.existingLead;
+                } else {
+                    // Create new lead
+                    const newLead = await prisma.lead.create({
+                        data: {
+                            firstName: contactName.split(' ')[0] || contactName,
+                            lastName: contactName.split(' ').slice(1).join(' ') || '',
+                            phone: cleanPhone,
+                            source: 'whatsapp',
+                            status: 'new',
+                            organisationId
+                        }
+                    });
+                    leadToLink = newLead;
+                }
+
+                // Update message to link to lead
                 await prisma.whatsAppMessage.update({
                     where: { id: messageRecord.id },
-                    data: { leadId: newLead.id }
+                    data: { leadId: leadToLink.id }
                 });
             }
 

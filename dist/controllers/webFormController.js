@@ -112,6 +112,7 @@ exports.deleteWebForm = deleteWebForm;
  * POST /api/public/webforms/:id/submit
  */
 const submitWebForm = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const { id } = req.params;
         const formData = req.body;
@@ -122,13 +123,37 @@ const submitWebForm = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return res.status(404).json({ message: 'Form not found or inactive' });
         }
         const orgId = webForm.organisationId;
+        // Sanitize phone
+        let cleanPhone = ((_a = formData.phone) === null || _a === void 0 ? void 0 : _a.toString().replace(/\D/g, '')) || '';
+        if (cleanPhone.length > 10) {
+            cleanPhone = cleanPhone.slice(-10);
+        }
+        // Check for duplicates
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
+        const duplicateCheck = yield DuplicateLeadService.checkDuplicate(cleanPhone, formData.email, orgId);
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            yield DuplicateLeadService.handleReEnquiry(duplicateCheck.existingLead, {
+                firstName: formData.firstName || 'Unknown',
+                lastName: formData.lastName || '',
+                email: formData.email,
+                phone: cleanPhone,
+                company: formData.company,
+                source: 'website',
+                sourceDetails: Object.assign({ webFormId: id }, formData.customFields)
+            }, orgId);
+            return res.status(200).json({
+                message: 'Thank you for your interest! We will contact you soon.',
+                isReEnquiry: true
+            });
+        }
         // 1. Create Lead
         const lead = yield prisma_1.default.lead.create({
             data: {
                 firstName: formData.firstName || 'Unknown',
                 lastName: formData.lastName || '',
                 email: formData.email,
-                phone: formData.phone,
+                phone: cleanPhone,
                 company: formData.company,
                 source: 'website',
                 organisationId: orgId,

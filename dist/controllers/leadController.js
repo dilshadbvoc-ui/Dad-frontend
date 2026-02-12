@@ -510,6 +510,7 @@ const deleteLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 });
 exports.deleteLead = deleteLead;
 const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
     try {
         const leadsData = req.body;
         const user = req.user;
@@ -520,41 +521,56 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
             return res.status(400).json({ message: 'No org' });
-        // Import GeoLocationService for country detection
+        // Import services
         const { GeoLocationService } = yield Promise.resolve().then(() => __importStar(require('../services/GeoLocationService')));
-        // Prisma createMany does not support nested relations logic per row easily if validating constraints one by one?
-        // Actually createMany is supported but it's "all or nothing" validation usually or simple insert.
-        // And it doesn't return created objects, just count.
-        const leadsToInsert = leadsData.map(l => {
-            // Try to detect country from phone if not provided
-            let geoData = null;
-            if (!l.country && !l.countryCode && l.phone) {
-                geoData = GeoLocationService.detectCountryFromPhone(l.phone);
-            }
-            return {
-                firstName: l.firstName,
-                lastName: l.lastName || '',
-                phone: l.phone,
-                email: l.email,
-                company: l.company,
-                country: l.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined,
-                countryCode: l.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined,
-                phoneCountryCode: l.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined,
-                organisationId: orgId,
-                assignedToId: l.assignedTo || user.id,
-                source: l.source || client_1.LeadSource.import,
-                status: l.status || client_1.LeadStatus.new,
-                leadScore: l.leadScore || 0
-            };
-        });
-        // Create individually to run Distribution logic (Round Robin updates)
-        // prisma.createMany does not support side-effects like DistributionService
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
         let createdCount = 0;
-        for (const data of leadsToInsert) {
+        let duplicateCount = 0;
+        let reEnquiryCount = 0;
+        const errors = [];
+        for (const l of leadsData) {
             try {
-                // Check duplicate if needed or rely on database constraints? 
-                // createMany had skipDuplicates: true. 
-                // We'll try create and catch error to simulate skipDuplicates
+                // Sanitize phone
+                let cleanPhone = ((_a = l.phone) === null || _a === void 0 ? void 0 : _a.toString().replace(/\D/g, '')) || '';
+                if (cleanPhone.length > 10) {
+                    cleanPhone = cleanPhone.slice(-10);
+                }
+                // Check for duplicates
+                const duplicateCheck = yield DuplicateLeadService.checkDuplicate(cleanPhone, l.email, orgId);
+                if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                    // Handle as re-enquiry
+                    yield DuplicateLeadService.handleReEnquiry(duplicateCheck.existingLead, {
+                        firstName: l.firstName,
+                        lastName: l.lastName || '',
+                        email: l.email,
+                        phone: cleanPhone,
+                        company: l.company,
+                        source: l.source || 'import',
+                        sourceDetails: l.sourceDetails
+                    }, orgId);
+                    reEnquiryCount++;
+                    continue;
+                }
+                // Try to detect country from phone if not provided
+                let geoData = null;
+                if (!l.country && !l.countryCode && cleanPhone) {
+                    geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
+                }
+                const data = {
+                    firstName: l.firstName,
+                    lastName: l.lastName || '',
+                    phone: cleanPhone,
+                    email: l.email,
+                    company: l.company,
+                    country: l.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined,
+                    countryCode: l.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined,
+                    phoneCountryCode: l.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined,
+                    organisationId: orgId,
+                    assignedToId: l.assignedTo || user.id,
+                    source: l.source || client_1.LeadSource.import,
+                    status: l.status || client_1.LeadStatus.new,
+                    leadScore: l.leadScore || 0
+                };
                 const lead = yield prisma_1.default.lead.create({ data });
                 // Distribute
                 yield DistributionService_1.DistributionService.assignLead(lead, orgId);
@@ -564,14 +580,17 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
                 });
                 createdCount++;
             }
-            catch (_a) {
-                // Ignore duplicates (unique constraint violations)
-                // Console log if needed
+            catch (error) {
+                errors.push({ lead: l, error: error.message });
+                duplicateCount++;
             }
         }
         res.status(201).json({
-            message: `Successfully imported leads`,
-            count: createdCount
+            message: `Bulk import completed`,
+            created: createdCount,
+            reEnquiries: reEnquiryCount,
+            duplicates: duplicateCount,
+            errors: errors.length > 0 ? errors : undefined
         });
     }
     catch (error) {
