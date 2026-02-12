@@ -211,6 +211,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// CRITICAL: System lock check - must be early in middleware chain
+import('./middleware/superAdminProtection').then(({ checkSystemLock }) => {
+    app.use(checkSystemLock);
+});
+
 // Security Middleware
 app.use(auditSecurity); // Security audit logging
 app.use(setCSRFToken); // CSRF token generation
@@ -391,8 +396,12 @@ const logRoutes = (stack: any[], parentPath: string = '') => {
     });
 };
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
     console.log(`Server running on port ${PORT}`);
+
+    // CRITICAL: Verify super admin integrity on startup
+    const { verifySuperAdminIntegrity } = await import('./middleware/superAdminProtection');
+    await verifySuperAdminIntegrity();
 
     // Log routes after short delay to ensure all are mounted
     setTimeout(() => {

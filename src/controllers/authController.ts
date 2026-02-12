@@ -318,6 +318,10 @@ export const resetPassword = async (req: Request, res: Response) => {
             return;
         }
 
+        // CRITICAL: Monitor super admin password changes
+        const { monitorSuperAdminPasswordChange } = await import('../middleware/superAdminProtection');
+        await monitorSuperAdminPasswordChange(user.id, user.id, req.ip);
+
         // Set new password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
