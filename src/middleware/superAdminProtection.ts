@@ -6,11 +6,42 @@ import crypto from 'crypto';
 // This middleware protects the super admin account from unauthorized modifications
 
 const SUPER_ADMIN_EMAIL = 'superadmin@crm.com';
+const SUPER_ADMIN_SECRET_KEY = process.env.SUPER_ADMIN_SECRET_KEY || ''; // MUST be set in production
 const SUPER_ADMIN_ID_HASH = process.env.SUPER_ADMIN_ID_HASH || ''; // Set this in env
 
 // Emergency shutdown flag
 let SYSTEM_LOCKED = false;
 let LOCK_REASON = '';
+
+/**
+ * Verify super admin secret key
+ * This ensures only the owner can make changes to super admin
+ */
+export const verifySuperAdminSecret = (req: Request, res: Response, next: NextFunction) => {
+    const secretKey = req.headers['x-super-admin-key'] as string;
+    const targetUserId = req.params.id || req.body.userId || req.body.id;
+
+    // Check if this is a super admin modification
+    prisma.user.findUnique({
+        where: { id: targetUserId },
+        select: { email: true, role: true }
+    }).then(targetUser => {
+        if (targetUser && (targetUser.email === SUPER_ADMIN_EMAIL || targetUser.role === 'super_admin')) {
+            // This is a super admin modification - require secret key
+            if (!secretKey || secretKey !== SUPER_ADMIN_SECRET_KEY) {
+                lockSystem(`Super admin modification attempted without valid secret key. IP: ${req.ip}`);
+                return res.status(403).json({
+                    message: 'Super admin modifications require special authorization key',
+                    code: 'SUPER_ADMIN_SECRET_REQUIRED'
+                });
+            }
+        }
+        next();
+    }).catch(err => {
+        console.error('Error in super admin secret verification:', err);
+        next();
+    });
+};
 
 /**
  * Lock the entire system in case of security breach
@@ -200,5 +231,6 @@ export default {
     protectSuperAdmin,
     verifySuperAdminIntegrity,
     monitorSuperAdminPasswordChange,
+    verifySuperAdminSecret,
     lockSystem
 };
