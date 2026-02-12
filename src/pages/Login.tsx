@@ -34,14 +34,17 @@ const Login = () => {
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (err: unknown) {
             console.error("Login Error Full:", err);
+            console.error("Login Error Response:", (err as any)?.response);
+            console.error("Login Error Data:", (err as any)?.response?.data);
+            
             let errorMessage = 'Login failed';
             const error = err as { response?: { data?: { message?: string }, status?: number }, request?: unknown, message?: string };
 
             if (error.response) {
                 // Server responded with a status code outside 2xx
+                errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
             } else if (error.request) {
                 // Request was made but no response received
-
                 errorMessage = 'Network Error: Cannot reach server. Check your connection or API configuration.';
             } else {
                 // Something else happened
