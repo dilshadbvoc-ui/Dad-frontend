@@ -869,6 +869,7 @@ exports.Prisma.ImportJobScalarFieldEnum = {
   errors: 'errors',
   fileUrl: 'fileUrl',
   mapping: 'mapping',
+  metadata: 'metadata',
   startedAt: 'startedAt',
   completedAt: 'completedAt',
   createdById: 'createdById',

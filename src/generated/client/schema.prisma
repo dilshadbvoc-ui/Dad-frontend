@@ -1163,6 +1163,7 @@ model ImportJob {
   errors         Json?
   fileUrl        String?
   mapping        Json?
+  metadata       Json?
   startedAt      DateTime?
   completedAt    DateTime?
   createdById    String
