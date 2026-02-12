@@ -50,8 +50,8 @@ const menuGroups = [
         title: "Sales Engine",
         items: [
             { title: "Leads", href: "/leads", icon: User },
-            { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw },
-            { title: "Duplicates", href: "/duplicates", icon: AlertTriangle },
+            { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
+            { title: "Duplicates", href: "/duplicates", icon: AlertTriangle, role: "admin" },
             { title: "Contacts", href: "/contacts", icon: Users },
             { title: "Accounts", href: "/accounts", icon: Building },
             { title: "Opportunities", href: "/opportunities", icon: Target },
@@ -153,7 +153,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         ...group,
         items: group.items.filter(item => {
             if (isSuperAdmin && item.title !== "Settings") return false;
-            if (item.role && item.role !== user?.role) return false;
+            // Check if item requires admin role
+            if (item.role === 'admin' && user?.role !== 'admin' && user?.role !== 'super_admin') return false;
+            if (item.role && item.role !== 'admin' && item.role !== user?.role) return false;
             return true;
         })
     })).filter(group => group.items.length > 0);

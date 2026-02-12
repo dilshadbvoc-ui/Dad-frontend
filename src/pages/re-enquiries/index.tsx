@@ -1,24 +1,64 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getReEnquiryLeads, type Lead } from "@/services/leadService"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { RefreshCw, Search, Phone, Mail, Building2, Calendar, TrendingUp } from "lucide-react"
+import { RefreshCw, Search, Phone, Mail, Building2, Calendar, TrendingUp, ShieldAlert } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
 
 export default function ReEnquiriesPage() {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("")
+    const [hasAccess, setHasAccess] = useState(false)
+
+    // Check user role on mount
+    useEffect(() => {
+        const userStr = localStorage.getItem('userInfo')
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                const isAdmin = user.role === 'admin' || user.role === 'super_admin'
+                setHasAccess(isAdmin)
+                if (!isAdmin) {
+                    // Redirect non-admin users
+                    navigate('/dashboard')
+                }
+            } catch (e) {
+                console.error(e)
+                navigate('/dashboard')
+            }
+        } else {
+            navigate('/login')
+        }
+    }, [navigate])
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['re-enquiry-leads'],
-        queryFn: getReEnquiryLeads
+        queryFn: getReEnquiryLeads,
+        enabled: hasAccess // Only fetch if user has access
     })
 
     const leads: Lead[] = data?.leads || []
+
+    // Show nothing while checking access
+    if (!hasAccess) {
+        return (
+            <div className="flex items-center justify-center h-screen">
+                <Card className="w-96">
+                    <CardContent className="flex flex-col items-center justify-center p-8">
+                        <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
+                        <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
+                        <p className="text-sm text-muted-foreground text-center">
+                            Only organisation admins can access re-enquiry leads management.
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+        )
+    }
 
     const filteredLeads = leads.filter(lead => {
         const searchLower = searchTerm.toLowerCase()
