@@ -168,6 +168,10 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         // Extract assignedTo before spreading
         const _a = req.body, { assignedTo } = _a, restBody = __rest(_a, ["assignedTo"]);
+        const currentUser = req.user;
+        // For manual lead creation: creator owns the lead unless explicitly assigned to someone else
+        // If assignedTo is provided, use it; otherwise assign to the creator
+        const leadOwnerId = assignedTo || currentUser.id;
         // Detect country from IP address if not provided
         let geoData = null;
         if (!req.body.country && !req.body.countryCode) {
@@ -188,7 +192,9 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         // Create
         const lead = yield prisma_1.default.lead.create({
-            data: Object.assign(Object.assign(Object.assign(Object.assign({}, restBody), { phone: cleanPhone, country: req.body.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined, countryCode: req.body.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined, phoneCountryCode: req.body.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined, organisation: { connect: { id: orgId } } }), (assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {})), { source: req.body.source, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
+            data: Object.assign(Object.assign({}, restBody), { phone: cleanPhone, country: req.body.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined, countryCode: req.body.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined, phoneCountryCode: req.body.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined, organisation: { connect: { id: orgId } }, 
+                // Assign to creator by default, or to specified user
+                assignedTo: { connect: { id: leadOwnerId } }, source: req.body.source || client_1.LeadSource.manual, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
         });
         // 3a. Handle Products if provided
         if (req.body.products && Array.isArray(req.body.products)) {
@@ -234,8 +240,11 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         catch (e) {
             console.error('Audit Log Error:', e);
         }
-        // Enable Distribution
-        yield DistributionService_1.DistributionService.assignLead(lead, orgId);
+        // Enable Distribution only if no explicit assignment was made
+        // This allows assignment rules to work for automated leads, but respects manual assignments
+        if (!assignedTo) {
+            yield DistributionService_1.DistributionService.assignLead(lead, orgId);
+        }
         // Trigger Workflow Engine for lead creation
         try {
             yield WorkflowEngine_1.WorkflowEngine.evaluate('Lead', 'created', lead, orgId);

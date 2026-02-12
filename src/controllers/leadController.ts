@@ -127,6 +127,11 @@ export const createLead = async (req: Request, res: Response) => {
 
         // Extract assignedTo before spreading
         const { assignedTo, ...restBody } = req.body;
+        const currentUser = (req as any).user;
+
+        // For manual lead creation: creator owns the lead unless explicitly assigned to someone else
+        // If assignedTo is provided, use it; otherwise assign to the creator
+        const leadOwnerId = assignedTo || currentUser.id;
 
         // Detect country from IP address if not provided
         let geoData = null;
@@ -158,9 +163,9 @@ export const createLead = async (req: Request, res: Response) => {
                 countryCode: req.body.countryCode || geoData?.countryCode || undefined,
                 phoneCountryCode: req.body.phoneCountryCode || geoData?.phoneCountryCode || undefined,
                 organisation: { connect: { id: orgId } },
-                // Handle assignedTo relation properly
-                ...(assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {}),
-                source: req.body.source as LeadSource,
+                // Assign to creator by default, or to specified user
+                assignedTo: { connect: { id: leadOwnerId } },
+                source: req.body.source as LeadSource || LeadSource.manual,
                 status: req.body.status as LeadStatus || LeadStatus.new,
                 potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0
             }
@@ -214,8 +219,11 @@ export const createLead = async (req: Request, res: Response) => {
             console.error('Audit Log Error:', e);
         }
 
-        // Enable Distribution
-        await DistributionService.assignLead(lead, orgId);
+        // Enable Distribution only if no explicit assignment was made
+        // This allows assignment rules to work for automated leads, but respects manual assignments
+        if (!assignedTo) {
+            await DistributionService.assignLead(lead, orgId);
+        }
 
         // Trigger Workflow Engine for lead creation
         try {
