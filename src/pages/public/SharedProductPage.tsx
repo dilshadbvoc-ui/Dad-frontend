@@ -180,11 +180,11 @@ export default function SharedProductPage() {
                                                         title="Brochure Preview"
                                                     />
                                                     <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <Button asChild variant="secondary">
-                                                            <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
+                                                        <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
+                                                            <Button variant="secondary">
                                                                 <Download className="mr-2 h-4 w-4" /> Download Full PDF
-                                                            </a>
-                                                        </Button>
+                                                            </Button>
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
@@ -196,11 +196,11 @@ export default function SharedProductPage() {
                                                     className="w-full h-auto"
                                                 />
                                                 <div className="p-3 bg-muted/20 border-t border-border flex justify-end">
-                                                    <Button asChild variant="outline" size="sm">
-                                                        <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
+                                                    <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
+                                                        <Button variant="outline" size="sm">
                                                             <Download className="mr-2 h-4 w-4" /> Download Image
-                                                        </a>
-                                                    </Button>
+                                                        </Button>
+                                                    </a>
                                                 </div>
                                             </div>
                                         )}
