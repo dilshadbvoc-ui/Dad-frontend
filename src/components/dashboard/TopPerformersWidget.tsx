@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tantml:react-query"
 import { api } from "@/services/api"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 export function TopPerformersWidget() {
     const { data: performers = [], isLoading } = useQuery({
@@ -60,7 +61,7 @@ export function TopPerformersWidget() {
                                 </div>
                                 <div className="text-right shrink-0">
                                     <p className="text-xs sm:text-sm font-bold text-primary">
-                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(user.totalRevenue)}
+                                        {formatCurrency(user.totalRevenue, undefined, { maximumFractionDigits: 0 })}
                                     </p>
                                 </div>
                             </div>

@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { formatCurrencyCompact } from "@/lib/utils";
 
 export default function Dashboard() {
     const { data: stats, isLoading: statsLoading } = useQuery({
@@ -90,7 +91,7 @@ export default function Dashboard() {
                         </div>
                         <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Expected Revenue</h3>
                         <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0, notation: 'compact' }).format(forecast?.weightedForecast || 0)}
+                            {formatCurrencyCompact(forecast?.weightedForecast || 0)}
                         </div>
                     </div>
                 </div>

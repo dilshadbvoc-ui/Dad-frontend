@@ -8,6 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, DollarSign, Target } from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
 
 export interface Opportunity {
     id: string
@@ -64,7 +65,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                 <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Value</span>
                             </div>
                             <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(opportunity.amount)}
+                                {formatCurrency(opportunity.amount)}
                             </span>
                         </div>
 

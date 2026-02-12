@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Loader2, User, Building, FileText, CheckSquare, TrendingUp } from "lucide-react"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
+import { formatCurrency } from "@/lib/utils"
 
 interface SearchResult {
     id: string;
@@ -125,12 +126,7 @@ export function GlobalSearch() {
 
     const formatValue = (value?: number) => {
         if (!value) return null
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0
-        }).format(value)
+        return formatCurrency(value, undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
     }
 
     const formatDate = (dateString: string) => {

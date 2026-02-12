@@ -1,8 +1,6 @@
 import { useState, useMemo } from "react";
 import { type Opportunity, updateOpportunity } from "@/services/opportunityService";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/utils";
 import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";

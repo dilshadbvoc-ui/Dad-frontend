@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { OpportunityActions } from "./OpportunityActions"
 import type { Opportunity } from "@/services/opportunityService"
+import { formatCurrency } from "@/lib/utils"
 
 export const columns: ColumnDef<Opportunity>[] = [
     {
@@ -39,11 +40,7 @@ export const columns: ColumnDef<Opportunity>[] = [
         },
         cell: ({ row }) => {
             const amount = parseFloat(row.getValue("amount"))
-            const formatted = new Intl.NumberFormat("en-IN", {
-                style: "currency",
-                currency: "INR",
-            }).format(amount)
-            return <div className="font-medium">{formatted}</div>
+            return <div className="font-medium">{formatCurrency(amount)}</div>
         }
     },
     {

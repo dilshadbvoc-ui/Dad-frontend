@@ -42,6 +42,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { CreateOrganisationDialog } from '@/components/super-admin/CreateOrganisationDialog';
 import { PlansManagement } from '@/components/super-admin/PlansManagement';
+import { formatCurrency } from "@/lib/utils";
 
 interface Organisation {
     id: string;
@@ -226,7 +227,7 @@ export default function SuperAdminDashboard() {
                             <CardContent>
                                 {statsLoading ? <Skeleton className="h-8 w-20 bg-indigo-900/20" /> : (
                                     <div className="text-2xl font-bold text-white">
-                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(stats?.totalRevenue || 0)}
+                                        {formatCurrency(stats?.totalRevenue || 0)}
                                     </div>
                                 )}
                             </CardContent>

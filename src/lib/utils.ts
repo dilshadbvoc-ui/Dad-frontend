@@ -5,18 +5,117 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs))
 }
 
+// Currency symbol mapping
+const CURRENCY_SYMBOLS: Record<string, string> = {
+    USD: '$',
+    INR: '₹',
+    EUR: '€',
+    GBP: '£',
+    AED: 'د.إ',
+    AUD: 'A$',
+    CAD: 'C$',
+    SGD: 'S$',
+    JPY: '¥',
+    CNY: '¥',
+    KRW: '₩',
+    BRL: 'R$',
+    MXN: '$',
+    ZAR: 'R',
+    CHF: 'CHF',
+    SEK: 'kr',
+    NOK: 'kr',
+    DKK: 'kr',
+    PLN: 'zł',
+    THB: '฿',
+    IDR: 'Rp',
+    MYR: 'RM',
+    PHP: '₱',
+    VND: '₫',
+    TRY: '₺',
+    RUB: '₽',
+    SAR: 'ر.س',
+    QAR: 'ر.ق',
+    KWD: 'د.ك',
+    BHD: 'د.ب',
+    OMR: 'ر.ع',
+    NZD: 'NZ$',
+    HKD: 'HK$',
+    TWD: 'NT$',
+};
+
+// Locale mapping for proper number formatting
+const CURRENCY_LOCALES: Record<string, string> = {
+    USD: 'en-US',
+    INR: 'en-IN',
+    EUR: 'de-DE',
+    GBP: 'en-GB',
+    AED: 'ar-AE',
+    AUD: 'en-AU',
+    CAD: 'en-CA',
+    SGD: 'en-SG',
+    JPY: 'ja-JP',
+    CNY: 'zh-CN',
+    KRW: 'ko-KR',
+    BRL: 'pt-BR',
+    MXN: 'es-MX',
+    ZAR: 'en-ZA',
+    CHF: 'de-CH',
+    SEK: 'sv-SE',
+    NOK: 'nb-NO',
+    DKK: 'da-DK',
+    PLN: 'pl-PL',
+    THB: 'th-TH',
+    IDR: 'id-ID',
+    MYR: 'ms-MY',
+    PHP: 'en-PH',
+    VND: 'vi-VN',
+    TRY: 'tr-TR',
+    RUB: 'ru-RU',
+    SAR: 'ar-SA',
+    QAR: 'ar-QA',
+    KWD: 'ar-KW',
+    BHD: 'ar-BH',
+    OMR: 'ar-OM',
+    NZD: 'en-NZ',
+    HKD: 'zh-HK',
+    TWD: 'zh-TW',
+};
+
 // Global currency store (simple module-level variable)
 let currentCurrency = 'USD';
 
 export function setGlobalCurrency(currency: string) {
-    currentCurrency = currency;
+    currentCurrency = currency.toUpperCase();
 }
 
-export function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('en-US', {
+export function getGlobalCurrency() {
+    return currentCurrency;
+}
+
+export function getCurrencySymbol(currency?: string): string {
+    const curr = (currency || currentCurrency).toUpperCase();
+    return CURRENCY_SYMBOLS[curr] || curr;
+}
+
+export function formatCurrency(amount: number, currency?: string, options?: {
+    compact?: boolean;
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+}) {
+    const curr = (currency || currentCurrency).toUpperCase();
+    const locale = CURRENCY_LOCALES[curr] || 'en-US';
+    
+    return new Intl.NumberFormat(locale, {
         style: 'currency',
-        currency: currentCurrency,
-    }).format(amount)
+        currency: curr,
+        notation: options?.compact ? 'compact' : 'standard',
+        minimumFractionDigits: options?.minimumFractionDigits ?? (options?.compact ? 0 : 2),
+        maximumFractionDigits: options?.maximumFractionDigits ?? (options?.compact ? 0 : 2),
+    }).format(amount);
+}
+
+export function formatCurrencyCompact(amount: number, currency?: string) {
+    return formatCurrency(amount, currency, { compact: true, maximumFractionDigits: 1 });
 }
 
 /**
