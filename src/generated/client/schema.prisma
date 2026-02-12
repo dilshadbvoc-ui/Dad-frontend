@@ -741,22 +741,29 @@ model SMSTemplate {
 }
 
 model SubscriptionPlan {
-  id           String    @id @default(uuid())
-  name         String    @unique
+  id           String       @id @default(uuid())
+  name         String       @unique
   description  String?
   features     String[]
   price        Float
-  billingType  String    @default("flat_rate")
-  currency     String    @default("INR")
+  billingType  String       @default("flat_rate")
+  pricingModel PricingModel @default(flat_rate)
+  pricePerUser Float? // Used when pricingModel is per_user
+  currency     String       @default("INR")
   durationDays Int
-  maxUsers     Int       @default(1)
-  maxLeads     Int       @default(100)
-  maxContacts  Int       @default(500)
-  maxStorage   Int       @default(1000) // MB
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  maxUsers     Int          @default(1)
+  maxLeads     Int          @default(100)
+  maxContacts  Int          @default(500)
+  maxStorage   Int          @default(1000) // MB
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
   licenses     License[]
+}
+
+enum PricingModel {
+  per_user
+  flat_rate
 }
 
 model License {

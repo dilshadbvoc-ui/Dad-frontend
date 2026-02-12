@@ -332,6 +332,9 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             res.status(400).json({ message: 'Invalid or expired token' });
             return;
         }
+        // CRITICAL: Monitor super admin password changes
+        const { monitorSuperAdminPasswordChange } = yield Promise.resolve().then(() => __importStar(require('../middleware/superAdminProtection')));
+        yield monitorSuperAdminPasswordChange(user.id, user.id, req.ip);
         // Set new password
         const salt = yield bcryptjs_1.default.genSalt(10);
         const hashedPassword = yield bcryptjs_1.default.hash(password, salt);

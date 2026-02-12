@@ -56,7 +56,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateAIResponse = exports.getPendingFollowUpsCount = exports.submitExplanation = exports.getLeadHistory = exports.getViolations = exports.convertLead = exports.bulkAssignLeads = exports.createBulkLeads = exports.deleteLead = exports.updateLead = exports.getLeadById = exports.createLead = exports.getLeads = void 0;
+exports.getDuplicateLeads = exports.getReEnquiryLeads = exports.generateAIResponse = exports.getPendingFollowUpsCount = exports.submitExplanation = exports.getLeadHistory = exports.getViolations = exports.convertLead = exports.bulkAssignLeads = exports.createBulkLeads = exports.deleteLead = exports.updateLead = exports.getLeadById = exports.createLead = exports.getLeads = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 const DistributionService_1 = require("../services/DistributionService");
@@ -140,23 +140,47 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (cleanPhone.length > 10 && cleanPhone.endsWith(cleanPhone.slice(-10))) {
             cleanPhone = cleanPhone.slice(-10);
         }
-        // Check Duplicate
-        const existingLead = yield prisma_1.default.lead.findFirst({
-            where: {
-                OR: [
-                    { email: email || 'invalid_check' },
-                    { phone: cleanPhone }
-                ]
-            }
-        });
-        if (existingLead) {
-            return res.status(409).json({ message: 'Lead with this email or phone already exists' });
-        }
         const orgId = (0, hierarchyUtils_1.getOrgId)(req.user);
         if (!orgId)
             return res.status(400).json({ message: 'Organisation context required' });
+        // Check for duplicates using DuplicateLeadService
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
+        const duplicateCheck = yield DuplicateLeadService.checkDuplicate(cleanPhone, email, orgId);
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            const reEnquiryData = {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                phone: cleanPhone,
+                company: req.body.company,
+                source: req.body.source,
+                sourceDetails: req.body.sourceDetails
+            };
+            const updatedLead = yield DuplicateLeadService.handleReEnquiry(duplicateCheck.existingLead, reEnquiryData, orgId);
+            return res.status(200).json({
+                message: 'Lead already exists. Marked as re-enquiry and notifications sent.',
+                lead: updatedLead,
+                isReEnquiry: true,
+                matchedBy: duplicateCheck.matchedBy,
+                reEnquiryCount: updatedLead.reEnquiryCount
+            });
+        }
         // Extract assignedTo before spreading
         const _a = req.body, { assignedTo } = _a, restBody = __rest(_a, ["assignedTo"]);
+        // Detect country from IP address if not provided
+        let geoData = null;
+        if (!req.body.country && !req.body.countryCode) {
+            const { GeoLocationService } = yield Promise.resolve().then(() => __importStar(require('../services/GeoLocationService')));
+            const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection.remoteAddress;
+            if (ipAddress) {
+                geoData = yield GeoLocationService.detectCountryFromIP(ipAddress);
+            }
+            // Fallback: Try to detect from phone number
+            if (!geoData && cleanPhone) {
+                geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
+            }
+        }
         // Custom Field Validation
         if (req.body.customFields) {
             const { CustomFieldValidationService } = yield Promise.resolve().then(() => __importStar(require('../services/CustomFieldValidationService')));
@@ -164,7 +188,7 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         // Create
         const lead = yield prisma_1.default.lead.create({
-            data: Object.assign(Object.assign(Object.assign(Object.assign({}, restBody), { phone: cleanPhone, organisation: { connect: { id: orgId } } }), (assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {})), { source: req.body.source, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
+            data: Object.assign(Object.assign(Object.assign(Object.assign({}, restBody), { phone: cleanPhone, country: req.body.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined, countryCode: req.body.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined, phoneCountryCode: req.body.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined, organisation: { connect: { id: orgId } } }), (assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {})), { source: req.body.source, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
         });
         // 3a. Handle Products if provided
         if (req.body.products && Array.isArray(req.body.products)) {
@@ -496,21 +520,33 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
             return res.status(400).json({ message: 'No org' });
+        // Import GeoLocationService for country detection
+        const { GeoLocationService } = yield Promise.resolve().then(() => __importStar(require('../services/GeoLocationService')));
         // Prisma createMany does not support nested relations logic per row easily if validating constraints one by one?
         // Actually createMany is supported but it's "all or nothing" validation usually or simple insert.
         // And it doesn't return created objects, just count.
-        const leadsToInsert = leadsData.map(l => ({
-            firstName: l.firstName,
-            lastName: l.lastName || '',
-            phone: l.phone,
-            email: l.email,
-            company: l.company,
-            organisationId: orgId,
-            assignedToId: l.assignedTo || user.id,
-            source: l.source || client_1.LeadSource.import,
-            status: l.status || client_1.LeadStatus.new,
-            leadScore: l.leadScore || 0
-        }));
+        const leadsToInsert = leadsData.map(l => {
+            // Try to detect country from phone if not provided
+            let geoData = null;
+            if (!l.country && !l.countryCode && l.phone) {
+                geoData = GeoLocationService.detectCountryFromPhone(l.phone);
+            }
+            return {
+                firstName: l.firstName,
+                lastName: l.lastName || '',
+                phone: l.phone,
+                email: l.email,
+                company: l.company,
+                country: l.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined,
+                countryCode: l.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined,
+                phoneCountryCode: l.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined,
+                organisationId: orgId,
+                assignedToId: l.assignedTo || user.id,
+                source: l.source || client_1.LeadSource.import,
+                status: l.status || client_1.LeadStatus.new,
+                leadScore: l.leadScore || 0
+            };
+        });
         // Create individually to run Distribution logic (Round Robin updates)
         // prisma.createMany does not support side-effects like DistributionService
         let createdCount = 0;
@@ -904,3 +940,41 @@ const generateAIResponse = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.generateAIResponse = generateAIResponse;
+// GET /api/leads/re-enquiries - Get all re-enquiry leads
+const getReEnquiryLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orgId = (0, hierarchyUtils_1.getOrgId)(req.user);
+        if (!orgId)
+            return res.status(400).json({ message: 'No org' });
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
+        const reEnquiryLeads = yield DuplicateLeadService.getReEnquiryLeads(orgId);
+        res.json({
+            leads: reEnquiryLeads,
+            count: reEnquiryLeads.length
+        });
+    }
+    catch (error) {
+        console.error('getReEnquiryLeads Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getReEnquiryLeads = getReEnquiryLeads;
+// GET /api/leads/duplicates - Find all duplicate leads
+const getDuplicateLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const orgId = (0, hierarchyUtils_1.getOrgId)(req.user);
+        if (!orgId)
+            return res.status(400).json({ message: 'No org' });
+        const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
+        const duplicates = yield DuplicateLeadService.findDuplicates(orgId);
+        res.json({
+            duplicates,
+            count: duplicates.length
+        });
+    }
+    catch (error) {
+        console.error('getDuplicateLeads Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getDuplicateLeads = getDuplicateLeads;

@@ -280,7 +280,7 @@ const generateProductShareLink = (req, res) => __awaiter(void 0, void 0, void 0,
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         const { productId } = req.params;
-        const { youtubeUrl, customTitle, customDescription } = req.body;
+        const { youtubeUrl, customTitle, customDescription, leadId } = req.body;
         if (!orgId)
             return res.status(403).json({ message: 'No org' });
         // Check if product exists and belongs to org
@@ -321,6 +321,33 @@ const generateProductShareLink = (req, res) => __awaiter(void 0, void 0, void 0,
                 }
             });
         }
+        // Create timeline entry if leadId is provided
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = yield prisma_1.default.lead.findUnique({
+                    where: { id: leadId, organisationId: orgId },
+                    select: { id: true, firstName: true, lastName: true }
+                });
+                if (lead) {
+                    // Create interaction record for timeline
+                    yield prisma_1.default.interaction.create({
+                        data: {
+                            type: 'other',
+                            direction: 'outbound',
+                            subject: `Product Link Shared: ${product.name}`,
+                            description: `Shareable product link for "${product.name}" was generated and sent to ${lead.firstName} ${lead.lastName}.`,
+                            date: new Date(),
+                            leadId: lead.id,
+                            createdById: user.id,
+                            organisationId: orgId
+                        }
+                    });
+                }
+            }
+            catch (e) {
+                console.error('Error creating timeline entry for share:', e);
+            }
+        }
         const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
         const shareUrl = `${baseUrl}/shared-product/${share.slug}`;
         res.json({
@@ -346,7 +373,7 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
             include: {
                 product: true,
                 createdBy: { select: { firstName: true, lastName: true, id: true, email: true, phone: true } },
-                organisation: { select: { isDeleted: true } }
+                organisation: { select: { isDeleted: true, name: true } }
             }
         });
         if (!share)
@@ -360,6 +387,33 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
             where: { id: share.id },
             data: { views: { increment: 1 } }
         }).catch(console.error);
+        // Log interaction in lead timeline if leadId is provided
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = yield prisma_1.default.lead.findUnique({
+                    where: { id: leadId },
+                    select: { id: true, firstName: true, lastName: true, company: true, organisationId: true }
+                });
+                if (lead) {
+                    // Create interaction record for timeline
+                    yield prisma_1.default.interaction.create({
+                        data: {
+                            type: 'other',
+                            direction: 'outbound',
+                            subject: `Product Shared: ${share.product.name}`,
+                            description: `Product "${share.product.name}" was shared with this lead. The lead viewed the product details via shareable link.`,
+                            date: new Date(),
+                            leadId: lead.id,
+                            createdById: share.createdById,
+                            organisationId: lead.organisationId
+                        }
+                    });
+                }
+            }
+            catch (e) {
+                console.error('Error creating timeline interaction:', e);
+            }
+        }
         // Send Notification (if enabled)
         if (share.notificationsEnabled) {
             const { NotificationService } = yield Promise.resolve().then(() => __importStar(require('../services/NotificationService')));
@@ -394,6 +448,9 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
         res.json({
             product: share.product,
             seller: share.createdBy,
+            organisation: {
+                name: share.organisation.name
+            },
             shareConfig: {
                 youtubeUrl: share.youtubeUrl,
                 customTitle: share.customTitle,

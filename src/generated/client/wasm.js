@@ -598,6 +598,8 @@ exports.Prisma.SubscriptionPlanScalarFieldEnum = {
   features: 'features',
   price: 'price',
   billingType: 'billingType',
+  pricingModel: 'pricingModel',
+  pricePerUser: 'pricePerUser',
   currency: 'currency',
   durationDays: 'durationDays',
   maxUsers: 'maxUsers',
@@ -1131,6 +1133,11 @@ exports.InteractionType = exports.$Enums.InteractionType = {
 exports.InteractionDirection = exports.$Enums.InteractionDirection = {
   inbound: 'inbound',
   outbound: 'outbound'
+};
+
+exports.PricingModel = exports.$Enums.PricingModel = {
+  per_user: 'per_user',
+  flat_rate: 'flat_rate'
 };
 
 exports.TargetScope = exports.$Enums.TargetScope = {
