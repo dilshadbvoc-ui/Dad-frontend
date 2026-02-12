@@ -173,19 +173,35 @@ export default function SharedProductPage() {
                                         {brochureType === 'pdf' ? (
                                             <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-muted/20">
                                                 <div className="aspect-[3/2] w-full relative group">
-                                                    {/* We use an iframe to preview the PDF. For better UX, consider react-pdf */}
                                                     <iframe
                                                         src={`${brochureFullUrl}#toolbar=0`}
                                                         className="w-full h-full"
                                                         title="Brochure Preview"
+                                                        onError={() => console.error('PDF failed to load')}
                                                     />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                        <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
+                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                                                        <a 
+                                                            href={brochureFullUrl} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="pointer-events-auto"
+                                                        >
                                                             <Button variant="secondary">
                                                                 <Download className="mr-2 h-4 w-4" /> Download Full PDF
                                                             </Button>
                                                         </a>
                                                     </div>
+                                                </div>
+                                                <div className="p-3 bg-muted/20 border-t border-border flex justify-center">
+                                                    <a 
+                                                        href={brochureFullUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        <Button variant="outline" size="sm">
+                                                            <Download className="mr-2 h-4 w-4" /> Download PDF
+                                                        </Button>
+                                                    </a>
                                                 </div>
                                             </div>
                                         ) : (
