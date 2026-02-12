@@ -111,17 +111,27 @@ export const MetaLeadService = {
             }
 
             // 5. Check for duplicate (by phone and org)
-            const existingLead = await prisma.lead.findUnique({
-                where: {
-                    phone_organisationId: {
-                        phone: crmData.phone,
-                        organisationId: org.id
-                    }
-                }
-            });
+            const { DuplicateLeadService } = await import('./DuplicateLeadService');
+            const duplicateCheck = await DuplicateLeadService.checkDuplicate(crmData.phone, crmData.email, org.id);
 
-            if (existingLead) {
-                console.log(`[MetaLeadService] Lead with phone ${crmData.phone} already exists in org ${org.id}. Skipping.`);
+            if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+                console.log(`[MetaLeadService] Duplicate lead detected. Handling as re-enquiry for lead ${duplicateCheck.existingLead.id}`);
+                
+                // Handle as re-enquiry
+                await DuplicateLeadService.handleReEnquiry(
+                    duplicateCheck.existingLead,
+                    {
+                        firstName: crmData.firstName,
+                        lastName: crmData.lastName,
+                        email: crmData.email,
+                        phone: crmData.phone,
+                        company: crmData.company,
+                        source: 'meta_leadgen',
+                        sourceDetails: crmData.sourceDetails
+                    },
+                    org.id
+                );
+
                 return;
             }
 

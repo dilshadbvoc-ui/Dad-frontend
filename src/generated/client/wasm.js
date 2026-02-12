@@ -242,6 +242,10 @@ exports.Prisma.LeadScalarFieldEnum = {
   userExplanation: 'userExplanation',
   violationTime: 'violationTime',
   nextFollowUp: 'nextFollowUp',
+  isReEnquiry: 'isReEnquiry',
+  reEnquiryCount: 'reEnquiryCount',
+  lastEnquiryDate: 'lastEnquiryDate',
+  originalLeadId: 'originalLeadId',
   pipelineId: 'pipelineId',
   potentialValue: 'potentialValue'
 };
@@ -1094,7 +1098,8 @@ exports.LeadStatus = exports.$Enums.LeadStatus = {
   nurturing: 'nurturing',
   converted: 'converted',
   lost: 'lost',
-  reborn: 'reborn'
+  reborn: 'reborn',
+  re_enquiry: 're_enquiry'
 };
 
 exports.OpportunityType = exports.$Enums.OpportunityType = {

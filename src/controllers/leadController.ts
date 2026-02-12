@@ -91,22 +91,39 @@ export const createLead = async (req: Request, res: Response) => {
             cleanPhone = cleanPhone.slice(-10);
         }
 
-        // Check Duplicate
-        const existingLead = await prisma.lead.findFirst({
-            where: {
-                OR: [
-                    { email: email || 'invalid_check' },
-                    { phone: cleanPhone }
-                ]
-            }
-        });
-
-        if (existingLead) {
-            return res.status(409).json({ message: 'Lead with this email or phone already exists' });
-        }
-
         const orgId = getOrgId((req as any).user);
         if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
+
+        // Check for duplicates using DuplicateLeadService
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
+        const duplicateCheck = await DuplicateLeadService.checkDuplicate(cleanPhone, email, orgId);
+
+        if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
+            // Handle as re-enquiry
+            const reEnquiryData = {
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                email: req.body.email,
+                phone: cleanPhone,
+                company: req.body.company,
+                source: req.body.source,
+                sourceDetails: req.body.sourceDetails
+            };
+
+            const updatedLead = await DuplicateLeadService.handleReEnquiry(
+                duplicateCheck.existingLead,
+                reEnquiryData,
+                orgId
+            );
+
+            return res.status(200).json({
+                message: 'Lead already exists. Marked as re-enquiry and notifications sent.',
+                lead: updatedLead,
+                isReEnquiry: true,
+                matchedBy: duplicateCheck.matchedBy,
+                reEnquiryCount: updatedLead.reEnquiryCount
+            });
+        }
 
         // Extract assignedTo before spreading
         const { assignedTo, ...restBody } = req.body;
@@ -965,3 +982,42 @@ export const generateAIResponse = async (req: Request, res: Response) => {
     }
 };
 
+
+
+// GET /api/leads/re-enquiries - Get all re-enquiry leads
+export const getReEnquiryLeads = async (req: Request, res: Response) => {
+    try {
+        const orgId = getOrgId((req as any).user);
+        if (!orgId) return res.status(400).json({ message: 'No org' });
+
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
+        const reEnquiryLeads = await DuplicateLeadService.getReEnquiryLeads(orgId);
+
+        res.json({
+            leads: reEnquiryLeads,
+            count: reEnquiryLeads.length
+        });
+    } catch (error) {
+        console.error('getReEnquiryLeads Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+// GET /api/leads/duplicates - Find all duplicate leads
+export const getDuplicateLeads = async (req: Request, res: Response) => {
+    try {
+        const orgId = getOrgId((req as any).user);
+        if (!orgId) return res.status(400).json({ message: 'No org' });
+
+        const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
+        const duplicates = await DuplicateLeadService.findDuplicates(orgId);
+
+        res.json({
+            duplicates,
+            count: duplicates.length
+        });
+    } catch (error) {
+        console.error('getDuplicateLeads Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};

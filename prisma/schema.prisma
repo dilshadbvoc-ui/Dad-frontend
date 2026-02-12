@@ -240,6 +240,13 @@ model Lead {
   userExplanation    String?
   violationTime      DateTime?
   nextFollowUp       DateTime?
+  
+  // Re-enquiry tracking
+  isReEnquiry        Boolean         @default(false)
+  reEnquiryCount     Int             @default(0)
+  lastEnquiryDate    DateTime?
+  originalLeadId     String?         // Reference to the original lead if this is a duplicate
+  
   events             CalendarEvent[]
   checkIns           CheckIn[]
   interactions       Interaction[]
@@ -264,6 +271,8 @@ model Lead {
   @@index([firstName, lastName])
   @@index([pipelineId])
   @@index([countryCode])
+  @@index([isReEnquiry])
+  @@index([email])
 }
 
 model Account {
@@ -1113,6 +1122,7 @@ enum LeadStatus {
   converted
   lost
   reborn
+  re_enquiry
 }
 
 enum TaskStatus {
