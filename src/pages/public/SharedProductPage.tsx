@@ -175,24 +175,46 @@ export default function SharedProductPage() {
 
                                         {brochureType === 'pdf' ? (
                                             <div className="space-y-4">
-                                                {/* PDF Viewer - Full Height */}
+                                                {/* PDF Viewer - Using object tag for better compatibility */}
                                                 <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-muted/20">
-                                                    <div className="w-full" style={{ minHeight: '800px' }}>
-                                                        <iframe
-                                                            src={brochureFullUrl}
-                                                            className="w-full"
-                                                            style={{ height: '800px', border: 'none' }}
-                                                            title="Product Brochure"
-                                                            onError={(e) => {
-                                                                console.error('PDF failed to load:', e);
-                                                                (e.target as HTMLIFrameElement).style.display = 'none';
-                                                            }}
-                                                        />
-                                                    </div>
+                                                    <object
+                                                        data={brochureFullUrl}
+                                                        type="application/pdf"
+                                                        className="w-full"
+                                                        style={{ height: '800px' }}
+                                                    >
+                                                        {/* Fallback content if PDF can't be displayed */}
+                                                        <div className="p-8 text-center space-y-4">
+                                                            <FileText className="h-16 w-16 mx-auto text-muted-foreground" />
+                                                            <p className="text-muted-foreground">
+                                                                Your browser cannot display this PDF directly.
+                                                            </p>
+                                                            <div className="flex flex-col gap-3 items-center">
+                                                                <a 
+                                                                    href={brochureFullUrl} 
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    <Button variant="default" size="lg">
+                                                                        <Download className="mr-2 h-4 w-4" /> Download Brochure
+                                                                    </Button>
+                                                                </a>
+                                                                <a 
+                                                                    href={`https://docs.google.com/viewer?url=${encodeURIComponent(brochureFullUrl)}&embedded=true`}
+                                                                    target="_blank" 
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    <Button variant="outline" size="lg">
+                                                                        <FileText className="mr-2 h-4 w-4" /> View with Google Docs
+                                                                    </Button>
+                                                                </a>
+                                                            </div>
+                                                        </div>
+                                                    </object>
                                                 </div>
                                                 
                                                 {/* Download Buttons */}
-                                                <div className="flex gap-3 justify-center">
+                                                <div className="flex flex-wrap gap-3 justify-center">
                                                     <a 
                                                         href={brochureFullUrl} 
                                                         target="_blank" 
@@ -215,12 +237,12 @@ export default function SharedProductPage() {
                                                     </a>
                                                 </div>
 
-                                                {/* Alternative: Google Docs Viewer */}
+                                                {/* Alternative Viewers */}
                                                 <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
-                                                    <p className="text-sm text-muted-foreground mb-3">
-                                                        Can't see the brochure? Try viewing it with:
+                                                    <p className="text-sm font-medium text-foreground mb-3">
+                                                        Alternative viewing options:
                                                     </p>
-                                                    <div className="flex gap-2">
+                                                    <div className="flex flex-wrap gap-2">
                                                         <a 
                                                             href={`https://docs.google.com/viewer?url=${encodeURIComponent(brochureFullUrl)}&embedded=true`}
                                                             target="_blank" 
@@ -228,6 +250,15 @@ export default function SharedProductPage() {
                                                         >
                                                             <Button variant="outline" size="sm">
                                                                 Google Docs Viewer
+                                                            </Button>
+                                                        </a>
+                                                        <a 
+                                                            href={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(brochureFullUrl)}`}
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <Button variant="outline" size="sm">
+                                                                PDF.js Viewer
                                                             </Button>
                                                         </a>
                                                         <a 
@@ -239,6 +270,9 @@ export default function SharedProductPage() {
                                                             </Button>
                                                         </a>
                                                     </div>
+                                                    <p className="text-xs text-muted-foreground mt-3">
+                                                        PDF URL: <code className="bg-muted px-1 py-0.5 rounded text-xs">{brochureFullUrl}</code>
+                                                    </p>
                                                 </div>
                                             </div>
                                         ) : (
