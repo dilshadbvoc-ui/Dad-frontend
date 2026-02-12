@@ -111,6 +111,21 @@ export const createLead = async (req: Request, res: Response) => {
         // Extract assignedTo before spreading
         const { assignedTo, ...restBody } = req.body;
 
+        // Detect country from IP address if not provided
+        let geoData = null;
+        if (!req.body.country && !req.body.countryCode) {
+            const { GeoLocationService } = await import('../services/GeoLocationService');
+            const ipAddress = req.ip || req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.connection.remoteAddress;
+            if (ipAddress) {
+                geoData = await GeoLocationService.detectCountryFromIP(ipAddress as string);
+            }
+            
+            // Fallback: Try to detect from phone number
+            if (!geoData && cleanPhone) {
+                geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
+            }
+        }
+
         // Custom Field Validation
         if (req.body.customFields) {
             const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
@@ -122,6 +137,9 @@ export const createLead = async (req: Request, res: Response) => {
             data: {
                 ...restBody,
                 phone: cleanPhone,
+                country: req.body.country || geoData?.country || undefined,
+                countryCode: req.body.countryCode || geoData?.countryCode || undefined,
+                phoneCountryCode: req.body.phoneCountryCode || geoData?.phoneCountryCode || undefined,
                 organisation: { connect: { id: orgId } },
                 // Handle assignedTo relation properly
                 ...(assignedTo ? { assignedTo: { connect: { id: assignedTo } } } : {}),
@@ -489,22 +507,36 @@ export const createBulkLeads = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'No org' });
 
+        // Import GeoLocationService for country detection
+        const { GeoLocationService } = await import('../services/GeoLocationService');
+
         // Prisma createMany does not support nested relations logic per row easily if validating constraints one by one?
         // Actually createMany is supported but it's "all or nothing" validation usually or simple insert.
         // And it doesn't return created objects, just count.
 
-        const leadsToInsert = leadsData.map(l => ({
-            firstName: l.firstName,
-            lastName: l.lastName || '',
-            phone: l.phone,
-            email: l.email,
-            company: l.company,
-            organisationId: orgId,
-            assignedToId: l.assignedTo || user.id,
-            source: l.source || LeadSource.import,
-            status: l.status || LeadStatus.new,
-            leadScore: l.leadScore || 0
-        }));
+        const leadsToInsert = leadsData.map(l => {
+            // Try to detect country from phone if not provided
+            let geoData = null;
+            if (!l.country && !l.countryCode && l.phone) {
+                geoData = GeoLocationService.detectCountryFromPhone(l.phone);
+            }
+
+            return {
+                firstName: l.firstName,
+                lastName: l.lastName || '',
+                phone: l.phone,
+                email: l.email,
+                company: l.company,
+                country: l.country || geoData?.country || undefined,
+                countryCode: l.countryCode || geoData?.countryCode || undefined,
+                phoneCountryCode: l.phoneCountryCode || geoData?.phoneCountryCode || undefined,
+                organisationId: orgId,
+                assignedToId: l.assignedTo || user.id,
+                source: l.source || LeadSource.import,
+                status: l.status || LeadStatus.new,
+                leadScore: l.leadScore || 0
+            };
+        });
 
         // Create individually to run Distribution logic (Round Robin updates)
         // prisma.createMany does not support side-effects like DistributionService

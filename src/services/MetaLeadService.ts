@@ -76,6 +76,10 @@ export const MetaLeadService = {
                 }
             });
 
+            // Extract country information from Meta lead
+            const { GeoLocationService } = await import('./GeoLocationService');
+            const geoData = GeoLocationService.extractCountryFromMetaLead(fieldMap);
+
             // Common Meta Field Names -> CRM Field Names
             const crmData: any = {
                 firstName: fieldMap.first_name || fieldMap.full_name?.split(' ')[0] || 'Meta',
@@ -84,6 +88,9 @@ export const MetaLeadService = {
                 phone: fieldMap.phone_number || '', // Will be sanitized in createLead or manually here
                 company: fieldMap.company_name || null,
                 jobTitle: fieldMap.job_title || null,
+                country: geoData?.country || null,
+                countryCode: geoData?.countryCode || null,
+                phoneCountryCode: geoData?.phoneCountryCode || null,
                 source: LeadSource.meta_leadgen,
                 sourceDetails: {
                     metaLeadgenId: leadgenId,
