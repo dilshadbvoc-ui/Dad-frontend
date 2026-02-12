@@ -245,7 +245,7 @@ export const generateProductShareLink = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const orgId = getOrgId(user);
         const { productId } = req.params;
-        const { youtubeUrl, customTitle, customDescription } = req.body;
+        const { youtubeUrl, customTitle, customDescription, leadId } = req.body;
 
         if (!orgId) return res.status(403).json({ message: 'No org' });
 
@@ -288,6 +288,34 @@ export const generateProductShareLink = async (req: Request, res: Response) => {
                     customDescription
                 }
             });
+        }
+
+        // Create timeline entry if leadId is provided
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = await prisma.lead.findUnique({
+                    where: { id: leadId, organisationId: orgId },
+                    select: { id: true, firstName: true, lastName: true }
+                });
+
+                if (lead) {
+                    // Create interaction record for timeline
+                    await prisma.interaction.create({
+                        data: {
+                            type: 'other',
+                            direction: 'outbound',
+                            subject: `Product Link Shared: ${product.name}`,
+                            description: `Shareable product link for "${product.name}" was generated and sent to ${lead.firstName} ${lead.lastName}.`,
+                            date: new Date(),
+                            leadId: lead.id,
+                            createdById: user.id,
+                            organisationId: orgId
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error creating timeline entry for share:', e);
+            }
         }
 
         const baseUrl = process.env.CLIENT_URL || 'http://localhost:5173';
@@ -333,6 +361,34 @@ export const getSharedProduct = async (req: Request, res: Response) => {
             where: { id: share.id },
             data: { views: { increment: 1 } }
         }).catch(console.error);
+
+        // Log interaction in lead timeline if leadId is provided
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = await prisma.lead.findUnique({
+                    where: { id: leadId },
+                    select: { id: true, firstName: true, lastName: true, company: true, organisationId: true }
+                });
+
+                if (lead) {
+                    // Create interaction record for timeline
+                    await prisma.interaction.create({
+                        data: {
+                            type: 'other',
+                            direction: 'outbound',
+                            subject: `Product Shared: ${share.product.name}`,
+                            description: `Product "${share.product.name}" was shared with this lead. The lead viewed the product details via shareable link.`,
+                            date: new Date(),
+                            leadId: lead.id,
+                            createdById: share.createdById,
+                            organisationId: lead.organisationId
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error('Error creating timeline interaction:', e);
+            }
+        }
 
         // Send Notification (if enabled)
         if (share.notificationsEnabled) {
