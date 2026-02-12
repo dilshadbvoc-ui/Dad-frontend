@@ -3,6 +3,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getContacts } from "@/services/contactService"
 import { Button } from "@/components/ui/button"
+import { LoadingCard } from "@/components/ui/loading-spinner"
 
 import { Link } from "react-router-dom"
 import {
@@ -57,12 +58,7 @@ export default function ContactsPage() {
             </div>
 
             {isLoading ? (
-                <div className="flex items-center justify-center p-12">
-                    <div className="flex flex-col items-center gap-3">
-                        <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                        <p className="text-sm text-muted-foreground">Loading contacts...</p>
-                    </div>
-                </div>
+                <LoadingCard text="Loading contacts..." className="m-6" />
             ) : (
                 <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
                     <DataTable columns={columns} data={contacts} searchKey="firstName" />

@@ -5,6 +5,7 @@ import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
+import { LoadingCard } from "@/components/ui/loading-spinner"
 
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -381,11 +382,8 @@ export default function LeadsPage() {
                 {/* Content Area */}
                 <div className="flex-1 min-h-0 bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm overflow-hidden flex flex-col">
                     {isLoading ? (
-                        <div className="flex items-center justify-center h-64 lg:h-full">
-                            <div className="flex flex-col items-center gap-3">
-                                <div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                                <p className="text-xs text-muted-foreground">Loading...</p>
-                            </div>
+                        <div className="flex items-center justify-center h-full p-6">
+                            <LoadingCard text="Loading leads..." />
                         </div>
                     ) : (
                         <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">

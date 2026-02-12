@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import SharedProductPage from './pages/public/SharedProductPage';
+import { PageLoader } from './components/ui/page-loader';
 
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -139,7 +140,7 @@ function AppContent() {
         <Routes>
           {/* ... existing routes ... */}
           <Route path="/login" element={<Login />} />
-          <Route path="/sso-login" element={<Suspense fallback={<div>Loading...</div>}><SSOLogin /></Suspense>} />
+          <Route path="/sso-login" element={<Suspense fallback={<PageLoader text="Loading SSO" />}><SSOLogin /></Suspense>} />
           <Route path="/sso-callback" element={<SSOCallback />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
