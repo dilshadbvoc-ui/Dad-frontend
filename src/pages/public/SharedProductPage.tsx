@@ -174,50 +174,93 @@ export default function SharedProductPage() {
                                         </h3>
 
                                         {brochureType === 'pdf' ? (
-                                            <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-muted/20">
-                                                <div className="aspect-[3/2] w-full relative group">
-                                                    <iframe
-                                                        src={`${brochureFullUrl}#toolbar=0`}
-                                                        className="w-full h-full"
-                                                        title="Brochure Preview"
-                                                        onError={() => console.error('PDF failed to load')}
-                                                    />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                                                        <a 
-                                                            href={brochureFullUrl} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            className="pointer-events-auto"
-                                                        >
-                                                            <Button variant="secondary">
-                                                                <Download className="mr-2 h-4 w-4" /> Download Full PDF
-                                                            </Button>
-                                                        </a>
+                                            <div className="space-y-4">
+                                                {/* PDF Viewer - Full Height */}
+                                                <div className="border border-border rounded-xl overflow-hidden shadow-sm bg-muted/20">
+                                                    <div className="w-full" style={{ minHeight: '800px' }}>
+                                                        <iframe
+                                                            src={brochureFullUrl}
+                                                            className="w-full"
+                                                            style={{ height: '800px', border: 'none' }}
+                                                            title="Product Brochure"
+                                                            onError={(e) => {
+                                                                console.error('PDF failed to load:', e);
+                                                                (e.target as HTMLIFrameElement).style.display = 'none';
+                                                            }}
+                                                        />
                                                     </div>
                                                 </div>
-                                                <div className="p-3 bg-muted/20 border-t border-border flex justify-center">
+                                                
+                                                {/* Download Buttons */}
+                                                <div className="flex gap-3 justify-center">
                                                     <a 
                                                         href={brochureFullUrl} 
                                                         target="_blank" 
                                                         rel="noopener noreferrer"
+                                                        className="inline-block"
                                                     >
-                                                        <Button variant="outline" size="sm">
-                                                            <Download className="mr-2 h-4 w-4" /> Download PDF
+                                                        <Button variant="default" size="lg">
+                                                            <Download className="mr-2 h-4 w-4" /> Download Complete Brochure
                                                         </Button>
                                                     </a>
+                                                    <a 
+                                                        href={brochureFullUrl} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer"
+                                                        className="inline-block"
+                                                    >
+                                                        <Button variant="outline" size="lg">
+                                                            <FileText className="mr-2 h-4 w-4" /> Open in New Tab
+                                                        </Button>
+                                                    </a>
+                                                </div>
+
+                                                {/* Alternative: Google Docs Viewer */}
+                                                <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
+                                                    <p className="text-sm text-muted-foreground mb-3">
+                                                        Can't see the brochure? Try viewing it with:
+                                                    </p>
+                                                    <div className="flex gap-2">
+                                                        <a 
+                                                            href={`https://docs.google.com/viewer?url=${encodeURIComponent(brochureFullUrl)}&embedded=true`}
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                        >
+                                                            <Button variant="outline" size="sm">
+                                                                Google Docs Viewer
+                                                            </Button>
+                                                        </a>
+                                                        <a 
+                                                            href={brochureFullUrl}
+                                                            download
+                                                        >
+                                                            <Button variant="outline" size="sm">
+                                                                <Download className="mr-2 h-3 w-3" /> Direct Download
+                                                            </Button>
+                                                        </a>
+                                                    </div>
                                                 </div>
                                             </div>
                                         ) : (
                                             <div className="border border-border rounded-xl overflow-hidden shadow-sm">
                                                 <img
                                                     src={brochureFullUrl}
-                                                    alt="Brochure"
+                                                    alt="Product Brochure"
                                                     className="w-full h-auto"
+                                                    onError={(e) => {
+                                                        console.error('Image failed to load');
+                                                        (e.target as HTMLImageElement).src = '/placeholder-brochure.png';
+                                                    }}
                                                 />
-                                                <div className="p-3 bg-muted/20 border-t border-border flex justify-end">
+                                                <div className="p-3 bg-muted/20 border-t border-border flex justify-center gap-2">
                                                     <a href={brochureFullUrl} target="_blank" rel="noopener noreferrer">
                                                         <Button variant="outline" size="sm">
-                                                            <Download className="mr-2 h-4 w-4" /> Download Image
+                                                            <FileText className="mr-2 h-4 w-4" /> View Full Size
+                                                        </Button>
+                                                    </a>
+                                                    <a href={brochureFullUrl} download>
+                                                        <Button variant="default" size="sm">
+                                                            <Download className="mr-2 h-4 w-4" /> Download
                                                         </Button>
                                                     </a>
                                                 </div>
