@@ -4,33 +4,53 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
-import { Loader2, Activity } from "lucide-react"
+import { Loader2, Activity, AlertCircle } from "lucide-react"
 
 export function RecentActivityWidget() {
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isError } = useQuery({
         queryKey: ['recent-activity'],
         queryFn: async () => {
             try {
-                const res = await api.get('/audit-logs', { params: { limit: 20 } }); // Fetch more to filter
-                // Filter out security events and system events
+                const res = await api.get('/audit-logs', { params: { limit: 20 } });
                 const filteredLogs = (res.data?.logs || []).filter((log: any) => {
                     const isSecurityEvent = log.action === 'security_event' || 
                                           log.action.includes('SUPERADMIN') || 
                                           log.action.includes('UNAUTHORIZED') ||
                                           log.entity === 'Security';
                     return !isSecurityEvent;
-                }).slice(0, 10); // Take only 10 after filtering
+                }).slice(0, 10);
                 
                 return { logs: filteredLogs };
             } catch (error) {
                 console.error('Error fetching recent activity:', error);
-                return { logs: [] };
+                throw error;
             }
-        }
+        },
+        retry: 1,
+        staleTime: 30000,
     });
 
-    // Ensure logs is always an array and filter out invalid entries
     const logs = (Array.isArray(data?.logs) ? data.logs : []).filter((log: unknown) => log && typeof log === 'object');
+
+    if (isError) {
+        return (
+            <Card className="col-span-3 rounded-3xl bg-card shadow-sm border-0">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
+                        <Activity className="h-5 w-5 text-primary" />
+                        Recent Activity
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="flex flex-col items-center justify-center p-8 text-center">
+                        <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">Unable to load recent activity</p>
+                        <p className="text-xs text-muted-foreground mt-1">Please try again later</p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
+    }
 
 
 
@@ -50,28 +70,49 @@ export function RecentActivityWidget() {
                 ) : (
                     <ScrollArea className="h-[350px] pr-4">
                         <div className="space-y-4">
-                            {logs.map((log: { id: string, actor?: { profileImage?: string, firstName?: string, lastName?: string }, action: string, entity: string, entityId?: string, details?: any, createdAt: string }) => (
-                                <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
-                                    <Avatar className="h-9 w-9 mt-0.5">
-                                        <AvatarImage src={log.actor?.profileImage} />
-                                        <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                                            {log.actor?.firstName?.[0]}{log.actor?.lastName?.[0]}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <div className="space-y-1">
-                                        <p className="text-sm font-medium leading-none">
-                                            <span className="text-foreground">{log.actor?.firstName} {log.actor?.lastName}</span>
-                                            <span className="text-muted-foreground font-normal"> {getHumanReadableAction(log.action)} </span>
-                                            {log.entity && log.entity !== 'Security' && (
-                                                <span className="text-foreground font-medium">{log.entity}</span>
-                                            )}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground">
-                                            {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
-                                        </p>
+                            {logs.map((log: any) => {
+                                // Validate log data
+                                if (!log || !log.id) {
+                                    console.warn('Invalid log data:', log);
+                                    return null;
+                                }
+                                
+                                const actorName = log.actor 
+                                    ? `${log.actor.firstName || ''} ${log.actor.lastName || ''}`.trim() || 'Unknown User'
+                                    : 'System';
+                                
+                                const actorInitials = log.actor?.firstName?.[0] || log.actor?.lastName?.[0] || '?';
+                                
+                                return (
+                                    <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
+                                        <Avatar className="h-9 w-9 mt-0.5">
+                                            <AvatarImage src={log.actor?.profileImage} />
+                                            <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                                                {actorInitials}
+                                            </AvatarFallback>
+                                        </Avatar>
+                                        <div className="space-y-1 flex-1 min-w-0">
+                                            <p className="text-sm font-medium leading-none">
+                                                <span className="text-foreground">{actorName}</span>
+                                                <span className="text-muted-foreground font-normal"> {getHumanReadableAction(log.action || 'unknown')} </span>
+                                                {log.entity && log.entity !== 'Security' && (
+                                                    <span className="text-foreground font-medium">{log.entity}</span>
+                                                )}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground">
+                                                {(() => {
+                                                    try {
+                                                        return formatDistanceToNow(new Date(log.createdAt), { addSuffix: true });
+                                                    } catch (error) {
+                                                        console.error('Date format error:', error);
+                                                        return 'Recently';
+                                                    }
+                                                })()}
+                                            </p>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                             {logs.length === 0 && (
                                 <p className="text-center text-sm text-muted-foreground py-8">No recent activity</p>
                             )}
