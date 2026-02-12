@@ -9,7 +9,7 @@ export interface Lead {
     company?: string;
     jobTitle?: string;
     leadScore: number;
-    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost';
+    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry';
     source: string;
     assignedTo?: {
         id: string;
@@ -29,6 +29,13 @@ export interface Lead {
         createdAt: string;
         createdBy: string;
     }[];
+    // Re-enquiry fields
+    isReEnquiry?: boolean;
+    reEnquiryCount?: number;
+    lastEnquiryDate?: string;
+    country?: string;
+    countryCode?: string;
+    phoneCountryCode?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -53,7 +60,7 @@ export interface CreateLeadData {
     company?: string;
     jobTitle?: string;
     leadScore?: number;
-    status?: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost';
+    status?: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry';
     source: string;
     assignedTo?: string;
     address?: {
@@ -109,5 +116,15 @@ export const bulkAssignLeads = async (leadIds: string[], assignedTo: string) => 
 
 export const getLeadHistory = async (id: string) => {
     const response = await api.get(`/leads/${id}/history`);
+    return response.data;
+};
+
+export const getReEnquiryLeads = async () => {
+    const response = await api.get('/leads/re-enquiries');
+    return response.data;
+};
+
+export const getDuplicateLeads = async () => {
+    const response = await api.get('/leads/duplicates');
     return response.data;
 };

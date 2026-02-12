@@ -20,6 +20,8 @@ import { ThemeProvider } from './contexts/ThemeContext';
 import LeadsPage from './pages/leads';
 import CreateLeadPage from './pages/leads/new';
 import LeadDetailPage from './pages/leads/[id]';
+import ReEnquiriesPage from './pages/re-enquiries';
+import DuplicatesPage from './pages/duplicates';
 import UserProfilePage from './pages/users/[id]';
 import ContactsPage from './pages/contacts';
 import ContactDetailPage from './pages/contacts/[id]';
@@ -143,6 +145,8 @@ function AppContent() {
             <Route path="/leads" element={<LeadsPage />} />
             <Route path="/leads/new" element={<CreateLeadPage />} />
             <Route path="/leads/:id" element={<LeadDetailPage />} />
+            <Route path="/re-enquiries" element={<ReEnquiriesPage />} />
+            <Route path="/duplicates" element={<DuplicatesPage />} />
             <Route path="/contacts" element={<ContactsPage />} />
             <Route path="/contacts/:id" element={<ContactDetailPage />} />
             <Route path="/accounts" element={<AccountsPage />} />

@@ -26,6 +26,8 @@ import {
     ChevronLeft,
     ChevronRight,
     MessageSquare,
+    RefreshCw,
+    AlertTriangle,
 } from "lucide-react";
 import { memo, useState, useEffect } from "react";
 import {
@@ -48,6 +50,8 @@ const menuGroups = [
         title: "Sales Engine",
         items: [
             { title: "Leads", href: "/leads", icon: User },
+            { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw },
+            { title: "Duplicates", href: "/duplicates", icon: AlertTriangle },
             { title: "Contacts", href: "/contacts", icon: Users },
             { title: "Accounts", href: "/accounts", icon: Building },
             { title: "Opportunities", href: "/opportunities", icon: Target },
