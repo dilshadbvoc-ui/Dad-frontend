@@ -11,9 +11,17 @@ export function RecentActivityWidget() {
         queryKey: ['recent-activity'],
         queryFn: async () => {
             try {
-                const res = await api.get('/audit-logs', { params: { limit: 10 } });
-                // Log removed
-                return res.data;
+                const res = await api.get('/audit-logs', { params: { limit: 20 } }); // Fetch more to filter
+                // Filter out security events and system events
+                const filteredLogs = (res.data?.logs || []).filter((log: any) => {
+                    const isSecurityEvent = log.action === 'security_event' || 
+                                          log.action.includes('SUPERADMIN') || 
+                                          log.action.includes('UNAUTHORIZED') ||
+                                          log.entity === 'Security';
+                    return !isSecurityEvent;
+                }).slice(0, 10); // Take only 10 after filtering
+                
+                return { logs: filteredLogs };
             } catch (error) {
                 console.error('Error fetching recent activity:', error);
                 return { logs: [] };
@@ -42,7 +50,7 @@ export function RecentActivityWidget() {
                 ) : (
                     <ScrollArea className="h-[350px] pr-4">
                         <div className="space-y-4">
-                            {logs.map((log: { id: string, actor?: { profileImage?: string, firstName?: string, lastName?: string }, action: string, entity: string, createdAt: string }) => (
+                            {logs.map((log: { id: string, actor?: { profileImage?: string, firstName?: string, lastName?: string }, action: string, entity: string, entityId?: string, details?: any, createdAt: string }) => (
                                 <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
                                     <Avatar className="h-9 w-9 mt-0.5">
                                         <AvatarImage src={log.actor?.profileImage} />
@@ -54,7 +62,9 @@ export function RecentActivityWidget() {
                                         <p className="text-sm font-medium leading-none">
                                             <span className="text-foreground">{log.actor?.firstName} {log.actor?.lastName}</span>
                                             <span className="text-muted-foreground font-normal"> {getHumanReadableAction(log.action)} </span>
-                                            <span className="text-foreground font-medium">{log.entity}</span>
+                                            {log.entity && log.entity !== 'Security' && (
+                                                <span className="text-foreground font-medium">{log.entity}</span>
+                                            )}
                                         </p>
                                         <p className="text-xs text-muted-foreground">
                                             {formatDistanceToNow(new Date(log.createdAt), { addSuffix: true })}
@@ -74,11 +84,22 @@ export function RecentActivityWidget() {
 }
 
 function getHumanReadableAction(action: string) {
-    switch (action) {
-        case 'LOGIN': return 'logged in to'
-        case 'CREATE': return 'created new'
-        case 'UPDATE': return 'updated'
-        case 'DELETE': return 'deleted'
-        default: return action.toLowerCase()
-    }
+    const actionMap: Record<string, string> = {
+        'LOGIN': 'logged in',
+        'LOGIN_FAILED': 'failed login attempt',
+        'CREATE': 'created',
+        'CREATE_LEAD': 'created lead',
+        'CREATE_CONTACT': 'created contact',
+        'CREATE_ACCOUNT': 'created account',
+        'UPDATE': 'updated',
+        'DELETE': 'deleted',
+        'EXPORT': 'exported data from',
+        'LEAD_STATUS_CHANGE': 'changed status of',
+        'UNAUTHORIZED_SUPERADMIN_MODIFICATION_ATTEMPT': 'attempted unauthorized access to',
+        'SUPERADMIN_PASSWORD_CHANGE': 'changed password for',
+        'security_event': 'security event in',
+        'BULK_IMPORT_COMPLETED': 'completed bulk import for'
+    };
+    
+    return actionMap[action] || action.toLowerCase().replace(/_/g, ' ');
 }
