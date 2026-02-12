@@ -80,6 +80,7 @@ import IntegrationsSettingsPage from './pages/settings/Integrations';
 import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
 import CallRecordingSettingsPage from './pages/settings/call-recording';
+import ImportSettingsPage from './pages/settings/import';
 
 
 
@@ -180,6 +181,7 @@ function AppContent() {
             <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
             <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
             <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
+            <Route path="/settings/import" element={<ImportSettingsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
             <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
             <Route path="/automation/new" element={<CreateWorkflowPage />} />
