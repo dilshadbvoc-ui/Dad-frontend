@@ -37,7 +37,7 @@ interface QuickLeadFormData {
     company: string
     source: string
 
-    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost'
+    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
 }
 

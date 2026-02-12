@@ -32,7 +32,7 @@ interface EditLeadFormData {
     email: string
     phone: string
     company: string
-    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost'
+    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
 }
 
 interface EditLeadDialogProps {
