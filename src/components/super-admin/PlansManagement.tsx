@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -29,14 +29,23 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
 import { Plus, MoreHorizontal, Loader2 } from 'lucide-react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { Badge } from '@/components/ui/badge';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 interface Plan {
     id: string;
     name: string;
     description?: string;
     price: number;
+    pricingModel: 'per_user' | 'flat_rate';
+    pricePerUser?: number;
     durationDays: number;
     maxUsers: number;
     maxLeads: number;
@@ -50,6 +59,8 @@ interface PlanFormData {
     name: string;
     description: string;
     price: number;
+    pricingModel: 'per_user' | 'flat_rate';
+    pricePerUser?: number;
     durationDays: number;
     maxUsers: number;
     maxLeads: number;
@@ -143,7 +154,14 @@ export function PlansManagement() {
                                         {plan.description && <div className="text-xs text-muted-foreground">{plan.description}</div>}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">
-                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.price)}
+                                        {plan.pricingModel === 'per_user' ? (
+                                            <div>
+                                                <div>{new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.pricePerUser || 0)}/user</div>
+                                                <div className="text-xs text-muted-foreground">Base: {new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.price)}</div>
+                                            </div>
+                                        ) : (
+                                            new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.price)
+                                        )}
                                     </TableCell>
                                     <TableCell className="text-muted-foreground">{plan.durationDays} days</TableCell>
                                     <TableCell className="text-muted-foreground text-xs">
@@ -213,11 +231,13 @@ function PlanDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
     initialData?: Plan;
     mode: 'create' | 'edit';
 }) {
-    const { register, handleSubmit, formState: { errors } } = useForm<PlanFormData>({
+    const { register, handleSubmit, formState: { errors }, control, setValue } = useForm<PlanFormData>({
         defaultValues: initialData || {
             name: '',
             description: '',
             price: 0,
+            pricingModel: 'flat_rate',
+            pricePerUser: 0,
             durationDays: 30,
             maxUsers: 5,
             maxLeads: 1000,
@@ -225,6 +245,8 @@ function PlanDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
             maxStorage: 1000
         }
     });
+
+    const pricingModel = useWatch({ control, name: 'pricingModel' });
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -243,9 +265,37 @@ function PlanDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
                             {errors.name && <span className="text-destructive text-xs">{errors.name.message}</span>}
                         </div>
                         <div className="space-y-2">
-                            <Label>Price (INR)</Label>
-                            <Input type="number" {...register('price', { valueAsNumber: true })} className="bg-background border-input" />
+                            <Label>Pricing Model</Label>
+                            <Select
+                                defaultValue={initialData?.pricingModel || 'flat_rate'}
+                                onValueChange={(value) => setValue('pricingModel', value as 'per_user' | 'flat_rate')}
+                            >
+                                <SelectTrigger className="bg-background border-input">
+                                    <SelectValue placeholder="Select pricing model" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-popover border-border">
+                                    <SelectItem value="flat_rate">Flat Rate</SelectItem>
+                                    <SelectItem value="per_user">Per User</SelectItem>
+                                </SelectContent>
+                            </Select>
                         </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                            <Label>{pricingModel === 'per_user' ? 'Base Price (INR)' : 'Price (INR)'}</Label>
+                            <Input type="number" {...register('price', { valueAsNumber: true })} className="bg-background border-input" />
+                            {pricingModel === 'per_user' && (
+                                <span className="text-xs text-muted-foreground">Base price charged regardless of users</span>
+                            )}
+                        </div>
+                        {pricingModel === 'per_user' && (
+                            <div className="space-y-2">
+                                <Label>Price Per User (INR)</Label>
+                                <Input type="number" {...register('pricePerUser', { valueAsNumber: true })} className="bg-background border-input" />
+                                <span className="text-xs text-muted-foreground">Additional cost per user</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">
