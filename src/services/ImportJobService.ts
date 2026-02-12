@@ -4,14 +4,23 @@ import csv from 'csv-parser';
 import { DistributionService } from './DistributionService';
 
 export class ImportJobService {
-    static async createJob(userId: string, orgId: string, filePath: string, mapping: any) {
+    static async createJob(userId: string, orgId: string, filePath: string, mapping: any, options?: {
+        defaultStatus?: string;
+        pipelineId?: string;
+        defaultStage?: string;
+    }) {
         return await prisma.importJob.create({
             data: {
                 createdById: userId,
                 organisationId: orgId,
-                fileUrl: filePath, // Storing local path for now
+                fileUrl: filePath,
                 mapping: mapping,
-                status: 'pending'
+                status: 'pending',
+                metadata: options ? {
+                    defaultStatus: options.defaultStatus,
+                    pipelineId: options.pipelineId,
+                    defaultStage: options.defaultStage
+                } : undefined
             }
         });
     }
@@ -47,15 +56,29 @@ export class ImportJobService {
             // 2. Process File
             const processStream = fs.createReadStream(job.fileUrl).pipe(csv());
 
+            // Get import options from metadata
+            const metadata = job.metadata as any || {};
+            const defaultStatus = metadata.defaultStatus || 'new';
+            const pipelineId = metadata.pipelineId || null;
+            const defaultStage = metadata.defaultStage || null;
+
             for await (const row of processStream) {
                 try {
                     const leadData: any = {
                         organisationId: job.organisationId,
                         assignedToId: job.createdById, // Default to uploader
                         source: 'import',
-                        status: 'new',
+                        status: defaultStatus,
                         address: {}
                     };
+
+                    // Add pipeline and stage if specified
+                    if (pipelineId) {
+                        leadData.pipelineId = pipelineId;
+                    }
+                    if (defaultStage) {
+                        leadData.stage = defaultStage;
+                    }
 
                     const mapping = job.mapping as any || {};
 
@@ -65,10 +88,22 @@ export class ImportJobService {
                         const value = row[csvHeader];
                         if (value === undefined || value === null || value === '') continue;
 
-                        if (String(crmField).startsWith('address.')) {
+                        if (String(crmField) === 'fullName') {
+                            // Split full name into first and last
+                            const nameParts = String(value).trim().split(' ');
+                            leadData.firstName = nameParts[0] || '';
+                            leadData.lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+                        } else if (String(crmField) === 'tags') {
+                            // Handle comma-separated tags
+                            leadData.tags = String(value).split(',').map(t => t.trim()).filter(Boolean);
+                        } else if (String(crmField) === 'notes') {
+                            // Store notes in customFields
+                            if (!leadData.customFields) leadData.customFields = {};
+                            leadData.customFields.importNotes = value;
+                        } else if (String(crmField).startsWith('address.')) {
                             const addressField = String(crmField).split('.')[1];
                             leadData.address[addressField] = value;
-                        } else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status'].includes(crmField as string)) {
+                        } else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage'].includes(crmField as string)) {
                             (leadData as any)[crmField as string] = value;
                         } else {
                             // Custom Fields
