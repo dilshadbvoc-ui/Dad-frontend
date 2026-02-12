@@ -69,6 +69,7 @@ interface ShareConfig {
     youtubeUrl?: string;
     customTitle?: string;
     customDescription?: string;
+    leadId?: string;
 }
 
 export const generateShareLink = async (productId: string, config?: ShareConfig) => {
