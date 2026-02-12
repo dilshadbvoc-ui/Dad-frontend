@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Clock, MapPin, User, FileText, Trash2 } from 'lucide-react';
@@ -37,6 +37,7 @@ export function EventDetailsDialog({ event, open, onOpenChange, onDelete }: Even
                         </Badge>
                         <DialogTitle className="text-xl">{event.title}</DialogTitle>
                     </div>
+                    <DialogDescription>View event details and information</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">

@@ -79,6 +79,7 @@ import FollowUpReportsPage from './pages/reports/follow-ups';
 import IntegrationsSettingsPage from './pages/settings/Integrations';
 import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
+import CallRecordingSettingsPage from './pages/settings/call-recording';
 
 
 
@@ -178,6 +179,7 @@ function AppContent() {
             <Route path="/settings/pipelines" element={<PipelinesSettingsPage />} />
             <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
             <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
+            <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
             <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
             <Route path="/automation/new" element={<CreateWorkflowPage />} />

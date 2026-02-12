@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -255,6 +255,7 @@ export function LogCallDialog({ open, onOpenChange, leadId, leadPhone, onSuccess
             <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
                 <DialogHeader>
                     <DialogTitle>Log or Make Call</DialogTitle>
+                    <DialogDescription>Record call details or initiate a new call</DialogDescription>
                 </DialogHeader>
 
                 {waitingForDevice ? (
