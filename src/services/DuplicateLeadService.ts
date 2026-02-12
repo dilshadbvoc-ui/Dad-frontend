@@ -119,7 +119,7 @@ export const DuplicateLeadService = {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            managerId: true
+                            reportsToId: true
                         }
                     }
                 }
@@ -140,13 +140,14 @@ export const DuplicateLeadService = {
             });
 
             // Notify the assigned owner
-            if (updatedLead.assignedTo) {
+            if (updatedLead.assignedToId) {
                 await this.notifyOwner(updatedLead, organisationId);
             }
 
             // Notify the manager if exists
-            if (updatedLead.assignedTo?.managerId) {
-                await this.notifyManager(updatedLead, updatedLead.assignedTo.managerId, organisationId);
+            const managerId = updatedLead.assignedTo?.reportsToId;
+            if (managerId) {
+                await this.notifyManager(updatedLead, managerId, organisationId);
             }
 
             console.log(`[DuplicateLeadService] Re-enquiry handled for lead ${existingLead.id}`);
@@ -164,8 +165,14 @@ export const DuplicateLeadService = {
         try {
             const { NotificationService } = await import('./NotificationService');
             
+            const ownerId = lead.assignedToId || lead.assignedTo?.id;
+            if (!ownerId) {
+                console.log(`[DuplicateLeadService] No owner to notify for lead ${lead.id}`);
+                return;
+            }
+            
             await NotificationService.send(
-                lead.assignedTo.id,
+                ownerId,
                 'Re-Enquiry Alert',
                 `🔄 ${lead.firstName} ${lead.lastName} has enquired again! This is their ${lead.reEnquiryCount}${this.getOrdinalSuffix(lead.reEnquiryCount)} enquiry. The lead is still interested - follow up immediately.`,
                 'warning'
@@ -184,10 +191,14 @@ export const DuplicateLeadService = {
         try {
             const { NotificationService } = await import('./NotificationService');
             
+            const ownerName = lead.assignedTo 
+                ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}`
+                : 'Unknown';
+            
             await NotificationService.send(
                 managerId,
                 'Team Re-Enquiry Alert',
-                `🔄 Re-enquiry detected: ${lead.firstName} ${lead.lastName} (assigned to ${lead.assignedTo.firstName} ${lead.assignedTo.lastName}) has enquired again. Re-enquiry count: ${lead.reEnquiryCount}`,
+                `🔄 Re-enquiry detected: ${lead.firstName} ${lead.lastName} (assigned to ${ownerName}) has enquired again. Re-enquiry count: ${lead.reEnquiryCount}`,
                 'info'
             );
 
