@@ -23,6 +23,9 @@ interface SharedProductData {
         lastName: string
         id: string
     }
+    organisation: {
+        name: string
+    }
     shareConfig?: {
         youtubeUrl?: string
         customTitle?: string
@@ -73,7 +76,7 @@ export default function SharedProductPage() {
 
     if (!data || !data.product) return null
 
-    const { product, seller, shareConfig } = data
+    const { product, seller, organisation, shareConfig } = data
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
     const brochureFullUrl = product.brochureUrl ? getAssetUrl(product.brochureUrl) : '';
     
@@ -103,7 +106,7 @@ export default function SharedProductPage() {
                         <div className="bg-primary/10 p-2 rounded-lg">
                             <Share2 className="h-5 w-5 text-primary" />
                         </div>
-                        <span className="font-bold text-lg text-foreground">DadCRM</span>
+                        <span className="font-bold text-lg text-foreground">{organisation?.name || 'DadCRM'}</span>
                     </div>
                 </div>
             </header>
