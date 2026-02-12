@@ -1,4 +1,4 @@
-import { useQuery } from "@tantml:react-query"
+import { useQuery } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
