@@ -70,8 +70,8 @@ export function Header({ className }: { className?: string }) {
                         </ErrorBoundary>
                     </DropdownMenu>
 
-                    {/* Theme Toggle - Hidden on very small screens to save space */}
-                    <div className="hidden xs:block">
+                    {/* Theme Toggle - Always visible */}
+                    <div>
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button
@@ -87,7 +87,7 @@ export function Header({ className }: { className?: string }) {
                                     )}
                                 </Button>
                             </TooltipTrigger>
-                            <TooltipContent>{resolvedTheme === 'dark' ? 'Light' : 'Dark'}</TooltipContent>
+                            <TooltipContent>{resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}</TooltipContent>
                         </Tooltip>
                     </div>
 

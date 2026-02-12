@@ -18,10 +18,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
                 return stored;
             }
         }
-        return 'dark'; // Default to dark mode
+        return 'light'; // Default to light mode
     });
 
-    const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
+    const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
 
     useEffect(() => {
         const root = document.documentElement;
