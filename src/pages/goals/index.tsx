@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Target, TrendingUp, Trophy, Calendar, MoreVertical, Trash2 } from "lucide-react"
 import { Progress } from "@/components/ui/progress"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
@@ -61,7 +61,10 @@ export default function GoalsPage() {
                                 <DialogTrigger asChild><Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />New Goal</Button></DialogTrigger>
                                 <DialogContent>
                                     <form onSubmit={handleSubmit}>
-                                        <DialogHeader><DialogTitle>Create New Goal</DialogTitle></DialogHeader>
+                                        <DialogHeader>
+                                            <DialogTitle>Create New Goal</DialogTitle>
+                                            <DialogDescription>Set a new goal to track your team's performance.</DialogDescription>
+                                        </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div><Label>Goal Name</Label><Input name="name" required /></div>
                                             <div className="grid grid-cols-2 gap-4">

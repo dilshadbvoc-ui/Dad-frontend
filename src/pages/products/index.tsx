@@ -318,6 +318,7 @@ export default function ProductsPage() {
                                                 </Badge>
                                             )}
                                         </DialogTitle>
+                                        <DialogDescription>Configure your shareable product link with custom content and tracking.</DialogDescription>
                                     </DialogHeader>
                                     <div className="grid gap-4 py-4">
                                         <div>
@@ -374,6 +375,7 @@ export default function ProductsPage() {
                                 <DialogContent className="sm:max-w-md">
                                     <DialogHeader>
                                         <DialogTitle>Share Product</DialogTitle>
+                                        <DialogDescription>Copy this link to share your product with customers.</DialogDescription>
                                     </DialogHeader>
                                     <div className="flex items-center space-x-2">
                                         <div className="grid flex-1 gap-2">

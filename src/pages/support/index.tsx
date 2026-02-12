@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Headphones, Clock, CheckCircle, AlertCircle, MoreVertical, User } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -71,7 +71,10 @@ export default function SupportPage() {
                                 <DialogTrigger asChild><Button className="shadow-lg shadow-primary/20"><Plus className="h-4 w-4 mr-2" />New Case</Button></DialogTrigger>
                                 <DialogContent>
                                     <form onSubmit={handleSubmit}>
-                                        <DialogHeader><DialogTitle>Create Support Case</DialogTitle></DialogHeader>
+                                        <DialogHeader>
+                                            <DialogTitle>Create Support Case</DialogTitle>
+                                            <DialogDescription>Submit a new support case for assistance.</DialogDescription>
+                                        </DialogHeader>
                                         <div className="grid gap-4 py-4">
                                             <div><Label>Subject</Label><Input name="subject" required /></div>
                                             <div className="grid grid-cols-2 gap-4">
