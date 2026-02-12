@@ -1,6 +1,24 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 
+// Helper function to format action names
+function getHumanReadableAction(action: string, entity: string): string {
+    const actionMap: Record<string, string> = {
+        'LOGIN': 'Logged in',
+        'CREATE': `Created ${entity}`,
+        'CREATE_LEAD': 'Created Lead',
+        'CREATE_CONTACT': 'Created Contact',
+        'CREATE_ACCOUNT': 'Created Account',
+        'UPDATE': `Updated ${entity}`,
+        'DELETE': `Deleted ${entity}`,
+        'EXPORT': 'Exported Data',
+        'LEAD_STATUS_CHANGE': 'Changed Lead Status',
+        'BULK_IMPORT_COMPLETED': 'Completed Bulk Import'
+    };
+    
+    return actionMap[action] || `${action.replace(/_/g, ' ')} ${entity}`;
+}
+
 export const getTimeline = async (req: Request, res: Response) => {
     try {
         const { id, type } = req.params; // type = 'lead' | 'contact' | 'account'
@@ -66,16 +84,61 @@ export const getTimeline = async (req: Request, res: Response) => {
                 actor: e.createdBy,
                 meta: { location: e.location }
             })),
-            ...auditLogs.map(a => ({
-                id: a.id,
-                type: 'audit',
-                subType: a.action,
-                title: `${a.action} ${a.entity}`,
-                description: JSON.stringify(a.details),
-                date: a.createdAt,
-                actor: a.actor,
-                meta: {}
-            }))
+            ...auditLogs.map(a => {
+                // Format audit log description based on action type
+                let description = '';
+                const details = a.details as any;
+                
+                switch (a.action) {
+                    case 'CREATE_LEAD':
+                    case 'CREATE':
+                        description = details?.name ? `Created: ${details.name}` : 'Created new record';
+                        if (details?.company) description += ` at ${details.company}`;
+                        break;
+                    case 'UPDATE':
+                        description = 'Updated record';
+                        break;
+                    case 'DELETE':
+                        description = 'Deleted record';
+                        break;
+                    case 'LOGIN':
+                        description = 'Logged into the system';
+                        break;
+                    case 'EXPORT':
+                        description = 'Exported data';
+                        break;
+                    case 'LEAD_STATUS_CHANGE':
+                        description = details?.oldStatus && details?.newStatus 
+                            ? `Status changed from ${details.oldStatus} to ${details.newStatus}`
+                            : 'Status changed';
+                        break;
+                    case 'BULK_IMPORT_COMPLETED':
+                        description = details?.successCount 
+                            ? `Imported ${details.successCount} records`
+                            : 'Bulk import completed';
+                        break;
+                    default:
+                        // For unknown actions, try to extract meaningful info
+                        if (details?.name) {
+                            description = details.name;
+                        } else if (typeof details === 'object' && details !== null) {
+                            // Extract first meaningful value
+                            const values = Object.values(details).filter(v => v && typeof v === 'string');
+                            description = values.length > 0 ? String(values[0]) : '';
+                        }
+                }
+
+                return {
+                    id: a.id,
+                    type: 'audit',
+                    subType: a.action,
+                    title: getHumanReadableAction(a.action, a.entity),
+                    description: description || 'Activity recorded',
+                    date: a.createdAt,
+                    actor: a.actor,
+                    meta: {}
+                };
+            })
         ];
 
         // Sort by date descending
