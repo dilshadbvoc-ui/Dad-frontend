@@ -105,12 +105,17 @@ export function formatCurrency(amount: number, currency?: string, options?: {
     const curr = (currency || currentCurrency).toUpperCase();
     const locale = CURRENCY_LOCALES[curr] || 'en-US';
     
+    // Determine fraction digits with proper defaults
+    const isCompact = options?.compact ?? false;
+    const maxFractionDigits = options?.maximumFractionDigits ?? (isCompact ? 0 : 2);
+    const minFractionDigits = options?.minimumFractionDigits ?? (isCompact ? 0 : Math.min(maxFractionDigits, 2));
+    
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: curr,
-        notation: options?.compact ? 'compact' : 'standard',
-        minimumFractionDigits: options?.minimumFractionDigits ?? (options?.compact ? 0 : 2),
-        maximumFractionDigits: options?.maximumFractionDigits ?? (options?.compact ? 0 : 2),
+        notation: isCompact ? 'compact' : 'standard',
+        minimumFractionDigits: minFractionDigits,
+        maximumFractionDigits: maxFractionDigits,
     }).format(amount);
 }
 
