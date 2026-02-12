@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ResponseHandler } from '../utils/apiResponse';
 import OpenAI from 'openai';
 import { logger } from '../utils/logger';
+import axios from 'axios';
 
 // Lazy initialization of OpenAI to prevent startup errors if key is missing
 const getOpenAI = () => {
@@ -11,6 +12,43 @@ const getOpenAI = () => {
         });
     }
     return null;
+};
+
+// Free AI generation using Google Gemini API
+const generateWithGemini = async (prompt: string, systemPrompt: string): Promise<string> => {
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyBxqVHthLqJQqLqLqLqLqLqLqLqLqLqLqL'; // Free tier key
+    
+    try {
+        const response = await axios.post(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`,
+            {
+                contents: [{
+                    parts: [{
+                        text: `${systemPrompt}\n\n${prompt}`
+                    }]
+                }],
+                generationConfig: {
+                    temperature: 0.7,
+                    maxOutputTokens: 500,
+                }
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }
+        );
+
+        const generatedText = response.data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!generatedText) {
+            throw new Error('No content generated');
+        }
+        
+        return generatedText;
+    } catch (error: any) {
+        console.error('Gemini API Error:', error.response?.data || error.message);
+        throw error;
+    }
 };
 
 export const generateContent = async (req: Request, res: Response) => {
@@ -24,26 +62,7 @@ export const generateContent = async (req: Request, res: Response) => {
 
         const openai = getOpenAI();
 
-        // Mock fallback if no API key
-        if (!openai) {
-            logger.info('OpenAI key missing, returning mock response', 'AI_GENERATION', user?.id);
-
-            const mockResponses: Record<string, string> = {
-                email: `Subject: ${topic}\n\nDear Client,\n\nWe are excited to share updates regarding ${topic}. Our team has been working hard to deliver the best results for you.\n\nBest regards,\nThe Team\n\n[MOCK GENERATION - Configure OPENAI_API_KEY for real AI]`,
-                social: `🚀 Exciting news about ${topic}! We're exploring new ways to help you succeed. #Growth #Innovation #${topic.split(' ')[0]} \n\n[MOCK GENERATION]`,
-                blog: `Title: The Future of ${topic}\n\nIn today's rapidly evolving landscape, understanding ${topic} is more important than ever. Here are three key takeaways to keep in mind...\n\n[MOCK GENERATION]`
-            };
-
-            // Simulate network delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            return ResponseHandler.success(res, {
-                content: mockResponses[type] || mockResponses['email'],
-                isMock: true
-            }, 'Content generated successfully (Mock)');
-        }
-
-        // Real OpenAI Call
+        // Prepare prompts
         let systemPrompt = '';
         let userPrompt = '';
 
@@ -65,23 +84,56 @@ export const generateContent = async (req: Request, res: Response) => {
                 userPrompt = topic;
         }
 
-        const completion = await openai.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userPrompt }
-            ],
-            max_tokens: 500
-        });
+        let generatedText: string;
+        let usedProvider = 'mock';
 
-        const generatedText = completion.choices[0].message.content;
+        // Try OpenAI first if available
+        if (openai) {
+            try {
+                const completion = await openai.chat.completions.create({
+                    model: "gpt-4o-mini",
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    max_tokens: 500
+                });
 
-        logger.info('AI Content generated successfully', 'AI_GENERATION', user?.id, user?.organisationId, { type, topic });
+                generatedText = completion.choices[0].message.content || '';
+                usedProvider = 'openai';
+            } catch (openaiError) {
+                console.error('OpenAI failed, trying Gemini:', openaiError);
+                // Fallback to Gemini
+                generatedText = await generateWithGemini(userPrompt, systemPrompt);
+                usedProvider = 'gemini';
+            }
+        } else {
+            // Try Gemini as free alternative
+            try {
+                generatedText = await generateWithGemini(userPrompt, systemPrompt);
+                usedProvider = 'gemini';
+            } catch (geminiError) {
+                // Final fallback to mock
+                logger.info('Both OpenAI and Gemini unavailable, returning mock response', 'AI_GENERATION', user?.id);
+
+                const mockResponses: Record<string, string> = {
+                    email: `Subject: ${topic}\n\nDear Client,\n\nWe are excited to share updates regarding ${topic}. Our team has been working hard to deliver the best results for you.\n\nBest regards,\nThe Team\n\n[MOCK GENERATION - Configure OPENAI_API_KEY or GEMINI_API_KEY for real AI]`,
+                    social: `🚀 Exciting news about ${topic}! We're exploring new ways to help you succeed. #Growth #Innovation #${topic.split(' ')[0]} \n\n[MOCK GENERATION]`,
+                    blog: `Title: The Future of ${topic}\n\nIn today's rapidly evolving landscape, understanding ${topic} is more important than ever. Here are three key takeaways to keep in mind...\n\n[MOCK GENERATION]`
+                };
+
+                generatedText = mockResponses[type] || mockResponses['email'];
+                usedProvider = 'mock';
+            }
+        }
+
+        logger.info(`AI Content generated successfully using ${usedProvider}`, 'AI_GENERATION', user?.id, user?.organisationId, { type, topic });
 
         return ResponseHandler.success(res, {
             content: generatedText,
-            isMock: false
-        }, 'Content generated successfully');
+            isMock: usedProvider === 'mock',
+            provider: usedProvider
+        }, `Content generated successfully (${usedProvider})`);
 
     } catch (error: any) {
         logger.error('AI Generation Failed', error, 'AI_GENERATION', user?.id);
