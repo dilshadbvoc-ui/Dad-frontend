@@ -81,6 +81,9 @@ import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
 import CallRecordingSettingsPage from './pages/settings/call-recording';
 import ImportSettingsPage from './pages/settings/import';
+import BillingSettingsPage from './pages/settings/Billing';
+import AuditLogsPage from './pages/settings/audit-logs';
+import DeveloperSettingsPage from './pages/settings/developer';
 
 
 
@@ -182,6 +185,9 @@ function AppContent() {
             <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
             <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
             <Route path="/settings/import" element={<ImportSettingsPage />} />
+            <Route path="/settings/billing" element={<BillingSettingsPage />} />
+            <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
+            <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
             <Route path="/automation" element={<AutomationPage />} />
             <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
             <Route path="/automation/new" element={<CreateWorkflowPage />} />
