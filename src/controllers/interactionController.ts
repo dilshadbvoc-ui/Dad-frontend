@@ -4,6 +4,81 @@ import { getOrgId } from '../utils/hierarchyUtils';
 import { logAudit } from '../utils/auditLogger';
 import { InteractionType, InteractionDirection } from '../generated/client';
 
+// POST /api/interactions - Create interaction (generic endpoint)
+export const createInteractionGeneric = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        // Allow super admins without organization
+        if (!orgId && user.role !== 'super_admin') {
+            return res.status(400).json({ message: 'User must belong to an organization to create interactions' });
+        }
+
+        const {
+            lead,
+            contact,
+            account,
+            opportunity,
+            type,
+            direction = 'outbound',
+            subject,
+            description,
+            duration,
+            recordingUrl,
+            recordingDuration,
+            callStatus,
+            phoneNumber,
+            date
+        } = req.body;
+
+        const data: any = {
+            type: type as InteractionType,
+            direction: direction as InteractionDirection,
+            subject: subject || `${type} interaction`,
+            description,
+            duration,
+            recordingUrl,
+            recordingDuration,
+            callStatus,
+            phoneNumber,
+            date: date ? new Date(date) : new Date(),
+            createdBy: { connect: { id: user.id } }
+        };
+
+        // Only connect organization if user has one
+        if (orgId) {
+            data.organisation = { connect: { id: orgId } };
+        }
+
+        // Connect to related entity
+        if (lead) data.lead = { connect: { id: lead } };
+        if (contact) data.contact = { connect: { id: contact } };
+        if (account) data.account = { connect: { id: account } };
+        if (opportunity) data.opportunity = { connect: { id: opportunity } };
+
+        const interaction = await prisma.interaction.create({
+            data
+        });
+
+        if (orgId) {
+            await logAudit({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'CREATE_INTERACTION',
+                entity: 'Interaction',
+                entityId: interaction.id,
+                details: { type: interaction.type, subject: interaction.subject }
+            });
+        }
+
+        res.status(201).json(interaction);
+    } catch (error) {
+        console.error('createInteractionGeneric Error:', error);
+        res.status(400).json({ message: (error as Error).message });
+    }
+};
+
 // POST /api/leads/:leadId/interactions - Log a new interaction
 export const createInteraction = async (req: Request, res: Response) => {
     try {

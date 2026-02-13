@@ -97,7 +97,11 @@ export const createTask = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        if (!orgId) return res.status(400).json({ message: 'No org' });
+        
+        // Allow super admins without organization
+        if (!orgId && user.role !== 'super_admin') {
+            return res.status(400).json({ message: 'User must belong to an organization to create tasks' });
+        }
 
         const { relatedTo, onModel } = req.body;
 
@@ -108,9 +112,13 @@ export const createTask = async (req: Request, res: Response) => {
             priority: req.body.priority || 'medium',
             dueDate: req.body.dueDate,
 
-            organisation: { connect: { id: orgId } },
             createdBy: { connect: { id: user.id } },
         };
+
+        // Only connect organization if user has one
+        if (orgId) {
+            data.organisation = { connect: { id: orgId } };
+        }
 
         if (req.body.assignedTo) {
             // Handle if string ID or object? Assuming string ID from frontend
@@ -136,14 +144,16 @@ export const createTask = async (req: Request, res: Response) => {
             }
         });
 
-        await logAudit({
-            organisationId: orgId,
-            actorId: user.id,
-            action: 'CREATE_TASK',
-            entity: 'Task',
-            entityId: task.id,
-            details: { subject: task.subject }
-        });
+        if (orgId) {
+            await logAudit({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'CREATE_TASK',
+                entity: 'Task',
+                entityId: task.id,
+                details: { subject: task.subject }
+            });
+        }
 
         res.status(201).json(transformTask(task));
     } catch (error) {

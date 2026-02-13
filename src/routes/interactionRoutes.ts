@@ -1,6 +1,7 @@
 import express from 'express';
 import {
     createInteraction,
+    createInteractionGeneric,
     getLeadInteractions,
     getAllInteractions,
     updateInteractionRecording,
@@ -10,8 +11,11 @@ import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
+// Generic interactions
+router.get('/', protect, getAllInteractions);
+router.post('/', protect, createInteractionGeneric); // Generic create endpoint
+
 // Lead-specific interactions
-router.get('/', protect, getAllInteractions); // Fixes 404 for /api/interactions
 router.post('/leads/:leadId/interactions', protect, createInteraction);
 router.get('/leads/:leadId/interactions', protect, getLeadInteractions);
 
