@@ -112,7 +112,12 @@ const OrgNode = ({ node, level = 0 }: { node: TreeNode; level?: number }) => {
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
-                                    <AvatarImage src={getAssetUrl(node.image)} />
+                                    <AvatarImage 
+                                        src={getAssetUrl(node.image)} 
+                                        onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                        }}
+                                    />
                                     <AvatarFallback className="bg-primary/10 text-primary font-medium">
                                         {node.firstName[0]}{node.lastName[0]}
                                     </AvatarFallback>

@@ -87,7 +87,13 @@ export function RecentActivityWidget() {
                                 return (
                                     <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
                                         <Avatar className="h-9 w-9 mt-0.5">
-                                            <AvatarImage src={getAssetUrl(log.actor?.profileImage)} />
+                                            <AvatarImage 
+                                                src={getAssetUrl(log.actor?.profileImage)} 
+                                                onError={(e) => {
+                                                    // Silently handle missing images
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
                                             <AvatarFallback className="text-xs bg-primary/10 text-primary">
                                                 {actorInitials}
                                             </AvatarFallback>

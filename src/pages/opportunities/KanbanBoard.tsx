@@ -250,7 +250,12 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                 <Tooltip>
                                                                     <TooltipTrigger>
                                                                         <Avatar className="h-6 w-6 border border-background shadow-sm">
-                                                                            <AvatarImage src={getAssetUrl(opp.owner.profileImage)} />
+                                                                            <AvatarImage 
+                                                                                src={getAssetUrl(opp.owner.profileImage)} 
+                                                                                onError={(e) => {
+                                                                                    e.currentTarget.style.display = 'none';
+                                                                                }}
+                                                                            />
                                                                             <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
                                                                                 {opp.owner.firstName?.[0]}
                                                                             </AvatarFallback>

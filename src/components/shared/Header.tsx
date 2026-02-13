@@ -113,7 +113,13 @@ export function Header({ className }: { className?: string }) {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2 p-0">
                             <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-border">
-                                <AvatarImage src={getAssetUrl(userInfo.avatar?.includes('null') ? undefined : userInfo.avatar)} alt={userInfo.name} />
+                                <AvatarImage 
+                                    src={getAssetUrl(userInfo.avatar?.includes('null') ? undefined : userInfo.avatar)} 
+                                    alt={userInfo.name}
+                                    onError={(e) => {
+                                        e.currentTarget.style.display = 'none';
+                                    }}
+                                />
                                 <AvatarFallback className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold">
                                     {userInitials}
                                 </AvatarFallback>

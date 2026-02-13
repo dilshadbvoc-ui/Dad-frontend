@@ -78,7 +78,13 @@ export function TopPerformersWidget() {
                                             {index + 1}
                                         </div>
                                         <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                                            <AvatarImage src={getAssetUrl(user.image)} />
+                                            <AvatarImage 
+                                                src={getAssetUrl(user.image)} 
+                                                onError={(e) => {
+                                                    // Silently handle missing images
+                                                    e.currentTarget.style.display = 'none';
+                                                }}
+                                            />
                                             <AvatarFallback>{user.name[0] || '?'}</AvatarFallback>
                                         </Avatar>
                                         <div>
