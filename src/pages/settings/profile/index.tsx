@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
 import { getProfile, updateProfile, changePassword, uploadImage, type ProfileUpdateData } from "@/services/settingsService"
-import { API_URL } from "@/config"
+import { getAssetUrl } from "@/lib/utils"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -99,7 +99,7 @@ export default function ProfileSettingsPage() {
                                     <div className="flex items-center gap-6">
                                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                                             <Avatar className="h-24 w-24 border-2 border-primary/20">
-                                                <AvatarImage src={profile?.profileImage ? `${API_URL}${profile.profileImage}` : undefined} className="object-cover" />
+                                                <AvatarImage src={getAssetUrl(profile?.profileImage)} className="object-cover" />
                                                 <AvatarFallback className="text-2xl bg-primary/10 text-primary">
                                                     {profile?.firstName?.[0]}{profile?.lastName?.[0]}
                                                 </AvatarFallback>
