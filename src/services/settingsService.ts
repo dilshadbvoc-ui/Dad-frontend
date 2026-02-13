@@ -157,6 +157,15 @@ export const createCustomField = async (data: CustomFieldData) => {
     return response.data;
 };
 
+export const updateCustomField = async (id: string, data: Partial<CustomFieldData>) => {
+    const response = await api.put(`/custom-fields/${id}`, data);
+    return response.data;
+};
+
+export const deleteCustomField = async (id: string) => {
+    await api.delete(`/custom-fields/${id}`);
+};
+
 export const getOrganisation = async () => {
     const response = await api.get('/organisation');
     return response.data;

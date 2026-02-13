@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createLead, type CreateLeadData } from "@/services/leadService"
 import { getUsers } from "@/services/settingsService"
 import { useQuery } from "@tanstack/react-query"
+import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 
 // interface for Form Data
 interface QuickLeadFormData {
@@ -39,6 +40,7 @@ interface QuickLeadFormData {
 
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
+    customFields?: Record<string, any>
 }
 
 interface QuickAddLeadDialogProps {
@@ -49,6 +51,7 @@ interface QuickAddLeadDialogProps {
 
 export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLeadDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
     const isControlled = open !== undefined
 
     const finalOpen = isControlled ? open : internalOpen
@@ -83,6 +86,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             toast.success("Lead created successfully")
             finalOnOpenChange?.(false)
             form.reset()
+            setCustomFieldValues({})
         },
         onError: (error: unknown) => {
             toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to create lead")
@@ -91,13 +95,23 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
 
     function onSubmit(values: QuickLeadFormData) {
         // Sanitize payload: Remove empty strings
-        const payload = { ...values };
+        const payload = { 
+            ...values,
+            customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
+        };
         if (!payload.assignedTo || payload.assignedTo === "unassigned") {
             delete payload.assignedTo;
         }
 
         mutation.mutate(payload as unknown as CreateLeadData)
     }
+
+    const handleCustomFieldChange = (name: string, value: any) => {
+        setCustomFieldValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -261,6 +275,14 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 )}
                             />
                         </div>
+                        
+                        {/* Custom Fields */}
+                        <DynamicCustomFields
+                            entityType="Lead"
+                            values={customFieldValues}
+                            onChange={handleCustomFieldChange}
+                        />
+                        
                         <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
                             <Button
                                 type="button"
