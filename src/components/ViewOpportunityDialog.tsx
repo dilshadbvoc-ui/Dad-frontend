@@ -39,6 +39,20 @@ export interface Opportunity {
     }
 }
 
+interface AccountProduct {
+    id: string
+    quantity: number
+    status: string
+    notes?: string
+    product: {
+        id: string
+        name: string
+        basePrice: number
+        sku?: string
+        currency?: string
+    }
+}
+
 interface ViewOpportunityDialogProps {
     children?: React.ReactNode
     open?: boolean
@@ -133,7 +147,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent className="space-y-2">
-                                    {displayOpportunity.account.accountProducts.map((ap) => (
+                                    {displayOpportunity.account.accountProducts.map((ap: AccountProduct) => (
                                         <div key={ap.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                                             <div className="flex-1">
                                                 <div className="font-medium text-sm">{ap.product.name}</div>
@@ -162,7 +176,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                         <span className="text-lg font-bold text-green-600">
                                             {formatCurrency(
                                                 displayOpportunity.account.accountProducts.reduce(
-                                                    (sum, ap) => sum + (ap.product.basePrice * ap.quantity),
+                                                    (sum: number, ap: AccountProduct) => sum + (ap.product.basePrice * ap.quantity),
                                                     0
                                                 )
                                             )}
