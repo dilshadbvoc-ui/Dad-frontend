@@ -60,6 +60,14 @@ export const generateContent = async (req: Request, res: Response) => {
             return ResponseHandler.validationError(res, 'Topic and type are required');
         }
 
+        // Allow super admins without organization
+        if (!user.organisationId && user.role !== 'super_admin') {
+            return res.status(403).json({
+                message: 'User must belong to an organization to use AI features',
+                code: 'NO_ORGANISATION'
+            });
+        }
+
         const openai = getOpenAI();
 
         // Prepare prompts
