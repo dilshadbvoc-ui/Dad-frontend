@@ -39,7 +39,7 @@ export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialCo
 
         try {
             await api.post('/interactions', {
-                leadId: leadId,
+                lead: leadId,
                 type: 'note',
                 description: note,
                 date: new Date().toISOString(),
