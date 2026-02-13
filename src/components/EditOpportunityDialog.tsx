@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { api } from "@/services/api"
+import DynamicCustomFields from "@/components/forms/DynamicCustomFields";
 
 export interface Opportunity {
     id: string
@@ -54,6 +55,7 @@ interface EditOpportunityFormData {
 
 export function EditOpportunityDialog({ children, open, onOpenChange, opportunity }: EditOpportunityDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
     const isControlled = open !== undefined
 
     const finalOpen = isControlled ? open : internalOpen
@@ -85,12 +87,18 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                 closeDate: opportunity.closeDate ? new Date(opportunity.closeDate).toISOString().split('T')[0] : "",
                 type: opportunity.type || 'NEW_BUSINESS',
             })
+            // Load existing custom field values
+            setCustomFieldValues((opportunity as any).customFields || {})
         }
     }, [opportunity, form])
 
     const mutation = useMutation({
         mutationFn: async (data: EditOpportunityFormData) => {
-            const res = await api.put(`/opportunities/${opportunity.id}`, data)
+            const payload = {
+                ...data,
+                customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
+            };
+            const res = await api.put(`/opportunities/${opportunity.id}`, payload)
             return res.data
         },
         onSuccess: () => {
@@ -106,6 +114,13 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
     function onSubmit(values: EditOpportunityFormData) {
         mutation.mutate(values)
     }
+
+    const handleCustomFieldChange = (name: string, value: any) => {
+        setCustomFieldValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -237,6 +252,13 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                                     <FormMessage />
                                 </FormItem>
                             )}
+                        />
+
+                        {/* Custom Fields */}
+                        <DynamicCustomFields
+                            entityType="Opportunity"
+                            values={customFieldValues}
+                            onChange={handleCustomFieldChange}
                         />
 
                         <DialogFooter>

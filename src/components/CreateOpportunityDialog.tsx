@@ -11,6 +11,7 @@ import { Loader2, Calculator } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { isAxiosError } from 'axios';
+import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
 
 interface CreateOpportunityDialogProps {
     open: boolean;
@@ -30,6 +31,7 @@ interface UpsellConfig {
 
 export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onSuccess }: CreateOpportunityDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
     const queryClient = useQueryClient();
 
     // Form States
@@ -94,6 +96,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
             setCalcItem('');
             setCalcQuantity(0);
             setCalcPrice(0);
+            setCustomFieldValues({});
 
             // Pre-set 'Closed Won' if creating from a context that implies payment? 
             // Maybe not, let user choose.
@@ -112,9 +115,9 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                 probability,
                 closeDate: closeDate || new Date().toISOString(),
                 description,
-                accountId: accountId || undefined, // Backend validation required if not present, ideally UI should force Account selection
-                type
-                // If accountId is missing, this might fail unless we allow creating orphaned opportunities (usually not)
+                accountId: accountId || undefined,
+                type,
+                customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
             });
 
             toast.success('Opportunity created successfully');
@@ -133,6 +136,13 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleCustomFieldChange = (name: string, value: any) => {
+        setCustomFieldValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     return (
@@ -276,6 +286,13 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                             placeholder="Additional details..."
                         />
                     </div>
+
+                    {/* Custom Fields */}
+                    <DynamicCustomFields
+                        entityType="Opportunity"
+                        values={customFieldValues}
+                        onChange={handleCustomFieldChange}
+                    />
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

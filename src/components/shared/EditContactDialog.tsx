@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { api } from '@/services/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
 
 interface EditContactDialogProps {
     open: boolean;
@@ -25,6 +26,7 @@ interface EditContactDialogProps {
 
 export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: EditContactDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -42,6 +44,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
                 jobTitle: contact.jobTitle || '',
                 phones: contact.phones || [{ type: 'mobile', number: '' }]
             });
+            // Load existing custom field values if any
+            setCustomFieldValues((contact as any).customFields || {});
         }
     }, [contact]);
 
@@ -68,7 +72,11 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
         setIsLoading(true);
 
         try {
-            await api.put(`/contacts/${contact.id}`, formData);
+            const payload = {
+                ...formData,
+                customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
+            };
+            await api.put(`/contacts/${contact.id}`, payload);
             toast.success('Contact updated successfully');
             onSuccess();
             onOpenChange(false);
@@ -78,6 +86,13 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleCustomFieldChange = (name: string, value: any) => {
+        setCustomFieldValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     return (
@@ -128,6 +143,13 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
                             + Add Phone
                         </Button>
                     </div>
+
+                    {/* Custom Fields */}
+                    <DynamicCustomFields
+                        entityType="Contact"
+                        values={customFieldValues}
+                        onChange={handleCustomFieldChange}
+                    />
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
