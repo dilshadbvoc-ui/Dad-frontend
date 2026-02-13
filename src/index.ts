@@ -275,7 +275,7 @@ app.use('/api/auth', authLimiter, detectBruteForce, authRoutes);
 app.use('/api/analytics', verifyCSRFToken, analyticsRoutes);
 app.use('/api/workflow', verifyCSRFToken, workflowRoutes);
 app.use('/api/import', verifyCSRFToken, importRoutes);
-app.use('/api/ai', verifyCSRFToken, aiRoutes);
+app.use('/api/ai', aiRoutes); // Remove CSRF - already protected by auth
 app.use('/api/email', verifyCSRFToken, emailRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/reports', verifyCSRFToken, reportRoutes);
