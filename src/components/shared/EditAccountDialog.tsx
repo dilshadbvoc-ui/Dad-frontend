@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/services/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
 
 interface EditAccountDialogProps {
     open: boolean;
@@ -32,6 +33,7 @@ interface EditAccountDialogProps {
 
 export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: EditAccountDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
     const [formData, setFormData] = useState({
         name: '',
         website: '',
@@ -61,6 +63,8 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
                     country: account.address?.country || ''
                 }
             });
+            // Load existing custom field values
+            setCustomFieldValues((account as any).customFields || {});
         }
     }, [account]);
 
@@ -84,7 +88,11 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
         setIsLoading(true);
 
         try {
-            await api.put(`/accounts/${account.id}`, formData);
+            const payload = {
+                ...formData,
+                customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
+            };
+            await api.put(`/accounts/${account.id}`, payload);
             toast.success('Account updated successfully');
             onSuccess();
             onOpenChange(false);
@@ -94,6 +102,13 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleCustomFieldChange = (name: string, value: any) => {
+        setCustomFieldValues(prev => ({
+            ...prev,
+            [name]: value
+        }));
     };
 
     return (
@@ -157,6 +172,13 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
                             <Input placeholder="Country" value={formData.address.country} onChange={(e) => handleChange('address.country', e.target.value)} />
                         </div>
                     </div>
+
+                    {/* Custom Fields */}
+                    <DynamicCustomFields
+                        entityType="Account"
+                        values={customFieldValues}
+                        onChange={handleCustomFieldChange}
+                    />
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
