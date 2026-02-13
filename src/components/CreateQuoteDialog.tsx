@@ -129,20 +129,41 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
     }
 
     const calculateLineTotal = (item: LineItem) => {
-        const subtotal = item.quantity * item.unitPrice
-        const discountAmount = subtotal * (item.discount / 100)
+        const quantity = Number(item.quantity) || 0
+        const unitPrice = Number(item.unitPrice) || 0
+        const discount = Number(item.discount) || 0
+        const taxRate = Number(item.taxRate) || 0
+        
+        const subtotal = quantity * unitPrice
+        const discountAmount = subtotal * (discount / 100)
         const afterDiscount = subtotal - discountAmount
-        const taxAmount = afterDiscount * (item.taxRate / 100)
+        const taxAmount = afterDiscount * (taxRate / 100)
         return afterDiscount + taxAmount
     }
 
     const calculateTotals = () => {
-        const subtotal = lineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0)
-        const totalDiscount = lineItems.reduce((sum, item) => sum + (item.quantity * item.unitPrice * item.discount / 100), 0)
-        const totalTax = lineItems.reduce((sum, item) => {
-            const afterDiscount = (item.quantity * item.unitPrice) - (item.quantity * item.unitPrice * item.discount / 100)
-            return sum + (afterDiscount * item.taxRate / 100)
+        const subtotal = lineItems.reduce((sum, item) => {
+            const quantity = Number(item.quantity) || 0
+            const unitPrice = Number(item.unitPrice) || 0
+            return sum + (quantity * unitPrice)
         }, 0)
+        
+        const totalDiscount = lineItems.reduce((sum, item) => {
+            const quantity = Number(item.quantity) || 0
+            const unitPrice = Number(item.unitPrice) || 0
+            const discount = Number(item.discount) || 0
+            return sum + (quantity * unitPrice * discount / 100)
+        }, 0)
+        
+        const totalTax = lineItems.reduce((sum, item) => {
+            const quantity = Number(item.quantity) || 0
+            const unitPrice = Number(item.unitPrice) || 0
+            const discount = Number(item.discount) || 0
+            const taxRate = Number(item.taxRate) || 0
+            const afterDiscount = (quantity * unitPrice) - (quantity * unitPrice * discount / 100)
+            return sum + (afterDiscount * taxRate / 100)
+        }, 0)
+        
         const grandTotal = subtotal - totalDiscount + totalTax
 
         return { subtotal, totalDiscount, totalTax, grandTotal }
