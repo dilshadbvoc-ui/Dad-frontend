@@ -171,36 +171,44 @@ export const createLead = async (req: Request, res: Response) => {
             }
         });
 
-        // 3a. Handle Products if provided
-        if (req.body.products && Array.isArray(req.body.products)) {
+        // 3a. Handle Products if provided (products field is optional)
+        if (req.body.products !== undefined && Array.isArray(req.body.products)) {
             const productItems = req.body.products;
             let totalValue = 0;
 
-            for (const item of productItems) {
-                const product = await prisma.product.findUnique({ where: { id: item.productId } });
-                if (product) {
-                    const price = product.basePrice || 0;
-                    const quantity = item.quantity || 1;
-                    totalValue += price * quantity;
+            // Only process if products array is not empty
+            if (productItems.length > 0) {
+                for (const item of productItems) {
+                    // Validate that productId exists
+                    if (!item.productId) {
+                        continue; // Skip invalid items
+                    }
 
-                    await prisma.leadProduct.create({
-                        data: {
-                            leadId: lead.id,
-                            productId: item.productId,
-                            quantity: quantity,
-                            price: price
-                        }
-                    });
+                    const product = await prisma.product.findUnique({ where: { id: item.productId } });
+                    if (product) {
+                        const price = product.basePrice || 0;
+                        const quantity = item.quantity || 1;
+                        totalValue += price * quantity;
+
+                        await prisma.leadProduct.create({
+                            data: {
+                                leadId: lead.id,
+                                productId: item.productId,
+                                quantity: quantity,
+                                price: price
+                            }
+                        });
+                    }
                 }
-            }
 
-            // Update lead with calculated value if products were added
-            if (totalValue > 0) {
-                await prisma.lead.update({
-                    where: { id: lead.id },
-                    data: { potentialValue: totalValue }
-                });
-                lead.potentialValue = totalValue; // Update local obj for response
+                // Update lead with calculated value if products were added
+                if (totalValue > 0) {
+                    await prisma.lead.update({
+                        where: { id: lead.id },
+                        data: { potentialValue: totalValue }
+                    });
+                    lead.potentialValue = totalValue; // Update local obj for response
+                }
             }
         }
 
@@ -386,31 +394,38 @@ export const updateLead = async (req: Request, res: Response) => {
 
         let finalLead = lead;
 
-        // Handle Products Update
-        if (req.body.products && Array.isArray(req.body.products)) {
+        // Handle Products Update (products field is optional)
+        if (req.body.products !== undefined && Array.isArray(req.body.products)) {
             const productItems = req.body.products;
 
             // 1. Clear existing products (simplest approach for full replace)
             await prisma.leadProduct.deleteMany({ where: { leadId } });
 
-            // 2. Add new products and calculate value
+            // 2. Add new products and calculate value (only if products array is not empty)
             let totalValue = 0;
 
-            for (const item of productItems) {
-                const product = await prisma.product.findUnique({ where: { id: item.productId } });
-                if (product) {
-                    const price = product.basePrice || 0;
-                    const quantity = item.quantity || 1;
-                    totalValue += price * quantity;
+            if (productItems.length > 0) {
+                for (const item of productItems) {
+                    // Validate that productId exists
+                    if (!item.productId) {
+                        continue; // Skip invalid items
+                    }
 
-                    await prisma.leadProduct.create({
-                        data: {
-                            leadId,
-                            productId: item.productId,
-                            quantity: quantity,
-                            price: price
-                        }
-                    });
+                    const product = await prisma.product.findUnique({ where: { id: item.productId } });
+                    if (product) {
+                        const price = product.basePrice || 0;
+                        const quantity = item.quantity || 1;
+                        totalValue += price * quantity;
+
+                        await prisma.leadProduct.create({
+                            data: {
+                                leadId,
+                                productId: item.productId,
+                                quantity: quantity,
+                                price: price
+                            }
+                        });
+                    }
                 }
             }
 
@@ -733,7 +748,33 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            // 4. Update Lead
+            // 4. Migrate Products from Lead to Account
+            const leadProducts = await tx.leadProduct.findMany({
+                where: { leadId: leadId },
+                include: { product: true }
+            });
+
+            if (leadProducts.length > 0) {
+                // Create AccountProduct entries for each LeadProduct
+                for (const leadProduct of leadProducts) {
+                    await tx.accountProduct.create({
+                        data: {
+                            accountId: targetAccountId,
+                            productId: leadProduct.productId,
+                            organisationId: orgId,
+                            quantity: leadProduct.quantity,
+                            purchaseDate: new Date(),
+                            status: 'active',
+                            notes: `Converted from lead: ${lead.firstName} ${lead.lastName}`
+                        }
+                    });
+                }
+
+                // Optional: Delete LeadProduct entries after migration
+                // await tx.leadProduct.deleteMany({ where: { leadId: leadId } });
+            }
+
+            // 5. Update Lead
             const updatedLead = await tx.lead.update({
                 where: { id: leadId },
                 data: {
@@ -741,7 +782,7 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            // 5. Migrate Interactions
+            // 6. Migrate Interactions
             await tx.interaction.updateMany({
                 where: { leadId: leadId },
                 data: {
@@ -750,7 +791,7 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            // 6. Migrate WhatsApp Messages
+            // 7. Migrate WhatsApp Messages
             await tx.whatsAppMessage.updateMany({
                 where: { leadId: leadId },
                 data: {
@@ -758,7 +799,7 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            // 7. Migrate Tasks
+            // 8. Migrate Tasks
             await tx.task.updateMany({
                 where: { leadId: leadId },
                 data: {
@@ -768,7 +809,7 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            return { account, contact, opportunity, lead: updatedLead };
+            return { account, contact, opportunity, lead: updatedLead, migratedProducts: leadProducts.length };
         });
 
         // Audit Log for conversion
@@ -785,7 +826,8 @@ export const convertLead = async (req: Request, res: Response) => {
                     company: lead.company,
                     accountId: result.account.id,
                     contactId: result.contact.id,
-                    opportunityId: result.opportunity.id
+                    opportunityId: result.opportunity.id,
+                    migratedProducts: result.migratedProducts
                 }
             });
         } catch (e) {
