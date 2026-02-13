@@ -54,14 +54,21 @@ const importLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(400).json({ message: 'No file uploaded' });
         }
         const mapping = JSON.parse(req.body.mapping || '{}');
+        const defaultStatus = req.body.defaultStatus || 'new';
+        const pipelineId = req.body.pipelineId || null;
+        const defaultStage = req.body.defaultStage || null;
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
             return res.status(400).json({ message: 'User has no organisation' });
-        // Create Import Job
+        // Create Import Job with options
         const { ImportJobService } = yield Promise.resolve().then(() => __importStar(require('../services/ImportJobService')));
-        const job = yield ImportJobService.createJob(user.id, orgId, req.file.path, mapping);
-        // Start Processing in Background (Verify usage with user if necessary, but this is the requirement)
+        const job = yield ImportJobService.createJob(user.id, orgId, req.file.path, mapping, {
+            defaultStatus,
+            pipelineId,
+            defaultStage
+        });
+        // Start Processing in Background
         ImportJobService.processJob(job.id).catch(console.error);
         res.status(202).json({
             message: 'Import started successfully',

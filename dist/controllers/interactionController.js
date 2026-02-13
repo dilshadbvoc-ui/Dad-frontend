@@ -12,10 +12,67 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.logQuickInteraction = exports.updateInteractionRecording = exports.getAllInteractions = exports.getLeadInteractions = exports.createInteraction = void 0;
+exports.logQuickInteraction = exports.updateInteractionRecording = exports.getAllInteractions = exports.getLeadInteractions = exports.createInteraction = exports.createInteractionGeneric = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 const auditLogger_1 = require("../utils/auditLogger");
+// POST /api/interactions - Create interaction (generic endpoint)
+const createInteractionGeneric = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.user;
+        const orgId = (0, hierarchyUtils_1.getOrgId)(user);
+        // Allow super admins without organization
+        if (!orgId && user.role !== 'super_admin') {
+            return res.status(400).json({ message: 'User must belong to an organization to create interactions' });
+        }
+        const { lead, contact, account, opportunity, type, direction = 'outbound', subject, description, duration, recordingUrl, recordingDuration, callStatus, phoneNumber, date } = req.body;
+        const data = {
+            type: type,
+            direction: direction,
+            subject: subject || `${type} interaction`,
+            description,
+            duration,
+            recordingUrl,
+            recordingDuration,
+            callStatus,
+            phoneNumber,
+            date: date ? new Date(date) : new Date(),
+            createdBy: { connect: { id: user.id } }
+        };
+        // Only connect organization if user has one
+        if (orgId) {
+            data.organisation = { connect: { id: orgId } };
+        }
+        // Connect to related entity
+        if (lead)
+            data.lead = { connect: { id: lead } };
+        if (contact)
+            data.contact = { connect: { id: contact } };
+        if (account)
+            data.account = { connect: { id: account } };
+        if (opportunity)
+            data.opportunity = { connect: { id: opportunity } };
+        const interaction = yield prisma_1.default.interaction.create({
+            data
+        });
+        if (orgId) {
+            yield (0, auditLogger_1.logAudit)({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'CREATE_INTERACTION',
+                entity: 'Interaction',
+                entityId: interaction.id,
+                details: { type: interaction.type, subject: interaction.subject }
+            });
+        }
+        res.status(201).json(interaction);
+    }
+    catch (error) {
+        console.error('createInteractionGeneric Error:', error);
+        res.status(400).json({ message: error.message });
+    }
+});
+exports.createInteractionGeneric = createInteractionGeneric;
 // POST /api/leads/:leadId/interactions - Log a new interaction
 const createInteraction = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -158,13 +215,15 @@ const updateInteractionRecording = (req, res) => __awaiter(void 0, void 0, void 
                 callStatus
             }
         });
-        yield (0, auditLogger_1.logAudit)({
-            organisationId: orgId || existing.organisationId,
-            actorId: user.id,
-            action: 'UPDATE_INTERACTION_RECORDING',
-            entity: 'Interaction',
-            entityId: interaction.id
-        });
+        if (orgId || existing.organisationId) {
+            yield (0, auditLogger_1.logAudit)({
+                organisationId: (orgId || existing.organisationId),
+                actorId: user.id,
+                action: 'UPDATE_INTERACTION_RECORDING',
+                entity: 'Interaction',
+                entityId: interaction.id
+            });
+        }
         res.json(interaction);
     }
     catch (error) {

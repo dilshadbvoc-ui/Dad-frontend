@@ -105,7 +105,7 @@ export const completeCall = async (req: Request, res: Response) => {
                     dueDate: dueDate,
                     status: 'not_started',
                     priority: 'medium',
-                    organisation: { connect: { id: interaction.organisationId } },
+                    organisation: interaction.organisationId ? { connect: { id: interaction.organisationId } } : undefined,
                     assignedTo: interaction.createdById ? { connect: { id: interaction.createdById } } : undefined,
                     lead: interaction.leadId ? { connect: { id: interaction.leadId } } : undefined,
                     contact: interaction.contactId ? { connect: { id: interaction.contactId } } : undefined,

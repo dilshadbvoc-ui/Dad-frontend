@@ -519,11 +519,11 @@ model QuoteLineItem {
 }
 
 model Task {
-  id             String       @id @default(uuid())
+  id             String        @id @default(uuid())
   subject        String
   description    String?
-  status         TaskStatus   @default(not_started)
-  priority       TaskPriority @default(medium)
+  status         TaskStatus    @default(not_started)
+  priority       TaskPriority  @default(medium)
   dueDate        DateTime?
   leadId         String?
   contactId      String?
@@ -531,17 +531,17 @@ model Task {
   opportunityId  String?
   assignedToId   String?
   createdById    String?
-  organisationId String
-  isDeleted      Boolean      @default(false)
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  account        Account?     @relation(fields: [accountId], references: [id])
-  assignedTo     User?        @relation("TaskAssignee", fields: [assignedToId], references: [id])
-  contact        Contact?     @relation(fields: [contactId], references: [id])
-  createdBy      User?        @relation("TaskCreator", fields: [createdById], references: [id])
-  lead           Lead?        @relation(fields: [leadId], references: [id])
-  opportunity    Opportunity? @relation(fields: [opportunityId], references: [id])
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisationId String?
+  isDeleted      Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  account        Account?      @relation(fields: [accountId], references: [id])
+  assignedTo     User?         @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  contact        Contact?      @relation(fields: [contactId], references: [id])
+  createdBy      User?         @relation("TaskCreator", fields: [createdById], references: [id])
+  lead           Lead?         @relation(fields: [leadId], references: [id])
+  opportunity    Opportunity?  @relation(fields: [opportunityId], references: [id])
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 }
 
 model Interaction {
@@ -562,7 +562,7 @@ model Interaction {
   accountId         String?
   opportunityId     String?
   createdById       String?
-  organisationId    String
+  organisationId    String?
   isDeleted         Boolean              @default(false)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
@@ -571,7 +571,7 @@ model Interaction {
   createdBy         User?                @relation("InteractionCreator", fields: [createdById], references: [id])
   lead              Lead?                @relation(fields: [leadId], references: [id])
   opportunity       Opportunity?         @relation(fields: [opportunityId], references: [id])
-  organisation      Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation      Organisation?        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 }
 
 model CalendarEvent {

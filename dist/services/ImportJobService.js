@@ -58,15 +58,20 @@ const fs_1 = __importDefault(require("fs"));
 const csv_parser_1 = __importDefault(require("csv-parser"));
 const DistributionService_1 = require("./DistributionService");
 class ImportJobService {
-    static createJob(userId, orgId, filePath, mapping) {
+    static createJob(userId, orgId, filePath, mapping, options) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield prisma_1.default.importJob.create({
                 data: {
                     createdById: userId,
                     organisationId: orgId,
-                    fileUrl: filePath, // Storing local path for now
+                    fileUrl: filePath,
                     mapping: mapping,
-                    status: 'pending'
+                    status: 'pending',
+                    metadata: options ? {
+                        defaultStatus: options.defaultStatus,
+                        pipelineId: options.pipelineId,
+                        defaultStage: options.defaultStage
+                    } : undefined
                 }
             });
         });
@@ -99,6 +104,11 @@ class ImportJobService {
                 });
                 // 2. Process File
                 const processStream = fs_1.default.createReadStream(job.fileUrl).pipe((0, csv_parser_1.default)());
+                // Get import options from metadata
+                const metadata = job.metadata || {};
+                const defaultStatus = metadata.defaultStatus || 'new';
+                const pipelineId = metadata.pipelineId || null;
+                const defaultStage = metadata.defaultStage || null;
                 try {
                     for (var _d = true, processStream_1 = __asyncValues(processStream), processStream_1_1; processStream_1_1 = yield processStream_1.next(), _a = processStream_1_1.done, !_a; _d = true) {
                         _c = processStream_1_1.value;
@@ -109,9 +119,16 @@ class ImportJobService {
                                 organisationId: job.organisationId,
                                 assignedToId: job.createdById, // Default to uploader
                                 source: 'import',
-                                status: 'new',
+                                status: defaultStatus,
                                 address: {}
                             };
+                            // Add pipeline and stage if specified
+                            if (pipelineId) {
+                                leadData.pipelineId = pipelineId;
+                            }
+                            if (defaultStage) {
+                                leadData.stage = defaultStage;
+                            }
                             const mapping = job.mapping || {};
                             // Map fields
                             for (const [csvHeader, crmField] of Object.entries(mapping)) {
@@ -120,11 +137,27 @@ class ImportJobService {
                                 const value = row[csvHeader];
                                 if (value === undefined || value === null || value === '')
                                     continue;
-                                if (String(crmField).startsWith('address.')) {
+                                if (String(crmField) === 'fullName') {
+                                    // Split full name into first and last
+                                    const nameParts = String(value).trim().split(' ');
+                                    leadData.firstName = nameParts[0] || '';
+                                    leadData.lastName = nameParts.slice(1).join(' ') || nameParts[0] || '';
+                                }
+                                else if (String(crmField) === 'tags') {
+                                    // Handle comma-separated tags
+                                    leadData.tags = String(value).split(',').map(t => t.trim()).filter(Boolean);
+                                }
+                                else if (String(crmField) === 'notes') {
+                                    // Store notes in customFields
+                                    if (!leadData.customFields)
+                                        leadData.customFields = {};
+                                    leadData.customFields.importNotes = value;
+                                }
+                                else if (String(crmField).startsWith('address.')) {
                                     const addressField = String(crmField).split('.')[1];
                                     leadData.address[addressField] = value;
                                 }
-                                else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status'].includes(crmField)) {
+                                else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage'].includes(crmField)) {
                                     leadData[crmField] = value;
                                 }
                                 else {

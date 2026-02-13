@@ -242,13 +242,15 @@ export const updateInteractionRecording = async (req: Request, res: Response) =>
             }
         });
 
-        await logAudit({
-            organisationId: orgId || existing.organisationId,
-            actorId: user.id,
-            action: 'UPDATE_INTERACTION_RECORDING',
-            entity: 'Interaction',
-            entityId: interaction.id
-        });
+        if (orgId || existing.organisationId) {
+            await logAudit({
+                organisationId: (orgId || existing.organisationId) as string,
+                actorId: user.id,
+                action: 'UPDATE_INTERACTION_RECORDING',
+                entity: 'Interaction',
+                entityId: interaction.id
+            });
+        }
 
         res.json(interaction);
     } catch (error) {

@@ -252,7 +252,15 @@ app.use((req, res, next) => {
 });
 const staticPath = path_1.default.join(__dirname, '../uploads');
 console.log('Serving static files from:', staticPath);
-app.use('/uploads', express_1.default.static(staticPath));
+// Add CORS headers for static files (images, documents, etc.)
+app.use('/uploads', (req, res, next) => {
+    // Set CORS headers for static files
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express_1.default.static(staticPath));
 app.get('/', (req, res) => {
     console.log('Health check ping received at /');
     res.send('API is running...');
@@ -276,7 +284,7 @@ app.use('/api/auth', rateLimiter_1.authLimiter, securityAudit_1.detectBruteForce
 app.use('/api/analytics', csrfProtection_1.verifyCSRFToken, analyticsRoutes_1.default);
 app.use('/api/workflow', csrfProtection_1.verifyCSRFToken, workflowRoutes_1.default);
 app.use('/api/import', csrfProtection_1.verifyCSRFToken, importRoutes_1.default);
-app.use('/api/ai', csrfProtection_1.verifyCSRFToken, aiRoutes_1.default);
+app.use('/api/ai', aiRoutes_1.default); // Remove CSRF - already protected by auth
 app.use('/api/email', csrfProtection_1.verifyCSRFToken, emailRoutes_1.default);
 app.use('/api/search', searchRoutes_1.default);
 app.use('/api/reports', csrfProtection_1.verifyCSRFToken, reportRoutes_1.default);

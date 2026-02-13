@@ -110,8 +110,10 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        if (!orgId)
-            return res.status(400).json({ message: 'No org' });
+        // Allow super admins without organization
+        if (!orgId && user.role !== 'super_admin') {
+            return res.status(400).json({ message: 'User must belong to an organization to create tasks' });
+        }
         const { relatedTo, onModel } = req.body;
         const data = {
             subject: req.body.subject,
@@ -119,9 +121,12 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             status: req.body.status || 'not_started',
             priority: req.body.priority || 'medium',
             dueDate: req.body.dueDate,
-            organisation: { connect: { id: orgId } },
             createdBy: { connect: { id: user.id } },
         };
+        // Only connect organization if user has one
+        if (orgId) {
+            data.organisation = { connect: { id: orgId } };
+        }
         if (req.body.assignedTo) {
             // Handle if string ID or object? Assuming string ID from frontend
             data.assignedTo = { connect: { id: req.body.assignedTo } };
@@ -147,14 +152,16 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 opportunity: { select: { name: true } }
             }
         });
-        yield (0, auditLogger_1.logAudit)({
-            organisationId: orgId,
-            actorId: user.id,
-            action: 'CREATE_TASK',
-            entity: 'Task',
-            entityId: task.id,
-            details: { subject: task.subject }
-        });
+        if (orgId) {
+            yield (0, auditLogger_1.logAudit)({
+                organisationId: orgId,
+                actorId: user.id,
+                action: 'CREATE_TASK',
+                entity: 'Task',
+                entityId: task.id,
+                details: { subject: task.subject }
+            });
+        }
         res.status(201).json(transformTask(task));
     }
     catch (error) {

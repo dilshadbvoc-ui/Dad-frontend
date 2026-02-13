@@ -71,10 +71,14 @@ const uploadCallRecording = (req, res) => __awaiter(void 0, void 0, void 0, func
             // Note: Contact phone search is complex due to JSON. 
             // For now, let's focus on Leads as per prompt requirements usually focusing on Leads.
         }
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const recordingUrl = req.file.path
+            ? req.file.path // Cloudinary URL
+            : `/uploads/recordings/${req.file.filename}`; // Local path
         // DUPLICATE CHECK
         const existingInteraction = yield prisma_1.default.interaction.findFirst({
             where: {
-                recordingUrl: `/uploads/recordings/${req.file.filename}`
+                recordingUrl: recordingUrl
             }
         });
         if (existingInteraction) {
@@ -95,7 +99,7 @@ const uploadCallRecording = (req, res) => __awaiter(void 0, void 0, void 0, func
                 leadId: entityType === 'lead' ? entityId : undefined,
                 // contactId: entityType === 'contact' ? entityId : undefined, // If we supported contacts
                 createdById: user.id,
-                recordingUrl: `/uploads/recordings/${req.file.filename}`,
+                recordingUrl: recordingUrl,
                 recordingDuration: parseInt(duration) || 0,
                 direction: 'outbound', // Assumption for now, or match from mobile params
                 phoneNumber: phoneNumber,
@@ -168,8 +172,10 @@ const uploadGenericImage = (req, res) => __awaiter(void 0, void 0, void 0, funct
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        // Normalize path for frontend use (replace backslashes)
-        const fileUrl = `/uploads/images/${req.file.filename}`.replace(/\\/g, '/');
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const fileUrl = req.file.path
+            ? req.file.path // Cloudinary URL
+            : `/uploads/images/${req.file.filename}`.replace(/\\/g, '/'); // Local path
         res.json({
             message: 'Image uploaded successfully',
             url: fileUrl
@@ -188,8 +194,10 @@ const uploadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        // Normalize path for frontend use (replace backslashes)
-        const fileUrl = `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/');
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const fileUrl = req.file.path
+            ? req.file.path // Cloudinary URL
+            : `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/'); // Local path
         // Get optional metadata from request body
         const { name, description, category, leadId, contactId, accountId, opportunityId } = req.body;
         // Save document to database

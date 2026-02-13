@@ -7,8 +7,10 @@ const express_1 = __importDefault(require("express"));
 const interactionController_1 = require("../controllers/interactionController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
+// Generic interactions
+router.get('/', authMiddleware_1.protect, interactionController_1.getAllInteractions);
+router.post('/', authMiddleware_1.protect, interactionController_1.createInteractionGeneric); // Generic create endpoint
 // Lead-specific interactions
-router.get('/', authMiddleware_1.protect, interactionController_1.getAllInteractions); // Fixes 404 for /api/interactions
 router.post('/leads/:leadId/interactions', authMiddleware_1.protect, interactionController_1.createInteraction);
 router.get('/leads/:leadId/interactions', authMiddleware_1.protect, interactionController_1.getLeadInteractions);
 // Quick log for WhatsApp/Call button clicks
