@@ -68,10 +68,15 @@ export const uploadCallRecording = async (req: Request, res: Response) => {
             // For now, let's focus on Leads as per prompt requirements usually focusing on Leads.
         }
 
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const recordingUrl = (req.file as any).path 
+            ? (req.file as any).path // Cloudinary URL
+            : `/uploads/recordings/${req.file.filename}`; // Local path
+
         // DUPLICATE CHECK
         const existingInteraction = await prisma.interaction.findFirst({
             where: {
-                recordingUrl: `/uploads/recordings/${req.file.filename}`
+                recordingUrl: recordingUrl
             }
         });
 
@@ -94,7 +99,7 @@ export const uploadCallRecording = async (req: Request, res: Response) => {
                 leadId: entityType === 'lead' ? entityId : undefined,
                 // contactId: entityType === 'contact' ? entityId : undefined, // If we supported contacts
                 createdById: user.id,
-                recordingUrl: `/uploads/recordings/${req.file.filename}`,
+                recordingUrl: recordingUrl,
                 recordingDuration: parseInt(duration) || 0,
                 direction: 'outbound', // Assumption for now, or match from mobile params
                 phoneNumber: phoneNumber,
@@ -173,8 +178,11 @@ export const uploadGenericImage = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        // Normalize path for frontend use (replace backslashes)
-        const fileUrl = `/uploads/images/${req.file.filename}`.replace(/\\/g, '/');
+        
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const fileUrl = (req.file as any).path 
+            ? (req.file as any).path // Cloudinary URL
+            : `/uploads/images/${req.file.filename}`.replace(/\\/g, '/'); // Local path
 
         res.json({
             message: 'Image uploaded successfully',
@@ -195,8 +203,10 @@ export const uploadDocument = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const orgId = getOrgId(user);
         
-        // Normalize path for frontend use (replace backslashes)
-        const fileUrl = `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/');
+        // Check if using Cloudinary (file will have 'path' property with full URL)
+        const fileUrl = (req.file as any).path 
+            ? (req.file as any).path // Cloudinary URL
+            : `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/'); // Local path
 
         // Get optional metadata from request body
         const { name, description, category, leadId, contactId, accountId, opportunityId } = req.body;
