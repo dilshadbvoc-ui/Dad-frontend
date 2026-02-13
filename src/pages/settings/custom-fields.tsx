@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, Edit2, Trash2, Eye, EyeOff } from 'lucide-react';
-import { getCustomFields, createCustomField, CustomFieldData } from '../../services/settingsService';
+import { getCustomFields, createCustomField } from '../../services/settingsService';
+import type { CustomFieldData } from '../../services/settingsService';
 import { api } from '../../services/api';
 import CustomFieldDialog from '../../components/settings/CustomFieldDialog';
 
