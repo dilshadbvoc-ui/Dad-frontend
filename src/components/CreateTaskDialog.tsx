@@ -28,14 +28,14 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
     // Form States
     const [subject, setSubject] = useState('');
     const [description, setDescription] = useState('');
-    const [priority, setPriority] = useState('Medium');
+    const [priority, setPriority] = useState('medium');
     const [dueDate, setDueDate] = useState('');
 
     useEffect(() => {
         if (open) {
             setSubject('');
             setDescription('');
-            setPriority('Medium');
+            setPriority('medium');
             setDueDate('');
         }
     }, [open]);
@@ -50,7 +50,7 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                 description,
                 priority,
                 dueDate,
-                status: 'Not Started',
+                status: 'not_started',
             };
 
             // Handle Lead context (backward compatibility)
@@ -120,9 +120,9 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="High">High</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="Low">Low</SelectItem>
+                                    <SelectItem value="high">High</SelectItem>
+                                    <SelectItem value="medium">Medium</SelectItem>
+                                    <SelectItem value="low">Low</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

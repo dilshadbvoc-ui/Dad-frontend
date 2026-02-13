@@ -39,8 +39,8 @@ export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialCo
 
         try {
             await api.post('/interactions', {
-                lead: leadId,
-                type: 'Note',
+                leadId: leadId,
+                type: 'note',
                 description: note,
                 date: new Date().toISOString(),
                 subject: 'Note' // Generic subject
