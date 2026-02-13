@@ -149,7 +149,19 @@ export const getOpportunityById = async (req: Request, res: Response) => {
         const opportunity = await prisma.opportunity.findFirst({
             where,
             include: {
-                account: { select: { name: true } },
+                account: { 
+                    select: { 
+                        name: true,
+                        accountProducts: {
+                            include: {
+                                product: true
+                            },
+                            orderBy: {
+                                createdAt: 'desc'
+                            }
+                        }
+                    } 
+                },
                 owner: { select: { firstName: true, lastName: true, profileImage: true } }
             }
         });
