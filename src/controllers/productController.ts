@@ -428,6 +428,33 @@ export const getSharedProduct = async (req: Request, res: Response) => {
             ).catch(console.error);
         }
 
+        // Fetch lead data if leadId is provided
+        let leadData = null;
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = await prisma.lead.findUnique({
+                    where: { id: leadId },
+                    select: { 
+                        id: true, 
+                        firstName: true, 
+                        lastName: true, 
+                        phone: true,
+                        company: true, 
+                        organisationId: true 
+                    }
+                });
+                if (lead) {
+                    leadData = {
+                        firstName: lead.firstName,
+                        lastName: lead.lastName,
+                        phone: lead.phone
+                    };
+                }
+            } catch (e) {
+                console.error('Error fetching lead data:', e);
+            }
+        }
+
         res.json({
             product: share.product,
             seller: share.createdBy,
@@ -438,7 +465,8 @@ export const getSharedProduct = async (req: Request, res: Response) => {
                 youtubeUrl: share.youtubeUrl,
                 customTitle: share.customTitle,
                 customDescription: share.customDescription
-            }
+            },
+            lead: leadData
         });
 
         // Debug logging
