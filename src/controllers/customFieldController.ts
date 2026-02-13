@@ -1,131 +1,305 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
-import { getOrgId } from '../utils/hierarchyUtils';
-import { logAudit } from '../utils/auditLogger';
+import { AuthRequest } from '../middleware/authMiddleware';
 
-export const getCustomFields = async (req: Request, res: Response) => {
+/**
+ * Get all custom fields for an entity type
+ * GET /api/custom-fields?entityType=Lead
+ */
+export const getCustomFields = async (req: AuthRequest, res: Response) => {
     try {
-        const user = (req as any).user;
-        const orgId = getOrgId(user);
-        const entityType = req.query.entity as string;
+        const { entityType } = req.query;
+        const organisationId = req.user?.organisationId;
 
-        if (!orgId) return res.status(400).json({ message: 'No organisation' });
+        if (!organisationId) {
+            return res.status(400).json({ message: 'Organisation ID is required' });
+        }
 
         const where: any = {
-            organisationId: orgId,
+            organisationId,
             isDeleted: false
         };
 
         if (entityType) {
-            where.entityType = entityType;
+            where.entityType = entityType as string;
         }
 
         const customFields = await prisma.customField.findMany({
             where,
-            orderBy: { order: 'asc' }
-        });
-
-        res.json({ customFields });
-    } catch (error) {
-        res.status(500).json({ message: (error as Error).message });
-    }
-};
-
-export const createCustomField = async (req: Request, res: Response) => {
-    try {
-        const user = (req as any).user;
-        const orgId = getOrgId(user);
-        if (!orgId) return res.status(400).json({ message: 'No organisation' });
-
-        const customField = await prisma.customField.create({
-            data: {
-                name: req.body.name,
-                label: req.body.label,
-                entityType: req.body.entityType,
-                fieldType: req.body.fieldType,
-                options: req.body.options || [],
-                isRequired: req.body.isRequired || false,
-                defaultValue: req.body.defaultValue,
-                placeholder: req.body.placeholder,
-                order: req.body.order || 0,
-                isActive: true,
-                showInList: req.body.showInList || false,
-                showInForm: req.body.showInForm !== false,
-                organisation: { connect: { id: orgId } },
-                createdBy: { connect: { id: user.id } }
+            orderBy: [
+                { order: 'asc' },
+                { createdAt: 'asc' }
+            ],
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
             }
         });
 
-        await logAudit({
-            organisationId: orgId,
-            actorId: user.id,
-            action: 'CREATE_CUSTOM_FIELD',
-            entity: 'CustomField',
-            entityId: customField.id,
-            details: { label: customField.label, entityType: customField.entityType }
+        res.json(customFields);
+    } catch (error: any) {
+        console.error('Error fetching custom fields:', error);
+        res.status(500).json({ message: 'Failed to fetch custom fields', error: error.message });
+    }
+};
+
+/**
+ * Create a new custom field
+ * POST /api/custom-fields
+ */
+export const createCustomField = async (req: AuthRequest, res: Response) => {
+    try {
+        const {
+            name,
+            label,
+            entityType,
+            fieldType,
+            options,
+            isRequired,
+            defaultValue,
+            placeholder,
+            order,
+            isActive,
+            showInList,
+            showInForm
+        } = req.body;
+
+        const organisationId = req.user?.organisationId;
+        const createdById = req.user?.id;
+
+        if (!organisationId || !createdById) {
+            return res.status(400).json({ message: 'Organisation ID and User ID are required' });
+        }
+
+        // Validate required fields
+        if (!name || !label || !entityType || !fieldType) {
+            return res.status(400).json({ 
+                message: 'Name, label, entityType, and fieldType are required' 
+            });
+        }
+
+        // Validate field name format
+        const fieldNameRegex = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+        if (!fieldNameRegex.test(name)) {
+            return res.status(400).json({ 
+                message: 'Field name must start with a letter or underscore and contain only letters, numbers, and underscores' 
+            });
+        }
+
+        // Check for reserved field names
+        const reservedNames = [
+            'id', 'createdAt', 'updatedAt', 'organisationId', 'createdById',
+            'isDeleted', 'deletedAt', 'customFields'
+        ];
+        if (reservedNames.includes(name)) {
+            return res.status(400).json({ 
+                message: `Field name '${name}' is reserved and cannot be used` 
+            });
+        }
+
+        // Validate field type
+        const validFieldTypes = [
+            'text', 'textarea', 'number', 'date', 'select', 'multiselect',
+            'boolean', 'email', 'phone', 'url'
+        ];
+        if (!validFieldTypes.includes(fieldType)) {
+            return res.status(400).json({ 
+                message: `Invalid field type. Must be one of: ${validFieldTypes.join(', ')}` 
+            });
+        }
+
+        // Validate entity type
+        const validEntityTypes = ['Lead', 'Contact', 'Account', 'Opportunity'];
+        if (!validEntityTypes.includes(entityType)) {
+            return res.status(400).json({ 
+                message: `Invalid entity type. Must be one of: ${validEntityTypes.join(', ')}` 
+            });
+        }
+
+        // Validate options for select/multiselect
+        if ((fieldType === 'select' || fieldType === 'multiselect') && (!options || options.length === 0)) {
+            return res.status(400).json({ 
+                message: 'Options are required for select and multiselect field types' 
+            });
+        }
+
+        // Check if field name already exists for this entity type and organization
+        const existingField = await prisma.customField.findFirst({
+            where: {
+                name,
+                entityType,
+                organisationId,
+                isDeleted: false
+            }
+        });
+
+        if (existingField) {
+            return res.status(400).json({ 
+                message: `A field with name '${name}' already exists for ${entityType}` 
+            });
+        }
+
+        // Create the custom field
+        const customField = await prisma.customField.create({
+            data: {
+                name,
+                label,
+                entityType,
+                fieldType,
+                options: options || [],
+                isRequired: isRequired || false,
+                defaultValue,
+                placeholder,
+                order: order || 0,
+                isActive: isActive !== undefined ? isActive : true,
+                showInList: showInList || false,
+                showInForm: showInForm !== undefined ? showInForm : true,
+                organisationId,
+                createdById
+            },
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            }
         });
 
         res.status(201).json(customField);
-    } catch (error) {
-        res.status(400).json({ message: (error as Error).message });
+    } catch (error: any) {
+        console.error('Error creating custom field:', error);
+        res.status(500).json({ message: 'Failed to create custom field', error: error.message });
     }
 };
 
-export const updateCustomField = async (req: Request, res: Response) => {
+/**
+ * Update a custom field
+ * PUT /api/custom-fields/:id
+ */
+export const updateCustomField = async (req: AuthRequest, res: Response) => {
     try {
-        const user = (req as any).user;
-        const orgId = getOrgId(user);
-        if (!orgId) return res.status(400).json({ message: 'No organisation' });
+        const { id } = req.params;
+        const {
+            label,
+            options,
+            isRequired,
+            defaultValue,
+            placeholder,
+            order,
+            isActive,
+            showInList,
+            showInForm
+        } = req.body;
 
-        const customField = await prisma.customField.update({
+        const organisationId = req.user?.organisationId;
+
+        if (!organisationId) {
+            return res.status(400).json({ message: 'Organisation ID is required' });
+        }
+
+        // Check if field exists and belongs to the organization
+        const existingField = await prisma.customField.findFirst({
             where: {
-                id: req.params.id,
-                organisationId: orgId
+                id,
+                organisationId,
+                isDeleted: false
+            }
+        });
+
+        if (!existingField) {
+            return res.status(404).json({ message: 'Custom field not found' });
+        }
+
+        // Validate options for select/multiselect if provided
+        if (options && (existingField.fieldType === 'select' || existingField.fieldType === 'multiselect')) {
+            if (options.length === 0) {
+                return res.status(400).json({ 
+                    message: 'Options cannot be empty for select and multiselect field types' 
+                });
+            }
+        }
+
+        // Update the custom field
+        const updatedField = await prisma.customField.update({
+            where: { id },
+            data: {
+                ...(label && { label }),
+                ...(options && { options }),
+                ...(isRequired !== undefined && { isRequired }),
+                ...(defaultValue !== undefined && { defaultValue }),
+                ...(placeholder !== undefined && { placeholder }),
+                ...(order !== undefined && { order }),
+                ...(isActive !== undefined && { isActive }),
+                ...(showInList !== undefined && { showInList }),
+                ...(showInForm !== undefined && { showInForm })
             },
-            data: req.body
+            include: {
+                createdBy: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true
+                    }
+                }
+            }
         });
 
-        await logAudit({
-            organisationId: orgId,
-            actorId: user.id,
-            action: 'UPDATE_CUSTOM_FIELD',
-            entity: 'CustomField',
-            entityId: customField.id,
-            details: { label: customField.label, updatedFields: Object.keys(req.body) }
-        });
-
-        res.json(customField);
-    } catch (error) {
-        if ((error as any).code === 'P2025') return res.status(404).json({ message: 'Custom field not found' });
-        res.status(500).json({ message: (error as Error).message });
+        res.json(updatedField);
+    } catch (error: any) {
+        console.error('Error updating custom field:', error);
+        res.status(500).json({ message: 'Failed to update custom field', error: error.message });
     }
 };
 
-export const deleteCustomField = async (req: Request, res: Response) => {
+/**
+ * Delete a custom field (soft delete)
+ * DELETE /api/custom-fields/:id
+ */
+export const deleteCustomField = async (req: AuthRequest, res: Response) => {
     try {
-        const user = (req as any).user;
-        const orgId = getOrgId(user);
-        if (!orgId) return res.status(400).json({ message: 'No organisation' });
+        const { id } = req.params;
+        const organisationId = req.user?.organisationId;
 
+        if (!organisationId) {
+            return res.status(400).json({ message: 'Organisation ID is required' });
+        }
+
+        // Check if field exists and belongs to the organization
+        const existingField = await prisma.customField.findFirst({
+            where: {
+                id,
+                organisationId,
+                isDeleted: false
+            }
+        });
+
+        if (!existingField) {
+            return res.status(404).json({ message: 'Custom field not found' });
+        }
+
+        // Soft delete the custom field
         await prisma.customField.update({
-            where: {
-                id: req.params.id,
-                organisationId: orgId
-            },
-            data: { isDeleted: true }
+            where: { id },
+            data: {
+                isDeleted: true,
+                isActive: false
+            }
         });
 
-        await logAudit({
-            organisationId: orgId,
-            actorId: user.id,
-            action: 'DELETE_CUSTOM_FIELD',
-            entity: 'CustomField',
-            entityId: req.params.id
-        });
-
-        res.json({ message: 'Custom field deleted' });
-    } catch (error) {
-        if ((error as any).code === 'P2025') return res.status(404).json({ message: 'Custom field not found' });
-        res.status(500).json({ message: (error as Error).message });
+        res.json({ message: 'Custom field deleted successfully' });
+    } catch (error: any) {
+        console.error('Error deleting custom field:', error);
+        res.status(500).json({ message: 'Failed to delete custom field', error: error.message });
     }
 };
