@@ -676,12 +676,30 @@ export const convertLead = async (req: Request, res: Response) => {
 
         const lead = await prisma.lead.findUnique({
             where: { id: leadId },
-            include: { organisation: true }
+            include: { 
+                organisation: true,
+                products: { include: { product: true } }
+            }
         });
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
 
         if (lead.status === LeadStatus.converted) {
             return res.status(400).json({ message: 'Lead already converted' });
+        }
+
+        // Calculate opportunity amount from lead products if not provided
+        let opportunityAmount = Number(amount) || 0;
+        
+        // If no amount provided, use lead's potentialValue or calculate from products
+        if (!amount || opportunityAmount === 0) {
+            if (lead.potentialValue && lead.potentialValue > 0) {
+                opportunityAmount = lead.potentialValue;
+            } else if (lead.products && lead.products.length > 0) {
+                // Calculate from products
+                opportunityAmount = lead.products.reduce((total, item) => {
+                    return total + (item.price * item.quantity);
+                }, 0);
+            }
         }
 
         // 0. Limit Check
@@ -738,11 +756,11 @@ export const convertLead = async (req: Request, res: Response) => {
                 }
             });
 
-            // 3. Create Opportunity
+            // 3. Create Opportunity with calculated amount from products
             const opportunity = await tx.opportunity.create({
                 data: {
                     name: dealName || `Deal - ${lead.company || lead.lastName}`,
-                    amount: Number(amount) || 0,
+                    amount: opportunityAmount,
                     stage: 'prospecting', // Default stage
                     organisationId: orgId,
                     ownerId: user.id,
