@@ -59,6 +59,9 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
     const finalOpen = isControlled ? open : internalOpen
     const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
+    // Debug logging
+    console.log('EditOpportunityDialog render:', { open, finalOpen, isControlled, opportunityId: opportunity.id });
+
     const queryClient = useQueryClient()
 
     const form = useForm<EditOpportunityFormData>({

@@ -78,7 +78,11 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                         <Eye className="mr-2 h-4 w-4" />
                         View Details
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setIsEditOpen(true)}>
+                    <DropdownMenuItem onClick={(e) => {
+                        e.preventDefault();
+                        console.log('Edit clicked, opening dialog');
+                        setIsEditOpen(true);
+                    }}>
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit Opportunity
                     </DropdownMenuItem>
