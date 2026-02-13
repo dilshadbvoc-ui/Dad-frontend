@@ -16,6 +16,15 @@ interface ConvertLeadDialogProps {
         firstName: string;
         lastName: string;
         company: string;
+        products?: Array<{
+            id: string;
+            quantity: number;
+            product: {
+                id: string;
+                name: string;
+                basePrice: number;
+            };
+        }>;
     };
 }
 
@@ -101,6 +110,23 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
                             required
                         />
                     </div>
+
+                    {lead.products && lead.products.length > 0 && (
+                        <div className="rounded-md border p-3 bg-muted/50">
+                            <div className="text-sm font-medium mb-2">Products to be migrated:</div>
+                            <div className="space-y-1">
+                                {lead.products.map((item) => (
+                                    <div key={item.id} className="text-xs text-muted-foreground flex justify-between">
+                                        <span>{item.product.name} (x{item.quantity})</span>
+                                        <span className="font-medium">${(item.product.basePrice * item.quantity).toLocaleString()}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                                These products will be added to the account as purchased items.
+                            </div>
+                        </div>
+                    )}
 
                     <DialogFooter>
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>

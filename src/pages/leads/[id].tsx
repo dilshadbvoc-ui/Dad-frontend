@@ -439,6 +439,7 @@ export default function LeadDetailPage() {
             )}
 
             {lead && <EditLeadDialog open={isEditOpen} onOpenChange={setIsEditOpen} lead={lead} />}
+            {lead && <ConvertLeadDialog open={isConvertOpen} onOpenChange={setIsConvertOpen} lead={lead} />}
             {lead && <AssignLeadDialog open={assignDialogOpen} onOpenChange={setAssignDialogOpen} lead={lead} />}
             <EmailComposeDialog
                 open={emailDialogOpen}

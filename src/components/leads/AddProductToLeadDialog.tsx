@@ -99,7 +99,13 @@ export function AddProductToLeadDialog({
             }
 
             await api.put(`/leads/${leadId}`, payload)
-            toast.success("Products updated successfully")
+            
+            if (selectedProducts.length === 0) {
+                toast.success("All products removed successfully")
+            } else {
+                toast.success("Products updated successfully")
+            }
+            
             onOpenChange(false)
             onSuccess()
         } catch (error) {
