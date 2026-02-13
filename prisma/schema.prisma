@@ -1377,8 +1377,9 @@ model Document {
   id             String       @id @default(uuid())
   name           String
   description    String?
-  fileKey        String       // S3/Storage key
-  fileUrl        String       // URL or access path
+  fileKey        String       // Original filename or identifier
+  fileUrl        String?      // Optional: for backward compatibility
+  fileData       Bytes?       // Binary file data stored in database
   fileType       String
   fileSize       Int
   category       String?      @default("other")

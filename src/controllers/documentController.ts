@@ -218,3 +218,45 @@ export const deleteDocument = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Failed to delete document: ' + (error as Error).message });
     }
 };
+
+/**
+ * Download document file from database
+ * GET /api/documents/:id/download
+ */
+export const downloadDocument = async (req: Request, res: Response) => {
+    try {
+        const { id } = req.params;
+
+        const document = await prisma.document.findFirst({
+            where: {
+                id,
+                isDeleted: false
+            },
+            select: {
+                fileData: true,
+                fileType: true,
+                name: true,
+                fileKey: true
+            }
+        });
+
+        if (!document) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+
+        if (!document.fileData) {
+            return res.status(404).json({ message: 'File data not available' });
+        }
+
+        // Set appropriate headers
+        res.setHeader('Content-Type', document.fileType);
+        res.setHeader('Content-Disposition', `inline; filename="${document.fileKey}"`);
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+        
+        // Send binary data
+        res.send(document.fileData);
+    } catch (error) {
+        console.error('[Download Document] Error:', error);
+        res.status(500).json({ message: 'Failed to download document: ' + (error as Error).message });
+    }
+};

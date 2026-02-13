@@ -179,14 +179,32 @@ export const uploadGenericImage = async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
         
-        // Check if using Cloudinary (file will have 'path' property with full URL)
-        const fileUrl = (req.file as any).path 
-            ? (req.file as any).path // Cloudinary URL
-            : `/uploads/images/${req.file.filename}`.replace(/\\/g, '/'); // Local path
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+
+        // Read file data as buffer
+        const fileData = req.file.buffer;
+
+        // Save image to database
+        const document = await prisma.document.create({
+            data: {
+                name: req.file.originalname,
+                fileKey: req.file.originalname,
+                fileData: fileData,
+                fileUrl: null,
+                fileType: req.file.mimetype,
+                fileSize: req.file.size,
+                category: 'image',
+                tags: [],
+                organisationId: orgId || user.organisationId,
+                createdById: user.id
+            }
+        });
 
         res.json({
             message: 'Image uploaded successfully',
-            url: fileUrl
+            url: `/api/documents/${document.id}/download`,
+            documentId: document.id
         });
     } catch (error) {
         console.error('[Upload Image] Error:', error);
@@ -202,22 +220,21 @@ export const uploadDocument = async (req: Request, res: Response) => {
 
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        
-        // Check if using Cloudinary (file will have 'path' property with full URL)
-        const fileUrl = (req.file as any).path 
-            ? (req.file as any).path // Cloudinary URL
-            : `/uploads/documents/${req.file.filename}`.replace(/\\/g, '/'); // Local path
 
         // Get optional metadata from request body
         const { name, description, category, leadId, contactId, accountId, opportunityId } = req.body;
 
-        // Save document to database
+        // Read file data as buffer
+        const fileData = req.file.buffer;
+
+        // Save document to database with binary data
         const document = await prisma.document.create({
             data: {
                 name: name || req.file.originalname,
                 description: description || null,
-                fileKey: req.file.filename,
-                fileUrl: fileUrl,
+                fileKey: req.file.originalname,
+                fileData: fileData, // Store binary data in database
+                fileUrl: null, // No external URL needed
                 fileType: req.file.mimetype,
                 fileSize: req.file.size,
                 category: category || 'other',
@@ -233,14 +250,14 @@ export const uploadDocument = async (req: Request, res: Response) => {
 
         res.json({
             message: 'Document uploaded successfully',
-            url: fileUrl,
+            url: `/api/documents/${document.id}/download`, // API endpoint to retrieve file
             originalName: req.file.originalname,
             size: req.file.size,
             documentId: document.id,
             document: {
                 id: document.id,
                 name: document.name,
-                fileUrl: document.fileUrl,
+                fileUrl: `/api/documents/${document.id}/download`,
                 fileType: document.fileType,
                 fileSize: document.fileSize,
                 category: document.category,

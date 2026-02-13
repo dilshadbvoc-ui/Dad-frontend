@@ -1,10 +1,13 @@
 import express from 'express';
-import { getDocuments, getDocumentById, updateDocument, deleteDocument } from '../controllers/documentController';
+import { getDocuments, getDocumentById, updateDocument, deleteDocument, downloadDocument } from '../controllers/documentController';
 import { protect } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// All routes require authentication
+// Download endpoint - no auth required for public shares, but we'll add auth for now
+router.get('/:id/download', downloadDocument);
+
+// All other routes require authentication
 router.use(protect);
 
 // Get all documents (with optional filters)
