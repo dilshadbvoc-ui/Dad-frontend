@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getQuotes, deleteQuote, type Quote } from "@/services/quoteService"
+import { CreateQuoteDialog } from "@/components/CreateQuoteDialog"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -26,6 +27,7 @@ const statusColors: Record<string, string> = {
 
 export default function QuotesPage() {
     const [searchQuery, setSearchQuery] = useState("")
+    const [isCreateOpen, setIsCreateOpen] = useState(false)
     const queryClient = useQueryClient()
 
     const { data, isLoading } = useQuery({
@@ -54,7 +56,12 @@ export default function QuotesPage() {
                                 <h1 className="text-3xl font-bold text-foreground">Quotes</h1>
                                 <p className="text-muted-foreground mt-1">Create and manage customer quotes</p>
                             </div>
-                            <Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />New Quote</Button>
+                            <CreateQuoteDialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+                                <Button className="shadow-lg shadow-primary/25">
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    New Quote
+                                </Button>
+                            </CreateQuoteDialog>
                         </div>
 
                         {/* Stats */}
