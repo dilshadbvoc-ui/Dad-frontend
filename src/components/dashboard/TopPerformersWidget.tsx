@@ -3,7 +3,7 @@ import { api } from "@/services/api"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy, AlertCircle } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { formatCurrency, getAssetUrl } from "@/lib/utils"
 
 export function TopPerformersWidget() {
     const { data: performers = [], isLoading, isError, error } = useQuery({
@@ -78,7 +78,7 @@ export function TopPerformersWidget() {
                                             {index + 1}
                                         </div>
                                         <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                                            <AvatarImage src={user.image} />
+                                            <AvatarImage src={getAssetUrl(user.image)} />
                                             <AvatarFallback>{user.name[0] || '?'}</AvatarFallback>
                                         </Avatar>
                                         <div>

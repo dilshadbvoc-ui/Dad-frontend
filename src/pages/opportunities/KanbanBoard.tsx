@@ -3,7 +3,7 @@ import { type Opportunity, updateOpportunity } from "@/services/opportunityServi
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getAssetUrl } from "@/lib/utils";
 import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -250,7 +250,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                 <Tooltip>
                                                                     <TooltipTrigger>
                                                                         <Avatar className="h-6 w-6 border border-background shadow-sm">
-                                                                            <AvatarImage src={opp.owner.profileImage} />
+                                                                            <AvatarImage src={getAssetUrl(opp.owner.profileImage)} />
                                                                             <AvatarFallback className="text-[9px] bg-primary/10 text-primary">
                                                                                 {opp.owner.firstName?.[0]}
                                                                             </AvatarFallback>

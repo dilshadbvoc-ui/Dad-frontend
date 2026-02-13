@@ -5,6 +5,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { formatDistanceToNow } from "date-fns"
 import { Loader2, Activity, AlertCircle } from "lucide-react"
+import { getAssetUrl } from "@/lib/utils"
 
 export function RecentActivityWidget() {
     const { data, isLoading, isError } = useQuery({
@@ -86,7 +87,7 @@ export function RecentActivityWidget() {
                                 return (
                                     <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
                                         <Avatar className="h-9 w-9 mt-0.5">
-                                            <AvatarImage src={log.actor?.profileImage} />
+                                            <AvatarImage src={getAssetUrl(log.actor?.profileImage)} />
                                             <AvatarFallback className="text-xs bg-primary/10 text-primary">
                                                 {actorInitials}
                                             </AvatarFallback>
