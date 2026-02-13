@@ -68,6 +68,12 @@ export const createAccount = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
 
+        // Custom Field Validation
+        if (req.body.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Account', orgId, req.body.customFields);
+        }
+
         const accountData: Prisma.AccountCreateInput = {
             name: req.body.name,
             industry: req.body.industry,
@@ -151,6 +157,16 @@ export const updateAccount = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+        }
+
+        // Get current account for validation
+        const currentAccount = await prisma.account.findUnique({ where: whereObj });
+        if (!currentAccount) return res.status(404).json({ message: 'Account not found' });
+
+        // Custom Field Validation
+        if (updates.customFields) {
+            const { CustomFieldValidationService } = await import('../services/CustomFieldValidationService');
+            await CustomFieldValidationService.validateFields('Account', currentAccount.organisationId, updates.customFields);
         }
 
         const account = await prisma.account.update({
