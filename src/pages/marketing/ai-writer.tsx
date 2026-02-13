@@ -36,9 +36,11 @@ export default function AiWriterPage() {
                 toast.error("Failed to generate content");
             }
         } catch (error: unknown) {
-            const err = error as { response?: { data?: { message?: string } } };
+            const err = error as { response?: { data?: { message?: string; error?: string; code?: string } } };
             console.error('AI Generation Error:', err);
-            toast.error(err.response?.data?.message || "Something went wrong");
+            console.error('Error response data:', err.response?.data);
+            const errorMessage = err.response?.data?.message || err.response?.data?.error || "Something went wrong";
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
