@@ -151,7 +151,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
     function onSubmit(values: { title: string; description?: string; account?: string; opportunity?: string; contact?: string; validUntil: string }) {
         const totals = calculateTotals()
         
-        const quoteData: CreateQuoteData = {
+        const quoteData: CreateQuoteData & { totalDiscount: number; totalTax: number } = {
             title: values.title,
             description: values.description,
             account: values.account,
@@ -167,10 +167,12 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
                 total: calculateLineTotal(item)
             })),
             subtotal: totals.subtotal,
+            totalDiscount: totals.totalDiscount,
+            totalTax: totals.totalTax,
             grandTotal: totals.grandTotal,
         }
 
-        mutation.mutate(quoteData)
+        mutation.mutate(quoteData as any)
     }
 
     const totals = calculateTotals()
