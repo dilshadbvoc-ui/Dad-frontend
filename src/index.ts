@@ -236,7 +236,16 @@ app.use((req, res, next) => {
 
 const staticPath = path.join(__dirname, '../uploads');
 console.log('Serving static files from:', staticPath);
-app.use('/uploads', express.static(staticPath));
+
+// Add CORS headers for static files (images, documents, etc.)
+app.use('/uploads', (req, res, next) => {
+    // Set CORS headers for static files
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+}, express.static(staticPath));
 
 app.get('/', (req, res) => {
     console.log('Health check ping received at /');
