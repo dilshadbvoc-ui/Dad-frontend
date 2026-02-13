@@ -7,8 +7,9 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Target } from "lucide-react"
+import { Calendar, DollarSign, Target, Package } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export interface Opportunity {
     id: string
@@ -18,6 +19,22 @@ export interface Opportunity {
     probability: number
     closeDate?: string
     priority?: string
+    account?: {
+        name: string
+        accountProducts?: Array<{
+            id: string
+            quantity: number
+            status: string
+            notes?: string
+            product: {
+                id: string
+                name: string
+                basePrice: number
+                sku?: string
+                currency?: string
+            }
+        }>
+    }
 }
 
 interface ViewOpportunityDialogProps {
@@ -86,6 +103,54 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                             {opportunity.id}
                         </code>
                     </div>
+
+                    {opportunity.account?.accountProducts && opportunity.account.accountProducts.length > 0 && (
+                        <Card className="border-2">
+                            <CardHeader className="pb-3">
+                                <CardTitle className="text-base flex items-center gap-2">
+                                    <Package className="w-4 h-4 text-blue-600" />
+                                    Associated Products
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="space-y-2">
+                                {opportunity.account.accountProducts.map((ap) => (
+                                    <div key={ap.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                                        <div className="flex-1">
+                                            <div className="font-medium text-sm">{ap.product.name}</div>
+                                            {ap.product.sku && (
+                                                <div className="text-xs text-muted-foreground">SKU: {ap.product.sku}</div>
+                                            )}
+                                            {ap.notes && (
+                                                <div className="text-xs text-muted-foreground mt-1 italic">{ap.notes}</div>
+                                            )}
+                                        </div>
+                                        <div className="text-right ml-4">
+                                            <div className="text-sm font-semibold">
+                                                {formatCurrency(ap.product.basePrice * ap.quantity)}
+                                            </div>
+                                            <div className="text-xs text-muted-foreground">
+                                                {ap.quantity} × {formatCurrency(ap.product.basePrice)}
+                                            </div>
+                                            <Badge variant="outline" className="mt-1 text-xs">
+                                                {ap.status}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                ))}
+                                <div className="pt-2 border-t flex justify-between items-center">
+                                    <span className="text-sm font-medium">Total Product Value:</span>
+                                    <span className="text-lg font-bold text-green-600">
+                                        {formatCurrency(
+                                            opportunity.account.accountProducts.reduce(
+                                                (sum, ap) => sum + (ap.product.basePrice * ap.quantity),
+                                                0
+                                            )
+                                        )}
+                                    </span>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    )}
                 </div>
             </DialogContent>
         </Dialog>
