@@ -16,6 +16,7 @@ interface ConvertLeadDialogProps {
         firstName: string;
         lastName: string;
         company: string;
+        potentialValue?: number;
         products?: Array<{
             id: string;
             quantity: number;
@@ -31,6 +32,17 @@ interface ConvertLeadDialogProps {
 export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+
+    // Calculate total value from products
+    const calculateProductValue = () => {
+        if (!lead.products || lead.products.length === 0) return 0;
+        return lead.products.reduce((total, item) => {
+            return total + (item.product.basePrice * item.quantity);
+        }, 0);
+    };
+
+    const productValue = calculateProductValue();
+    const opportunityAmount = lead.potentialValue || productValue || 0;
 
     // Default values populated from Lead
     const [accountName, setAccountName] = useState(lead.company || `${lead.firstName} ${lead.lastName}'s Account`);
@@ -122,8 +134,21 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
                                     </div>
                                 ))}
                             </div>
-                            <div className="text-xs text-muted-foreground mt-2 pt-2 border-t">
+                            <div className="text-xs font-semibold mt-2 pt-2 border-t flex justify-between">
+                                <span>Opportunity Amount:</span>
+                                <span className="text-green-600">${opportunityAmount.toLocaleString()}</span>
+                            </div>
+                            <div className="text-xs text-muted-foreground mt-1">
                                 These products will be added to the account as purchased items.
+                            </div>
+                        </div>
+                    )}
+
+                    {(!lead.products || lead.products.length === 0) && opportunityAmount > 0 && (
+                        <div className="rounded-md border p-3 bg-muted/50">
+                            <div className="text-xs font-semibold flex justify-between">
+                                <span>Opportunity Amount:</span>
+                                <span className="text-green-600">${opportunityAmount.toLocaleString()}</span>
                             </div>
                         </div>
                     )}
