@@ -31,6 +31,11 @@ interface SharedProductData {
         customTitle?: string
         customDescription?: string
     }
+    lead?: {
+        phone?: string
+        firstName?: string
+        lastName?: string
+    }
 }
 
 // Helper to construct safe URL for brochure
@@ -76,12 +81,20 @@ export default function SharedProductPage() {
 
     if (!data || !data.product) return null
 
-    const { product, seller, organisation, shareConfig } = data
+    const { product, seller, organisation, shareConfig, lead } = data
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
     const brochureFullUrl = product.brochureUrl ? getAssetUrl(product.brochureUrl) : '';
     
     console.log('Product brochure URL:', product.brochureUrl);
     console.log('Constructed brochure URL:', brochureFullUrl);
+    console.log('Lead data:', lead);
+
+    // Handle call now action
+    const handleCallNow = () => {
+        if (lead?.phone) {
+            window.location.href = `tel:${lead.phone}`;
+        }
+    };
 
     // Determine content to display
     const displayTitle = shareConfig?.customTitle || product.name
@@ -325,7 +338,19 @@ export default function SharedProductPage() {
                                 </div>
                                 <div className="space-y-3 pt-4 border-t border-border">
                                     <Button className="w-full"><Mail className="mr-2 h-4 w-4" /> Send Email</Button>
-                                    <Button variant="outline" className="w-full"><Phone className="mr-2 h-4 w-4" /> Request Call</Button>
+                                    {lead?.phone ? (
+                                        <Button 
+                                            variant="outline" 
+                                            className="w-full"
+                                            onClick={handleCallNow}
+                                        >
+                                            <Phone className="mr-2 h-4 w-4" /> Call Now
+                                        </Button>
+                                    ) : (
+                                        <Button variant="outline" className="w-full" disabled>
+                                            <Phone className="mr-2 h-4 w-4" /> No Phone Available
+                                        </Button>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
