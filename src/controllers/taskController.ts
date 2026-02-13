@@ -110,7 +110,7 @@ export const createTask = async (req: Request, res: Response) => {
             description: req.body.description,
             status: req.body.status || 'not_started',
             priority: req.body.priority || 'medium',
-            dueDate: req.body.dueDate,
+            dueDate: req.body.dueDate ? new Date(req.body.dueDate).toISOString() : undefined,
 
             createdBy: { connect: { id: user.id } },
         };
@@ -194,6 +194,11 @@ export const updateTask = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
         const updates = { ...req.body };
+
+        // Convert dueDate to ISO-8601 DateTime if provided
+        if (updates.dueDate) {
+            updates.dueDate = new Date(updates.dueDate).toISOString();
+        }
 
         // Handle Relation Updates
         if (updates.assignedTo && typeof updates.assignedTo === 'string') {
