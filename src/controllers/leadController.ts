@@ -382,11 +382,14 @@ export const updateLead = async (req: Request, res: Response) => {
             whereObj.organisationId = orgId;
         }
 
+        // Remove products from updates as it's handled separately
+        const { products, ...leadUpdates } = updates;
+
         // Update Lead Basic Info
         const [lead] = await prisma.$transaction([
             prisma.lead.update({
                 where: whereObj,
-                data: updates,
+                data: leadUpdates,
                 include: { assignedTo: { select: { firstName: true, lastName: true, email: true } } }
             }),
             ...(historyData ? [prisma.leadHistory.create({ data: historyData })] : [])
