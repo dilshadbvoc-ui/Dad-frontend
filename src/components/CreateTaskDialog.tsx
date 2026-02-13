@@ -72,9 +72,11 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
             onSuccess();
             onOpenChange(false);
 
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to create task');
+        } catch (error: any) {
+            console.error('Task creation error:', error);
+            console.error('Error response:', error.response?.data);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to create task';
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }

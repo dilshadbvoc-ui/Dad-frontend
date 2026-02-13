@@ -51,9 +51,11 @@ export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialCo
             onOpenChange(false);
             setNote('');
 
-        } catch (error) {
-            console.error(error);
-            toast.error('Failed to add note');
+        } catch (error: any) {
+            console.error('Note creation error:', error);
+            console.error('Error response:', error.response?.data);
+            const errorMessage = error.response?.data?.message || error.message || 'Failed to add note';
+            toast.error(errorMessage);
         } finally {
             setIsLoading(false);
         }
