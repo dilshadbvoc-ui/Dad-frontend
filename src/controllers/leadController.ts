@@ -28,8 +28,11 @@ export const getLeads = async (req: Request, res: Response) => {
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
-            // In Prisma: assignedToId IN [...]
-            where.assignedToId = { in: [...subordinateIds, user.id] };
+            // Show leads assigned to user/subordinates OR created by user
+            where.OR = [
+                { assignedToId: { in: [...subordinateIds, user.id] } },
+                { createdById: user.id }
+            ];
         }
 
         // Filter: Status
@@ -167,7 +170,8 @@ export const createLead = async (req: Request, res: Response) => {
                 assignedTo: { connect: { id: leadOwnerId } },
                 source: req.body.source as LeadSource || LeadSource.manual,
                 status: req.body.status as LeadStatus || LeadStatus.new,
-                potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0
+                potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0,
+                createdById: currentUser.id // Track creator for visibility
             }
         });
 

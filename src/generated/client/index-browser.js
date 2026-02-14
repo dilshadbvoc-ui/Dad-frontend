@@ -246,6 +246,7 @@ exports.Prisma.LeadScalarFieldEnum = {
   reEnquiryCount: 'reEnquiryCount',
   lastEnquiryDate: 'lastEnquiryDate',
   originalLeadId: 'originalLeadId',
+  createdById: 'createdById',
   pipelineId: 'pipelineId',
   potentialValue: 'potentialValue'
 };
