@@ -6,11 +6,11 @@
   "scripts": {
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "npx tsc",
+    "build": "node --max-old-space-size=768 node_modules/typescript/bin/tsc",
     "lint": "eslint src/**/*.ts",
     "studio": "prisma studio --port 5555",
     "migrate": "npx prisma db push --accept-data-loss && npx prisma generate",
-    "postinstall": "npm run migrate && npm run build && node copy-prisma.js"
+    "postinstall": "node copy-prisma.js"
   },
   "keywords": [],
   "author": "",

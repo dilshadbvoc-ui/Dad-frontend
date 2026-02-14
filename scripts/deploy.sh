@@ -13,12 +13,12 @@ BACKEND_DIR=$(git rev-parse --show-toplevel)
 cd "$BACKEND_DIR"
 git fetch origin main
 git reset --hard origin/main
-npm install
+npm install --ignore-scripts
 echo "🗄️ Running Migrations..."
 npx prisma db push --accept-data-loss
 npx prisma generate
 echo "🏗️ Building Backend..."
-NODE_OPTIONS=--max-old-space-size=1024 npm run build
+NODE_OPTIONS=--max-old-space-size=768 npm run build
 node copy-prisma.js
 
 pm2 restart crm-api || pm2 start dist/index.js --name "crm-api" -- update-env
