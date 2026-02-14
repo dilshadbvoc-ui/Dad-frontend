@@ -1,15 +1,21 @@
-node_modules/
+# General
+.DS_Store
+*.log
+*.tmp*
+
+# Server
+server/node_modules/
+server/dist/
+server/.env
+server/uploads/
+server/generated/
+
+# Client
+client/node_modules/
+client/dist/
+
+# Obsolete
 create-test-user.js
 test-product-share-update.js
-
-.env
-uploads/
-npm-debug.log
-yarn-error.log
-coverage/
-.DS_Store
-*.tmp*
-*.log
-dist/
+debug_crash.log
 node_modules
-client/

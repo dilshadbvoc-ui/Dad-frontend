@@ -1,0 +1,29 @@
+name: Deploy to AWS EC2
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Navigate to project directory (Adjust 'mern-crm' to your actual folder name on EC2)
+            # Assuming the repository was cloned into 'mern-crm' in the home directory
+            cd ~/mern-crm || cd ~/MERN-CRM || { echo "❌ Project directory not found! Please clone the repo first."; exit 1; }
+            
+            # Make script executable just in case
+            chmod +x scripts/deploy.sh
+            
+            # Run the deployment script
+            ./scripts/deploy.sh
