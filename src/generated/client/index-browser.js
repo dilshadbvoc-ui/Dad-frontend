@@ -267,7 +267,8 @@ exports.Prisma.AccountScalarFieldEnum = {
   isDeleted: 'isDeleted',
   ownerId: 'ownerId',
   organisationId: 'organisationId',
-  parentAccountId: 'parentAccountId'
+  parentAccountId: 'parentAccountId',
+  leadId: 'leadId'
 };
 
 exports.Prisma.ContactScalarFieldEnum = {
@@ -291,7 +292,8 @@ exports.Prisma.ContactScalarFieldEnum = {
   updatedAt: 'updatedAt',
   accountId: 'accountId',
   ownerId: 'ownerId',
-  organisationId: 'organisationId'
+  organisationId: 'organisationId',
+  leadId: 'leadId'
 };
 
 exports.Prisma.OpportunityScalarFieldEnum = {
@@ -313,6 +315,7 @@ exports.Prisma.OpportunityScalarFieldEnum = {
   organisationId: 'organisationId',
   paymentStatus: 'paymentStatus',
   paymentDate: 'paymentDate',
+  leadId: 'leadId',
   pipelineId: 'pipelineId',
   type: 'type'
 };

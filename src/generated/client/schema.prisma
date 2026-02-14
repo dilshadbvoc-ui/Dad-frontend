@@ -247,21 +247,24 @@ model Lead {
   lastEnquiryDate DateTime?
   originalLeadId  String? // Reference to the original lead if this is a duplicate
 
-  events           CalendarEvent[]
-  checkIns         CheckIn[]
-  interactions     Interaction[]
-  assignedTo       User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
-  organisation     Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  previousOwner    User?             @relation("LeadPreviousOwner", fields: [previousOwnerId], references: [id])
-  history          LeadHistory[]
-  tasks            Task[]
-  emailLists       EmailList[]       @relation("EmailListToLead")
-  whatsAppMessages WhatsAppMessage[]
-  documents        Document[]
-  pipelineId       String?
-  pipeline         Pipeline?         @relation(fields: [pipelineId], references: [id])
-  potentialValue   Float             @default(0)
-  products         LeadProduct[]
+  events                 CalendarEvent[]
+  checkIns               CheckIn[]
+  interactions           Interaction[]
+  assignedTo             User?             @relation("AssignedTo", fields: [assignedToId], references: [id])
+  organisation           Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  previousOwner          User?             @relation("LeadPreviousOwner", fields: [previousOwnerId], references: [id])
+  history                LeadHistory[]
+  tasks                  Task[]
+  emailLists             EmailList[]       @relation("EmailListToLead")
+  whatsAppMessages       WhatsAppMessage[]
+  documents              Document[]
+  pipelineId             String?
+  pipeline               Pipeline?         @relation(fields: [pipelineId], references: [id])
+  potentialValue         Float             @default(0)
+  products               LeadProduct[]
+  convertedAccounts      Account[]         @relation("LeadToAccount")
+  convertedContacts      Contact[]         @relation("LeadToContact")
+  convertedOpportunities Opportunity[]     @relation("LeadToOpportunity")
 
   @@unique([phone, organisationId])
   @@index([organisationId])
@@ -306,6 +309,8 @@ model Account {
   quotes          Quote[]
   tasks           Task[]
   documents       Document[]
+  leadId          String?
+  lead            Lead?            @relation("LeadToAccount", fields: [leadId], references: [id])
   accountProducts AccountProduct[]
 
   @@index([organisationId])
@@ -347,6 +352,8 @@ model Contact {
   opportunities    Opportunity[]     @relation("OpportunityContacts")
   whatsAppMessages WhatsAppMessage[]
   documents        Document[]
+  leadId           String?
+  lead             Lead?             @relation("LeadToContact", fields: [leadId], references: [id])
 
   @@index([organisationId])
   @@index([email])
@@ -381,6 +388,8 @@ model Opportunity {
   tasks          Task[]
   contacts       Contact[]       @relation("OpportunityContacts")
   documents      Document[]
+  leadId         String?
+  lead           Lead?           @relation("LeadToOpportunity", fields: [leadId], references: [id])
   pipelineId     String?
   pipeline       Pipeline?       @relation(fields: [pipelineId], references: [id])
   type           OpportunityType @default(NEW_BUSINESS)

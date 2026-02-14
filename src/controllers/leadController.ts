@@ -141,7 +141,7 @@ export const createLead = async (req: Request, res: Response) => {
             if (ipAddress) {
                 geoData = await GeoLocationService.detectCountryFromIP(ipAddress as string);
             }
-            
+
             // Fallback: Try to detect from phone number
             if (!geoData && cleanPhone) {
                 geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
@@ -511,10 +511,25 @@ export const deleteLead = async (req: Request, res: Response) => {
             }
         }
 
-        await prisma.lead.update({
-            where: { id: leadId },
-            data: { isDeleted: true }
-        });
+        await prisma.$transaction([
+            prisma.lead.update({
+                where: { id: leadId },
+                data: { isDeleted: true }
+            }),
+            // Cascade delete related entities
+            prisma.contact.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            }),
+            prisma.account.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            }),
+            prisma.opportunity.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            })
+        ]);
 
         // Audit Log
         try {
@@ -676,7 +691,7 @@ export const convertLead = async (req: Request, res: Response) => {
 
         const lead = await prisma.lead.findUnique({
             where: { id: leadId },
-            include: { 
+            include: {
                 organisation: true,
                 products: { include: { product: true } }
             }
@@ -689,7 +704,7 @@ export const convertLead = async (req: Request, res: Response) => {
 
         // Calculate opportunity amount from lead products if not provided
         let opportunityAmount = Number(amount) || 0;
-        
+
         // If no amount provided, use lead's potentialValue or calculate from products
         if (!amount || opportunityAmount === 0) {
             if (lead.potentialValue && lead.potentialValue > 0) {
@@ -734,7 +749,8 @@ export const convertLead = async (req: Request, res: Response) => {
                         ownerId: user.id, // Assign to converter or keep lead owner? Usually converter or specific rule.
                         type: 'customer',
                         phone: lead.phone,
-                        address: lead.address as any
+                        address: lead.address as any,
+                        leadId: lead.id // Link to original lead
                     }
                 });
                 targetAccountId = account.id;
@@ -752,7 +768,8 @@ export const convertLead = async (req: Request, res: Response) => {
                     ownerId: user.id,
                     accountId: targetAccountId,
                     address: lead.address as any,
-                    customFields: lead.customFields as any // Migrate custom fields
+                    customFields: lead.customFields as any, // Migrate custom fields
+                    leadId: lead.id // Link to original lead
                 }
             });
 
@@ -765,7 +782,8 @@ export const convertLead = async (req: Request, res: Response) => {
                     organisationId: orgId,
                     ownerId: user.id,
                     accountId: targetAccountId,
-                    contacts: { connect: { id: contact.id } }
+                    contacts: { connect: { id: contact.id } },
+                    leadId: lead.id // Link to original lead
                 }
             });
 

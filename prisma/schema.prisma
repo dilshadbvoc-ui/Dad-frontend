@@ -262,6 +262,9 @@ model Lead {
   pipeline           Pipeline?       @relation(fields: [pipelineId], references: [id])
   potentialValue     Float           @default(0)
   products           LeadProduct[]
+  convertedAccounts  Account[]       @relation("LeadToAccount")
+  convertedContacts  Contact[]       @relation("LeadToContact")
+  convertedOpportunities Opportunity[] @relation("LeadToOpportunity")
 
   @@unique([phone, organisationId])
   @@index([organisationId])
@@ -306,6 +309,8 @@ model Account {
   quotes          Quote[]
   tasks           Task[]
   documents       Document[]
+  leadId          String?
+  lead            Lead?           @relation("LeadToAccount", fields: [leadId], references: [id])
 
   @@index([organisationId])
   @@index([name])
@@ -347,6 +352,8 @@ model Contact {
   opportunities  Opportunity[]   @relation("OpportunityContacts")
   whatsAppMessages WhatsAppMessage[]
   documents      Document[]
+  leadId         String?
+  lead           Lead?           @relation("LeadToContact", fields: [leadId], references: [id])
 
   @@index([organisationId])
   @@index([email])
@@ -381,6 +388,8 @@ model Opportunity {
   tasks          Task[]
   contacts       Contact[]       @relation("OpportunityContacts")
   documents      Document[]
+  leadId         String?
+  lead           Lead?           @relation("LeadToOpportunity", fields: [leadId], references: [id])
   pipelineId     String?
   pipeline       Pipeline?       @relation(fields: [pipelineId], references: [id])
 
