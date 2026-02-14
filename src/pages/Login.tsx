@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import loginBg from '@/assets/login-bg.png';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -62,7 +61,7 @@ const Login = () => {
             <div className="hidden lg:block relative h-full bg-slate-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/90 mix-blend-multiply z-10" />
                 <img
-                    src={loginBg}
+                    src="/login-bg.png"
                     alt="Login Background"
                     className="absolute inset-0 w-full h-full object-cover"
                 />
