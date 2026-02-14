@@ -19,7 +19,9 @@ echo "🗄️ Running Migrations..."
 npx prisma db push --accept-data-loss
 npx prisma generate
 echo "🏗️ Building Backend..."
-npm run build
+NODE_OPTIONS=--max-old-space-size=1024 npm run build
+node copy-prisma.js
+
 pm2 restart crm-api || pm2 start dist/index.js --name "crm-api" -- update-env
 
 # 2. Update Frontend (Sibling Directory)
@@ -35,7 +37,7 @@ if [ -d "$CLIENT_DIR" ]; then
     git pull origin main
     npm install
     echo "🏗️ Building Frontend..."
-    npm run build
+    NODE_OPTIONS=--max-old-space-size=1024 npm run build
     
     # Deploy to Nginx
     echo "📂 Deploying Static Files..."
