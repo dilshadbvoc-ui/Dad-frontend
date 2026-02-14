@@ -19,7 +19,7 @@ export default function ContactsPage() {
         refetchInterval: 5000,
     })
 
-    const contacts = (data?.contacts || []).filter((c: any) => c && typeof c === 'object');
+    const contacts = (data?.contacts || []).filter((c: unknown) => c && typeof c === 'object');
 
     if (isError) {
         return (

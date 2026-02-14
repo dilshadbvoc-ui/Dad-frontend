@@ -60,7 +60,7 @@ export default function SharedProductPage() {
                 setData(response.data)
             } catch (err: unknown) {
                 console.error('Error fetching shared product:', err);
-                console.error('Error details:', (err as any).response);
+                console.error('Error details:', (err as { response?: unknown }).response);
                 const errorMessage = (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to load product";
                 setError(errorMessage);
             } finally {
@@ -84,7 +84,7 @@ export default function SharedProductPage() {
     const { product, seller, organisation, shareConfig, lead } = data
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
     const brochureFullUrl = product.brochureUrl ? getAssetUrl(product.brochureUrl) : '';
-    
+
     console.log('Product brochure URL:', product.brochureUrl);
     console.log('Constructed brochure URL:', brochureFullUrl);
     console.log('Lead data:', lead);
@@ -203,18 +203,18 @@ export default function SharedProductPage() {
                                                                 Your browser cannot display this PDF directly.
                                                             </p>
                                                             <div className="flex flex-col gap-3 items-center">
-                                                                <a 
-                                                                    href={brochureFullUrl} 
-                                                                    target="_blank" 
+                                                                <a
+                                                                    href={brochureFullUrl}
+                                                                    target="_blank"
                                                                     rel="noopener noreferrer"
                                                                 >
                                                                     <Button variant="default" size="lg">
                                                                         <Download className="mr-2 h-4 w-4" /> Download Brochure
                                                                     </Button>
                                                                 </a>
-                                                                <a 
+                                                                <a
                                                                     href={`https://docs.google.com/viewer?url=${encodeURIComponent(brochureFullUrl)}&embedded=true`}
-                                                                    target="_blank" 
+                                                                    target="_blank"
                                                                     rel="noopener noreferrer"
                                                                 >
                                                                     <Button variant="outline" size="lg">
@@ -225,12 +225,12 @@ export default function SharedProductPage() {
                                                         </div>
                                                     </object>
                                                 </div>
-                                                
+
                                                 {/* Download Buttons */}
                                                 <div className="flex flex-wrap gap-3 justify-center">
-                                                    <a 
-                                                        href={brochureFullUrl} 
-                                                        target="_blank" 
+                                                    <a
+                                                        href={brochureFullUrl}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-block"
                                                     >
@@ -238,9 +238,9 @@ export default function SharedProductPage() {
                                                             <Download className="mr-2 h-4 w-4" /> Download Complete Brochure
                                                         </Button>
                                                     </a>
-                                                    <a 
-                                                        href={brochureFullUrl} 
-                                                        target="_blank" 
+                                                    <a
+                                                        href={brochureFullUrl}
+                                                        target="_blank"
                                                         rel="noopener noreferrer"
                                                         className="inline-block"
                                                     >
@@ -256,25 +256,25 @@ export default function SharedProductPage() {
                                                         Alternative viewing options:
                                                     </p>
                                                     <div className="flex flex-wrap gap-2">
-                                                        <a 
+                                                        <a
                                                             href={`https://docs.google.com/viewer?url=${encodeURIComponent(brochureFullUrl)}&embedded=true`}
-                                                            target="_blank" 
+                                                            target="_blank"
                                                             rel="noopener noreferrer"
                                                         >
                                                             <Button variant="outline" size="sm">
                                                                 Google Docs Viewer
                                                             </Button>
                                                         </a>
-                                                        <a 
+                                                        <a
                                                             href={`https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(brochureFullUrl)}`}
-                                                            target="_blank" 
+                                                            target="_blank"
                                                             rel="noopener noreferrer"
                                                         >
                                                             <Button variant="outline" size="sm">
                                                                 PDF.js Viewer
                                                             </Button>
                                                         </a>
-                                                        <a 
+                                                        <a
                                                             href={brochureFullUrl}
                                                             download
                                                         >
@@ -339,8 +339,8 @@ export default function SharedProductPage() {
                                 <div className="space-y-3 pt-4 border-t border-border">
                                     <Button className="w-full"><Mail className="mr-2 h-4 w-4" /> Send Email</Button>
                                     {lead?.phone ? (
-                                        <Button 
-                                            variant="outline" 
+                                        <Button
+                                            variant="outline"
                                             className="w-full"
                                             onClick={handleCallNow}
                                         >

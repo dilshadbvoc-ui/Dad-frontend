@@ -34,9 +34,9 @@ const Login = () => {
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (err: unknown) {
             console.error("Login Error Full:", err);
-            console.error("Login Error Response:", (err as any)?.response);
-            console.error("Login Error Data:", (err as any)?.response?.data);
-            
+            console.error("Login Error Response:", (err as { response?: unknown })?.response);
+            console.error("Login Error Data:", (err as { response?: { data?: unknown } })?.response?.data);
+
             let errorMessage = 'Login failed';
             const error = err as { response?: { data?: { message?: string }, status?: number }, request?: unknown, message?: string };
 

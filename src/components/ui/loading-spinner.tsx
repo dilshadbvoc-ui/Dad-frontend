@@ -88,8 +88,8 @@ export function LoadingSkeleton({ rows = 5, className }: LoadingSkeletonProps) {
         <div key={i} className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full bg-muted animate-pulse"></div>
           <div className="flex-1 space-y-2">
-            <div className="h-4 bg-muted rounded animate-pulse" style={{ width: `${60 + Math.random() * 30}%` }}></div>
-            <div className="h-3 bg-muted rounded animate-pulse" style={{ width: `${40 + Math.random() * 40}%` }}></div>
+            <div className="h-4 bg-muted rounded animate-pulse" style={{ width: `${60 + (i % 3) * 10}%` }}></div>
+            <div className="h-3 bg-muted rounded animate-pulse" style={{ width: `${40 + (i % 2) * 20}%` }}></div>
           </div>
         </div>
       ))}
@@ -108,7 +108,7 @@ export function LoadingBar({ progress, text, className }: LoadingBarProps) {
     <div className={cn("w-full space-y-2", className)}>
       {text && <p className="text-sm text-muted-foreground">{text}</p>}
       <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-        <div 
+        <div
           className={cn(
             "h-full bg-primary transition-all duration-300",
             progress === undefined && "animate-pulse"

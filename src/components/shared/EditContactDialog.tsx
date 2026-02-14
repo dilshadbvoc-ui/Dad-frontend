@@ -26,7 +26,7 @@ interface EditContactDialogProps {
 
 export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: EditContactDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -45,7 +45,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
                 phones: contact.phones || [{ type: 'mobile', number: '' }]
             });
             // Load existing custom field values if any
-            setCustomFieldValues((contact as any).customFields || {});
+            setCustomFieldValues((contact as { customFields?: Record<string, unknown> }).customFields || {});
         }
     }, [contact]);
 
@@ -88,7 +88,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
         }
     };
 
-    const handleCustomFieldChange = (name: string, value: any) => {
+    const handleCustomFieldChange = (name: string, value: unknown) => {
         setCustomFieldValues(prev => ({
             ...prev,
             [name]: value

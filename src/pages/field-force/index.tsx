@@ -74,7 +74,7 @@ export default function FieldForcePage() {
     })
 
     const checkIns = useMemo(() => (checkInsData?.checkIns || []).filter((c: CheckIn) => c && typeof c === 'object'), [checkInsData]);
-    const users = useMemo(() => (usersData?.users || []).filter((u: any) => u && typeof u === 'object'), [usersData]);
+    const users = useMemo(() => (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string; role: string }) => u && typeof u === 'object'), [usersData]);
 
     // Calculate productivity metrics based on actual data
     const productivityMetrics = useMemo(() => {

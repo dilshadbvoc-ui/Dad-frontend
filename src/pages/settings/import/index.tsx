@@ -11,6 +11,17 @@ import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
 import { Label } from "@/components/ui/label"
 
+interface PipelineStage {
+    name: string;
+    id?: string;
+}
+
+interface Pipeline {
+    id: string;
+    name: string;
+    stages: PipelineStage[] | string[];
+}
+
 const CRM_TEMPLATES = [
     { label: "Custom CSV", value: "custom" },
     { label: "Salesforce", value: "salesforce" },
@@ -117,11 +128,11 @@ export default function ImportPage() {
     const [mapping, setMapping] = useState<Record<string, string>>({})
     const [isImporting, setIsImporting] = useState(false)
     const [crmTemplate, setCrmTemplate] = useState<string>("custom")
-    const [pipelines, setPipelines] = useState<any[]>([])
+    const [pipelines, setPipelines] = useState<Pipeline[]>([])
     const [selectedPipeline, setSelectedPipeline] = useState<string>("")
     const [selectedStage, setSelectedStage] = useState<string>("")
     const [selectedStatus, setSelectedStatus] = useState<string>("new")
-    const [pipelineStages, setPipelineStages] = useState<any[]>([])
+    const [pipelineStages, setPipelineStages] = useState<(PipelineStage | string)[]>([])
 
     useEffect(() => {
         fetchPipelines()
@@ -178,11 +189,11 @@ export default function ImportPage() {
                 if (results.meta.fields) {
                     setHeaders(results.meta.fields)
                     setPreviewData(results.data as Record<string, string | number | boolean | null>[])
-                    
+
                     // Auto-map based on template or fuzzy matching
                     const initialMapping: Record<string, string> = {}
                     const templateMapping = CRM_FIELD_MAPPINGS[template] || {}
-                    
+
                     results.meta.fields.forEach(header => {
                         // First try exact template match
                         if (templateMapping[header]) {
@@ -467,11 +478,14 @@ export default function ImportPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="">No specific stage</SelectItem>
-                                            {pipelineStages.map((stage: any, index: number) => (
-                                                <SelectItem key={index} value={stage.name || stage}>
-                                                    {stage.name || stage}
-                                                </SelectItem>
-                                            ))}
+                                            {pipelineStages.map((stage: PipelineStage | string, index: number) => {
+                                                const stageName = typeof stage === 'string' ? stage : stage.name;
+                                                return (
+                                                    <SelectItem key={index} value={stageName}>
+                                                        {stageName}
+                                                    </SelectItem>
+                                                );
+                                            })}
                                         </SelectContent>
                                     </Select>
                                     <p className="text-xs text-gray-500">Place leads at a specific stage in the pipeline</p>

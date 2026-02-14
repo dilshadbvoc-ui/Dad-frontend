@@ -40,7 +40,7 @@ interface QuickLeadFormData {
 
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
-    customFields?: Record<string, any>
+    customFields?: Record<string, unknown>
 }
 
 interface QuickAddLeadDialogProps {
@@ -51,7 +51,7 @@ interface QuickAddLeadDialogProps {
 
 export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLeadDialogProps) {
     const [internalOpen, setInternalOpen] = useState(false)
-    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({})
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({})
     const isControlled = open !== undefined
 
     const finalOpen = isControlled ? open : internalOpen
@@ -95,7 +95,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
 
     function onSubmit(values: QuickLeadFormData) {
         // Sanitize payload: Remove empty strings
-        const payload = { 
+        const payload = {
             ...values,
             customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
         };
@@ -106,7 +106,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
         mutation.mutate(payload as unknown as CreateLeadData)
     }
 
-    const handleCustomFieldChange = (name: string, value: any) => {
+    const handleCustomFieldChange = (name: string, value: unknown) => {
         setCustomFieldValues(prev => ({
             ...prev,
             [name]: value
@@ -275,14 +275,14 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 )}
                             />
                         </div>
-                        
+
                         {/* Custom Fields */}
                         <DynamicCustomFields
                             entityType="Lead"
                             values={customFieldValues}
                             onChange={handleCustomFieldChange}
                         />
-                        
+
                         <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
                             <Button
                                 type="button"

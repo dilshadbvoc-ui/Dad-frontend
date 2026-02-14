@@ -3,11 +3,36 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
 
+interface CustomField {
+    id: string;
+    name: string;
+    label: string;
+    fieldType: string;
+    options?: string[];
+    isRequired: boolean;
+    showInList: boolean;
+    showInForm: boolean;
+    placeholder?: string;
+    defaultValue?: string;
+}
+
 interface CustomFieldDialogProps {
     open: boolean;
     onClose: () => void;
     entityType: string;
-    editingField?: any;
+    editingField?: CustomField;
+}
+
+interface CustomFieldFormData {
+    name: string;
+    label: string;
+    fieldType: string;
+    options: string[];
+    isRequired: boolean;
+    showInList: boolean;
+    showInForm: boolean;
+    placeholder: string;
+    defaultValue: string;
 }
 
 const fieldTypes = [
@@ -25,16 +50,31 @@ const fieldTypes = [
 
 export default function CustomFieldDialog({ open, onClose, entityType, editingField }: CustomFieldDialogProps) {
     const queryClient = useQueryClient();
-    const [formData, setFormData] = useState({
-        name: '',
-        label: '',
-        fieldType: 'text',
-        options: [''],
-        isRequired: false,
-        showInList: false,
-        showInForm: true,
-        placeholder: '',
-        defaultValue: ''
+    const [formData, setFormData] = useState<CustomFieldFormData>(() => {
+        if (editingField) {
+            return {
+                name: editingField.name,
+                label: editingField.label,
+                fieldType: editingField.fieldType,
+                options: editingField.options && editingField.options.length > 0 ? editingField.options : [''],
+                isRequired: editingField.isRequired,
+                showInList: editingField.showInList,
+                showInForm: editingField.showInForm,
+                placeholder: editingField.placeholder || '',
+                defaultValue: editingField.defaultValue || ''
+            };
+        }
+        return {
+            name: '',
+            label: '',
+            fieldType: 'text',
+            options: [''],
+            isRequired: false,
+            showInList: false,
+            showInForm: true,
+            placeholder: '',
+            defaultValue: ''
+        };
     });
 
     useEffect(() => {
@@ -43,14 +83,22 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
                 name: editingField.name,
                 label: editingField.label,
                 fieldType: editingField.fieldType,
-                options: editingField.options?.length > 0 ? editingField.options : [''],
+                options: editingField.options && editingField.options.length > 0 ? editingField.options : [''],
                 isRequired: editingField.isRequired,
                 showInList: editingField.showInList,
                 showInForm: editingField.showInForm,
                 placeholder: editingField.placeholder || '',
                 defaultValue: editingField.defaultValue || ''
             });
-        } else {
+        } else if (!open) {
+            // Reset when closed (optional, but good for UX if reusing same component instance)
+            // actually best to reset when opening in 'create' mode
+        }
+    }, [editingField]);
+
+    // reset when opening separate useEffect
+    useEffect(() => {
+        if (open && !editingField) {
             setFormData({
                 name: '',
                 label: '',
@@ -63,7 +111,7 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
                 defaultValue: ''
             });
         }
-    }, [editingField, open]);
+    }, [open, editingField]);
 
     const createMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -78,7 +126,7 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
 
     const updateMutation = useMutation({
         mutationFn: async (data: any) => {
-            const response = await api.put(`/custom-fields/${editingField.id}`, data);
+            const response = await api.put(`/custom-fields/${editingField?.id}`, data);
             return response.data;
         },
         onSuccess: () => {
@@ -352,8 +400,8 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
                         <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                             <p className="text-sm text-red-600">
                                 {(createMutation.error as any)?.response?.data?.message ||
-                                 (updateMutation.error as any)?.response?.data?.message ||
-                                 'An error occurred'}
+                                    (updateMutation.error as any)?.response?.data?.message ||
+                                    'An error occurred'}
                             </p>
                         </div>
                     )}

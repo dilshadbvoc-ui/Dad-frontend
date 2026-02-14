@@ -8,8 +8,7 @@ import {
     CreditCard,
     Shield,
     Search,
-    MoreHorizontal,
-    Database
+    MoreHorizontal
 } from 'lucide-react';
 import {
     Card,
@@ -405,7 +404,7 @@ export default function SuperAdminDashboard() {
                                         </Button>
                                     </div>
                                 </div>
-                                
+
                                 <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
                                     <h4 className="text-amber-300 font-semibold mb-2">⚠️ Important Notes:</h4>
                                     <ul className="text-amber-200/80 text-sm space-y-1 list-disc list-inside">

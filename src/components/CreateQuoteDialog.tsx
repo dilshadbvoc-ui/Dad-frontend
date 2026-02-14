@@ -61,6 +61,9 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
         { productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }
     ])
 
+    // Memoize the default date to avoid impure render
+    const [defaultValidUntil] = useState(() => new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0])
+
     const form = useForm<{
         title: string
         description?: string
@@ -72,7 +75,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
         defaultValues: {
             title: "",
             description: "",
-            validUntil: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+            validUntil: defaultValidUntil, // 30 days from now
         },
     })
 
@@ -133,7 +136,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
         const unitPrice = Number(item.unitPrice) || 0
         const discount = Number(item.discount) || 0
         const taxRate = Number(item.taxRate) || 0
-        
+
         const subtotal = quantity * unitPrice
         const discountAmount = subtotal * (discount / 100)
         const afterDiscount = subtotal - discountAmount
@@ -147,14 +150,14 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
             const unitPrice = Number(item.unitPrice) || 0
             return sum + (quantity * unitPrice)
         }, 0)
-        
+
         const totalDiscount = lineItems.reduce((sum, item) => {
             const quantity = Number(item.quantity) || 0
             const unitPrice = Number(item.unitPrice) || 0
             const discount = Number(item.discount) || 0
             return sum + (quantity * unitPrice * discount / 100)
         }, 0)
-        
+
         const totalTax = lineItems.reduce((sum, item) => {
             const quantity = Number(item.quantity) || 0
             const unitPrice = Number(item.unitPrice) || 0
@@ -163,7 +166,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
             const afterDiscount = (quantity * unitPrice) - (quantity * unitPrice * discount / 100)
             return sum + (afterDiscount * taxRate / 100)
         }, 0)
-        
+
         const grandTotal = subtotal - totalDiscount + totalTax
 
         return { subtotal, totalDiscount, totalTax, grandTotal }
@@ -171,7 +174,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
 
     function onSubmit(values: { title: string; description?: string; account?: string; opportunity?: string; contact?: string; validUntil: string }) {
         const totals = calculateTotals()
-        
+
         const quoteData: CreateQuoteData & { totalDiscount: number; totalTax: number } = {
             title: values.title,
             description: values.description,
@@ -193,7 +196,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
             grandTotal: totals.grandTotal,
         }
 
-        mutation.mutate(quoteData as any)
+        mutation.mutate(quoteData)
     }
 
     const totals = calculateTotals()

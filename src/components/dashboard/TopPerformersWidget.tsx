@@ -6,7 +6,7 @@ import { Loader2, Trophy, AlertCircle } from "lucide-react"
 import { formatCurrency, getAssetUrl } from "@/lib/utils"
 
 export function TopPerformersWidget() {
-    const { data: performers = [], isLoading, isError, error } = useQuery({
+    const { data: performers = [], isLoading, isError } = useQuery({
         queryKey: ['top-performers'],
         queryFn: async () => {
             try {
@@ -67,7 +67,7 @@ export function TopPerformersWidget() {
                                 console.warn('Invalid user data:', user);
                                 return null;
                             }
-                            
+
                             return (
                                 <div key={user.id} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
@@ -78,8 +78,8 @@ export function TopPerformersWidget() {
                                             {index + 1}
                                         </div>
                                         <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
-                                            <AvatarImage 
-                                                src={getAssetUrl(user.image)} 
+                                            <AvatarImage
+                                                src={getAssetUrl(user.image)}
                                                 onError={(e) => {
                                                     // Silently handle missing images
                                                     e.currentTarget.style.display = 'none';
@@ -96,9 +96,9 @@ export function TopPerformersWidget() {
                                         <p className="text-xs sm:text-sm font-bold text-primary">
                                             {(() => {
                                                 try {
-                                                    return formatCurrency(user.totalRevenue || 0, undefined, { 
+                                                    return formatCurrency(user.totalRevenue || 0, undefined, {
                                                         minimumFractionDigits: 0,
-                                                        maximumFractionDigits: 0 
+                                                        maximumFractionDigits: 0
                                                     });
                                                 } catch (error) {
                                                     console.error('Currency format error:', error);

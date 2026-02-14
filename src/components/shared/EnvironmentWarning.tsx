@@ -1,25 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getEnvironmentInfo } from '@/utils/environmentChecker';
 
 export function EnvironmentWarning() {
-    const [show, setShow] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
-
-    useEffect(() => {
+    const [show, setShow] = useState(() => {
         const info = getEnvironmentInfo();
-        
-        // Check if user dismissed the warning in this session
         const dismissedInSession = sessionStorage.getItem('envWarningDismissed');
-        
-        if (info.isLocal && !dismissedInSession) {
-            setShow(true);
-        }
-    }, []);
+        return !!(info.isLocal && !dismissedInSession);
+    });
+    // Removed duplicate useEffect logic
 
     const handleDismiss = () => {
-        setDismissed(true);
         setShow(false);
         sessionStorage.setItem('envWarningDismissed', 'true');
     };
@@ -28,7 +20,7 @@ export function EnvironmentWarning() {
         window.location.href = 'https://dad-frontend-psi.vercel.app';
     };
 
-    if (!show || dismissed) return null;
+    if (!show) return null;
 
     return (
         <div className="bg-amber-500/10 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg">
@@ -39,7 +31,7 @@ export function EnvironmentWarning() {
                         ⚠️ Local Development Mode
                     </h3>
                     <p className="text-sm text-amber-700 dark:text-amber-300 mb-3">
-                        You're using a <strong>local database</strong>. Data added here will <strong>NOT sync</strong> with other PCs. 
+                        You're using a <strong>local database</strong>. Data added here will <strong>NOT sync</strong> with other PCs.
                         For consistent data across all devices, switch to production.
                     </p>
                     <div className="flex gap-2">

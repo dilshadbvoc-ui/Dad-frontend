@@ -20,16 +20,26 @@ interface DuplicateGroup {
 export default function DuplicatesPage() {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("")
-    const [hasAccess, setHasAccess] = useState(false)
+    const [hasAccess] = useState(() => {
+        const userStr = localStorage.getItem('userInfo')
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                return user.role === 'admin' || user.role === 'super_admin'
+            } catch (e) {
+                console.error(e)
+            }
+        }
+        return false
+    })
 
-    // Check user role on mount
+    // Check user role on mount and redirect if needed
     useEffect(() => {
         const userStr = localStorage.getItem('userInfo')
         if (userStr) {
             try {
                 const user = JSON.parse(userStr)
                 const isAdmin = user.role === 'admin' || user.role === 'super_admin'
-                setHasAccess(isAdmin)
                 if (!isAdmin) {
                     // Redirect non-admin users
                     navigate('/dashboard')
@@ -194,7 +204,7 @@ export default function DuplicatesPage() {
                                     <p className="text-sm font-medium text-foreground">Duplicate Leads:</p>
                                     <div className="grid gap-2">
                                         {dup.names.map((name, idx) => (
-                                            <div 
+                                            <div
                                                 key={idx}
                                                 className="flex items-center justify-between p-3 bg-muted rounded-lg hover:bg-muted/80 transition-colors"
                                             >

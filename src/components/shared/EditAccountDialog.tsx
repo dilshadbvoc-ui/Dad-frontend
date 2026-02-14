@@ -33,7 +33,7 @@ interface EditAccountDialogProps {
 
 export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: EditAccountDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
-    const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
+    const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
     const [formData, setFormData] = useState({
         name: '',
         website: '',
@@ -64,7 +64,7 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
                 }
             });
             // Load existing custom field values
-            setCustomFieldValues((account as any).customFields || {});
+            setCustomFieldValues((account as { customFields?: Record<string, unknown> }).customFields || {});
         }
     }, [account]);
 
@@ -104,7 +104,7 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
         }
     };
 
-    const handleCustomFieldChange = (name: string, value: any) => {
+    const handleCustomFieldChange = (name: string, value: unknown) => {
         setCustomFieldValues(prev => ({
             ...prev,
             [name]: value

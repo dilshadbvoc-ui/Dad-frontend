@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getReEnquiryLeads, type Lead } from "@/services/leadService"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,28 +12,27 @@ import { formatDistanceToNow } from "date-fns"
 export default function ReEnquiriesPage() {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("")
-    const [hasAccess, setHasAccess] = useState(false)
-
-    // Check user role on mount
-    useEffect(() => {
+    const [hasAccess] = useState(() => {
         const userStr = localStorage.getItem('userInfo')
         if (userStr) {
             try {
                 const user = JSON.parse(userStr)
-                const isAdmin = user.role === 'admin' || user.role === 'super_admin'
-                setHasAccess(isAdmin)
-                if (!isAdmin) {
-                    // Redirect non-admin users
-                    navigate('/dashboard')
-                }
-            } catch (e) {
-                console.error(e)
-                navigate('/dashboard')
+                return user.role === 'admin' || user.role === 'super_admin'
+            } catch {
+                return false
             }
-        } else {
-            navigate('/login')
         }
-    }, [navigate])
+        return false
+    })
+
+    const [now] = useState(() => Date.now())
+
+    // Check user role on mount
+    useEffect(() => {
+        if (!hasAccess) {
+            navigate('/dashboard')
+        }
+    }, [hasAccess, navigate])
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['re-enquiry-leads'],
@@ -128,7 +127,7 @@ export default function ReEnquiriesPage() {
                         <div className="text-2xl font-bold">
                             {leads.filter(l => {
                                 if (!l.lastEnquiryDate) return false
-                                const diff = Date.now() - new Date(l.lastEnquiryDate).getTime()
+                                const diff = now - new Date(l.lastEnquiryDate).getTime()
                                 return diff < 24 * 60 * 60 * 1000
                             }).length}
                         </div>
@@ -170,8 +169,8 @@ export default function ReEnquiriesPage() {
             ) : (
                 <div className="grid gap-4">
                     {filteredLeads.map((lead) => (
-                        <Card 
-                            key={lead.id} 
+                        <Card
+                            key={lead.id}
                             className="hover:shadow-md transition-shadow cursor-pointer"
                             onClick={() => navigate(`/leads/${lead.id}`)}
                         >
@@ -226,7 +225,7 @@ export default function ReEnquiriesPage() {
                                         )}
                                     </div>
 
-                                    <Button 
+                                    <Button
                                         onClick={(e) => {
                                             e.stopPropagation()
                                             navigate(`/leads/${lead.id}`)

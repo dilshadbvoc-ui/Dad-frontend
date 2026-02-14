@@ -1,7 +1,7 @@
 
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { useForm, useFieldArray } from "react-hook-form"
+import { useForm, useFieldArray, type Control, type UseFormWatch } from "react-hook-form"
 import { Loader2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -51,7 +51,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
         queryFn: getUsers
     })
 
-    const users = (data?.users || []).filter((u: any) => u && typeof u === 'object');
+    const users = (data?.users || []).filter((u: { id: string; firstName: string; lastName: string }) => u && typeof u === 'object');
 
     const form = useForm<CreateAssignmentRuleData>({
         defaultValues: {
@@ -172,69 +172,13 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                             </div>
                             <div className="space-y-2 max-h-[200px] overflow-y-auto p-1">
                                 {fields.map((field, index) => (
-                                    <div key={field.id} className="flex gap-2 items-start">
-                                        <FormField
-                                            control={form.control}
-                                            name={`criteria.${index}.field`}
-                                            render={({ field }) => (
-                                                <FormItem className="flex-1">
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Field" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="source">Source</SelectItem>
-                                                            <SelectItem value="sourceDetails.campaignName">Campaign Name</SelectItem>
-                                                            <SelectItem value="address.country">Country</SelectItem>
-                                                            <SelectItem value="address.state">State</SelectItem>
-                                                            <SelectItem value="industry">Industry</SelectItem>
-                                                            <SelectItem value="leadScore">Lead Score</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name={`criteria.${index}.operator`}
-                                            render={({ field }) => (
-                                                <FormItem className="w-[120px]">
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                                                        <FormControl>
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Operator" />
-                                                            </SelectTrigger>
-                                                        </FormControl>
-                                                        <SelectContent>
-                                                            <SelectItem value="equals">Equals</SelectItem>
-                                                            <SelectItem value="contains">Contains</SelectItem>
-                                                            <SelectItem value="gt">Greater Than</SelectItem>
-                                                            <SelectItem value="lt">Less Than</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <FormField
-                                            control={form.control}
-                                            name={`criteria.${index}.value`}
-                                            render={({ field }) => (
-                                                <FormItem className="flex-1">
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder={form.watch(`criteria.${index}.field`) === 'sourceDetails.campaignName' ? "e.g. Summer Sale 2024" : "Value"}
-                                                            {...field}
-                                                        />
-                                                    </FormControl>
-                                                </FormItem>
-                                            )}
-                                        />
-                                        <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
-                                            <Trash2 className="h-4 w-4 text-destructive" />
-                                        </Button>
-                                    </div>
+                                    <CriteriaRow
+                                        key={field.id}
+                                        index={index}
+                                        control={form.control}
+                                        remove={remove}
+                                        watch={form.watch}
+                                    />
                                 ))}
                             </div>
                         </div>
@@ -418,4 +362,74 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
             </DialogContent>
         </Dialog >
     )
+}
+
+function CriteriaRow({ index, control, remove, watch }: { index: number; control: Control<CreateAssignmentRuleData>; remove: (index: number) => void; watch: UseFormWatch<CreateAssignmentRuleData> }) {
+    const fieldType = watch(`criteria.${index}.field`);
+
+    return (
+        <div className="flex gap-2 items-start">
+            <FormField
+                control={control}
+                name={`criteria.${index}.field`}
+                render={({ field }) => (
+                    <FormItem className="flex-1">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Field" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="source">Source</SelectItem>
+                                <SelectItem value="sourceDetails.campaignName">Campaign Name</SelectItem>
+                                <SelectItem value="address.country">Country</SelectItem>
+                                <SelectItem value="address.state">State</SelectItem>
+                                <SelectItem value="industry">Industry</SelectItem>
+                                <SelectItem value="leadScore">Lead Score</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={control}
+                name={`criteria.${index}.operator`}
+                render={({ field }) => (
+                    <FormItem className="w-[120px]">
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Operator" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                <SelectItem value="equals">Equals</SelectItem>
+                                <SelectItem value="contains">Contains</SelectItem>
+                                <SelectItem value="gt">Greater Than</SelectItem>
+                                <SelectItem value="lt">Less Than</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={control}
+                name={`criteria.${index}.value`}
+                render={({ field }) => (
+                    <FormItem className="flex-1">
+                        <FormControl>
+                            <Input
+                                placeholder={fieldType === 'sourceDetails.campaignName' ? "e.g. Summer Sale 2024" : "Value"}
+                                {...field}
+                            />
+                        </FormControl>
+                    </FormItem>
+                )}
+            />
+            <Button type="button" variant="ghost" size="icon" onClick={() => remove(index)}>
+                <Trash2 className="h-4 w-4 text-destructive" />
+            </Button>
+        </div>
+    );
 }

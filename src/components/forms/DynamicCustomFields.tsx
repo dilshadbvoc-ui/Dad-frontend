@@ -8,13 +8,27 @@ interface DynamicCustomFieldsProps {
     errors?: Record<string, string>;
 }
 
+interface CustomField {
+    id: string;
+    name: string;
+    label: string;
+    fieldType: string;
+    options?: string[];
+    isRequired: boolean;
+    showInList: boolean;
+    showInForm: boolean;
+    placeholder?: string;
+    defaultValue?: string;
+    isActive: boolean;
+}
+
 export default function DynamicCustomFields({ entityType, values, onChange, errors = {} }: DynamicCustomFieldsProps) {
     const { data: customFields = [], isLoading } = useQuery({
         queryKey: ['customFields', entityType],
         queryFn: () => getCustomFields(entityType)
     });
 
-    const activeFields = customFields.filter((field: any) => field.isActive && field.showInForm);
+    const activeFields = customFields.filter((field: CustomField) => field.isActive && field.showInForm);
 
     if (isLoading) {
         return (
@@ -31,13 +45,12 @@ export default function DynamicCustomFields({ entityType, values, onChange, erro
         return null;
     }
 
-    const renderField = (field: any) => {
+    const renderField = (field: CustomField) => {
         const value = values[field.name] || field.defaultValue || '';
         const error = errors[field.name];
 
-        const commonClasses = `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            error ? 'border-red-500' : 'border-gray-300'
-        }`;
+        const commonClasses = `w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${error ? 'border-red-500' : 'border-gray-300'
+            }`;
 
         switch (field.fieldType) {
             case 'text':
@@ -159,7 +172,7 @@ export default function DynamicCustomFields({ entityType, values, onChange, erro
             <div className="border-t pt-4">
                 <h3 className="text-sm font-semibold text-gray-700 mb-4">Custom Fields</h3>
                 <div className="space-y-4">
-                    {activeFields.map((field: any) => (
+                    {activeFields.map((field: CustomField) => (
                         <div key={field.id}>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {field.label}

@@ -68,7 +68,7 @@ export default function ProductsPage() {
             setEditingProduct(null)
             toast.success("Product updated successfully")
         },
-        onError: (error: any) => {
+        onError: (error: { response?: { data?: { message?: string } }, message?: string }) => {
             const errorMessage = error.response?.data?.message || error.message || "Failed to update product";
             console.error("Update error:", error);
             toast.error(errorMessage);
@@ -215,13 +215,13 @@ export default function ProductsPage() {
 
     const handleGenerateLink = () => {
         if (!selectedProductId) return
-        
+
         // Include leadId in config if selected
         const configWithLead = {
             ...shareConfig,
             ...(selectedLeadId && selectedLeadId !== "none" ? { leadId: selectedLeadId } : {})
         }
-        
+
         shareMutation.mutate({
             id: selectedProductId,
             config: configWithLead
