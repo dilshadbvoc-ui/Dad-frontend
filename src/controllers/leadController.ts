@@ -15,6 +15,7 @@ export const getLeads = async (req: Request, res: Response) => {
         const page = Number(req.query.page) || 1;
         const user = (req as any).user;
         const where: any = { isDeleted: false };
+        const andConditions: any[] = [];
 
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
@@ -29,36 +30,45 @@ export const getLeads = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
             // Show leads assigned to user/subordinates OR created by user
-            where.OR = [
-                { assignedToId: { in: [...subordinateIds, user.id] } },
-                { createdById: user.id }
-            ];
+            andConditions.push({
+                OR: [
+                    { assignedToId: { in: [...subordinateIds, user.id] } },
+                    { createdById: user.id }
+                ]
+            });
         }
 
         // Filter: Status
-        if (req.query.status) {
+        if (req.query.status && Object.values(LeadStatus).includes(req.query.status as LeadStatus)) {
             where.status = req.query.status as LeadStatus;
         }
 
         // Filter: Source
-        if (req.query.source) {
+        if (req.query.source && Object.values(LeadSource).includes(req.query.source as LeadSource)) {
             where.source = req.query.source as LeadSource;
         }
 
         // Filter: Search (OR condition)
         if (req.query.search) {
             const search = String(req.query.search);
-            where.OR = [
-                { firstName: { contains: search, mode: 'insensitive' } },
-                { lastName: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-                { company: { contains: search, mode: 'insensitive' } }
-            ];
+            andConditions.push({
+                OR: [
+                    { firstName: { contains: search, mode: 'insensitive' } },
+                    { lastName: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { company: { contains: search, mode: 'insensitive' } }
+                ]
+            });
         }
 
         // Filter: Assigned User
         if (req.query.assignedTo) {
             where.assignedToId = req.query.assignedTo as string;
+        }
+
+        // Combine all conditions
+        if (andConditions.length > 0) {
+            where.AND = andConditions;
         }
 
         const total = await prisma.lead.count({ where });
