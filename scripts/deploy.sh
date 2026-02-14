@@ -9,11 +9,10 @@ export NVM_DIR="$HOME/.nvm"
 
 # 1. Update Backend (Self)
 echo "📥 Updating Backend..."
-# Assuming script is run from project root or server dir
-# We use 'git rev-parse --show-toplevel' to find root of backend repo
 BACKEND_DIR=$(git rev-parse --show-toplevel)
 cd "$BACKEND_DIR"
-git pull origin main
+git fetch origin main
+git reset --hard origin/main
 npm install
 echo "🗄️ Running Migrations..."
 npx prisma db push --accept-data-loss
@@ -34,7 +33,8 @@ fi
 if [ -d "$CLIENT_DIR" ]; then
     echo "📥 Updating Frontend in $CLIENT_DIR..."
     cd "$CLIENT_DIR"
-    git pull origin main
+    git fetch origin main
+    git reset --hard origin/main
     npm install
     echo "🏗️ Building Frontend..."
     NODE_OPTIONS=--max-old-space-size=1024 npm run build

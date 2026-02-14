@@ -22,11 +22,11 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Navigate to backend directory on server
-            # Adjust path if different: assumes cloned into ~/backend
             cd ~/backend || { echo "❌ Backend directory not found!"; exit 1; }
             
-            # Run local deployment script
-            # Ensure it's executable
+            # Force clean state on server
+            git fetch origin main
+            git reset --hard origin/main
+            
             chmod +x scripts/deploy.sh
             ./scripts/deploy.sh
