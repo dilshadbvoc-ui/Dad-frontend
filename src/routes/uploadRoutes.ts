@@ -14,19 +14,9 @@ console.log(`📁 File storage: Database (Persistent)`);
 import { v2 as cloudinary } from 'cloudinary';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
-// Cloudinary Storage Configuration
-const cloudinaryStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
-    params: async (req, file) => {
-        return {
-            folder: 'crm-recordings',
-            resource_type: 'auto',
-            public_id: `rec-${Date.now()}-${Math.round(Math.random() * 1000)}`
-        };
-    },
-});
-
-const uploadCloudinary = multer({ storage: cloudinaryStorage });
+// Cloudinary removed in favor of Database storage
+// import { v2 as cloudinary } from 'cloudinary';
+// import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 const upload = multer({
     storage: memoryStorage,
@@ -58,8 +48,7 @@ const uploadDocument = multer({
 });
 
 // Route: POST /api/upload/call-recording
-// Use Cloudinary for recording storage if configured, otherwise fallback to memory/db (which might fail for large files)
-router.post('/call-recording', protect, uploadCloudinary.single('recording'), uploadCallRecording);
+router.post('/call-recording', protect, upload.single('recording'), uploadCallRecording);
 
 // Route: POST /api/upload/log-call (for calls without recordings - Android 14/15 restriction)
 router.post('/log-call', protect, logCallWithoutRecording);

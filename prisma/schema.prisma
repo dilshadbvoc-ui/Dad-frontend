@@ -577,6 +577,8 @@ model Interaction {
   opportunityId     String?
   createdById       String?
   organisationId    String?
+  documentId        String?              // Link to Document containing the recording file
+  document          Document?            @relation(fields: [documentId], references: [id])
   isDeleted         Boolean              @default(false)
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
@@ -1417,6 +1419,7 @@ model Document {
   
   opportunityId  String?
   opportunity    Opportunity? @relation(fields: [opportunityId], references: [id])
+  interactions   Interaction[]
 
   @@index([organisationId])
   @@index([leadId])

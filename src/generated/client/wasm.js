@@ -451,6 +451,7 @@ exports.Prisma.InteractionScalarFieldEnum = {
   opportunityId: 'opportunityId',
   createdById: 'createdById',
   organisationId: 'organisationId',
+  documentId: 'documentId',
   isDeleted: 'isDeleted',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'

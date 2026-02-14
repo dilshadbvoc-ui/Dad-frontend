@@ -62,53 +62,47 @@ export const uploadCallRecording = async (req: Request, res: Response) => {
         if (lead) {
             entityId = lead.id;
             entityType = 'lead';
-        } else {
-            // Try Contact (phone is inside JSON usually, but based on recent search fixes, let's try our best)
-            // Note: Contact phone search is complex due to JSON. 
-            // For now, let's focus on Leads as per prompt requirements usually focusing on Leads.
         }
 
-        // Check if using Cloudinary (file will have 'path' property with full URL)
-        const recordingUrl = (req.file as any).path 
-            ? (req.file as any).path // Cloudinary URL
-            : `/uploads/recordings/${req.file.filename}`; // Local path
+        // SAVE TO DATABASE (DOCUMENT TABLE)
+        const fileData = req.file.buffer;
+        const filename = `recording-${cleanPhone}-${timestamp || Date.now()}.mp3`;
 
-        // DUPLICATE CHECK
-        const existingInteraction = await prisma.interaction.findFirst({
-            where: {
-                recordingUrl: recordingUrl
+        const document = await prisma.document.create({
+            data: {
+                name: filename,
+                fileKey: filename,
+                fileData: fileData,
+                fileType: req.file.mimetype || 'audio/mpeg',
+                fileSize: req.file.size,
+                category: 'recording',
+                organisationId: orgId || user.organisationId,
+                createdById: user.id,
+                leadId: entityType === 'lead' ? entityId : undefined
             }
         });
 
-        if (existingInteraction) {
-            return res.json({
-                message: 'Recording already exists',
-                interactionId: existingInteraction.id,
-                linkedTo: entityType ? `${entityType} ${entityId}` : 'Unlinked (Existing)'
-            });
-        }
-
-        // Create Interaction
+        // Create Interaction linked to Document
         const interaction = await prisma.interaction.create({
             data: {
-                organisationId: orgId || user.organisationId, // Fallback
+                organisationId: orgId || user.organisationId,
                 type: 'call',
                 subject: `Recorded Call with ${phoneNumber}`,
                 description: `Automatic recording upload. Duration: ${duration || '?'}s`,
                 date: new Date(parseInt(timestamp) || Date.now()),
                 leadId: entityType === 'lead' ? entityId : undefined,
-                // contactId: entityType === 'contact' ? entityId : undefined, // If we supported contacts
                 createdById: user.id,
-                recordingUrl: recordingUrl,
+                recordingUrl: `/api/documents/${document.id}/download`, // Virtual URL for frontend
+                documentId: document.id, // Soft link to actual binary data
                 recordingDuration: parseInt(duration) || 0,
-                direction: 'outbound', // Assumption for now, or match from mobile params
+                direction: 'outbound',
                 phoneNumber: phoneNumber,
                 callStatus: 'completed'
             }
         });
 
         res.json({
-            message: 'Recording uploaded successfully',
+            message: 'Recording uploaded successfully (DB Storage)',
             interactionId: interaction.id,
             linkedTo: entityType ? `${entityType} ${entityId}` : 'Unlinked'
         });
@@ -178,7 +172,7 @@ export const uploadGenericImage = async (req: Request, res: Response) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        
+
         const user = (req as any).user;
         const orgId = getOrgId(user);
 
