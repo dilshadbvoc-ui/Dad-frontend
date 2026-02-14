@@ -120,7 +120,7 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             description: req.body.description,
             status: req.body.status || 'not_started',
             priority: req.body.priority || 'medium',
-            dueDate: req.body.dueDate,
+            dueDate: req.body.dueDate ? new Date(req.body.dueDate).toISOString() : undefined,
             createdBy: { connect: { id: user.id } },
         };
         // Only connect organization if user has one
@@ -202,6 +202,10 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
     try {
         const { id } = req.params;
         const updates = Object.assign({}, req.body);
+        // Convert dueDate to ISO-8601 DateTime if provided
+        if (updates.dueDate) {
+            updates.dueDate = new Date(updates.dueDate).toISOString();
+        }
         // Handle Relation Updates
         if (updates.assignedTo && typeof updates.assignedTo === 'string') {
             updates.assignedTo = { connect: { id: updates.assignedTo } };

@@ -445,6 +445,33 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
             }
             NotificationService.send(share.createdById, 'Product Viewed', `${viewerName} viewed your product "${share.product.name}" at ${time}.`, 'info').catch(console.error);
         }
+        // Fetch lead data if leadId is provided
+        let leadData = null;
+        if (leadId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(leadId)) {
+            try {
+                const lead = yield prisma_1.default.lead.findUnique({
+                    where: { id: leadId },
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        phone: true,
+                        company: true,
+                        organisationId: true
+                    }
+                });
+                if (lead) {
+                    leadData = {
+                        firstName: lead.firstName,
+                        lastName: lead.lastName,
+                        phone: lead.phone
+                    };
+                }
+            }
+            catch (e) {
+                console.error('Error fetching lead data:', e);
+            }
+        }
         res.json({
             product: share.product,
             seller: share.createdBy,
@@ -455,7 +482,8 @@ const getSharedProduct = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 youtubeUrl: share.youtubeUrl,
                 customTitle: share.customTitle,
                 customDescription: share.customDescription
-            }
+            },
+            lead: leadData
         });
         // Debug logging
         console.log('Shared product data sent:', {

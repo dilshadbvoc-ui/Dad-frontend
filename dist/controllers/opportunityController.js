@@ -184,7 +184,19 @@ const getOpportunityById = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const opportunity = yield prisma_1.default.opportunity.findFirst({
             where,
             include: {
-                account: { select: { name: true } },
+                account: {
+                    select: {
+                        name: true,
+                        accountProducts: {
+                            include: {
+                                product: true
+                            },
+                            orderBy: {
+                                createdAt: 'desc'
+                            }
+                        }
+                    }
+                },
                 owner: { select: { firstName: true, lastName: true, profileImage: true } }
             }
         });

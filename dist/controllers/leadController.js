@@ -196,33 +196,40 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 // Assign to creator by default, or to specified user
                 assignedTo: { connect: { id: leadOwnerId } }, source: req.body.source || client_1.LeadSource.manual, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
         });
-        // 3a. Handle Products if provided
-        if (req.body.products && Array.isArray(req.body.products)) {
+        // 3a. Handle Products if provided (products field is optional)
+        if (req.body.products !== undefined && Array.isArray(req.body.products)) {
             const productItems = req.body.products;
             let totalValue = 0;
-            for (const item of productItems) {
-                const product = yield prisma_1.default.product.findUnique({ where: { id: item.productId } });
-                if (product) {
-                    const price = product.basePrice || 0;
-                    const quantity = item.quantity || 1;
-                    totalValue += price * quantity;
-                    yield prisma_1.default.leadProduct.create({
-                        data: {
-                            leadId: lead.id,
-                            productId: item.productId,
-                            quantity: quantity,
-                            price: price
-                        }
-                    });
+            // Only process if products array is not empty
+            if (productItems.length > 0) {
+                for (const item of productItems) {
+                    // Validate that productId exists
+                    if (!item.productId) {
+                        continue; // Skip invalid items
+                    }
+                    const product = yield prisma_1.default.product.findUnique({ where: { id: item.productId } });
+                    if (product) {
+                        const price = product.basePrice || 0;
+                        const quantity = item.quantity || 1;
+                        totalValue += price * quantity;
+                        yield prisma_1.default.leadProduct.create({
+                            data: {
+                                leadId: lead.id,
+                                productId: item.productId,
+                                quantity: quantity,
+                                price: price
+                            }
+                        });
+                    }
                 }
-            }
-            // Update lead with calculated value if products were added
-            if (totalValue > 0) {
-                yield prisma_1.default.lead.update({
-                    where: { id: lead.id },
-                    data: { potentialValue: totalValue }
-                });
-                lead.potentialValue = totalValue; // Update local obj for response
+                // Update lead with calculated value if products were added
+                if (totalValue > 0) {
+                    yield prisma_1.default.lead.update({
+                        where: { id: lead.id },
+                        data: { potentialValue: totalValue }
+                    });
+                    lead.potentialValue = totalValue; // Update local obj for response
+                }
             }
         }
         // Audit Log
@@ -387,37 +394,45 @@ const updateLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
         }
+        // Remove products from updates as it's handled separately
+        const { products } = updates, leadUpdates = __rest(updates, ["products"]);
         // Update Lead Basic Info
         const [lead] = yield prisma_1.default.$transaction([
             prisma_1.default.lead.update({
                 where: whereObj,
-                data: updates,
+                data: leadUpdates,
                 include: { assignedTo: { select: { firstName: true, lastName: true, email: true } } }
             }),
             ...(historyData ? [prisma_1.default.leadHistory.create({ data: historyData })] : [])
         ]);
         let finalLead = lead;
-        // Handle Products Update
-        if (req.body.products && Array.isArray(req.body.products)) {
+        // Handle Products Update (products field is optional)
+        if (req.body.products !== undefined && Array.isArray(req.body.products)) {
             const productItems = req.body.products;
             // 1. Clear existing products (simplest approach for full replace)
             yield prisma_1.default.leadProduct.deleteMany({ where: { leadId } });
-            // 2. Add new products and calculate value
+            // 2. Add new products and calculate value (only if products array is not empty)
             let totalValue = 0;
-            for (const item of productItems) {
-                const product = yield prisma_1.default.product.findUnique({ where: { id: item.productId } });
-                if (product) {
-                    const price = product.basePrice || 0;
-                    const quantity = item.quantity || 1;
-                    totalValue += price * quantity;
-                    yield prisma_1.default.leadProduct.create({
-                        data: {
-                            leadId,
-                            productId: item.productId,
-                            quantity: quantity,
-                            price: price
-                        }
-                    });
+            if (productItems.length > 0) {
+                for (const item of productItems) {
+                    // Validate that productId exists
+                    if (!item.productId) {
+                        continue; // Skip invalid items
+                    }
+                    const product = yield prisma_1.default.product.findUnique({ where: { id: item.productId } });
+                    if (product) {
+                        const price = product.basePrice || 0;
+                        const quantity = item.quantity || 1;
+                        totalValue += price * quantity;
+                        yield prisma_1.default.leadProduct.create({
+                            data: {
+                                leadId,
+                                productId: item.productId,
+                                quantity: quantity,
+                                price: price
+                            }
+                        });
+                    }
                 }
             }
             // 3. Update Lead Value
@@ -639,12 +654,29 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(400).json({ message: 'No organisation context' });
         const lead = yield prisma_1.default.lead.findUnique({
             where: { id: leadId },
-            include: { organisation: true }
+            include: {
+                organisation: true,
+                products: { include: { product: true } }
+            }
         });
         if (!lead)
             return res.status(404).json({ message: 'Lead not found' });
         if (lead.status === client_1.LeadStatus.converted) {
             return res.status(400).json({ message: 'Lead already converted' });
+        }
+        // Calculate opportunity amount from lead products if not provided
+        let opportunityAmount = Number(amount) || 0;
+        // If no amount provided, use lead's potentialValue or calculate from products
+        if (!amount || opportunityAmount === 0) {
+            if (lead.potentialValue && lead.potentialValue > 0) {
+                opportunityAmount = lead.potentialValue;
+            }
+            else if (lead.products && lead.products.length > 0) {
+                // Calculate from products
+                opportunityAmount = lead.products.reduce((total, item) => {
+                    return total + (item.price * item.quantity);
+                }, 0);
+            }
         }
         // 0. Limit Check
         const org = lead.organisation;
@@ -698,11 +730,11 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     customFields: lead.customFields // Migrate custom fields
                 }
             });
-            // 3. Create Opportunity
+            // 3. Create Opportunity with calculated amount from products
             const opportunity = yield tx.opportunity.create({
                 data: {
                     name: dealName || `Deal - ${lead.company || lead.lastName}`,
-                    amount: Number(amount) || 0,
+                    amount: opportunityAmount,
                     stage: 'prospecting', // Default stage
                     organisationId: orgId,
                     ownerId: user.id,
@@ -710,14 +742,37 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     contacts: { connect: { id: contact.id } }
                 }
             });
-            // 4. Update Lead
+            // 4. Migrate Products from Lead to Account
+            const leadProducts = yield tx.leadProduct.findMany({
+                where: { leadId: leadId },
+                include: { product: true }
+            });
+            if (leadProducts.length > 0) {
+                // Create AccountProduct entries for each LeadProduct
+                for (const leadProduct of leadProducts) {
+                    yield tx.accountProduct.create({
+                        data: {
+                            accountId: targetAccountId,
+                            productId: leadProduct.productId,
+                            organisationId: orgId,
+                            quantity: leadProduct.quantity,
+                            purchaseDate: new Date(),
+                            status: 'active',
+                            notes: `Converted from lead: ${lead.firstName} ${lead.lastName}`
+                        }
+                    });
+                }
+                // Optional: Delete LeadProduct entries after migration
+                // await tx.leadProduct.deleteMany({ where: { leadId: leadId } });
+            }
+            // 5. Update Lead
             const updatedLead = yield tx.lead.update({
                 where: { id: leadId },
                 data: {
                     status: client_1.LeadStatus.converted
                 }
             });
-            // 5. Migrate Interactions
+            // 6. Migrate Interactions
             yield tx.interaction.updateMany({
                 where: { leadId: leadId },
                 data: {
@@ -725,14 +780,14 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     accountId: targetAccountId
                 }
             });
-            // 6. Migrate WhatsApp Messages
+            // 7. Migrate WhatsApp Messages
             yield tx.whatsAppMessage.updateMany({
                 where: { leadId: leadId },
                 data: {
                     contactId: contact.id
                 }
             });
-            // 7. Migrate Tasks
+            // 8. Migrate Tasks
             yield tx.task.updateMany({
                 where: { leadId: leadId },
                 data: {
@@ -741,7 +796,7 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     accountId: targetAccountId
                 }
             });
-            return { account, contact, opportunity, lead: updatedLead };
+            return { account, contact, opportunity, lead: updatedLead, migratedProducts: leadProducts.length };
         }));
         // Audit Log for conversion
         try {
@@ -757,7 +812,8 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     company: lead.company,
                     accountId: result.account.id,
                     contactId: result.contact.id,
-                    opportunityId: result.opportunity.id
+                    opportunityId: result.opportunity.id,
+                    migratedProducts: result.migratedProducts
                 }
             });
         }

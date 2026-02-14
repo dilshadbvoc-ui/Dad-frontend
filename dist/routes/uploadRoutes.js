@@ -5,66 +5,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const multer_1 = __importDefault(require("multer"));
-const path_1 = __importDefault(require("path"));
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const uploadController_1 = require("../controllers/uploadController");
-const fs_1 = __importDefault(require("fs"));
-const cloudinary_1 = require("../config/cloudinary");
 const router = express_1.default.Router();
-// Local Multer Storage Configuration for Recordings
-const localRecordingStorage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path_1.default.join(__dirname, '../../uploads/recordings');
-        if (!fs_1.default.existsSync(uploadPath)) {
-            fs_1.default.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path_1.default.extname(file.originalname);
-        cb(null, `rec-${uniqueSuffix}${ext}`);
-    }
-});
-// Local Multer Storage Configuration for Images
-const localImageStorage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path_1.default.join(__dirname, '../../uploads/images');
-        if (!fs_1.default.existsSync(uploadPath)) {
-            fs_1.default.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path_1.default.extname(file.originalname);
-        cb(null, `img-${uniqueSuffix}${ext}`);
-    }
-});
-// Local Multer Storage Configuration for Documents
-const localDocumentStorage = multer_1.default.diskStorage({
-    destination: (req, file, cb) => {
-        const uploadPath = path_1.default.join(__dirname, '../../uploads/documents');
-        if (!fs_1.default.existsSync(uploadPath)) {
-            fs_1.default.mkdirSync(uploadPath, { recursive: true });
-        }
-        cb(null, uploadPath);
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path_1.default.extname(file.originalname);
-        cb(null, `doc-${uniqueSuffix}${ext}`);
-    }
-});
-// Use Cloudinary if configured, otherwise use local storage
-const useCloudinary = (0, cloudinary_1.isCloudinaryConfigured)();
-console.log(`📁 File storage: ${useCloudinary ? 'Cloudinary (Cloud)' : 'Local (Ephemeral)'}`);
+// Memory Storage Configuration - stores files in memory as Buffer
+const memoryStorage = multer_1.default.memoryStorage();
+console.log(`📁 File storage: Database (Persistent)`);
 const upload = (0, multer_1.default)({
-    storage: useCloudinary ? cloudinary_1.cloudinaryRecordingStorage : localRecordingStorage,
+    storage: memoryStorage,
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
 });
 const uploadImage = (0, multer_1.default)({
-    storage: useCloudinary ? cloudinary_1.cloudinaryImageStorage : localImageStorage,
+    storage: memoryStorage,
     limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: (req, file, cb) => {
         if (file.mimetype.startsWith('image/')) {
@@ -76,7 +28,7 @@ const uploadImage = (0, multer_1.default)({
     }
 });
 const uploadDocument = (0, multer_1.default)({
-    storage: useCloudinary ? cloudinary_1.cloudinaryDocumentStorage : localDocumentStorage,
+    storage: memoryStorage,
     limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {

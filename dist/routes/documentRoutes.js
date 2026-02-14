@@ -7,7 +7,9 @@ const express_1 = __importDefault(require("express"));
 const documentController_1 = require("../controllers/documentController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
-// All routes require authentication
+// Download endpoint - no auth required for public shares, but we'll add auth for now
+router.get('/:id/download', documentController_1.downloadDocument);
+// All other routes require authentication
 router.use(authMiddleware_1.protect);
 // Get all documents (with optional filters)
 router.get('/', documentController_1.getDocuments);

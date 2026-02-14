@@ -112,6 +112,11 @@ const createAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
             return res.status(400).json({ message: 'Organisation context required' });
+        // Custom Field Validation
+        if (req.body.customFields) {
+            const { CustomFieldValidationService } = yield Promise.resolve().then(() => __importStar(require('../services/CustomFieldValidationService')));
+            yield CustomFieldValidationService.validateFields('Account', orgId, req.body.customFields);
+        }
         const accountData = {
             name: req.body.name,
             industry: req.body.industry,
@@ -192,6 +197,15 @@ const updateAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+        }
+        // Get current account for validation
+        const currentAccount = yield prisma_1.default.account.findUnique({ where: whereObj });
+        if (!currentAccount)
+            return res.status(404).json({ message: 'Account not found' });
+        // Custom Field Validation
+        if (updates.customFields) {
+            const { CustomFieldValidationService } = yield Promise.resolve().then(() => __importStar(require('../services/CustomFieldValidationService')));
+            yield CustomFieldValidationService.validateFields('Account', currentAccount.organisationId, updates.customFields);
         }
         const account = yield prisma_1.default.account.update({
             where: whereObj,

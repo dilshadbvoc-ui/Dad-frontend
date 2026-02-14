@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteDocument = exports.updateDocument = exports.getDocumentById = exports.getDocuments = void 0;
+exports.downloadDocument = exports.deleteDocument = exports.updateDocument = exports.getDocumentById = exports.getDocuments = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 /**
@@ -225,3 +225,41 @@ const deleteDocument = (req, res) => __awaiter(void 0, void 0, void 0, function*
     }
 });
 exports.deleteDocument = deleteDocument;
+/**
+ * Download document file from database
+ * GET /api/documents/:id/download
+ */
+const downloadDocument = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id } = req.params;
+        const document = yield prisma_1.default.document.findFirst({
+            where: {
+                id,
+                isDeleted: false
+            },
+            select: {
+                fileData: true,
+                fileType: true,
+                name: true,
+                fileKey: true
+            }
+        });
+        if (!document) {
+            return res.status(404).json({ message: 'Document not found' });
+        }
+        if (!document.fileData) {
+            return res.status(404).json({ message: 'File data not available' });
+        }
+        // Set appropriate headers
+        res.setHeader('Content-Type', document.fileType);
+        res.setHeader('Content-Disposition', `inline; filename="${document.fileKey}"`);
+        res.setHeader('Cache-Control', 'public, max-age=31536000'); // Cache for 1 year
+        // Send binary data
+        res.send(document.fileData);
+    }
+    catch (error) {
+        console.error('[Download Document] Error:', error);
+        res.status(500).json({ message: 'Failed to download document: ' + error.message });
+    }
+});
+exports.downloadDocument = downloadDocument;
