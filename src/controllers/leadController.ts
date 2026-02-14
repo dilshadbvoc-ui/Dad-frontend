@@ -11,11 +11,15 @@ import { LeadSource, LeadStatus } from '../generated/client';
 // GET /api/leads
 export const getLeads = async (req: Request, res: Response) => {
     try {
+        console.log('[getLeads] Query Params:', req.query); // DEBUG LOG
+
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
         const user = (req as any).user;
         const where: any = { isDeleted: false };
         const andConditions: any[] = [];
+
+        console.log('[getLeads] User:', user.id, user.role); // DEBUG LOG
 
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
@@ -71,6 +75,8 @@ export const getLeads = async (req: Request, res: Response) => {
             where.AND = andConditions;
         }
 
+        console.log('[getLeads] Prisma Where:', JSON.stringify(where, null, 2)); // DEBUG LOG
+
         const total = await prisma.lead.count({ where });
         const leads = await prisma.lead.findMany({
             where,
@@ -87,7 +93,8 @@ export const getLeads = async (req: Request, res: Response) => {
         res.json({ leads, page, pages: Math.ceil(total / pageSize), total });
     } catch (error) {
         console.error('getLeads Error:', error);
-        res.status(500).json({ message: (error as Error).message });
+        // Return 500 but include error message for debugging
+        res.status(500).json({ message: (error as Error).message, stack: process.env.NODE_ENV === 'development' ? (error as Error).stack : undefined });
     }
 };
 
