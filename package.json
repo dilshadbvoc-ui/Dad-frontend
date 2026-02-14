@@ -9,7 +9,8 @@
     "build": "npx tsc",
     "lint": "eslint src/**/*.ts",
     "studio": "prisma studio --port 5555",
-    "postinstall": "prisma generate && npm run build && node copy-prisma.js"
+    "migrate": "npx prisma db push && npx prisma generate",
+    "postinstall": "npm run migrate && npm run build && node copy-prisma.js"
   },
   "keywords": [],
   "author": "",
