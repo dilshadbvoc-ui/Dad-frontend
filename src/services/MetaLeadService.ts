@@ -2,6 +2,7 @@ import axios from 'axios';
 import prisma from '../config/prisma';
 import { DistributionService } from './DistributionService';
 import { LeadSource, LeadStatus, Prisma } from '../generated/client';
+import { decrypt } from '../utils/encryption';
 
 export const MetaLeadService = {
     /**
@@ -53,6 +54,9 @@ export const MetaLeadService = {
             }
 
             const metaConfig = matchedAccount;
+            if (metaConfig.accessToken) {
+                metaConfig.accessToken = decrypt(metaConfig.accessToken);
+            }
             // Proceed using metaConfig.accessToken
 
             // 2. Fetch Lead details from Meta Graph API
@@ -99,7 +103,8 @@ export const MetaLeadService = {
                     rawMetaFields: fieldMap
                 },
                 status: LeadStatus.new,
-                organisationId: org.id
+                organisationId: org.id,
+                branchId: metaConfig.branchId || null // Assign branch if configured
             };
 
             // 4. Sanitize Phone Number (distribution logic needs clean phone)
@@ -116,7 +121,7 @@ export const MetaLeadService = {
 
             if (duplicateCheck.isDuplicate && duplicateCheck.existingLead) {
                 console.log(`[MetaLeadService] Duplicate lead detected. Handling as re-enquiry for lead ${duplicateCheck.existingLead.id}`);
-                
+
                 // Handle as re-enquiry
                 await DuplicateLeadService.handleReEnquiry(
                     duplicateCheck.existingLead,

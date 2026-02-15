@@ -2,6 +2,7 @@ import prisma from '../config/prisma';
 import { metaService } from './MetaService';
 import { logger } from '../utils/logger';
 import { DistributionService } from './DistributionService';
+import { decrypt } from '../utils/encryption';
 
 export const MetaIntegrationService = {
     /**
@@ -65,9 +66,12 @@ export const MetaIntegrationService = {
                 return;
             }
 
+            // Decrypt token
+            const accessToken = decrypt(metaConfig.accessToken);
+
             // Fetch lead details from Meta API
             try {
-                const leadData = await metaService.makeRequest(leadgen_id, metaConfig.accessToken, {
+                const leadData = await metaService.makeRequest(leadgen_id, accessToken, {
                     fields: 'id,created_time,field_data'
                 });
 
@@ -219,7 +223,10 @@ export const MetaIntegrationService = {
             }
 
             // Fetch campaigns from Meta
-            const campaigns = await metaService.getCampaigns(metaConfig);
+            const campaigns = await metaService.getCampaigns({
+                ...metaConfig,
+                accessToken: decrypt(metaConfig.accessToken)
+            });
 
             // Sync campaigns to database
             const syncedCampaigns = [];
@@ -333,7 +340,9 @@ export const MetaIntegrationService = {
                 throw new Error('Meta integration not configured');
             }
 
+            const accessToken = decrypt(metaConfig.accessToken);
             let insights;
+
             if (campaignId) {
                 // Get insights for specific campaign
                 const campaign = await prisma.campaign.findFirst({
@@ -352,13 +361,13 @@ export const MetaIntegrationService = {
                     throw new Error('Campaign not linked to Meta');
                 }
 
-                insights = await metaService.makeRequest(`${metaCampaignId}/insights`, metaConfig.accessToken, {
+                insights = await metaService.makeRequest(`${metaCampaignId}/insights`, accessToken, {
                     fields: 'impressions,clicks,spend,cpc,cpm,cpp,ctr,unique_clicks,reach,actions',
                     date_preset: 'last_30d'
                 });
             } else {
                 // Get account-level insights
-                insights = await metaService.getInsights(metaConfig, 'account');
+                insights = await metaService.getInsights({ ...metaConfig, accessToken }, 'account');
             }
 
             return insights;
@@ -383,7 +392,7 @@ export const MetaIntegrationService = {
         const challenge = getParam('hub.challenge');
 
         const VERIFY_TOKEN = process.env.META_VERIFY_TOKEN;
-        
+
         if (!VERIFY_TOKEN) {
             logger.error('[MetaWebhook] META_VERIFY_TOKEN not configured', 'MetaWebhook');
             return res.status(500).json({ error: 'Server configuration error' });

@@ -19,8 +19,8 @@ export class SecurityAuditMiddleware {
         /on\w+\s*=/gi,
         // Path traversal
         /\.\.[\/\\]/g,
-        // Command injection
-        /[;&|`$(){}[\]]/g
+        // Command injection (further relaxed)
+        /[|`]/g
     ];
 
     private static sensitiveEndpoints = [
@@ -120,6 +120,7 @@ export class SecurityAuditMiddleware {
 
         for (const pattern of this.suspiciousPatterns) {
             if (pattern.test(checkData)) {
+                console.log(`[SecurityAudit] Triggered by pattern ${pattern.source} on data: ${checkData.substring(0, 200)}...`);
                 this.logSecurityEvent({
                     type: 'SECURITY_VIOLATION',
                     severity: 'HIGH',

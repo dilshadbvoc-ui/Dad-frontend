@@ -111,6 +111,12 @@ export const getUsers = async (req: Request, res: Response) => {
                         lastName: true,
                         position: true
                     }
+                },
+                branch: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -132,6 +138,10 @@ export const getUsers = async (req: Request, res: Response) => {
                     ...u.reportsTo,
                     id: u.reportsTo.id,
                     _id: u.reportsTo.id
+                } : null,
+                branch: u.branch ? {
+                    id: u.branch.id,
+                    name: u.branch.name
                 } : null
             };
         });
@@ -227,6 +237,22 @@ export const updateUser = async (req: Request, res: Response) => {
             dataToUpdate.reportsTo = { connect: { id: updateData.reportsTo } };
         }
 
+        // Handle Branch assignment
+        if (updateData.branchId) {
+            const branch = await prisma.branch.findUnique({ where: { id: updateData.branchId } });
+            if (!branch) return res.status(400).json({ message: 'Branch not found' });
+
+            // Check Org
+            if (branch.organisationId !== (getOrgId(currentUser) || getOrgId(await prisma.user.findUnique({ where: { id: userId } })))) {
+                return res.status(400).json({ message: 'Branch must belong to same organisation' });
+            }
+            dataToUpdate.branch = { connect: { id: updateData.branchId } };
+            delete dataToUpdate.branchId;
+        } else if (updateData.branchId === null) {
+            dataToUpdate.branch = { disconnect: true };
+            delete dataToUpdate.branchId;
+        }
+
         if (password && password.trim() !== '') {
             const salt = await bcrypt.genSalt(10);
             dataToUpdate.password = await bcrypt.hash(password, salt);
@@ -259,7 +285,7 @@ export const updateUser = async (req: Request, res: Response) => {
 // POST /api/users
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { email, password, role, firstName, lastName, organisationId } = req.body;
+        const { email, password, role, firstName, lastName, organisationId, branchId } = req.body;
         const currentUser = (req as any).user;
 
         // Determine Org ID
@@ -300,7 +326,8 @@ export const createUser = async (req: Request, res: Response) => {
                 organisationId: targetOrgId,
                 isActive: true, // Default to active
                 // If currentUser is non-admin creating a user, maybe set reportsTo?
-                reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined)
+                reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined),
+                branchId: branchId || undefined
             }
         });
 
@@ -329,7 +356,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const inviteUser = async (req: Request, res: Response) => {
     try {
-        const { email, firstName, lastName, role, organisationId, position, reportsTo, password } = req.body;
+        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId } = req.body;
         const currentUser = (req as any).user;
         const orgId = getOrgId(currentUser) || organisationId;
 
@@ -391,6 +418,7 @@ export const inviteUser = async (req: Request, res: Response) => {
                 position,
                 userId: generatedUserId,
                 reportsTo: reportsTo ? { connect: { id: reportsTo } } : undefined,
+                branch: branchId ? { connect: { id: branchId } } : undefined,
                 isActive: true
             }
         });

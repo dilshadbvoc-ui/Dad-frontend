@@ -21,6 +21,9 @@ export const getContacts = async (req: Request, res: Response) => {
             if (orgId) {
                 where.organisationId = orgId;
             }
+            if (user.branchId) {
+                where.branchId = user.branchId;
+            }
         }
 
         // 2. Hierarchy Visibility
@@ -118,6 +121,7 @@ export const createContact = async (req: Request, res: Response) => {
             // Relations
             organisation: { connect: { id: orgId } },
             owner: req.body.owner ? { connect: { id: req.body.owner } } : { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
         };
 
         if (req.body.account) {
@@ -165,6 +169,7 @@ export const getContactById = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const contact = await prisma.contact.findFirst({
@@ -215,6 +220,7 @@ export const updateContact = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId) whereObj.branchId = requester.branchId;
         }
 
         const contact = await prisma.contact.update({

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Database Restore Script for MERN CRM
+# Database Restore Script for Leadbox Solutions
 # This script restores the PostgreSQL database from a backup
 
 # Configuration
@@ -8,14 +8,14 @@ BACKUP_DIR="./backups"
 DATABASE_URL="postgresql://postgres:troy1998@database-1.cziccmgq4kxr.eu-north-1.rds.amazonaws.com:5432/mern_crm?sslmode=require"
 
 echo "========================================="
-echo "MERN CRM Database Restore"
+echo "Leadbox Solutions Database Restore"
 echo "========================================="
 echo ""
 
 # List available backups
 echo "Available backups:"
 echo ""
-ls -lht "$BACKUP_DIR"/mern_crm_backup_* 2>/dev/null
+ls -lht "$BACKUP_DIR"/leadbox_solutions_backup_* 2>/dev/null
 
 if [ $? -ne 0 ]; then
     echo "❌ No backups found in $BACKUP_DIR"
@@ -27,9 +27,9 @@ echo "Enter the backup file name to restore (or 'latest' for most recent):"
 read BACKUP_CHOICE
 
 if [ "$BACKUP_CHOICE" = "latest" ]; then
-    BACKUP_FILE=$(ls -t "$BACKUP_DIR"/mern_crm_backup_*.sql.gz 2>/dev/null | head -1)
+    BACKUP_FILE=$(ls -t "$BACKUP_DIR"/leadbox_solutions_backup_*.sql.gz 2>/dev/null | head -1)
     if [ -z "$BACKUP_FILE" ]; then
-        BACKUP_FILE=$(ls -t "$BACKUP_DIR"/mern_crm_backup_*.sql 2>/dev/null | head -1)
+        BACKUP_FILE=$(ls -t "$BACKUP_DIR"/leadbox_solutions_backup_*.sql 2>/dev/null | head -1)
     fi
 else
     BACKUP_FILE="$BACKUP_DIR/$BACKUP_CHOICE"

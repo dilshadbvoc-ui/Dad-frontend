@@ -20,6 +20,7 @@ export const getAccounts = async (req: Request, res: Response) => {
             const orgId = getOrgId(user);
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         // 2. Hierarchy Visibility
@@ -88,6 +89,7 @@ export const createAccount = async (req: Request, res: Response) => {
 
             organisation: { connect: { id: orgId } },
             owner: req.body.owner ? { connect: { id: req.body.owner } } : { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
         };
 
         const account = await prisma.account.create({
@@ -124,6 +126,7 @@ export const getAccountById = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const account = await prisma.account.findFirst({
@@ -157,6 +160,7 @@ export const updateAccount = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId) whereObj.branchId = requester.branchId;
         }
 
         // Get current account for validation
@@ -213,6 +217,7 @@ export const deleteAccount = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'No org' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const account = await prisma.account.findFirst({ where });

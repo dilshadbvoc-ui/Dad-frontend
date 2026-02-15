@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import hpp from 'hpp';
 import { createServer } from 'http';
 import { initSocket } from './socket';
 import { generalLimiter, authLimiter } from './middleware/rateLimiter';
@@ -71,6 +72,7 @@ import landingPageRoutes from './routes/landingPageRoutes';
 import bulkRoutes from './routes/bulkRoutes';
 import publicRoutes from './routes/publicRoutes';
 import teamRoutes from './routes/teamRoutes';
+import branchRoutes from './routes/branchRoutes';
 import path from 'path';
 
 // import { dataIsolation } from './middleware/dataIsolation';
@@ -210,6 +212,7 @@ app.options('*', cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(hpp());
 
 // CRITICAL: System lock check - must be early in middleware chain
 import('./middleware/superAdminProtection').then(({ checkSystemLock }) => {
@@ -348,6 +351,7 @@ app.use('/api/assignment-rules', assignmentRuleRoutes);
 app.use('/api/hierarchy', hierarchyRoutes);
 app.use('/api/organisation', organisationRoutes);
 app.use('/api/api-keys', apiKeyRoutes);
+app.use('/api/branches', branchRoutes);
 app.use('/api/bulk', bulkRoutes);
 
 // Licensing & Multi-tenancy

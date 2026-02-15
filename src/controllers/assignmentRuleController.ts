@@ -16,6 +16,7 @@ export const getAssignmentRules = async (req: Request, res: Response) => {
 
         const where: any = { isDeleted: false };
         if (orgId) where.organisationId = orgId;
+        if (user.branchId) where.branchId = user.branchId; // Restrict to branch if user has one
 
         const rules = await prisma.assignmentRule.findMany({
             where,
@@ -52,8 +53,10 @@ export const createAssignmentRule = async (req: Request, res: Response) => {
                 ruleType: req.body.ruleType || 'round_robin',
                 criteria: req.body.criteria || [],
                 assignTo: req.body.assignTo,
+                companySize: req.body.companySize,
                 organisation: { connect: { id: orgId } },
-                createdBy: { connect: { id: user.id } }
+                createdBy: { connect: { id: user.id } },
+                branch: (req.body.branchId || user.branchId) ? { connect: { id: req.body.branchId || user.branchId } } : undefined
             }
         });
 
@@ -96,7 +99,11 @@ export const updateAssignmentRule = async (req: Request, res: Response) => {
 
         const rule = await prisma.assignmentRule.update({
             where: { id: req.params.id },
-            data: req.body
+            data: {
+                ...req.body,
+                branchId: undefined, // remove raw branchId
+                branch: req.body.branchId ? { connect: { id: req.body.branchId } } : undefined
+            }
         });
 
         // Audit Log

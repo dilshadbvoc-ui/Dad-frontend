@@ -28,6 +28,10 @@ export const getLeads = async (req: Request, res: Response) => {
             const orgId = getOrgId(user);
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            // Branch filtering
+            if (user.branchId) {
+                where.branchId = user.branchId;
+            }
         }
 
         // 2. Hierarchy Visibility
@@ -146,7 +150,7 @@ export const createLead = async (req: Request, res: Response) => {
         }
 
         // Extract assignedTo before spreading
-        const { assignedTo, ...restBody } = req.body;
+        const { assignedTo, branchId, ...restBody } = req.body;
         const currentUser = (req as any).user;
 
         // For manual lead creation: creator owns the lead unless explicitly assigned to someone else
@@ -183,6 +187,7 @@ export const createLead = async (req: Request, res: Response) => {
                 countryCode: req.body.countryCode || geoData?.countryCode || undefined,
                 phoneCountryCode: req.body.phoneCountryCode || geoData?.phoneCountryCode || undefined,
                 organisation: { connect: { id: orgId } },
+                branch: currentUser.branchId ? { connect: { id: currentUser.branchId } } : (branchId ? { connect: { id: branchId } } : undefined),
                 // Assign to creator by default, or to specified user
                 assignedTo: { connect: { id: leadOwnerId } },
                 source: req.body.source as LeadSource || LeadSource.manual,
@@ -307,6 +312,9 @@ export const getLeadById = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) {
+                where.branchId = user.branchId;
+            }
         }
 
         const lead = await prisma.lead.findFirst({
@@ -401,6 +409,7 @@ export const updateLead = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId) whereObj.branchId = requester.branchId;
         }
 
         // Remove products from updates as it's handled separately
@@ -642,6 +651,7 @@ export const createBulkLeads = async (req: Request, res: Response) => {
                     phoneCountryCode: l.phoneCountryCode || geoData?.phoneCountryCode || undefined,
                     organisationId: orgId,
                     assignedToId: l.assignedTo || user.id,
+                    branchId: l.branchId || user.branchId, // Support explicit branch or inherit from user
                     source: l.source || LeadSource.import,
                     status: l.status || LeadStatus.new,
                     leadScore: l.leadScore || 0
@@ -704,7 +714,7 @@ export const convertLead = async (req: Request, res: Response) => {
         const { id } = req.params;
         const leadId = id;
 
-        const { dealName, amount, accountId } = req.body; // remove leadId from params here if it was redundant
+        const { dealName, amount, accountId } = req.body;
         const user = (req as any).user;
         const orgId = getOrgId(user);
 
@@ -767,11 +777,12 @@ export const convertLead = async (req: Request, res: Response) => {
                     data: {
                         name: lead.company || `${lead.firstName} ${lead.lastName}`,
                         organisationId: orgId,
-                        ownerId: user.id, // Assign to converter or keep lead owner? Usually converter or specific rule.
+                        ownerId: user.id, // Assign to converter
                         type: 'customer',
                         phone: lead.phone,
                         address: lead.address as any,
-                        leadId: lead.id // Link to original lead
+                        leadId: lead.id, // Link to original lead
+                        branchId: lead.branchId
                     }
                 });
                 targetAccountId = account.id;
@@ -790,21 +801,24 @@ export const convertLead = async (req: Request, res: Response) => {
                     accountId: targetAccountId,
                     address: lead.address as any,
                     customFields: lead.customFields as any, // Migrate custom fields
-                    leadId: lead.id // Link to original lead
+                    leadId: lead.id, // Link to original lead
+                    branchId: lead.branchId
                 }
             });
 
-            // 3. Create Opportunity with calculated amount from products
+            // 3. Create Opportunity
             const opportunity = await tx.opportunity.create({
                 data: {
                     name: dealName || `Deal - ${lead.company || lead.lastName}`,
                     amount: opportunityAmount,
-                    stage: 'prospecting', // Default stage
+                    stage: 'new',
+                    closeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
                     organisationId: orgId,
                     ownerId: user.id,
                     accountId: targetAccountId,
-                    contacts: { connect: { id: contact.id } },
-                    leadId: lead.id // Link to original lead
+                    leadId: lead.id,
+                    branchId: lead.branchId,
+                    contacts: { connect: { id: contact.id } }
                 }
             });
 
@@ -829,9 +843,6 @@ export const convertLead = async (req: Request, res: Response) => {
                         }
                     });
                 }
-
-                // Optional: Delete LeadProduct entries after migration
-                // await tx.leadProduct.deleteMany({ where: { leadId: leadId } });
             }
 
             // 5. Update Lead

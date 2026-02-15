@@ -22,6 +22,7 @@ export const getOpportunities = async (req: Request, res: Response) => {
             const orgId = getOrgId(user);
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         // 2. Hierarchy Visibility
@@ -84,6 +85,7 @@ export const createOpportunity = async (req: Request, res: Response) => {
 
             organisation: { connect: { id: orgId } },
             owner: { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
 
             // Account is required in schema
             account: { connect: { id: req.body.account } }
@@ -144,13 +146,14 @@ export const getOpportunityById = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const opportunity = await prisma.opportunity.findFirst({
             where,
             include: {
-                account: { 
-                    select: { 
+                account: {
+                    select: {
                         name: true,
                         accountProducts: {
                             include: {
@@ -160,7 +163,7 @@ export const getOpportunityById = async (req: Request, res: Response) => {
                                 createdAt: 'desc'
                             }
                         }
-                    } 
+                    }
                 },
                 owner: { select: { firstName: true, lastName: true, profileImage: true } }
             }
@@ -201,6 +204,7 @@ export const updateOpportunity = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId) whereObj.branchId = requester.branchId;
         }
 
         const opportunity = await prisma.opportunity.update({
@@ -317,6 +321,7 @@ export const deleteOpportunity = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'No org' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const opportunity = await prisma.opportunity.findFirst({ where });

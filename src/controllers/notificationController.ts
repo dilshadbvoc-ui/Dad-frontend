@@ -4,32 +4,49 @@ import prisma from '../config/prisma';
 
 export const getNotifications = async (req: Request, res: Response) => {
     try {
-        console.log('[NotificationController] getNotifications called');
         const user = (req as any).user;
 
         if (!user || !user.id) {
-            console.error('[NotificationController] No user attached to request');
             return res.status(401).json({ message: 'Not authorized' });
         }
 
         const userId = user.id;
         const page = parseInt(req.query.page as string) || 1;
         const limit = parseInt(req.query.limit as string) || 20;
+        const type = req.query.type as string; // 'info', 'warning', etc.
+        const isRead = req.query.isRead; // 'true', 'false', or undefined
 
-        console.log(`[NotificationController] Fetching for user: ${userId}, page: ${page}`);
+        const whereClause: any = { recipientId: userId };
+
+        if (type && type !== 'all') {
+            whereClause.type = type;
+        }
+
+        if (isRead === 'true') {
+            whereClause.isRead = true;
+        } else if (isRead === 'false') {
+            whereClause.isRead = false;
+        }
 
         const notifications = await prisma.notification.findMany({
-            where: { recipientId: userId },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             take: limit,
             skip: (page - 1) * limit
         });
 
+        const total = await prisma.notification.count({ where: whereClause });
         const unreadCount = await prisma.notification.count({
             where: { recipientId: userId, isRead: false }
         });
 
-        res.json({ notifications, unreadCount });
+        res.json({
+            notifications,
+            unreadCount,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page
+        });
     } catch (error) {
         console.error('getNotifications Error:', error);
         res.status(500).json({ message: (error as Error).message });

@@ -13,6 +13,12 @@ const logDebug = (msg: string) => {
     }
 };
 
+// Helper to get branch filter
+const getBranchFilter = (req: Request) => {
+    const branchId = req.query.branchId as string;
+    return branchId ? { branchId } : {};
+};
+
 export const getDashboardStats = async (req: Request, res: Response) => {
     logDebug('Entered getDashboardStats');
     try {
@@ -20,6 +26,17 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         const isSuperAdmin = user.role === 'super_admin';
         logDebug(`[Analytics] User: ${user?.id}, Org: ${orgId}, SuperAdmin: ${isSuperAdmin}`);
+
+        const branchFilter = getBranchFilter(req);
+        // If user is not admin, they might be restricted to their own branch
+        // But for now, we trust the query param if valid, or fallback to user's branch if not admin?
+        // The requirement is "organisation admin dashboard can see branch vise data"
+        // So this is mainly for Admins filtering.
+        // If a normal user tries to filter by another branch, they shouldn't see data?
+        // For now, let's assume the UI handles visibility validation, and we just filter.
+        // But STRICTLY: standard users should default to their own branch if they have one?
+        // Existing logic for non-admins filters by `assignedToId` or `ownerId`, which implicitly handles branch (users in branch see their own stuff).
+        // So we just add the explicit branch filter.
 
         logDebug('[Analytics] Importing hierarchyUtils...');
         const { getSubordinateIds } = await import('../utils/hierarchyUtils');
@@ -35,6 +52,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Build org filter - super admin sees all orgs
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         // Base filter for users who are not admin/super_admin
         const visibilityFilter: any = {};
@@ -50,13 +68,13 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Leads
         const totalLeads = await prisma.lead.count({
-            where: { ...orgFilter, isDeleted: false, ...visibilityFilter }
+            where: { ...combinedFilter, isDeleted: false, ...visibilityFilter }
         });
         const newLeads = await prisma.lead.count({
-            where: { ...orgFilter, isDeleted: false, status: 'new', ...visibilityFilter }
+            where: { ...combinedFilter, isDeleted: false, status: 'new', ...visibilityFilter }
         });
         const convertedLeads = await prisma.lead.count({
-            where: { ...orgFilter, isDeleted: false, status: 'converted', ...visibilityFilter }
+            where: { ...combinedFilter, isDeleted: false, status: 'converted', ...visibilityFilter }
         });
 
 
@@ -64,7 +82,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         // Revenue calculation and trend
         const revenueResult = await prisma.opportunity.aggregate({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: 'closed_won',
                 ...oppVisibilityFilter
             },
@@ -74,18 +92,18 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Pipeline Value
         const pipelineResult = await prisma.opportunity.aggregate({
-            where: { ...orgFilter, ...oppVisibilityFilter },
+            where: { ...combinedFilter, ...oppVisibilityFilter },
             _sum: { amount: true }
         });
         const pipelineValue = pipelineResult._sum.amount || 0;
 
         // Contacts/Accounts
         const totalContacts = await prisma.contact.count({
-            where: { ...orgFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
+            where: { ...combinedFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
 
         const totalAccounts = await prisma.account.count({
-            where: { ...orgFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
+            where: { ...combinedFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
 
         // Current Month Dates
@@ -99,7 +117,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         // Previous Month Stats for Trends
         const prevLeads = await prisma.lead.count({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 isDeleted: false,
                 createdAt: { gte: startOfLastMonth, lt: startOfMonth },
                 ...visibilityFilter
@@ -108,7 +126,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         const prevRevenueResult = await prisma.opportunity.aggregate({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: 'closed_won',
                 closeDate: { gte: startOfLastMonth, lt: startOfMonth },
                 ...oppVisibilityFilter
@@ -120,7 +138,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         // Trending Win Rate
         const totalClosedCurrent = await prisma.opportunity.count({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: { in: ['closed_won', 'closed_lost'] },
                 closeDate: { gte: startOfMonth },
                 ...oppVisibilityFilter
@@ -128,7 +146,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         });
         const wonCurrent = await prisma.opportunity.count({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: 'closed_won',
                 closeDate: { gte: startOfMonth },
                 ...oppVisibilityFilter
@@ -139,10 +157,10 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Won/Lost for nested object
         const wonTotal = await prisma.opportunity.count({
-            where: { ...orgFilter, stage: 'closed_won', ...oppVisibilityFilter }
+            where: { ...combinedFilter, stage: 'closed_won', ...oppVisibilityFilter }
         });
         const lostTotal = await prisma.opportunity.count({
-            where: { ...orgFilter, stage: 'closed_lost', ...oppVisibilityFilter }
+            where: { ...combinedFilter, stage: 'closed_lost', ...oppVisibilityFilter }
         });
 
         const calculateTrend = (curr: number, prev: number) => {
@@ -153,7 +171,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         res.json({
             // Flat structure
             totalLeads,
-            activeOpportunities: await prisma.opportunity.count({ where: { ...orgFilter, stage: { notIn: ['closed_won', 'closed_lost'] }, ...oppVisibilityFilter } }),
+            activeOpportunities: await prisma.opportunity.count({ where: { ...combinedFilter, stage: { notIn: ['closed_won', 'closed_lost'] }, ...oppVisibilityFilter } }),
             salesRevenue: totalRevenue,
             winRate: Math.round(currentWinRate),
 
@@ -167,7 +185,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
             opportunities: {
-                total: await prisma.opportunity.count({ where: { ...orgFilter, ...oppVisibilityFilter } }),
+                total: await prisma.opportunity.count({ where: { ...combinedFilter, ...oppVisibilityFilter } }),
                 value: pipelineValue,
                 won: wonTotal,
                 lost: lostTotal
@@ -198,6 +216,8 @@ export const getSalesChartData = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // Go back 5 months to include current month = 6 total
@@ -215,7 +235,7 @@ export const getSalesChartData = async (req: Request, res: Response) => {
         // Fetch closed_won opportunities
         const wonOpportunities = await prisma.opportunity.findMany({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: 'closed_won',
                 ...visibilityFilter,
                 OR: [
@@ -279,6 +299,8 @@ export const getTopLeads = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         // Visibility
         const visibilityFilter: any = {};
@@ -290,7 +312,7 @@ export const getTopLeads = async (req: Request, res: Response) => {
 
         const topLeads = await prisma.lead.findMany({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 isDeleted: false,
                 ...visibilityFilter
             },
@@ -324,6 +346,8 @@ export const getSalesForecast = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         // Visibility
         const visibilityFilter: any = {};
@@ -336,7 +360,7 @@ export const getSalesForecast = async (req: Request, res: Response) => {
         // Get open opportunities (not closed_won or closed_lost)
         const openOpportunities = await prisma.opportunity.findMany({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
                 ...visibilityFilter
             },
@@ -377,12 +401,14 @@ export const getLeadSourceAnalytics = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         // Prisma groupBy for lead sources
         const sourceStats = await prisma.lead.groupBy({
             by: ['source'],
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 isDeleted: false
             },
             _count: { source: true },
@@ -413,13 +439,15 @@ export const getAiInsights = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
 
         const insights = [];
 
         // 1. Top Lead Source Analysis
         const topSource = await prisma.lead.groupBy({
             by: ['source'],
-            where: { ...orgFilter, isDeleted: false },
+            where: { ...combinedFilter, isDeleted: false },
             _count: { source: true },
             orderBy: { _count: { source: 'desc' } },
             take: 1
@@ -440,7 +468,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
 
         const stagnantDeals = await prisma.opportunity.count({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: { in: ['prospecting', 'qualified'] },
                 updatedAt: { lt: thirtyDaysAgo }
             }
@@ -458,7 +486,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
         // 3. High Value Deal Alert - Calculate dynamic threshold based on average deal size
         const avgDealResult = await prisma.opportunity.aggregate({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
                 amount: { gt: 0 }
             },
@@ -470,7 +498,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
 
         const highValueDeals = await prisma.opportunity.findMany({
             where: {
-                ...orgFilter,
+                ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
                 amount: { gt: highValueThreshold }
             },
@@ -517,11 +545,17 @@ export const getTopPerformers = async (req: Request, res: Response) => {
         }
 
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        // User filter needs to be applied to `User` model, but filtered by branch?
+        // Users belong to a branch. So we can filter users by branchID.
+        const userCombinedFilter = { ...orgFilter, ...branchFilter };
+        // For Active users
+        const activeFilter = { isActive: true };
 
         const topUsers = await prisma.user.findMany({
             where: {
-                ...orgFilter,
-                isActive: true
+                ...userCombinedFilter,
+                ...activeFilter
             },
             select: {
                 id: true,
@@ -550,6 +584,151 @@ export const getTopPerformers = async (req: Request, res: Response) => {
         res.json(leaderboard);
     } catch (error) {
         console.error('getTopPerformers Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const getSalesBook = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const isSuperAdmin = user.role === 'super_admin';
+        const { startDate, endDate } = req.query;
+
+        if (!orgId && !isSuperAdmin) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+
+        const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
+
+        // Visibility
+        const visibilityFilter: any = {};
+        if (!isSuperAdmin && user.role !== 'admin') {
+            const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+            const subordinateIds = await getSubordinateIds(user.id);
+            visibilityFilter.ownerId = { in: subordinateIds };
+        }
+
+        // Date Filter
+        const dateFilter: any = {};
+        if (startDate && endDate) {
+            dateFilter.closeDate = {
+                gte: new Date(String(startDate)),
+                lte: new Date(String(endDate))
+            };
+        }
+
+        const sales = await prisma.opportunity.findMany({
+            where: {
+                ...combinedFilter,
+                stage: 'closed_won',
+                ...visibilityFilter,
+                ...dateFilter
+            },
+            select: {
+                id: true,
+                name: true,
+                amount: true,
+                closeDate: true,
+                account: { select: { name: true } },
+                owner: { select: { firstName: true, lastName: true } } // Assuming 'owner' relation exists or 'assignedTo'
+            },
+            orderBy: { closeDate: 'desc' }
+        });
+
+        const formattedSales = sales.map(s => ({
+            id: s.id,
+            opportunityName: s.name,
+            customerName: s.account?.name || 'N/A',
+            amount: s.amount,
+            closeDate: s.closeDate,
+            ownerName: s.owner ? `${s.owner.firstName} ${s.owner.lastName}` : 'Unknown'
+        }));
+
+        res.json(formattedSales);
+    } catch (error) {
+        console.error('getSalesBook Error:', error);
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+export const getUserWiseSales = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        const orgId = getOrgId(user);
+        const isSuperAdmin = user.role === 'super_admin';
+        const { startDate, endDate } = req.query;
+
+        if (!orgId && !isSuperAdmin) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+
+        const orgFilter = orgId ? { organisationId: orgId } : {};
+        // Branch filter is optional here, usually user-wise report might be global for admin, but let's respect it if passed
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = { ...orgFilter, ...branchFilter };
+
+        // Determine scope of users to report on
+        let userIdsToReport: string[] = [];
+        if (!isSuperAdmin && user.role !== 'admin') {
+            const { getSubordinateIds } = await import('../utils/hierarchyUtils');
+            userIdsToReport = await getSubordinateIds(user.id);
+        } else {
+            // Admin sees all active users in org (and optional branch)
+            const users = await prisma.user.findMany({
+                where: { ...combinedFilter, isActive: true },
+                select: { id: true }
+            });
+            userIdsToReport = users.map(u => u.id);
+        }
+
+        // Date Filter for OPPORTUNITIES
+        const dateFilter: any = {};
+        if (startDate && endDate) {
+            dateFilter.closeDate = {
+                gte: new Date(String(startDate)),
+                lte: new Date(String(endDate))
+            };
+        }
+
+        // Aggregate per user
+        const userStats = await Promise.all(userIdsToReport.map(async (uid) => {
+            const userDetails = await prisma.user.findUnique({
+                where: { id: uid },
+                select: { firstName: true, lastName: true, email: true }
+            });
+
+            if (!userDetails) return null;
+
+            const aggregates = await prisma.opportunity.aggregate({
+                where: {
+                    ownerId: uid, // Sales credited to owner
+                    stage: 'closed_won',
+                    ...orgFilter, // Safety check
+                    ...dateFilter
+                },
+                _sum: { amount: true },
+                _count: { id: true },
+                _avg: { amount: true }
+            });
+
+            return {
+                userId: uid,
+                name: `${userDetails.firstName} ${userDetails.lastName}`,
+                email: userDetails.email,
+                totalRevenue: aggregates._sum.amount || 0,
+                dealsCount: aggregates._count.id || 0,
+                avgDealSize: Math.round(aggregates._avg.amount || 0)
+            };
+        }));
+
+        const cleanStats = userStats.filter(s => s !== null).sort((a, b) => (b?.totalRevenue || 0) - (a?.totalRevenue || 0));
+
+        res.json(cleanStats);
+    } catch (error) {
+        console.error('getUserWiseSales Error:', error);
         res.status(500).json({ message: (error as Error).message });
     }
 };

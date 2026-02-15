@@ -43,7 +43,8 @@ export const createInteractionGeneric = async (req: Request, res: Response) => {
             callStatus,
             phoneNumber,
             date: date ? new Date(date) : new Date(),
-            createdBy: { connect: { id: user.id } }
+            createdBy: { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined)
         };
 
         // Only connect organization if user has one
@@ -90,7 +91,8 @@ export const createInteraction = async (req: Request, res: Response) => {
 
         // Verify lead exists and belongs to org
         const lead = await prisma.lead.findFirst({
-            where: { id: leadId, organisationId: orgId }
+            where: { id: leadId, organisationId: orgId },
+            include: { branch: true }
         });
 
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
@@ -120,7 +122,8 @@ export const createInteraction = async (req: Request, res: Response) => {
                 phoneNumber: phoneNumber || lead.phone,
                 lead: { connect: { id: leadId } },
                 createdBy: { connect: { id: user.id } },
-                organisation: { connect: { id: orgId } }
+                organisation: { connect: { id: orgId } },
+                branch: lead.branchId ? { connect: { id: lead.branchId } } : (user.branchId ? { connect: { id: user.branchId } } : undefined)
             }
         });
 
@@ -186,6 +189,10 @@ export const getAllInteractions = async (req: Request, res: Response) => {
             organisationId: orgId,
             isDeleted: false
         };
+
+        if (user.branchId) {
+            where.branchId = user.branchId;
+        }
 
         // Filter: Type
         if (type) where.type = type as InteractionType;
@@ -270,7 +277,8 @@ export const logQuickInteraction = async (req: Request, res: Response) => {
         if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
 
         const lead = await prisma.lead.findFirst({
-            where: { id: leadId, organisationId: orgId }
+            where: { id: leadId, organisationId: orgId },
+            include: { branch: true }
         });
 
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
@@ -288,7 +296,8 @@ export const logQuickInteraction = async (req: Request, res: Response) => {
                 callStatus: 'initiated',
                 lead: { connect: { id: leadId } },
                 createdBy: { connect: { id: user.id } },
-                organisation: { connect: { id: orgId } }
+                organisation: { connect: { id: orgId } },
+                branch: lead.branchId ? { connect: { id: lead.branchId } } : (user.branchId ? { connect: { id: user.branchId } } : undefined)
             }
         });
 

@@ -41,6 +41,7 @@ export const getTasks = async (req: Request, res: Response) => {
             const orgId = getOrgId(user);
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         // 2. Hierarchy Visibility
@@ -97,7 +98,7 @@ export const createTask = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        
+
         // Allow super admins without organization
         if (!orgId && user.role !== 'super_admin') {
             return res.status(400).json({ message: 'User must belong to an organization to create tasks' });
@@ -118,6 +119,12 @@ export const createTask = async (req: Request, res: Response) => {
         // Only connect organization if user has one
         if (orgId) {
             data.organisation = { connect: { id: orgId } };
+        }
+
+        if (user.branchId) {
+            data.branch = { connect: { id: user.branchId } };
+        } else if (req.body.branchId) {
+            data.branch = { connect: { id: req.body.branchId } };
         }
 
         if (req.body.assignedTo) {
@@ -170,6 +177,7 @@ export const getTaskById = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         const task = await prisma.task.findFirst({
@@ -230,6 +238,7 @@ export const updateTask = async (req: Request, res: Response) => {
             const orgId = getOrgId(requester);
             if (!orgId) return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId) whereObj.branchId = requester.branchId;
         }
 
         const task = await prisma.task.update({
@@ -268,6 +277,7 @@ export const deleteTask = async (req: Request, res: Response) => {
         if (user.role !== 'super_admin') {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) where.branchId = user.branchId;
         }
 
         await prisma.task.update({

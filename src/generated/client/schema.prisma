@@ -1,7 +1,7 @@
 generator client {
   provider      = "prisma-client-js"
   output        = "../src/generated/client"
-  binaryTargets = ["native", "darwin-arm64"]
+  binaryTargets = ["native", "darwin-arm64", "debian-openssl-3.0.x"]
 }
 
 datasource db {
@@ -73,6 +73,7 @@ model Organisation {
   accountProducts   AccountProduct[]
   documents         Document[]
   productShares     ProductShare[]
+  branches          Branch[]
 }
 
 model User {
@@ -163,11 +164,15 @@ model User {
   createdTeams                Team[]                 @relation("TeamCreator")
   managedTeams                Team[]                 @relation("TeamManager")
   sharedProducts              ProductShare[]
+  branchId                    String?
+  branch                      Branch?                @relation(fields: [branchId], references: [id])
+  managedBranches             Branch[]               @relation("BranchManager")
 
   @@index([organisationId])
   @@index([email])
   @@index([role])
   @@index([teamId])
+  @@index([branchId])
 }
 
 model Team {
@@ -268,6 +273,8 @@ model Lead {
   convertedAccounts      Account[]         @relation("LeadToAccount")
   convertedContacts      Contact[]         @relation("LeadToContact")
   convertedOpportunities Opportunity[]     @relation("LeadToOpportunity")
+  branchId               String?
+  branch                 Branch?           @relation(fields: [branchId], references: [id])
 
   @@unique([phone, organisationId])
   @@index([organisationId])
@@ -279,6 +286,7 @@ model Lead {
   @@index([countryCode])
   @@index([isReEnquiry])
   @@index([email])
+  @@index([branchId])
 }
 
 model Account {
@@ -315,9 +323,12 @@ model Account {
   leadId          String?
   lead            Lead?            @relation("LeadToAccount", fields: [leadId], references: [id])
   accountProducts AccountProduct[]
+  branchId        String?
+  branch          Branch?          @relation(fields: [branchId], references: [id])
 
   @@index([organisationId])
   @@index([name])
+  @@index([branchId])
 }
 
 model Contact {
@@ -357,10 +368,13 @@ model Contact {
   documents        Document[]
   leadId           String?
   lead             Lead?             @relation("LeadToContact", fields: [leadId], references: [id])
+  branchId         String?
+  branch           Branch?           @relation(fields: [branchId], references: [id])
 
   @@index([organisationId])
   @@index([email])
   @@index([firstName, lastName])
+  @@index([branchId])
 }
 
 model Opportunity {
@@ -396,11 +410,14 @@ model Opportunity {
   pipelineId     String?
   pipeline       Pipeline?       @relation(fields: [pipelineId], references: [id])
   type           OpportunityType @default(NEW_BUSINESS)
+  branchId       String?
+  branch         Branch?         @relation(fields: [branchId], references: [id])
 
   @@index([organisationId])
   @@index([stage])
   @@index([accountId])
   @@index([pipelineId])
+  @@index([branchId])
 }
 
 enum OpportunityType {
@@ -554,6 +571,10 @@ model Task {
   lead           Lead?         @relation(fields: [leadId], references: [id])
   opportunity    Opportunity?  @relation(fields: [opportunityId], references: [id])
   organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  branchId       String?
+  branch         Branch?       @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
 }
 
 model Interaction {
@@ -586,6 +607,10 @@ model Interaction {
   lead              Lead?                @relation(fields: [leadId], references: [id])
   opportunity       Opportunity?         @relation(fields: [opportunityId], references: [id])
   organisation      Organisation?        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  branchId          String?
+  branch            Branch?              @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
 }
 
 model CalendarEvent {
@@ -832,6 +857,13 @@ model AssignmentRule {
   lastAssignedUser   User?        @relation("RuleLastUser", fields: [lastAssignedUserId], references: [id])
   organisation       Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
   targetManager      User?        @relation("RuleManager", fields: [targetManagerId], references: [id])
+  branchId           String?
+  branch             Branch?      @relation(fields: [branchId], references: [id])
+  companySize        Int?
+  leadScore          Int?
+  dealValue          Float?
+
+  @@index([branchId])
 }
 
 model SalesTarget {
@@ -1447,4 +1479,30 @@ model ProductShare {
   @@index([slug])
   @@index([organisationId])
   @@index([productId])
+}
+
+model Branch {
+  id             String   @id @default(uuid())
+  name           String
+  location       String?
+  contactEmail   String?
+  contactPhone   String?
+  managerId      String?
+  organisationId String
+  isDeleted      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organisation    Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  manager         User?            @relation("BranchManager", fields: [managerId], references: [id])
+  users           User[]
+  leads           Lead[]
+  contacts        Contact[]
+  opportunities   Opportunity[]
+  accounts        Account[]
+  tasks           Task[]
+  interactions    Interaction[]
+  assignmentRules AssignmentRule[]
+
+  @@index([organisationId])
 }

@@ -65,6 +65,7 @@ export const authUser = async (req: Request, res: Response) => {
                 email: user.email,
                 role: user.role,
                 organisation: user.organisation,
+                branchId: user.branchId,
                 token: generateToken(user.id),
             });
         } else {
@@ -188,6 +189,7 @@ export const registerUser = async (req: Request, res: Response) => {
                 email: user.email,
                 role: user.role,
                 organisationId: org.id,
+                branchId: user.branchId,
                 token: generateToken(user.id),
             });
         } else {

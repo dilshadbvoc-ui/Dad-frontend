@@ -177,7 +177,8 @@ exports.Prisma.UserScalarFieldEnum = {
   reportsToId: 'reportsToId',
   permissions: 'permissions',
   dailyLeadQuota: 'dailyLeadQuota',
-  teamId: 'teamId'
+  teamId: 'teamId',
+  branchId: 'branchId'
 };
 
 exports.Prisma.TeamScalarFieldEnum = {
@@ -248,7 +249,8 @@ exports.Prisma.LeadScalarFieldEnum = {
   originalLeadId: 'originalLeadId',
   createdById: 'createdById',
   pipelineId: 'pipelineId',
-  potentialValue: 'potentialValue'
+  potentialValue: 'potentialValue',
+  branchId: 'branchId'
 };
 
 exports.Prisma.AccountScalarFieldEnum = {
@@ -269,7 +271,8 @@ exports.Prisma.AccountScalarFieldEnum = {
   ownerId: 'ownerId',
   organisationId: 'organisationId',
   parentAccountId: 'parentAccountId',
-  leadId: 'leadId'
+  leadId: 'leadId',
+  branchId: 'branchId'
 };
 
 exports.Prisma.ContactScalarFieldEnum = {
@@ -294,7 +297,8 @@ exports.Prisma.ContactScalarFieldEnum = {
   accountId: 'accountId',
   ownerId: 'ownerId',
   organisationId: 'organisationId',
-  leadId: 'leadId'
+  leadId: 'leadId',
+  branchId: 'branchId'
 };
 
 exports.Prisma.OpportunityScalarFieldEnum = {
@@ -318,7 +322,8 @@ exports.Prisma.OpportunityScalarFieldEnum = {
   paymentDate: 'paymentDate',
   leadId: 'leadId',
   pipelineId: 'pipelineId',
-  type: 'type'
+  type: 'type',
+  branchId: 'branchId'
 };
 
 exports.Prisma.ProductScalarFieldEnum = {
@@ -429,7 +434,8 @@ exports.Prisma.TaskScalarFieldEnum = {
   organisationId: 'organisationId',
   isDeleted: 'isDeleted',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  branchId: 'branchId'
 };
 
 exports.Prisma.InteractionScalarFieldEnum = {
@@ -454,7 +460,8 @@ exports.Prisma.InteractionScalarFieldEnum = {
   documentId: 'documentId',
   isDeleted: 'isDeleted',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  branchId: 'branchId'
 };
 
 exports.Prisma.CalendarEventScalarFieldEnum = {
@@ -659,7 +666,11 @@ exports.Prisma.AssignmentRuleScalarFieldEnum = {
   enableRotation: 'enableRotation',
   rotationPool: 'rotationPool',
   rotationType: 'rotationType',
-  timeLimitMinutes: 'timeLimitMinutes'
+  timeLimitMinutes: 'timeLimitMinutes',
+  branchId: 'branchId',
+  companySize: 'companySize',
+  leadScore: 'leadScore',
+  dealValue: 'dealValue'
 };
 
 exports.Prisma.SalesTargetScalarFieldEnum = {
@@ -1055,6 +1066,19 @@ exports.Prisma.ProductShareScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.BranchScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  location: 'location',
+  contactEmail: 'contactEmail',
+  contactPhone: 'contactPhone',
+  managerId: 'managerId',
+  organisationId: 'organisationId',
+  isDeleted: 'isDeleted',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1201,7 +1225,8 @@ exports.Prisma.ModelName = {
   LandingPage: 'LandingPage',
   AuditLog: 'AuditLog',
   Document: 'Document',
-  ProductShare: 'ProductShare'
+  ProductShare: 'ProductShare',
+  Branch: 'Branch'
 };
 
 /**

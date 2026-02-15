@@ -28,7 +28,7 @@ export const EmailService = {
             console.log(`[EmailService] Sending email to ${to} | Subject: ${subject}`);
 
             const info = await transporter.sendMail({
-                from: '"MERN CRM" <no-reply@merncrm.com>',
+                from: '"Leadbox Solutions" <no-reply@leadboxsolutions.com>',
                 to,
                 subject,
                 html

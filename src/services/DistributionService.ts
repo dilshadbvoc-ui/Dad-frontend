@@ -14,16 +14,22 @@ export const DistributionService = {
      */
     async assignLead(lead: any, organisationId: string): Promise<string | null> {
         try {
-            console.log(`[DistributionService] Attempting to assign lead ${lead.id}`);
+            console.log(`[DistributionService] Attempting to assign lead ${lead.id} (Branch: ${lead.branchId || 'None'})`);
 
-            // 1. Fetch active rules for this organisation, sorted by priority
+            // 1. Fetch active rules for this organisation, filtered by branch
             const rules = await prisma.assignmentRule.findMany({
                 where: {
                     organisationId: organisationId,
                     isActive: true,
-                    isDeleted: false
+                    isDeleted: false,
+                    OR: [
+                        { branchId: lead.branchId }, // Match specific branch
+                        { branchId: null }           // OR Global rules
+                    ]
                 },
-                orderBy: { priority: 'asc' }
+                orderBy: [
+                    { priority: 'asc' }
+                ]
             });
 
             if (!rules || rules.length === 0) {
@@ -33,6 +39,9 @@ export const DistributionService = {
 
             // 2. Iterate through rules to find a match
             for (const rule of rules) {
+                // strict check: if rule has branchId, it MUST match (already covered by query, but double check)
+                if (rule.branchId && rule.branchId !== lead.branchId) continue;
+
                 if (this.matchesRule(rule, lead)) {
                     console.log(`[DistributionService] Matched rule: ${rule.name} (${rule.distributionType})`);
                     let assignedUserId: string | null = null;
@@ -49,11 +58,11 @@ export const DistributionService = {
                         }
 
                         case 'round_robin_role':
-                            assignedUserId = await this.executeRoundRobin(rule, organisationId);
+                            assignedUserId = await this.executeRoundRobin(rule, organisationId, lead.branchId);
                             break;
 
                         case 'top_performer':
-                            assignedUserId = await this.executeTopPerformer(rule, organisationId);
+                            assignedUserId = await this.executeTopPerformer(rule, organisationId, lead.branchId);
                             break;
 
                         case 'campaign_users':
@@ -168,11 +177,16 @@ export const DistributionService = {
     /**
      * Helper: Get eligible users for a rule (handling scope + quota)
      */
-    async getEligibleUsers(rule: any, organisationId: string): Promise<any[]> {
+    async getEligibleUsers(rule: any, organisationId: string, branchId?: string | null): Promise<any[]> {
         const where: any = {
             organisationId: organisationId,
             isActive: true
         };
+
+        const targetBranchId = rule.branchId || branchId;
+        if (targetBranchId) {
+            where.branchId = targetBranchId;
+        }
 
         if (rule.targetRole) {
             where.role = rule.targetRole as UserRole;
@@ -296,12 +310,12 @@ export const DistributionService = {
     /**
      * Round Robin Logic: Find next user in the role
      */
-    async executeRoundRobin(rule: any, organisationId: string): Promise<string | null> {
+    async executeRoundRobin(rule: any, organisationId: string, branchId?: string | null): Promise<string | null> {
         try {
             if (!rule.targetRole) return null;
 
             // Fetch eligible users using helper
-            const users = await this.getEligibleUsers(rule, organisationId);
+            const users = await this.getEligibleUsers(rule, organisationId, branchId);
 
             if (users.length === 0) return null;
 
@@ -333,12 +347,12 @@ export const DistributionService = {
     /**
      * Top Performer Logic: Find user with most Sales (Closed Won Opportunities)
      */
-    async executeTopPerformer(rule: any, organisationId: string): Promise<string | null> {
+    async executeTopPerformer(rule: any, organisationId: string, branchId?: string | null): Promise<string | null> {
         try {
             if (!rule.targetRole) return null;
 
             // Fetch eligible users
-            const users = await this.getEligibleUsers(rule, organisationId);
+            const users = await this.getEligibleUsers(rule, organisationId, branchId);
 
             if (users.length === 0) return null;
 

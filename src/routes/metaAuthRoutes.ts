@@ -5,6 +5,7 @@ import axios from 'axios';
 import crypto from 'crypto';
 import { MetaLeadService } from '../services/MetaLeadService'; // Service for handling Meta leads
 import { MetaIntegrationService } from '../services/MetaIntegrationService';
+import { encrypt } from '../utils/encryption';
 
 const router = Router();
 
@@ -254,11 +255,17 @@ router.get('/callback', async (req, res) => {
             data: {
                 integrations: {
                     ...currentIntegrations,
-                    meta: newAccount, // Keep latest as primary for legacy compatibility
-                    metaAccounts: metaAccounts, // Array of all accounts
+                    meta: {
+                        ...newAccount,
+                        accessToken: encrypt(newAccount.accessToken)
+                    },
+                    metaAccounts: metaAccounts.map((acc: any) => ({
+                        ...acc,
+                        accessToken: acc.adAccountId === newAccount.adAccountId ? encrypt(newAccount.accessToken) : acc.accessToken
+                    })),
                     whatsapp: {
                         connected: !!wabaId && !!phoneNumberId,
-                        accessToken: longLivedToken,
+                        accessToken: encrypt(longLivedToken),
                         wabaId: wabaId,
                         phoneNumberId: phoneNumberId,
                         appId: appId,

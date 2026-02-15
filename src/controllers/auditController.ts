@@ -6,12 +6,23 @@ export const getAuditLogs = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const { entity, action, userId, startDate, endDate, page = 1, limit = 20 } = req.query;
 
-        // Base where clause - super admin sees all orgs, others see their own
+        // Base where clause - users see ALL activities within their organisation (no hierarchy restrictions)
         const where: any = {};
         if (user.organisationId) {
             where.organisationId = user.organisationId;
         } else if (user.role !== 'super_admin') {
             return res.status(400).json({ message: 'Organisation not found' });
+        }
+
+        // Branch Isolation: Users can only see activities from actors in their branch (or system events)
+        if (user.branchId) {
+            where.OR = [
+                { actor: { branchId: user.branchId } },
+                { actorId: null } // System events
+            ];
+        } else if (req.query.branchId) {
+            // Admin filtering by specific branch
+            where.actor = { branchId: String(req.query.branchId) };
         }
 
         // Filters
