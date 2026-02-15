@@ -189,3 +189,8 @@ export const uploadImage = async (file: File) => {
     });
     return response.data;
 };
+
+export const getBranches = async () => {
+    const response = await api.get('/branches');
+    return response.data;
+};

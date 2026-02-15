@@ -70,6 +70,7 @@ export interface CreateLeadData {
         country?: string;
         zip?: string;
     };
+    branchId?: string;
 }
 
 export type UpdateLeadData = Partial<CreateLeadData>;

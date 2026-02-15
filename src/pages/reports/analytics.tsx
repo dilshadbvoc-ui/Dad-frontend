@@ -9,9 +9,9 @@ import { ensureArray } from "@/hooks/useArrayData";
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
 export default function AnalyticsPage() {
-    const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ queryKey: ['salesChart'], queryFn: getSalesChartData });
-    const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: getLeadSourceAnalytics });
-    const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: getTopLeads });
+    const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ queryKey: ['salesChart'], queryFn: () => getSalesChartData() });
+    const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: () => getLeadSourceAnalytics() });
+    const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: () => getTopLeads() });
 
     const salesData = ensureArray<{ name: string; total: number }>(salesDataRaw).filter(item => item && typeof item === 'object');
     const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw).filter(item => item && typeof item === 'object');

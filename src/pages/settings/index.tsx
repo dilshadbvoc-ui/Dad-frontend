@@ -43,6 +43,13 @@ const settingsSections = [
         gradient: "from-indigo-600 to-violet-600"
     },
     {
+        title: "Branches",
+        description: "Manage organization branches and locations",
+        href: "/settings/branches",
+        icon: Building,
+        gradient: "from-indigo-600 to-violet-600"
+    },
+    {
         title: "Roles & Permissions",
         description: "Configure access control and user roles",
         href: "/settings/roles",

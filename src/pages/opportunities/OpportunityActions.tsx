@@ -15,6 +15,8 @@ import { deleteOpportunity } from "@/services/opportunityService"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+
 interface OpportunityActionsProps {
     opportunity: Opportunity
 }
@@ -22,6 +24,7 @@ interface OpportunityActionsProps {
 export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isViewOpen, setIsViewOpen] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const queryClient = useQueryClient()
 
     // Helper to get user role
@@ -53,9 +56,7 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
     })
 
     const handleDelete = () => {
-        if (confirm("Are you sure you want to delete this opportunity? This action cannot be undone.")) {
-            deleteMutation.mutate()
-        }
+        setShowDeleteDialog(true)
     }
 
     return (
@@ -108,6 +109,16 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                 open={isViewOpen}
                 onOpenChange={setIsViewOpen}
                 opportunity={opportunity}
+            />
+
+            <DeleteConfirmationDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={() => deleteMutation.mutate()}
+                title="Delete Opportunity"
+                description="Are you sure you want to delete this opportunity? This action cannot be undone."
+                confirmText="Delete Opportunity"
+                isDeleting={deleteMutation.isPending}
             />
         </>
     )

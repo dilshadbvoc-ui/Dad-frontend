@@ -1,200 +1,361 @@
 import { useState } from "react"
-import { Link } from "react-router-dom"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getUsers, inviteUser, updateUser, deactivateUser, type User, type InviteUserData } from "@/services/settingsService"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { api } from "@/services/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Plus, Users, MoreVertical, UserX, Edit } from "lucide-react"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { toast } from "sonner"
+import { Plus, Pencil, Trash2, Mail, Shield, User, Search, Building } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
-export default function TeamSettingsPage() {
-    const [isDialogOpen, setIsDialogOpen] = useState(false)
-    const [selectedUser, setSelectedUser] = useState<User | null>(null)
+interface TeamMember {
+    id: string
+    firstName: string
+    lastName: string
+    email: string
+    role: {
+        id: string
+        name: string
+    }
+    position?: string
+    avatar?: string
+    isActive: boolean
+    reportsTo?: {
+        id: string
+        firstName: string
+        lastName: string
+    }
+    branch?: {
+        id: string
+        name: string
+    }
+}
+
+export default function TeamSettings() {
+    const [isInviteOpen, setIsInviteOpen] = useState(false)
+    const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+    const [searchQuery, setSearchQuery] = useState("")
     const queryClient = useQueryClient()
 
-    // Get current user role from localStorage
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    const currentUserRole = userInfo?.role || '';
-    const isAdmin = currentUserRole === 'admin' || currentUserRole === 'super_admin';
-
-    const { data, isLoading } = useQuery({
+    const { data: userData, isLoading } = useQuery({
         queryKey: ['users'],
-        queryFn: getUsers
+        queryFn: async () => {
+            const res = await api.get('/users')
+            return res.data
+        }
     })
 
-    const users = data?.users || []
+    const { data: branches } = useQuery({
+        queryKey: ['branches'],
+        queryFn: async () => {
+            const res = await api.get('/branches');
+            return res.data;
+        }
+    });
+
+    const members = userData?.users || []
+
+    const filteredMembers = members.filter((member: TeamMember) =>
+        member.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        member.email.toLowerCase().includes(searchQuery.toLowerCase())
+    )
 
     const inviteMutation = useMutation({
-        mutationFn: (data: InviteUserData) => inviteUser(data),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setIsDialogOpen(false); toast.success('User invited') },
-        onError: () => toast.error('Failed to invite user')
+        mutationFn: async (data: any) => {
+            const res = await api.post('/users/invite', data)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            toast.success("Team member invited successfully")
+            setIsInviteOpen(false)
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to invite team member")
+        }
     })
 
     const updateMutation = useMutation({
-        mutationFn: (data: Partial<User> & { id: string }) => updateUser(data.id, data),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); setIsDialogOpen(false); toast.success('User updated') },
-        onError: () => toast.error('Failed to update user')
-    })
-
-    const deactivateMutation = useMutation({
-        mutationFn: (id: string) => deactivateUser(id),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['users'] }); toast.success('User deactivated') }
+        mutationFn: async (data: any) => {
+            const res = await api.put(`/users/${editingMember?.id}`, data)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            toast.success("Team member updated successfully")
+            setIsInviteOpen(false)
+            setEditingMember(null)
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to update team member")
+        }
     })
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        const quotaValue = formData.get('dailyLeadQuota') as string;
-        const userData = {
-            firstName: formData.get('firstName') as string,
-            lastName: formData.get('lastName') as string,
-            email: formData.get('email') as string,
-            position: formData.get('position') as string,
-            reportsTo: formData.get('reportsTo') === 'none' ? undefined : formData.get('reportsTo') as string,
-            role: formData.get('role') as string,
-            password: formData.get('password') as string,
-            dailyLeadQuota: quotaValue ? parseInt(quotaValue) : null
+        const data = {
+            firstName: formData.get('firstName'),
+            lastName: formData.get('lastName'),
+            email: formData.get('email'),
+            role: formData.get('role'),
+            position: formData.get('position'),
+            branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
         }
 
-        if (selectedUser) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            updateMutation.mutate({ ...userData, id: selectedUser.id } as any)
+        if (editingMember) {
+            updateMutation.mutate(data)
         } else {
-            inviteMutation.mutate(userData)
+            inviteMutation.mutate(data)
         }
     }
 
+    const openEdit = (member: TeamMember) => {
+        setEditingMember(member)
+        setIsInviteOpen(true)
+    }
+
+    const openInvite = () => {
+        setEditingMember(null)
+        setIsInviteOpen(true)
+    }
+
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 className="text-lg font-medium text-foreground">Team Members</h3>
+                    <p className="text-sm text-muted-foreground">
+                        Manage your team, assign roles, and control access.
+                    </p>
+                </div>
+                <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Invite Member
+                </Button>
+            </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <div><h1 className="text-3xl font-bold text-foreground">Team</h1><p className="text-muted-foreground">Manage your team members</p></div>
-                            {isAdmin && (
-                                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                    <DialogTrigger asChild><Button onClick={() => setSelectedUser(null)}><Plus className="h-4 w-4 mr-2" />Add Member</Button></DialogTrigger>
-                                    <DialogContent>
-                                        <form onSubmit={handleSubmit}>
-                                            <DialogHeader>
-                                                <DialogTitle>{selectedUser ? 'Edit Team Member' : 'Add Team Member'}</DialogTitle>
-                                                <DialogDescription>
-                                                    {selectedUser ? 'Modify user details, role, and password.' : 'Add a new member to your team.'}
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div><Label>First Name</Label><Input name="firstName" defaultValue={selectedUser?.firstName} required /></div>
-                                                    <div><Label>Last Name</Label><Input name="lastName" defaultValue={selectedUser?.lastName} required /></div>
+            <div className="flex items-center gap-2 max-w-sm">
+                <div className="relative flex-1">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search team members..."
+                        className="pl-9"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                </div>
+            </div>
+
+            <div className="rounded-md border border-border bg-card">
+                <Table>
+                    <TableHeader>
+                        <TableRow>
+                            <TableHead>Member</TableHead>
+                            <TableHead>Role</TableHead>
+                            <TableHead>Branch</TableHead>
+                            <TableHead>Status</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {isLoading ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-8">
+                                    Loading team members...
+                                </TableCell>
+                            </TableRow>
+                        ) : filteredMembers.length === 0 ? (
+                            <TableRow>
+                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                                    No team members found.
+                                </TableCell>
+                            </TableRow>
+                        ) : (
+                            filteredMembers.map((member: TeamMember) => (
+                                <TableRow key={member.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-3">
+                                            <Avatar>
+                                                <AvatarImage src={member.avatar} />
+                                                <AvatarFallback>
+                                                    {member.firstName[0]}{member.lastName[0]}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div>
+                                                <div className="font-medium text-foreground">
+                                                    {member.firstName} {member.lastName}
                                                 </div>
-                                                <div><Label>Email</Label><Input name="email" type="email" defaultValue={selectedUser?.email} required /></div>
-                                                <div><Label>Job Title</Label><Input name="position" defaultValue={selectedUser?.position || ''} placeholder="e.g. Sales Manager" /></div>
-
-                                                <div>
-                                                    <Label>Reports To (Manager)</Label>
-                                                    <Select name="reportsTo" defaultValue={selectedUser?.reportsTo?.id || "none"}>
-                                                        <SelectTrigger><SelectValue placeholder="Select a manager" /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="none">No Manager</SelectItem>
-                                                            {users.filter((u: User) => u.id !== selectedUser?.id).map((u: User) => (
-                                                                <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
+                                                <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                                    <Mail className="h-3 w-3" />
+                                                    {member.email}
                                                 </div>
-
-                                                <div>
-                                                    <Label>Role</Label>
-                                                    <Select name="role" defaultValue={selectedUser?.role?.name || "sales_rep"}>
-                                                        <SelectTrigger><SelectValue placeholder="Select a role" /></SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="sales_rep">Sales Rep (Field Force)</SelectItem>
-                                                            <SelectItem value="manager">Manager</SelectItem>
-                                                            <SelectItem value="admin">Admin</SelectItem>
-                                                        </SelectContent>
-                                                    </Select>
-                                                </div>
-
-                                                <div><Label>Password</Label><Input name="password" type="password" placeholder={selectedUser ? "Leave empty to keep current" : "Leave empty to auto-generate"} /></div>
-
-                                                <div>
-                                                    <Label>Daily Lead Quota</Label>
-                                                    <Input
-                                                        name="dailyLeadQuota"
-                                                        type="number"
-                                                        min="0"
-                                                        defaultValue={selectedUser?.dailyLeadQuota ?? ''}
-                                                        placeholder="Leave empty for unlimited"
-                                                    />
-                                                    <p className="text-xs text-muted-foreground mt-1">Max leads per day via auto-assignment (empty = unlimited)</p>
-                                                </div>
+                                                {member.position && (
+                                                    <div className="text-xs text-muted-foreground mt-0.5">
+                                                        {member.position}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <DialogFooter>
-                                                <Button type="submit" disabled={updateMutation.isPending || inviteMutation.isPending}>
-                                                    <Plus className="h-4 w-4 mr-2" />{selectedUser ? 'Save Changes' : 'Add Member'}
-                                                </Button>
-                                            </DialogFooter>
-                                        </form>
-                                    </DialogContent>
-                                </Dialog>
-                            )}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            <Shield className="h-4 w-4 text-muted-foreground" />
+                                            <span className="capitalize">{member.role.name.replace('_', ' ')}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        {member.branch ? (
+                                            <div className="flex items-center gap-2 text-sm">
+                                                <Building className="h-3 w-3 text-muted-foreground" />
+                                                {member.branch.name}
+                                            </div>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">-</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge variant={member.isActive ? "default" : "secondary"} className={member.isActive ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-0" : ""}>
+                                            {member.isActive ? "Active" : "Inactive"}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
+                                                <Pencil className="h-4 w-4 text-muted-foreground" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
+
+            <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+                <DialogContent className="sm:max-w-[500px]">
+                    <DialogHeader>
+                        <DialogTitle>{editingMember ? 'Edit Team Member' : 'Invite Team Member'}</DialogTitle>
+                        <DialogDescription>
+                            {editingMember ? 'Update member details and permissions.' : 'Add a new member to your organization.'}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleSubmit} className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="firstName">First Name</Label>
+                                <Input
+                                    id="firstName"
+                                    name="firstName"
+                                    defaultValue={editingMember?.firstName}
+                                    required
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="lastName">Last Name</Label>
+                                <Input
+                                    id="lastName"
+                                    name="lastName"
+                                    defaultValue={editingMember?.lastName}
+                                    required
+                                />
+                            </div>
                         </div>
 
-                        <Card>
-                            <CardHeader><CardTitle className="flex items-center gap-2"><Users className="h-5 w-5" />Team Members ({users.length})</CardTitle></CardHeader>
-                            <CardContent>
-                                {isLoading ? (
-                                    <div className="flex justify-center p-12"><div className="h-8 w-8 rounded-full border-4 border-primary border-t-transparent animate-spin" /></div>
-                                ) : users.length === 0 ? (
-                                    <div className="text-center py-12 text-muted-foreground"><Users className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No team members yet</p></div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {users.map((user: User) => (
-                                            <div key={user.id} className="flex items-center justify-between p-4 rounded-xl border hover:bg-muted/50 transition-colors">
-                                                <div className="flex items-center gap-4">
-                                                    <Avatar className="h-10 w-10"><AvatarFallback className="bg-primary/10 text-primary">{user.firstName?.[0]}{user.lastName?.[0]}</AvatarFallback></Avatar>
-                                                    <div>
-                                                        <Link to={`/users/${user.id}`} className="hover:underline font-semibold">{user.firstName} {user.lastName}</Link>
-                                                        <p className="text-sm text-gray-500">{user.email}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-4">
-                                                    <Badge variant={user.isActive ? "default" : "secondary"}>{user.isActive ? 'Active' : 'Inactive'}</Badge>
-                                                    {user.dailyLeadQuota !== undefined && user.dailyLeadQuota !== null ? (
-                                                        <Badge variant="outline" className="border-primary/20 bg-primary/5 text-primary">
-                                                            Quota: {user.dailyLeadQuota}
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="outline" className="text-muted-foreground">No Quota</Badge>
-                                                    )}
-                                                    {user.userId && <Badge variant="outline" className="font-mono text-xs">{user.userId}</Badge>}
-                                                    {user.role && <Badge variant="secondary">{user.role.name}</Badge>}
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => { setSelectedUser(user); setIsDialogOpen(true) }}><Edit className="h-4 w-4 mr-2" />Edit Details</DropdownMenuItem>
-                                                            <DropdownMenuItem className="text-red-600" onClick={() => deactivateMutation.mutate(user.id)}><UserX className="h-4 w-4 mr-2" />Deactivate</DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="email">Email Address</Label>
+                            <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                defaultValue={editingMember?.email}
+                                required
+                                disabled={!!editingMember}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="position">Job Title / Position</Label>
+                            <Input
+                                id="position"
+                                name="position"
+                                defaultValue={editingMember?.position}
+                                placeholder="e.g. Sales Manager"
+                            />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="role">Role</Label>
+                                <Select name="role" defaultValue={editingMember?.role.name || "sales_rep"}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a role" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="admin">Admin</SelectItem>
+                                        <SelectItem value="sales_manager">Sales Manager</SelectItem>
+                                        <SelectItem value="sales_rep">Sales Representative</SelectItem>
+                                        <SelectItem value="viewer">Viewer (Read Only)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="branchId">Branch</Label>
+                                <Select name="branchId" defaultValue={editingMember?.branch?.id || "none"}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Select a branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="none">No Branch</SelectItem>
+                                        {branches?.map((branch: any) => (
+                                            <SelectItem key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </SelectItem>
                                         ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </div>
-                </main>
-            </div>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+
+                        <DialogFooter>
+                            <Button type="button" variant="outline" onClick={() => setIsInviteOpen(false)}>
+                                Cancel
+                            </Button>
+                            <Button type="submit" disabled={inviteMutation.isPending || updateMutation.isPending}>
+                                {editingMember ? 'Update Member' : 'Send Invite'}
+                            </Button>
+                        </DialogFooter>
+                    </form>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

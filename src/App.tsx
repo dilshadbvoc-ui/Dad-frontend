@@ -57,6 +57,7 @@ import EmailListsPage from './pages/marketing/lists';
 // Settings sub-pages
 import ProfileSettingsPage from './pages/settings/profile';
 import TeamSettingsPage from './pages/settings/team';
+import BranchesSettingsPage from './pages/settings/organisation/Branches';
 import RolesSettingsPage from './pages/settings/roles';
 import CustomFieldsSettingsPage from './pages/settings/custom-fields';
 import TerritoriesSettingsPage from './pages/settings/territories';
@@ -71,6 +72,8 @@ import AiWriterPage from './pages/marketing/ai-writer';
 import WorkflowsPage from './pages/automation/workflows';
 import CreateWorkflowPage from './pages/automation/new';
 import WorkflowDetailPage from './pages/automation/WorkflowDetail';
+import SalesBookPage from './pages/reports/SalesBook';
+import UserSalesPage from './pages/reports/UserSales';
 import AnalyticsPage from './pages/reports/analytics';
 import CampaignReportsPage from './pages/reports/campaigns';
 import FieldForceReportsPage from './pages/reports/field-force';
@@ -80,6 +83,7 @@ import FollowUpReportsPage from './pages/reports/follow-ups';
 import IntegrationsSettingsPage from './pages/settings/Integrations';
 import PipelinesSettingsPage from './pages/settings/pipelines';
 import NotificationsSettingsPage from './pages/settings/notifications';
+import NotificationsPage from './pages/notifications';
 import CallRecordingSettingsPage from './pages/settings/call-recording';
 import ImportSettingsPage from './pages/settings/import';
 import BillingSettingsPage from './pages/settings/Billing';
@@ -180,6 +184,7 @@ function AppContent() {
             <Route path="/organisation/hierarchy" element={<HierarchyPage />} />
             <Route path="/settings/profile" element={<ProfileSettingsPage />} />
             <Route path="/settings/team" element={<TeamSettingsPage />} />
+            <Route path="/settings/branches" element={<BranchesSettingsPage />} />
             <Route path="/settings/roles" element={<RolesSettingsPage />} />
             <Route path="/settings/pipelines" element={<PipelinesSettingsPage />} />
             <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
@@ -203,6 +208,8 @@ function AppContent() {
             <Route path="/sales/commissions" element={<CommissionsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
             <Route path="/reports/analytics" element={<AnalyticsPage />} />
+            <Route path="/reports/sales-book" element={<SalesBookPage />} />
+            <Route path="/reports/user-sales" element={<UserSalesPage />} />
             <Route path="/reports/campaigns" element={<CampaignReportsPage />} />
             <Route path="/reports/field-force" element={<FieldForceReportsPage />} />
             <Route path="/reports/leads" element={<LeadReportsPage />} />
@@ -215,7 +222,9 @@ function AppContent() {
             <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
             <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
             <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
+            <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
             <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
 
           </Route>
 

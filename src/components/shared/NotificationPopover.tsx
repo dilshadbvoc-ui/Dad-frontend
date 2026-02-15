@@ -91,7 +91,18 @@ export function NotificationPopover() {
                         </div>
                     )}
                 </div>
+
+                <div className="p-2 border-t text-center">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full text-xs text-primary h-8"
+                        onClick={() => window.location.href = '/notifications'}
+                    >
+                        View all notifications
+                    </Button>
+                </div>
             </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu >
     )
 }

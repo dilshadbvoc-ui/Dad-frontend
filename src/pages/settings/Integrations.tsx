@@ -18,11 +18,14 @@ import {
     WebFormLogo
 } from "@/components/icons/BrandLogos";
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
+import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
 
 interface MetaAccount {
     adAccountId?: string;
     adAccountName?: string;
     pageName?: string;
+    pageId?: string;
+    branchId?: string;
 }
 
 export default function IntegrationsPage() {
@@ -33,13 +36,15 @@ export default function IntegrationsPage() {
     const [configOpen, setConfigOpen] = useState(false);
     const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | null>(null);
 
+    // Meta Account Config State
+    const [metaConfigOpen, setMetaConfigOpen] = useState(false);
+    const [selectedMetaAccount, setSelectedMetaAccount] = useState<MetaAccount | null>(null);
+
     // Fetch Organisation for integration settings
     const { data: orgData } = useQuery({
         queryKey: ['organisation'],
         queryFn: getOrganisation
     });
-
-
 
 
     const integrations = orgData?.integrations || {};
@@ -76,7 +81,7 @@ export default function IntegrationsPage() {
         {
             id: 'facebook',
             name: 'Facebook Leads',
-            description: 'This feature automatically integrates leads from Facebook to ProHostix, eliminating the need for manual input of lead data.',
+            description: 'This feature automatically integrates leads from Facebook to Leadbox Solutions, eliminating the need for manual input of lead data.',
             icon: FacebookLogo,
             iconColor: 'text-blue-600',
             connected: integrations.meta?.connected || (integrations.metaAccounts?.length > 0),
@@ -240,24 +245,41 @@ export default function IntegrationsPage() {
                                     <p className="text-xs font-medium text-indigo-300">Connected Accounts:</p>
                                     {integration.accounts.map((acc: MetaAccount, idx: number) => (
                                         <div key={acc.adAccountId || idx} className="flex items-center justify-between bg-indigo-900/30 p-2 rounded-lg text-xs">
-                                            <span className="font-medium text-white">{acc.adAccountName || acc.pageName || 'Account'}</span>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-6 text-red-400 hover:text-red-300 text-xs"
-                                                onClick={async () => {
-                                                    try {
-                                                        const { api } = await import('@/services/api');
-                                                        await api.post('/meta/disconnect', { type: 'meta', adAccountId: acc.adAccountId });
-                                                        queryClient.invalidateQueries({ queryKey: ['organisation'] });
-                                                        toast.success(`Disconnected ${acc.adAccountName || 'account'}`);
-                                                    } catch {
-                                                        toast.error('Failed to disconnect');
-                                                    }
-                                                }}
-                                            >
-                                                Disconnect
-                                            </Button>
+                                            <div className="flex flex-col">
+                                                <span className="font-medium text-white">{acc.adAccountName || acc.pageName || 'Account'}</span>
+                                                <span className="text-[10px] text-indigo-400">ID: {acc.adAccountId || 'N/A'}</span>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="h-6 text-indigo-300 hover:text-white text-xs"
+                                                    onClick={() => {
+                                                        setSelectedMetaAccount(acc);
+                                                        setMetaConfigOpen(true);
+                                                    }}
+                                                >
+                                                    <Settings className="h-3 w-3 mr-1" />
+                                                    Config
+                                                </Button>
+                                                <Button
+                                                    size="sm"
+                                                    variant="ghost"
+                                                    className="h-6 text-red-400 hover:text-red-300 text-xs"
+                                                    onClick={async () => {
+                                                        try {
+                                                            const { api } = await import('@/services/api');
+                                                            await api.post('/meta/disconnect', { type: 'meta', adAccountId: acc.adAccountId });
+                                                            queryClient.invalidateQueries({ queryKey: ['organisation'] });
+                                                            toast.success(`Disconnected ${acc.adAccountName || 'account'}`);
+                                                        } catch {
+                                                            toast.error('Failed to disconnect');
+                                                        }
+                                                    }}
+                                                >
+                                                    Disconnect
+                                                </Button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -321,6 +343,14 @@ export default function IntegrationsPage() {
                 onOpenChange={setConfigOpen}
                 integrationType={activeConfigType!}
                 initialValues={integrations[activeConfigType!] || {}}
+            />
+
+            {/* Meta Account Config Dialog */}
+            <MetaAccountConfigDialog
+                open={metaConfigOpen}
+                onOpenChange={setMetaConfigOpen}
+                account={selectedMetaAccount}
+                integrations={integrations}
             />
         </div >
     );

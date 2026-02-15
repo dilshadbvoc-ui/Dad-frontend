@@ -1,28 +1,53 @@
-
 import { useState } from "react"
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { importLeads, type CreateLeadData } from "@/services/leadService"
+import { getBranches } from "@/services/settingsService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
 export function BulkImportLeads() {
     const [file, setFile] = useState<File | null>(null)
     const [previewCount, setPreviewCount] = useState<number>(0)
     const [parsedData, setParsedData] = useState<CreateLeadData[]>([])
     const [error, setError] = useState<string | null>(null)
+    const [selectedBranchId, setSelectedBranchId] = useState<string>("")
 
     const queryClient = useQueryClient()
 
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userRole = userInfo.role?.name || userInfo.role;
+    const userBranchId = userInfo.branchId;
+    // Allow branch selection if user is admin/super_admin AND not restricted to a branch
+    const canSelectBranch = ['super_admin', 'admin'].includes(userRole) && !userBranchId;
+
+    const { data: branchesData } = useQuery({
+        queryKey: ['branches'],
+        queryFn: getBranches,
+        enabled: canSelectBranch
+    })
+
+    const branches = branchesData?.branches || [];
+
     const importMutation = useMutation({
-        mutationFn: importLeads,
+        mutationFn: (data: CreateLeadData[]) => {
+            // Attach branchId if selected or user has one
+            const finalData = data.map(lead => ({
+                ...lead,
+                branchId: canSelectBranch ? (selectedBranchId || undefined) : userBranchId
+            }));
+            return importLeads(finalData)
+        },
         onSuccess: (data) => {
             toast.success(`Successfully imported ${data.count} leads`)
             setFile(null)
             setParsedData([])
             setPreviewCount(0)
+            setSelectedBranchId("")
             queryClient.invalidateQueries({ queryKey: ['leads'] })
         },
         onError: (err: { message: string }) => {
@@ -119,6 +144,26 @@ export function BulkImportLeads() {
                 <CardDescription>Upload a CSV file to import leads in bulk.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+                {canSelectBranch && (
+                    <div className="space-y-2">
+                        <Label>Target Branch (Optional)</Label>
+                        <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Select Branch (Default: All/Head Office)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all_branches_placeholder">All/Head Office</SelectItem>
+                                {branches.map((b: { id: string, name: string }) => (
+                                    <SelectItem key={b.id} value={b.id}>
+                                        {b.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">Leads will be assigned to this branch.</p>
+                    </div>
+                )}
+
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors cursor-pointer relative">
                     <input
                         type="file"

@@ -27,7 +27,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createAssignmentRule, updateAssignmentRule, type CreateAssignmentRuleData, type AssignmentRule } from "@/services/assignmentRuleService"
 import { useQuery } from "@tanstack/react-query"
-import { getUsers } from "@/services/settingsService"
+import { getUsers, getBranches } from "@/services/settingsService"
 import { useEffect } from "react"
 
 interface AssignmentRuleDialogProps {
@@ -46,12 +46,24 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
 
     const queryClient = useQueryClient()
 
-    const { data } = useQuery({
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userRole = userInfo.role?.name || userInfo.role; // Handle object or string
+    const userBranchId = userInfo.branchId;
+    const canSelectBranch = ['super_admin', 'admin'].includes(userRole) && !userBranchId;
+
+    const { data: usersData } = useQuery({
         queryKey: ['users'],
         queryFn: getUsers
     })
 
-    const users = (data?.users || []).filter((u: { id: string; firstName: string; lastName: string }) => u && typeof u === 'object');
+    const { data: branchesData } = useQuery({
+        queryKey: ['branches'],
+        queryFn: getBranches,
+        enabled: canSelectBranch
+    })
+
+    const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string }) => u && typeof u === 'object');
+    const branches = branchesData?.branches || [];
 
     const form = useForm<CreateAssignmentRuleData>({
         defaultValues: {
@@ -66,7 +78,8 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
             enableRotation: false,
             timeLimitMinutes: 60,
             rotationType: 'random',
-            rotationPool: []
+            rotationPool: [],
+            branchId: userBranchId || ""
         }
     })
 
@@ -84,7 +97,8 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                 enableRotation: rule.enableRotation || false,
                 timeLimitMinutes: rule.timeLimitMinutes || 60,
                 rotationType: rule.rotationType || 'random',
-                rotationPool: rule.rotationPool || []
+                rotationPool: rule.rotationPool || [],
+                branchId: rule.branchId || userBranchId || ""
             })
         } else {
             form.reset({
@@ -99,10 +113,11 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                 enableRotation: false,
                 timeLimitMinutes: 60,
                 rotationType: 'random',
-                rotationPool: []
+                rotationPool: [],
+                branchId: userBranchId || ""
             })
         }
-    }, [rule, finalOpen, form])
+    }, [rule, finalOpen, form, userBranchId])
 
     const { fields, append, remove } = useFieldArray({
         control: form.control,
@@ -111,10 +126,14 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
 
     const mutation = useMutation({
         mutationFn: (values: CreateAssignmentRuleData) => {
+            // If branchId is empty string, make it undefined
+            const payload = { ...values };
+            if (payload.branchId === "") delete payload.branchId;
+
             if (rule) {
-                return updateAssignmentRule(rule.id, values)
+                return updateAssignmentRule(rule.id, payload)
             }
-            return createAssignmentRule(values)
+            return createAssignmentRule(payload)
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["assignment-rules"] })
@@ -148,6 +167,33 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        {canSelectBranch && (
+                            <FormField
+                                control={form.control}
+                                name="branchId"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Branch (Optional)</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder="Select Branch (Default: All)" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                <SelectItem value="all_branches_placeholder">All Branches</SelectItem>
+                                                {branches.map((b: { id: string, name: string }) => (
+                                                    <SelectItem key={b.id} value={b.id}>
+                                                        {b.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                        )}
                         <FormField
                             control={form.control}
                             name="name"

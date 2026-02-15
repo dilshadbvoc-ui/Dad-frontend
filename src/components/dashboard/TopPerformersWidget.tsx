@@ -5,18 +5,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy, AlertCircle } from "lucide-react"
 import { formatCurrency, getAssetUrl } from "@/lib/utils"
 
-export function TopPerformersWidget() {
+import { getTopPerformers } from "@/services/analyticsService"
+
+export function TopPerformersWidget({ branchId }: { branchId?: string | null }) {
     const { data: performers = [], isLoading, isError } = useQuery({
-        queryKey: ['top-performers'],
-        queryFn: async () => {
-            try {
-                const res = await api.get('/analytics/top-performers');
-                return Array.isArray(res.data) ? res.data : [];
-            } catch (error) {
-                console.error('Error fetching top performers:', error);
-                throw error;
-            }
-        },
+        queryKey: ['top-performers', branchId],
+        queryFn: () => getTopPerformers(branchId || undefined),
         retry: 1,
         staleTime: 30000,
     });

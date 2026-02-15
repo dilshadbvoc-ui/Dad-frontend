@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BarChart3, PieChart, Users, CalendarCheck, Phone } from "lucide-react";
+import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function ReportsPage() {
@@ -80,6 +80,30 @@ export default function ReportsPage() {
                             </div>
                             <CardTitle>Field Force Activity</CardTitle>
                             <CardDescription>Field agent tracking.</CardDescription>
+                        </CardHeader>
+                    </Card>
+                </Link>
+
+                <Link to="/reports/sales-book">
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                        <CardHeader>
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                                <CalendarCheck className="text-primary h-5 w-5" />
+                            </div>
+                            <CardTitle>Sales Book</CardTitle>
+                            <CardDescription>Detailed transaction log.</CardDescription>
+                        </CardHeader>
+                    </Card>
+                </Link>
+
+                <Link to="/reports/user-sales">
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+                        <CardHeader>
+                            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                                <TrendingUp className="text-primary h-5 w-5" />
+                            </div>
+                            <CardTitle>User Sales Report</CardTitle>
+                            <CardDescription>Performance leaderboard.</CardDescription>
                         </CardHeader>
                     </Card>
                 </Link>

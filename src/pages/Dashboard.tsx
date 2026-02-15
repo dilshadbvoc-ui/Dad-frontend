@@ -1,5 +1,7 @@
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardStats, getSalesForecast } from '@/services/analyticsService';
+import { getBranches } from '@/services/settingsService';
 import { AchievementNotification } from '@/components/AchievementNotification';
 import { DailyBriefingDialog } from '@/components/DailyBriefingDialog';
 import { RecentActivityWidget } from '@/components/dashboard/RecentActivityWidget';
@@ -8,22 +10,58 @@ import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
 import { Calendar, ArrowRight } from "lucide-react";
-import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw } from "lucide-react";
+import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw, Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { formatCurrencyCompact } from "@/lib/utils";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 
 export default function Dashboard() {
+    const [user, setUser] = useState<any>(null);
+    const [branches, setBranches] = useState<any[]>([]);
+    const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+            const parsedUser = JSON.parse(userInfo);
+            setUser(parsedUser);
+            // Default to user's branch if they have one and are not super_admin (though analytics handles this)
+        }
+    }, []);
+
+    const isAdmin = user?.role?.name === 'Super Admin' || user?.role === 'super_admin' || user?.role === 'admin';
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            if (isAdmin) {
+                try {
+                    const data = await getBranches();
+                    setBranches(data || []);
+                } catch (error) {
+                    console.error("Failed to fetch branches", error);
+                }
+            }
+        };
+        if (user) fetchBranches();
+    }, [user, isAdmin]);
+
     const { data: stats, isLoading: statsLoading } = useQuery({
-        queryKey: ['dashboardStats'],
-        queryFn: getDashboardStats
+        queryKey: ['dashboardStats', selectedBranchId],
+        queryFn: () => getDashboardStats(selectedBranchId || undefined)
     });
 
     const { data: forecast, isLoading: forecastLoading } = useQuery({
-        queryKey: ['forecast'],
-        queryFn: getSalesForecast
+        queryKey: ['forecast', selectedBranchId],
+        queryFn: () => getSalesForecast(selectedBranchId || undefined)
     });
 
     if (statsLoading || forecastLoading) {
@@ -58,7 +96,31 @@ export default function Dashboard() {
                         Here's your daily overview and performance metrics.
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                    {isAdmin && branches.length > 0 && (
+                        <div className="w-[200px]">
+                            <Select
+                                value={selectedBranchId || "all"}
+                                onValueChange={(val) => setSelectedBranchId(val === "all" ? null : val)}
+                            >
+                                <SelectTrigger className="h-10 w-full bg-background border-input">
+                                    <div className="flex items-center gap-2">
+                                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                                        <SelectValue placeholder="All Branches" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All Branches</SelectItem>
+                                    {branches.map(branch => (
+                                        <SelectItem key={branch.id} value={branch.id}>
+                                            {branch.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+
                     <ErrorBoundary name="DailyBriefingDialog">
                         <DailyBriefingDialog />
                     </ErrorBoundary>
@@ -157,14 +219,14 @@ export default function Dashboard() {
             {/* Main Charts Row */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
                 <ErrorBoundary name="SalesChartWidget">
-                    <SalesChartWidget />
+                    <SalesChartWidget branchId={selectedBranchId} />
                 </ErrorBoundary>
                 <div className="col-span-3 space-y-6">
                     <ErrorBoundary name="TopPerformersWidget">
-                        <TopPerformersWidget />
+                        <TopPerformersWidget branchId={selectedBranchId} />
                     </ErrorBoundary>
                     <ErrorBoundary name="LeadSourcesWidget">
-                        <LeadSourcesWidget />
+                        <LeadSourcesWidget branchId={selectedBranchId} />
                     </ErrorBoundary>
                 </div>
             </div>
@@ -172,7 +234,7 @@ export default function Dashboard() {
             {/* Activity Row */}
             <div className="grid gap-6 md:grid-cols-1">
                 <ErrorBoundary name="RecentActivityWidget">
-                    <RecentActivityWidget />
+                    <RecentActivityWidget branchId={selectedBranchId} />
                 </ErrorBoundary>
             </div>
         </div>

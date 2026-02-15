@@ -7,10 +7,10 @@ import { ensureArray } from "@/hooks/useArrayData";
 
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
-export function LeadSourcesWidget() {
+export function LeadSourcesWidget({ branchId }: { branchId?: string | null }) {
     const { data: leadSourcesRaw, isLoading } = useQuery({
-        queryKey: ['leadSources'],
-        queryFn: getLeadSourceAnalytics
+        queryKey: ['leadSources', branchId],
+        queryFn: () => getLeadSourceAnalytics(branchId || undefined)
     });
 
     const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw)

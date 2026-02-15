@@ -14,6 +14,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { useNavigate } from "react-router-dom"
 
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+
 interface AccountActionsProps {
     account: Account
 }
@@ -22,6 +24,7 @@ export function AccountActions({ account }: AccountActionsProps) {
     const navigate = useNavigate()
     const queryClient = useQueryClient()
     const [isOpen, setIsOpen] = useState(false)
+    const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
     // Helper to get user role
     const getUserRole = () => {
@@ -53,9 +56,7 @@ export function AccountActions({ account }: AccountActionsProps) {
     })
 
     const handleDelete = () => {
-        if (confirm("Are you sure you want to delete this account? This action cannot be undone.")) {
-            deleteMutation.mutate()
-        }
+        setShowDeleteDialog(true)
     }
 
     return (
@@ -87,6 +88,16 @@ export function AccountActions({ account }: AccountActionsProps) {
                     </>
                 )}
             </DropdownMenuContent>
+
+            <DeleteConfirmationDialog
+                open={showDeleteDialog}
+                onOpenChange={setShowDeleteDialog}
+                onConfirm={() => deleteMutation.mutate()}
+                title="Delete Account"
+                description="Are you sure you want to delete this account? This action cannot be undone."
+                confirmText="Delete Account"
+                isDeleting={deleteMutation.isPending}
+            />
         </DropdownMenu>
     )
 }

@@ -12,8 +12,13 @@ export interface CRMNotification {
     createdAt: string;
 }
 
-export const getNotifications = async (page = 1) => {
-    const response = await api.get(`/notifications?page=${page}`);
+export const getNotifications = async (page = 1, type?: string, isRead?: boolean) => {
+    const params = new URLSearchParams({ page: page.toString() });
+
+    if (type && type !== 'all') params.append('type', type);
+    if (isRead !== undefined) params.append('isRead', isRead.toString());
+
+    const response = await api.get(`/notifications?${params.toString()}`);
     return response.data;
 };
 

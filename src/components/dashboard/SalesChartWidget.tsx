@@ -5,10 +5,10 @@ import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tool
 import { Skeleton } from "@/components/ui/skeleton";
 import { ensureArray } from "@/hooks/useArrayData";
 
-export function SalesChartWidget() {
+export function SalesChartWidget({ branchId }: { branchId?: string | null }) {
     const { data: salesDataRaw, isLoading } = useQuery({
-        queryKey: ['salesChart'],
-        queryFn: getSalesChartData
+        queryKey: ['salesChart', branchId],
+        queryFn: () => getSalesChartData(branchId || undefined)
     });
 
     const salesData = ensureArray<{ name: string; total?: number }>(salesDataRaw)

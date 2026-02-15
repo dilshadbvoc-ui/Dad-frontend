@@ -22,6 +22,7 @@ export interface AssignmentRule {
     timeLimitMinutes?: number;
     rotationType?: 'random' | 'selective' | 'manager';
     rotationPool?: string[];
+    branchId?: string;
 }
 
 export interface CreateAssignmentRuleData {
@@ -45,6 +46,7 @@ export interface CreateAssignmentRuleData {
     timeLimitMinutes?: number;
     rotationType?: 'random' | 'selective' | 'manager';
     rotationPool?: string[];
+    branchId?: string;
 }
 
 export const getAssignmentRules = async (entity?: string) => {

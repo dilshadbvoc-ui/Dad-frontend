@@ -7,21 +7,17 @@ import { formatDistanceToNow } from "date-fns"
 import { Loader2, Activity, AlertCircle } from "lucide-react"
 import { getAssetUrl } from "@/lib/utils"
 
-export function RecentActivityWidget() {
+export function RecentActivityWidget({ branchId }: { branchId?: string | null }) {
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['recent-activity'],
+        queryKey: ['recent-activity', branchId],
         queryFn: async () => {
             try {
-                const res = await api.get('/audit-logs', { params: { limit: 20 } });
-                const filteredLogs = (res.data?.logs || []).filter((log: any) => {
-                    const isSecurityEvent = log.action === 'security_event' || 
-                                          log.action.includes('SUPERADMIN') || 
-                                          log.action.includes('UNAUTHORIZED') ||
-                                          log.entity === 'Security';
-                    return !isSecurityEvent;
-                }).slice(0, 10);
-                
-                return { logs: filteredLogs };
+                const params: any = { limit: 20 };
+                if (branchId) params.branchId = branchId;
+
+                const res = await api.get('/audit-logs', { params });
+                const logs = res.data?.logs || [];
+                return { logs };
             } catch (error) {
                 console.error('Error fetching recent activity:', error);
                 throw error;
@@ -77,18 +73,18 @@ export function RecentActivityWidget() {
                                     console.warn('Invalid log data:', log);
                                     return null;
                                 }
-                                
-                                const actorName = log.actor 
+
+                                const actorName = log.actor
                                     ? `${log.actor.firstName || ''} ${log.actor.lastName || ''}`.trim() || 'Unknown User'
                                     : 'System';
-                                
+
                                 const actorInitials = log.actor?.firstName?.[0] || log.actor?.lastName?.[0] || '?';
-                                
+
                                 return (
                                     <div key={log.id} className="flex items-start gap-3 border-b border-border last:border-0 pb-3 last:pb-0">
                                         <Avatar className="h-9 w-9 mt-0.5">
-                                            <AvatarImage 
-                                                src={getAssetUrl(log.actor?.profileImage)} 
+                                            <AvatarImage
+                                                src={getAssetUrl(log.actor?.profileImage)}
                                                 onError={(e) => {
                                                     // Silently handle missing images
                                                     e.currentTarget.style.display = 'none';
@@ -148,6 +144,6 @@ function getHumanReadableAction(action: string) {
         'security_event': 'security event in',
         'BULK_IMPORT_COMPLETED': 'completed bulk import for'
     };
-    
+
     return actionMap[action] || action.toLowerCase().replace(/_/g, ' ');
 }
