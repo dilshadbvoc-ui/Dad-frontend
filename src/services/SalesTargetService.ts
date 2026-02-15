@@ -42,6 +42,7 @@ export class SalesTargetService {
                                 opportunity: {
                                     ownerId: userId,
                                     stage: 'closed_won',
+                                    isDeleted: false,
                                     updatedAt: { gte: target.startDate, lte: target.endDate },
                                     ...typeFilter
                                 }
@@ -66,6 +67,7 @@ export class SalesTargetService {
                         where: {
                             ownerId: userId,
                             stage: 'closed_won',
+                            isDeleted: false,
                             updatedAt: {
                                 gte: target.startDate,
                                 lte: target.endDate

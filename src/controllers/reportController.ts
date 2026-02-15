@@ -195,6 +195,7 @@ export const getSalesBook = async (req: Request, res: Response) => {
         const where: any = {
             organisationId: orgId as string,
             stage: 'closed_won',
+            isDeleted: false,
             updatedAt: { gte: startDate }
         };
 
@@ -311,7 +312,11 @@ export const exportToExcel = async (req: Request, res: Response) => {
             sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
 
         } else if (type === 'sales') {
-            const where: any = { organisationId: orgId as string, stage: 'closed_won' };
+            const where: any = {
+                organisationId: orgId as string,
+                stage: 'closed_won',
+                isDeleted: false
+            };
             if (user.role !== 'admin' && user.role !== 'super_admin') {
                 where.ownerId = { in: [...subordinateIds, user.id] };
             }

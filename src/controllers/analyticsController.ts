@@ -84,6 +84,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: 'closed_won',
+                isDeleted: false,
                 ...oppVisibilityFilter
             },
             _sum: { amount: true }
@@ -92,18 +93,18 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Pipeline Value
         const pipelineResult = await prisma.opportunity.aggregate({
-            where: { ...combinedFilter, ...oppVisibilityFilter },
+            where: { ...combinedFilter, isDeleted: false, ...oppVisibilityFilter },
             _sum: { amount: true }
         });
         const pipelineValue = pipelineResult._sum.amount || 0;
 
         // Contacts/Accounts
         const totalContacts = await prisma.contact.count({
-            where: { ...combinedFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
+            where: { ...combinedFilter, isDeleted: false, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
 
         const totalAccounts = await prisma.account.count({
-            where: { ...combinedFilter, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
+            where: { ...combinedFilter, isDeleted: false, ...(!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}) }
         });
 
         // Current Month Dates
@@ -128,6 +129,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: 'closed_won',
+                isDeleted: false,
                 closeDate: { gte: startOfLastMonth, lt: startOfMonth },
                 ...oppVisibilityFilter
             },
@@ -139,6 +141,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const totalClosedCurrent = await prisma.opportunity.count({
             where: {
                 ...combinedFilter,
+                isDeleted: false,
                 stage: { in: ['closed_won', 'closed_lost'] },
                 closeDate: { gte: startOfMonth },
                 ...oppVisibilityFilter
@@ -147,6 +150,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         const wonCurrent = await prisma.opportunity.count({
             where: {
                 ...combinedFilter,
+                isDeleted: false,
                 stage: 'closed_won',
                 closeDate: { gte: startOfMonth },
                 ...oppVisibilityFilter
@@ -157,10 +161,10 @@ export const getDashboardStats = async (req: Request, res: Response) => {
 
         // Won/Lost for nested object
         const wonTotal = await prisma.opportunity.count({
-            where: { ...combinedFilter, stage: 'closed_won', ...oppVisibilityFilter }
+            where: { ...combinedFilter, isDeleted: false, stage: 'closed_won', ...oppVisibilityFilter }
         });
         const lostTotal = await prisma.opportunity.count({
-            where: { ...combinedFilter, stage: 'closed_lost', ...oppVisibilityFilter }
+            where: { ...combinedFilter, isDeleted: false, stage: 'closed_lost', ...oppVisibilityFilter }
         });
 
         const calculateTrend = (curr: number, prev: number) => {
@@ -171,7 +175,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
         res.json({
             // Flat structure
             totalLeads,
-            activeOpportunities: await prisma.opportunity.count({ where: { ...combinedFilter, stage: { notIn: ['closed_won', 'closed_lost'] }, ...oppVisibilityFilter } }),
+            activeOpportunities: await prisma.opportunity.count({ where: { ...combinedFilter, isDeleted: false, stage: { notIn: ['closed_won', 'closed_lost'] }, ...oppVisibilityFilter } }),
             salesRevenue: totalRevenue,
             winRate: Math.round(currentWinRate),
 
@@ -185,7 +189,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
             opportunities: {
-                total: await prisma.opportunity.count({ where: { ...combinedFilter, ...oppVisibilityFilter } }),
+                total: await prisma.opportunity.count({ where: { ...combinedFilter, isDeleted: false, ...oppVisibilityFilter } }),
                 value: pipelineValue,
                 won: wonTotal,
                 lost: lostTotal
@@ -237,6 +241,7 @@ export const getSalesChartData = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: 'closed_won',
+                isDeleted: false,
                 ...visibilityFilter,
                 OR: [
                     { closeDate: { gte: sixMonthsAgo } },
@@ -362,6 +367,7 @@ export const getSalesForecast = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
+                isDeleted: false,
                 ...visibilityFilter
             },
             select: {
@@ -470,6 +476,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: { in: ['prospecting', 'qualified'] },
+                isDeleted: false,
                 updatedAt: { lt: thirtyDaysAgo }
             }
         });
@@ -488,6 +495,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
+                isDeleted: false,
                 amount: { gt: 0 }
             },
             _avg: { amount: true }
@@ -500,6 +508,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: { notIn: ['closed_won', 'closed_lost'] },
+                isDeleted: false,
                 amount: { gt: highValueThreshold }
             },
             take: 2,
@@ -564,7 +573,7 @@ export const getTopPerformers = async (req: Request, res: Response) => {
                 email: true,
                 profileImage: true,
                 ownedOpportunities: {
-                    where: { stage: 'closed_won' },
+                    where: { stage: 'closed_won', isDeleted: false },
                     select: { amount: true }
                 }
             }
@@ -624,6 +633,7 @@ export const getSalesBook = async (req: Request, res: Response) => {
             where: {
                 ...combinedFilter,
                 stage: 'closed_won',
+                isDeleted: false,
                 ...visibilityFilter,
                 ...dateFilter
             },
@@ -706,6 +716,7 @@ export const getUserWiseSales = async (req: Request, res: Response) => {
                 where: {
                     ownerId: uid, // Sales credited to owner
                     stage: 'closed_won',
+                    isDeleted: false,
                     ...orgFilter, // Safety check
                     ...dateFilter
                 },
