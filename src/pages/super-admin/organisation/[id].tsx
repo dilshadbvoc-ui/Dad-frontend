@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/dialog"
 import { formatCurrency } from '@/lib/utils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
+import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog'
 import { useState } from 'react'
 
 interface OrgDetails {
@@ -99,6 +100,7 @@ export default function OrganisationDetailPage() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [isAssignPlanOpen, setIsAssignPlanOpen] = useState(false)
+    const [isEditOrgOpen, setIsEditOrgOpen] = useState(false)
 
     const { data, isLoading, error } = useQuery<OrgDetails>({
         queryKey: ['organisation', id],
@@ -171,6 +173,14 @@ export default function OrganisationDetailPage() {
                         <p className="text-indigo-300/70 mt-1">{org.slug}</p>
                     </div>
                 </div>
+                <Button
+                    variant="outline"
+                    className="border-indigo-600 text-indigo-300 hover:bg-indigo-900/50"
+                    onClick={() => setIsEditOrgOpen(true)}
+                >
+                    <FileText className="h-4 w-4 mr-2" />
+                    Edit Details
+                </Button>
             </div>
 
             {/* Billing Summary Row */}
@@ -480,6 +490,12 @@ export default function OrganisationDetailPage() {
                 organisationId={org.id}
                 currentPlanId={activeLicense?.plan.id}
                 organisationName={org.name}
+            />
+
+            <EditOrganisationDialog
+                open={isEditOrgOpen}
+                onOpenChange={setIsEditOrgOpen}
+                organisation={org}
             />
         </div>
     )
