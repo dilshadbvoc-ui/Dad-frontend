@@ -20,7 +20,7 @@ export default function IntegrationSection() {
                     Connects with your favorite tools
                 </h2>
                 <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-16">
-                    Streamline your workflow by connecting Leadbox Solutions with the apps you use every day.
+                    Streamline your workflow by connecting PYPE with the apps you use every day.
                 </p>
 
                 <div className="relative mx-auto max-w-5xl">

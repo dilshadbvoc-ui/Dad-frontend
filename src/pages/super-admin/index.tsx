@@ -56,6 +56,16 @@ interface Organisation {
             name: string;
         };
     };
+    activeLicense?: {
+        endDate: string;
+        plan: {
+            name: string;
+            price: number;
+            pricePerUser: number;
+            pricingModel: 'flat_rate' | 'per_user';
+            currency: string;
+        };
+    };
 }
 
 export default function SuperAdminDashboard() {
@@ -256,12 +266,12 @@ export default function SuperAdminDashboard() {
                             <Table>
                                 <TableHeader>
                                     <TableRow className="border-indigo-800 hover:bg-indigo-900/30">
-                                        <TableHead className="text-slate-300">Name</TableHead>
-                                        <TableHead className="text-slate-300">Slug</TableHead>
+                                        <TableHead className="text-slate-300">Organisation</TableHead>
                                         <TableHead className="text-slate-300">Plan</TableHead>
+                                        <TableHead className="text-slate-300 text-center">Users</TableHead>
+                                        <TableHead className="text-slate-300">Expiry</TableHead>
+                                        <TableHead className="text-slate-300">Next Bill</TableHead>
                                         <TableHead className="text-slate-300">Status</TableHead>
-                                        <TableHead className="text-slate-300">Users</TableHead>
-                                        <TableHead className="text-slate-300">Created</TableHead>
                                         <TableHead className="text-right text-slate-300">Actions</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -279,88 +289,99 @@ export default function SuperAdminDashboard() {
                                             </TableCell>
                                         </TableRow>
                                     ) : (
-                                        filteredOrgs?.map((org: Organisation) => (
-                                            // Actually better to define an Org interface or use unknown and cast. But simplest is leaving this one any or defining it.
-                                            // Let's use loose typing for now as I don't have the full Org type handy and it's extensive.
-                                            // Wait, I can define it locally.
-                                            /* 
-                                            interface Organisation {
-                                                id: string;
-                                                name: string;
-                                                slug: string;
-                                                contactEmail: string;
-                                                status: string;
-                                                userCount: number;
-                                                createdAt: string;
-                                                subscription?: { plan?: { name?: string } };
-                                            }
-                                            */
-                                            <TableRow key={org.id} className="border-indigo-800/50 hover:bg-indigo-900/20">
-                                                <TableCell className="font-medium text-white">{org.name}</TableCell>
-                                                <TableCell className="text-slate-400">{org.slug}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="outline" className="border-indigo-700 text-indigo-300">
-                                                        {org.subscription?.plan?.name || 'Trial'}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    <Badge
-                                                        variant={org.status === 'active' ? 'default' : 'destructive'}
-                                                        className={org.status === 'active'
-                                                            ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border-emerald-500/30'
-                                                            : 'bg-red-500/20 text-red-300 hover:bg-red-500/30 border-red-500/30'}
-                                                    >
-                                                        {org.status}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell className="text-slate-300">{org.userCount || 0}</TableCell>
-                                                <TableCell className="text-slate-400">
-                                                    {new Date(org.createdAt).toLocaleDateString()}
-                                                </TableCell>
-                                                <TableCell className="text-right">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
-                                                                <span className="sr-only">Open menu</span>
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="bg-[#1e1b4b] border-indigo-800 text-slate-200">
-                                                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                            <DropdownMenuItem
-                                                                onClick={() => navigate(`/super-admin/organisation/${org.id}`)}
-                                                                className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer"
-                                                            >
-                                                                View Details
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator className="bg-indigo-800" />
-                                                            {org.status === 'active' ? (
+                                        filteredOrgs?.map((org: Organisation) => {
+                                            const daysLeft = org.activeLicense ? Math.ceil((new Date(org.activeLicense.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null;
+
+                                            const estBill = org.activeLicense ?
+                                                (org.activeLicense.plan.pricingModel === 'flat_rate' ?
+                                                    org.activeLicense.plan.price :
+                                                    (org.activeLicense.plan.price || 0) + (org.activeLicense.plan.pricePerUser || 0) * org.userCount)
+                                                : 0;
+
+                                            return (
+                                                <TableRow key={org.id} className="border-indigo-800/50 hover:bg-indigo-900/20">
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className="font-medium text-white">{org.name}</span>
+                                                            <span className="text-[10px] text-slate-500">{org.slug}</span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge variant="outline" className="border-indigo-700 text-indigo-300 text-[10px]">
+                                                            {org.activeLicense?.plan.name || org.subscription?.plan?.name || 'Trial'}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-center font-mono text-slate-300">
+                                                        {org.userCount || 0}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex flex-col">
+                                                            <span className={`text-xs font-semibold ${daysLeft !== null && daysLeft < 5 ? 'text-red-400' : 'text-slate-300'}`}>
+                                                                {daysLeft !== null ? `${daysLeft} days` : 'N/A'}
+                                                            </span>
+                                                            <span className="text-[10px] text-slate-500">
+                                                                {org.activeLicense ? new Date(org.activeLicense.endDate).toLocaleDateString() : 'No active license'}
+                                                            </span>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell className="text-indigo-300 font-semibold text-xs">
+                                                        {formatCurrency(estBill, org.activeLicense?.plan.currency || 'INR')}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Badge
+                                                            variant={org.status === 'active' ? 'default' : 'destructive'}
+                                                            className={org.status === 'active'
+                                                                ? 'bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border-emerald-500/30 text-[10px]'
+                                                                : 'bg-red-500/20 text-red-300 hover:bg-red-500/30 border-red-500/30 text-[10px]'}
+                                                        >
+                                                            {org.status}
+                                                        </Badge>
+                                                    </TableCell>
+                                                    <TableCell className="text-right">
+                                                        <DropdownMenu>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                                                                    <span className="sr-only">Open menu</span>
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="bg-[#1e1b4b] border-indigo-800 text-slate-200">
+                                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                                                 <DropdownMenuItem
-                                                                    onClick={() => toggleStatusMutation.mutate({ id: org.id, status: 'active' })}
-                                                                    className="text-red-400 hover:text-red-300 hover:bg-red-900/30 focus:bg-red-900/30 cursor-pointer"
+                                                                    onClick={() => navigate(`/super-admin/organisation/${org.id}`)}
+                                                                    className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer"
                                                                 >
-                                                                    Suspend Organisation
+                                                                    View Details
                                                                 </DropdownMenuItem>
-                                                            ) : (
+                                                                <DropdownMenuSeparator className="bg-indigo-800" />
+                                                                {org.status === 'active' ? (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => toggleStatusMutation.mutate({ id: org.id, status: 'active' })}
+                                                                        className="text-red-400 hover:text-red-300 hover:bg-red-900/30 focus:bg-red-900/30 cursor-pointer"
+                                                                    >
+                                                                        Suspend Organisation
+                                                                    </DropdownMenuItem>
+                                                                ) : (
+                                                                    <DropdownMenuItem
+                                                                        onClick={() => toggleStatusMutation.mutate({ id: org.id, status: 'suspended' })}
+                                                                        className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 focus:bg-emerald-900/30 cursor-pointer"
+                                                                    >
+                                                                        Restore Organisation
+                                                                    </DropdownMenuItem>
+                                                                )}
+                                                                <DropdownMenuSeparator className="bg-indigo-800" />
                                                                 <DropdownMenuItem
-                                                                    onClick={() => toggleStatusMutation.mutate({ id: org.id, status: 'suspended' })}
-                                                                    className="text-emerald-400 hover:text-emerald-300 hover:bg-emerald-900/30 focus:bg-emerald-900/30 cursor-pointer"
+                                                                    onClick={() => handlePermanentDelete(org)}
+                                                                    className="text-red-600 hover:text-red-400 hover:bg-red-950/50 focus:bg-red-950/50 cursor-pointer font-semibold"
                                                                 >
-                                                                    Restore Organisation
+                                                                    ⚠️ Permanent Delete
                                                                 </DropdownMenuItem>
-                                                            )}
-                                                            <DropdownMenuSeparator className="bg-indigo-800" />
-                                                            <DropdownMenuItem
-                                                                onClick={() => handlePermanentDelete(org)}
-                                                                className="text-red-600 hover:text-red-400 hover:bg-red-950/50 focus:bg-red-950/50 cursor-pointer font-semibold"
-                                                            >
-                                                                ⚠️ Permanent Delete
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </TableCell>
-                                            </TableRow>
-                                        ))
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        })
                                     )}
                                 </TableBody>
                             </Table>

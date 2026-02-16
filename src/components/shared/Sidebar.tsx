@@ -176,7 +176,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             <span className="text-xl">L</span>
                         </div>
                         {!isCollapsed && (
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">Leadbox Solutions</h1>
+                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">PYPE</h1>
                         )}
                     </Link>
                     {!isCollapsed && (

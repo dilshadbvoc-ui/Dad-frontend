@@ -11,7 +11,7 @@ export default function Footer() {
                             <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
                                 <Rocket className="h-5 w-5" />
                             </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Leadbox Solutions</span>
+                            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">PYPE</span>
                         </Link>
                         <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                             The ultimate CRM platform for modern sales teams. Built with React, Node, and AI.
@@ -56,7 +56,7 @@ export default function Footer() {
 
                 <div className="border-t border-gray-100 dark:border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="mt-12 pt-8 border-t border-indigo-500/10 text-center text-indigo-400/60 text-sm">
-                        <p>&copy; {new Date().getFullYear()} Leadbox Solutions. All rights reserved.</p>
+                        <p>&copy; {new Date().getFullYear()} PYPE. All rights reserved.</p>
                     </div>
                     <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">
                         <Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</Link>

@@ -7,7 +7,7 @@ const testimonials = [
     {
         name: "Sarah Chen",
         role: "VP of Sales, TechFlow",
-        content: "Leadbox Solutions transformed how we manage leads. The AI scoring is a game-changer – we've seen a 40% increase in conversion rates in just 3 months.",
+        content: "PYPE transformed how we manage leads. The AI scoring is a game-changer – we've seen a 40% increase in conversion rates in just 3 months.",
         avatar: "SC"
     },
     {

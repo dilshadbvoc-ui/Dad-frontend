@@ -40,7 +40,7 @@ export default function LandingNavbar() {
                         <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
                             <Rocket className="h-6 w-6" />
                         </div>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Leadbox Solutions</span>
+                        <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">PYPE</span>
                     </Link>
 
                     {/* Desktop Nav */}

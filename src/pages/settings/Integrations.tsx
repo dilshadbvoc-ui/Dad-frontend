@@ -81,7 +81,7 @@ export default function IntegrationsPage() {
         {
             id: 'facebook',
             name: 'Facebook Leads',
-            description: 'This feature automatically integrates leads from Facebook to Leadbox Solutions, eliminating the need for manual input of lead data.',
+            description: 'This feature automatically integrates leads from Facebook to PYPE, eliminating the need for manual input of lead data.',
             icon: FacebookLogo,
             iconColor: 'text-blue-600',
             connected: integrations.meta?.connected || (integrations.metaAccounts?.length > 0),
