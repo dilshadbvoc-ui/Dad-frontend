@@ -140,7 +140,11 @@ export const createOrganisation = async (req: Request, res: Response) => {
 // Update organisation
 export const updateOrganisationAdmin = async (req: Request, res: Response) => {
     try {
+        console.log(`[updateOrganisationAdmin] Incoming update for orgId: ${req.params.id}`);
+        console.log('Body:', JSON.stringify(req.body, null, 2));
+
         if (!(req as any).user.isSuperAdmin) {
+            console.log('[updateOrganisationAdmin] Access denied: User is not super admin');
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -149,15 +153,25 @@ export const updateOrganisationAdmin = async (req: Request, res: Response) => {
 
         // Handle Plan Assignment checks
         if (data.planId) {
+            console.log(`[updateOrganisationAdmin] Plan assignment detected. planId: ${data.planId}`);
             const plan = await prisma.subscriptionPlan.findUnique({ where: { id: data.planId } });
-            if (!plan) throw new Error('Invalid Plan ID');
+
+            if (!plan) {
+                console.log(`[updateOrganisationAdmin] Error: Invalid Plan ID - ${data.planId}`);
+                throw new Error('Invalid Plan ID');
+            }
+            console.log(`[updateOrganisationAdmin] Found plan: ${plan.name}`);
 
             // 1. Update Org Limits based on Plan
             data.userLimit = plan.maxUsers;
             data.status = 'active'; // Activate org if plan assignment happens
 
+            console.log(`[updateOrganisationAdmin] Updating org limits: userLimit=${data.userLimit}, status=${data.status}`);
+
             // 2. Legacy Subscription JSON sync
-            const existingSubscription = (await prisma.organisation.findUnique({ where: { id: orgId } }))?.subscription as any || {};
+            const currentOrg = await prisma.organisation.findUnique({ where: { id: orgId } });
+            const existingSubscription = (currentOrg?.subscription as any) || {};
+
             data.subscription = {
                 ...existingSubscription,
                 status: 'active',
@@ -166,15 +180,17 @@ export const updateOrganisationAdmin = async (req: Request, res: Response) => {
                 startDate: new Date(),
                 endDate: new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000)
             };
+            console.log('[updateOrganisationAdmin] Updated subscription JSON:', JSON.stringify(data.subscription, null, 2));
 
             // 3. Deactivate old active licenses
-            await prisma.license.updateMany({
+            const deactivated = await prisma.license.updateMany({
                 where: { organisationId: orgId, status: 'active' },
                 data: { status: 'cancelled', cancelledAt: new Date() }
             });
+            console.log(`[updateOrganisationAdmin] Deactivated ${deactivated.count} old active licenses`);
 
             // 4. Create New License
-            await prisma.license.create({
+            const newLicense = await prisma.license.create({
                 data: {
                     organisationId: orgId,
                     planId: plan.id,
@@ -185,18 +201,23 @@ export const updateOrganisationAdmin = async (req: Request, res: Response) => {
                     autoRenew: true
                 }
             });
+            console.log(`[updateOrganisationAdmin] Created new license: ${newLicense.id}`);
 
             // Clean up planId from data intended for Organisation model update
             delete data.planId;
         }
 
+        console.log('[updateOrganisationAdmin] Final data for prisma.organisation.update:', JSON.stringify(data, null, 2));
         const organisation = await prisma.organisation.update({
             where: { id: orgId },
             data: data
         });
 
+        console.log('[updateOrganisationAdmin] Organisation updated successfully');
+
         // Audit Log
         try {
+            console.log('[updateOrganisationAdmin] Creating audit log...');
             const { logAudit } = await import('../utils/auditLogger');
             await logAudit({
                 organisationId: organisation.id,
@@ -206,12 +227,14 @@ export const updateOrganisationAdmin = async (req: Request, res: Response) => {
                 entityId: organisation.id,
                 details: { updatedFields: Object.keys(data) }
             });
+            console.log('[updateOrganisationAdmin] Audit log created');
         } catch (e) {
-            console.error('Audit Log Error:', e);
+            console.error('[updateOrganisationAdmin] Audit Log Error:', e);
         }
 
         res.json(organisation);
     } catch (error) {
+        console.error('[updateOrganisationAdmin] Caught error:', error);
         res.status(500).json({ message: (error as Error).message });
     }
 };
