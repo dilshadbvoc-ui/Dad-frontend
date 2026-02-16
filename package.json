@@ -1,7 +1,7 @@
 {
-  "name": "leadbox-solutions-server",
+  "name": "pype-server",
   "version": "1.0.0",
-  "description": "Backend for Leadbox Solutions CRM",
+  "description": "Backend for PYPE CRM",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",

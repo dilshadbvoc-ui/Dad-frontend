@@ -125,7 +125,7 @@ export const getOrganisation = async (req: Request, res: Response) => {
 
         // If super admin requesting specific org, include full details
         if (user.role === 'super_admin' && req.params.id) {
-            const [users, leadCount, contactCount, accountCount, opportunityCount, wonOpportunities] = await Promise.all([
+            const [users, leadCount, contactCount, accountCount, opportunityCount, wonOpportunities, activeLicense] = await Promise.all([
                 prisma.user.findMany({
                     where: { organisationId: orgId, isActive: true },
                     select: { id: true, firstName: true, lastName: true, email: true, role: true, position: true, createdAt: true, userId: true },
@@ -138,12 +138,17 @@ export const getOrganisation = async (req: Request, res: Response) => {
                 prisma.opportunity.aggregate({
                     where: { organisationId: orgId, stage: 'closed_won' },
                     _sum: { amount: true }
+                }),
+                prisma.license.findFirst({
+                    where: { organisationId: orgId, status: 'active' },
+                    include: { plan: true }
                 })
             ]);
 
             return res.json({
                 organisation: org,
                 users,
+                activeLicense,
                 stats: {
                     userCount: users.length,
                     leadCount,

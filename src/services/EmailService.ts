@@ -28,7 +28,7 @@ export const EmailService = {
             console.log(`[EmailService] Sending email to ${to} | Subject: ${subject}`);
 
             const info = await transporter.sendMail({
-                from: '"Leadbox Solutions" <no-reply@leadboxsolutions.com>',
+                from: '"PYPE" <no-reply@pype.com>',
                 to,
                 subject,
                 html

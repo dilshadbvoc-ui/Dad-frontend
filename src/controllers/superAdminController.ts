@@ -9,7 +9,14 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
         }
 
         const organisations = await prisma.organisation.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            include: {
+                licenses: {
+                    where: { status: 'active' },
+                    include: { plan: true },
+                    take: 1
+                }
+            }
         });
 
         // Get user counts for each org
@@ -24,7 +31,8 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
 
         const result = organisations.map(org => ({
             ...org,
-            userCount: countMap.get(org.id) || 0
+            userCount: countMap.get(org.id) || 0,
+            activeLicense: org.licenses[0] || null
         }));
 
         res.json({ organisations: result });
