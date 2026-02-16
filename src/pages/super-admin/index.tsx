@@ -40,6 +40,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
 import { CreateOrganisationDialog } from '@/components/super-admin/CreateOrganisationDialog';
+import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog';
 import { PlansManagement } from '@/components/super-admin/PlansManagement';
 import { formatCurrency } from "@/lib/utils";
 
@@ -48,8 +49,11 @@ interface Organisation {
     name: string;
     slug: string;
     contactEmail: string;
+    contactPhone?: string;
+    address?: string;
     status: 'active' | 'suspended';
     userCount: number;
+    userLimit: number;
     createdAt: string;
     subscription?: {
         plan?: {
@@ -80,6 +84,8 @@ export default function SuperAdminDashboard() {
 
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
+    const [editingOrg, setEditingOrg] = useState<Organisation | null>(null);
+    const [isEditOrgOpen, setIsEditOrgOpen] = useState(false);
 
     // Fetch Stats
     const { data: stats, isLoading: statsLoading } = useQuery({
@@ -361,6 +367,15 @@ export default function SuperAdminDashboard() {
                                                                 >
                                                                     View Details
                                                                 </DropdownMenuItem>
+                                                                <DropdownMenuItem
+                                                                    onClick={() => {
+                                                                        setEditingOrg(org);
+                                                                        setIsEditOrgOpen(true);
+                                                                    }}
+                                                                    className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer text-indigo-300"
+                                                                >
+                                                                    Edit Organisation
+                                                                </DropdownMenuItem>
                                                                 <DropdownMenuSeparator className="bg-indigo-800" />
                                                                 {org.status === 'active' ? (
                                                                     <DropdownMenuItem
@@ -448,6 +463,14 @@ export default function SuperAdminDashboard() {
                     </Card>
                 </TabsContent>
             </Tabs>
+
+            {editingOrg && (
+                <EditOrganisationDialog
+                    open={isEditOrgOpen}
+                    onOpenChange={setIsEditOrgOpen}
+                    organisation={editingOrg}
+                />
+            )}
         </div>
     );
 }

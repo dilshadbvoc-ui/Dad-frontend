@@ -145,6 +145,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     });
 
     const isSuperAdmin = user?.role === 'super_admin';
+    console.log('Sidebar Debug:', { user, role: user?.role, isSuperAdmin });
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
