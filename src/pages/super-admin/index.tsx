@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
     Users,
     Building,
@@ -70,6 +70,14 @@ interface Organisation {
 
 export default function SuperAdminDashboard() {
     const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const activeTab = searchParams.get('tab') || 'overview';
+
+    // Function to update URL when tab changes
+    const onTabChange = (value: string) => {
+        setSearchParams({ tab: value });
+    };
+
     const queryClient = useQueryClient();
     const [search, setSearch] = useState('');
 
@@ -167,7 +175,7 @@ export default function SuperAdminDashboard() {
                 </div>
             </div>
 
-            <Tabs defaultValue="overview" className="space-y-6">
+            <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
                 <TabsList className="bg-[#1e1b4b] border border-indigo-900/50">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Overview</TabsTrigger>
                     <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">License Plans</TabsTrigger>

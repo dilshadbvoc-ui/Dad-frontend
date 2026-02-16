@@ -63,6 +63,7 @@ import CustomFieldsSettingsPage from './pages/settings/custom-fields';
 import TerritoriesSettingsPage from './pages/settings/territories';
 import SuperAdminDashboard from './pages/super-admin';
 import OrganisationDetailPage from './pages/super-admin/organisation/[id]';
+import SeoSettingsPage from './pages/super-admin/seo';
 import OrganisationSettingsPage from './pages/settings/organisation';
 
 import LeadScoringSettingsPage from './pages/settings/lead-scoring';
@@ -218,6 +219,7 @@ function AppContent() {
             {/* Super Admin & Organisation Settings */}
             <Route path="/super-admin" element={<SuperAdminDashboard />} />
             <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
+            <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
 
             <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
             <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
