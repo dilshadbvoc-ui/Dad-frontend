@@ -193,7 +193,7 @@ export const createLead = async (req: Request, res: Response) => {
                 source: req.body.source as LeadSource || LeadSource.manual,
                 status: req.body.status as LeadStatus || LeadStatus.new,
                 potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0,
-                createdById: currentUser.id // Track creator for visibility
+                createdBy: { connect: { id: currentUser.id } } // Track creator for visibility
             }
         });
 

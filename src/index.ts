@@ -104,7 +104,7 @@ app.use(helmet({
             scriptSrc: ["'self'"],
             connectSrc: ["'self'", "https://api.facebook.com", "https://graph.facebook.com"],
             frameSrc: ["'none'"],
-            objectSrc: ["'none'"],
+            objectSrc: ["'self'", "data:", "blob:"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
