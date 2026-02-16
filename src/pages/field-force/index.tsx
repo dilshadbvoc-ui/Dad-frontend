@@ -22,36 +22,52 @@ export default function FieldForcePage() {
 
     const handleCheckIn = () => {
         setCheckingIn(true)
-        if (!navigator.geolocation) {
-            toast.error("Geolocation is not supported by your browser")
-            setCheckingIn(false)
+
+        // Helper to perform check-in
+        const submitCheckIn = async (lat?: number, lng?: number, addr?: string) => {
+            try {
+                await createCheckIn({
+                    type: 'CHECK_IN',
+                    latitude: lat,
+                    longitude: lng,
+                    address: addr || 'Unknown Location'
+                })
+                toast.success("Checked in successfully!")
+                queryClient.invalidateQueries({ queryKey: ['checkins'] })
+            } catch (error) {
+                console.error(error)
+                toast.error("Failed to check in")
+            } finally {
+                setCheckingIn(false)
+            }
+        }
+
+        // Check if environment supports geolocation (HTTPS or localhost)
+        const isSecure = window.isSecureContext;
+
+        if (!navigator.geolocation || !isSecure) {
+            console.warn("Geolocation requires a secure context (HTTPS). Proceeding without location.")
+            toast.warning("Location unavailable (HTTP). Checking in without coordinates.")
+            submitCheckIn(undefined, undefined, 'Location unavailable (Insecure Context)')
             return
         }
 
         navigator.geolocation.getCurrentPosition(
-            async (position) => {
-                try {
-                    const { latitude, longitude } = position.coords
-                    await createCheckIn({
-                        type: 'CHECK_IN',
-                        latitude,
-                        longitude,
-                        address: 'Fetching address...' // Backend should handle reverse geocoding ideally
-                    })
-                    toast.success("Checked in successfully!")
-                    queryClient.invalidateQueries({ queryKey: ['checkins'] })
-                } catch (error) {
-                    console.error(error)
-                    toast.error("Failed to check in")
-                } finally {
-                    setCheckingIn(false)
-                }
+            (position) => {
+                const { latitude, longitude } = position.coords
+                submitCheckIn(latitude, longitude, 'Fetching address...')
             },
             (error) => {
-                console.error(error)
-                toast.error("Unable to retrieve your location")
-                setCheckingIn(false)
-            }
+                console.error("Geolocation error:", error)
+                let errorMsg = "Unable to retrieve location."
+                if (error.code === 1) errorMsg = "Location permission denied."
+                else if (error.code === 2) errorMsg = "Position unavailable."
+                else if (error.code === 3) errorMsg = "Location request timed out."
+
+                toast.warning(`${errorMsg} Checking in without coordinates.`)
+                submitCheckIn(undefined, undefined, `Location error: ${errorMsg}`)
+            },
+            { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
         )
     }
 
