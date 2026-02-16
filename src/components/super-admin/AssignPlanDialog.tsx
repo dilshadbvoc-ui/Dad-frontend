@@ -60,18 +60,23 @@ export function AssignPlanDialog({
 
     const updatePlanMutation = useMutation({
         mutationFn: async (data: AssignPlanFormData) => {
+            console.log('[AssignPlanDialog] Mutation started with data:', data);
             const res = await api.put(`/super-admin/organisations/${organisationId}`, {
                 planId: data.planId
             });
+            console.log('[AssignPlanDialog] API Response:', res.data);
             return res.data;
         },
         onSuccess: () => {
+            console.log('[AssignPlanDialog] Mutation successful');
             queryClient.invalidateQueries({ queryKey: ['organisation', organisationId] });
             queryClient.invalidateQueries({ queryKey: ['organisations'] });
             toast.success('Subscription plan updated successfully');
             onOpenChange(false);
         },
         onError: (error: { response?: { data?: { message?: string } } }) => {
+            console.error('[AssignPlanDialog] Mutation failed:', error);
+            console.error('[AssignPlanDialog] Error response:', error.response?.data);
             toast.error(error.response?.data?.message || 'Failed to update subscription plan');
         }
     });
