@@ -21,9 +21,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'LeadHostix CRM',
-        short_name: 'LeadHostix',
-        description: 'Advanced LeadHostix CRM for Sales & Marketing',
+        name: 'PYPE CRM',
+        short_name: 'PYPE',
+        description: 'Advanced PYPE CRM for Sales & Marketing',
         theme_color: '#2E3344',
         icons: [
           {

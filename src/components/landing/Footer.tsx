@@ -1,5 +1,6 @@
 import { Github, Twitter, Linkedin, Rocket } from "lucide-react";
 import { Link } from "react-router-dom";
+import Logo from "../shared/Logo";
 
 export default function Footer() {
     return (
@@ -8,10 +9,7 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
                     <div className="col-span-1 md:col-span-1">
                         <Link to="/" className="flex items-center gap-2 mb-4">
-                            <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
-                                <Rocket className="h-5 w-5" />
-                            </div>
-                            <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">PYPE</span>
+                            <Logo size="lg" />
                         </Link>
                         <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
                             The ultimate CRM platform for modern sales teams. Built with React, Node, and AI.

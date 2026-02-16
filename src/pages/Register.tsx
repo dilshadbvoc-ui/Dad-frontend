@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import Logo from '@/components/shared/Logo';
 import { User, Mail, Lock, Loader2, Building, ArrowRight } from 'lucide-react';
 
 const Register = () => {
@@ -54,7 +55,7 @@ const Register = () => {
                 />
                 <div className="relative z-20 h-full flex flex-col justify-between p-12 text-white">
                     <div className="flex items-center gap-2">
-                        <span className="text-xl font-bold tracking-tight">LEADHOSTIX CRM</span>
+                        <Logo size="lg" className="text-white" />
                     </div>
                     <div className="space-y-4 max-w-md">
                         <blockquote className="text-2xl font-medium leading-relaxed">

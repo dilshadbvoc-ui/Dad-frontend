@@ -5,6 +5,7 @@ import { Menu, X, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
+import Logo from "../shared/Logo";
 
 export default function LandingNavbar() {
     const [isScrolled, setIsScrolled] = useState(false);
@@ -37,10 +38,7 @@ export default function LandingNavbar() {
             <div className="container mx-auto px-4 md:px-6">
                 <div className="flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg group-hover:shadow-blue-500/30 transition-all duration-300">
-                            <Rocket className="h-6 w-6" />
-                        </div>
-                        <span className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">PYPE</span>
+                        <Logo size="lg" />
                     </Link>
 
                     {/* Desktop Nav */}

@@ -29,6 +29,7 @@ import {
     RefreshCw,
     AlertTriangle,
 } from "lucide-react";
+import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
 import {
     Tooltip,
@@ -172,12 +173,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     isCollapsed ? "justify-center px-0" : "justify-between px-6"
                 )}>
                     <Link to="/dashboard" className="flex items-center gap-3 group">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-bold shadow-lg shadow-primary/20 shrink-0">
-                            <span className="text-xl">L</span>
-                        </div>
-                        {!isCollapsed && (
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-400 dark:to-violet-400 bg-clip-text text-transparent">PYPE</h1>
-                        )}
+                        <Logo size="lg" showText={!isCollapsed} />
                     </Link>
                     {!isCollapsed && (
                         <Button

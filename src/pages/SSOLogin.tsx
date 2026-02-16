@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { ArrowLeft, Loader2, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import Logo from '@/components/shared/Logo';
 import { toast } from 'sonner';
 
 const SSOLogin = () => {
@@ -43,9 +44,7 @@ const SSOLogin = () => {
             <Card className="w-full max-w-[400px] shadow-lg">
                 <CardHeader className="space-y-1 text-center">
                     <div className="flex justify-center mb-4">
-                        <div className="h-12 w-12 rounded-full bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center">
-                            <ShieldCheck className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                        </div>
+                        <Logo size="lg" showText={false} />
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">
                         Single Sign-On
