@@ -211,9 +211,11 @@ export default function Dashboard() {
                 </div>
 
                 {/* License Widget */}
-                <ErrorBoundary name="LicenseUsageWidget">
-                    <LicenseUsageWidget />
-                </ErrorBoundary>
+                {isAdmin && (
+                    <ErrorBoundary name="LicenseUsageWidget">
+                        <LicenseUsageWidget />
+                    </ErrorBoundary>
+                )}
             </div>
 
             {/* Main Charts Row */}
