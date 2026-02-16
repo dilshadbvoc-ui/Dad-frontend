@@ -309,30 +309,25 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
                             {group.items.map((item, itemIndex) => {
                                 const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                                const LinkContent = (
-                                    <Link
-                                        to={item.href}
-                                        className={cn(
-                                            "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                            isActive
-                                                ? "bg-sidebar-active text-sidebar-bg shadow-md"
-                                                : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                            isCollapsed ? "justify-center px-0 w-12 h-12 mx-auto" : ""
-                                        )}
-                                    >
-                                        <item.icon className={cn(
-                                            "h-5 w-5 shrink-0 transition-colors",
-                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
-                                        )} />
-                                        {!isCollapsed && <span>{item.title}</span>}
-                                    </Link>
-                                );
 
                                 if (isCollapsed) {
                                     return (
                                         <Tooltip key={itemIndex}>
                                             <TooltipTrigger asChild>
-                                                {LinkContent}
+                                                <Link
+                                                    to={item.href}
+                                                    className={cn(
+                                                        "group flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-all duration-200",
+                                                        isActive
+                                                            ? "bg-sidebar-active text-sidebar-bg shadow-md"
+                                                            : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                                    )}
+                                                >
+                                                    <item.icon className={cn(
+                                                        "h-5 w-5 shrink-0 transition-colors",
+                                                        isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
+                                                    )} />
+                                                </Link>
                                             </TooltipTrigger>
                                             <TooltipContent className="bg-popover text-popover-foreground border-border">
                                                 {item.title}
@@ -341,7 +336,24 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                     );
                                 }
 
-                                return <div key={itemIndex}>{LinkContent}</div>;
+                                return (
+                                    <Link
+                                        key={itemIndex}
+                                        to={item.href}
+                                        className={cn(
+                                            "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                                            isActive
+                                                ? "bg-sidebar-active text-sidebar-bg shadow-md"
+                                                : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                        )}
+                                    >
+                                        <item.icon className={cn(
+                                            "h-5 w-5 shrink-0 transition-colors",
+                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
+                                        )} />
+                                        <span>{item.title}</span>
+                                    </Link>
+                                );
                             })}
                         </div>
                     ))}
@@ -352,11 +364,15 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {isCollapsed ? (
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <div className="flex flex-col items-center gap-4 cursor-pointer" onClick={handleLogout}>
+                                <button
+                                    type="button"
+                                    className="flex items-center justify-center h-12 w-12 mx-auto rounded-full hover:bg-sidebar-hover transition-colors cursor-pointer"
+                                    onClick={handleLogout}
+                                >
                                     <div className="h-8 w-8 rounded-lg bg-sidebar-active flex items-center justify-center text-xs font-bold text-sidebar-bg shadow-sm">
                                         {user?.firstName?.charAt(0) || 'U'}
                                     </div>
-                                </div>
+                                </button>
                             </TooltipTrigger>
                             <TooltipContent>Logout</TooltipContent>
                         </Tooltip>
