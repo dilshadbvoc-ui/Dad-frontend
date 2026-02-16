@@ -57,12 +57,15 @@ interface Organisation {
     createdAt: string;
     subscription?: {
         plan?: {
+            id?: string;
             name: string;
         };
     };
     activeLicense?: {
         endDate: string;
+        planId?: string;
         plan: {
+            id: string;
             name: string;
             price: number;
             pricePerUser: number;

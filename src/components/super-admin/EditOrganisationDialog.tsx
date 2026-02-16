@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,11 +11,18 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Check } from 'lucide-react';
 
 interface EditOrganisationDialogProps {
     open: boolean;
@@ -28,6 +35,10 @@ interface EditOrganisationDialogProps {
         contactPhone?: string;
         address?: string;
         userLimit: number;
+        activeLicense?: {
+            planId?: string;
+            plan: any;
+        };
     };
 }
 
@@ -38,6 +49,7 @@ interface EditOrgFormData {
     contactPhone: string;
     address: string;
     userLimit: number;
+    planId: string;
 }
 
 export function EditOrganisationDialog({
@@ -46,16 +58,30 @@ export function EditOrganisationDialog({
     organisation
 }: EditOrganisationDialogProps) {
     const queryClient = useQueryClient();
-    const { register, handleSubmit, reset, formState: { errors } } = useForm<EditOrgFormData>({
+    const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<EditOrgFormData>({
         defaultValues: {
             name: organisation.name,
             slug: organisation.slug,
             contactEmail: organisation.contactEmail || '',
             contactPhone: organisation.contactPhone || '',
             address: organisation.address || '',
-            userLimit: organisation.userLimit
+            userLimit: organisation.userLimit,
+            planId: organisation.activeLicense?.planId || ''
         }
     });
+
+    // Fetch Plans
+    const { data: plans, isLoading: isLoadingPlans } = useQuery({
+        queryKey: ['plans'],
+        queryFn: async () => {
+            const res = await api.get('/super-admin/plans');
+            return res.data.plans;
+        },
+        staleTime: 1000 * 60 * 5 // 5 minutes
+    });
+
+    const selectedPlanId = watch('planId');
+    const selectedPlan = plans?.find((p: any) => p.id === selectedPlanId);
 
     // Reset form when organisation changes or dialog opens
     useEffect(() => {
@@ -66,7 +92,8 @@ export function EditOrganisationDialog({
                 contactEmail: organisation.contactEmail || '',
                 contactPhone: organisation.contactPhone || '',
                 address: organisation.address || '',
-                userLimit: organisation.userLimit
+                userLimit: organisation.userLimit,
+                planId: organisation.activeLicense?.planId || ''
             });
         }
     }, [open, organisation, reset]);
@@ -156,17 +183,69 @@ export function EditOrganisationDialog({
                         />
                     </div>
 
-                    <div className="space-y-2">
-                        <Label htmlFor="userLimit">User Limit (Manual Override)</Label>
-                        <Input
-                            id="userLimit"
-                            type="number"
-                            {...register('userLimit', { min: 1 })}
-                            className="bg-background border-input"
-                        />
-                        <p className="text-[10px] text-muted-foreground">
-                            Note: Changing the subscription plan will overwrite this value.
-                        </p>
+                    <div className="space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="planId">Subscription Plan</Label>
+                            <Select
+                                value={selectedPlanId}
+                                onValueChange={(val: string) => setValue('planId', val, { shouldValidate: true })}
+                            >
+                                <SelectTrigger className="bg-background border-input">
+                                    <SelectValue placeholder="Select a plan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {isLoadingPlans ? (
+                                        <div className="p-2 text-center text-sm text-muted-foreground">Loading plans...</div>
+                                    ) : (
+                                        plans?.map((plan: any) => (
+                                            <SelectItem key={plan.id} value={plan.id}>
+                                                <div className="flex items-center justify-between w-full gap-2">
+                                                    <span>{plan.name}</span>
+                                                    <span className="text-muted-foreground text-xs">
+                                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: plan.currency }).format(plan.price)}
+                                                    </span>
+                                                </div>
+                                            </SelectItem>
+                                        ))
+                                    )}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground">
+                                Warning: Changing the plan will immediately update the organization's limits.
+                            </p>
+                        </div>
+
+                        {selectedPlan && (
+                            <div className="rounded-md border border-indigo-500/20 bg-indigo-500/10 p-4 space-y-2">
+                                <div className="flex items-center gap-2 text-indigo-400 font-medium">
+                                    <Check className="h-4 w-4" />
+                                    <span>Plan Details</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-[11px]">
+                                    <div className="text-muted-foreground">Max Users:</div>
+                                    <div className="text-foreground font-medium">{selectedPlan.maxUsers}</div>
+                                    <div className="text-muted-foreground">Max Leads:</div>
+                                    <div className="text-foreground font-medium">{selectedPlan.maxLeads}</div>
+                                    <div className="text-muted-foreground">Price:</div>
+                                    <div className="text-foreground font-medium">
+                                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: selectedPlan.currency }).format(selectedPlan.price)}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="space-y-2">
+                            <Label htmlFor="userLimit">User Limit (Manual Override)</Label>
+                            <Input
+                                id="userLimit"
+                                type="number"
+                                {...register('userLimit', { min: 1 })}
+                                className="bg-background border-input"
+                            />
+                            <p className="text-[10px] text-muted-foreground">
+                                Only use this for custom exceptions. Changing the plan after manual override will reset this.
+                            </p>
+                        </div>
                     </div>
 
                     <DialogFooter className="pt-4">
