@@ -1079,6 +1079,15 @@ exports.Prisma.BranchScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.SystemSettingScalarFieldEnum = {
+  id: 'id',
+  key: 'key',
+  value: 'value',
+  group: 'group',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1226,7 +1235,8 @@ exports.Prisma.ModelName = {
   AuditLog: 'AuditLog',
   Document: 'Document',
   ProductShare: 'ProductShare',
-  Branch: 'Branch'
+  Branch: 'Branch',
+  SystemSetting: 'SystemSetting'
 };
 
 /**

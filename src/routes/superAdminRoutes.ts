@@ -14,8 +14,13 @@ import {
     deletePlan
 } from '../controllers/subscriptionPlanController';
 import { protect } from '../middleware/authMiddleware';
+import { getSystemSettings, updateSystemSettings } from '../controllers/systemSettingsController';
 
 const router = express.Router();
+
+// System Settings
+router.get('/settings', protect, getSystemSettings);
+router.put('/settings', protect, updateSystemSettings);
 
 // Organisation Management
 router.get('/organisations', protect, getAllOrganisations);
