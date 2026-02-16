@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
@@ -50,7 +51,7 @@ export function ActionsCell({ lead }: { lead: Lead }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(lead.id)}>
+                    <DropdownMenuItem onClick={() => copyToClipboard(lead.id)}>
                         Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

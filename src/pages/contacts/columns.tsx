@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -119,7 +120,7 @@ function ContactActions({ contact }: { contact: Contact }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(contact.id)}>
+                    <DropdownMenuItem onClick={() => copyToClipboard(contact.id)}>
                         Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />

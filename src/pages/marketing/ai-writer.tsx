@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -46,8 +47,8 @@ export default function AiWriterPage() {
         }
     };
 
-    const copyToClipboard = () => {
-        navigator.clipboard.writeText(generatedContent);
+    const handleCopy = () => {
+        copyToClipboard(generatedContent);
         toast.success("Copied to clipboard");
     };
 
@@ -139,7 +140,7 @@ export default function AiWriterPage() {
                                         <CardDescription>AI generated output.</CardDescription>
                                     </div>
                                     {generatedContent && (
-                                        <Button variant="ghost" size="icon" onClick={copyToClipboard} title="Copy">
+                                        <Button variant="ghost" size="icon" onClick={handleCopy} title="Copy">
                                             <Copy className="h-4 w-4" />
                                         </Button>
                                     )}

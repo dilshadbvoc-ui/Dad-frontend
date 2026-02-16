@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react"
 import { MoreHorizontal, Copy, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -69,7 +70,7 @@ export function AccountActions({ account }: AccountActionsProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => navigator.clipboard.writeText(account.id)}>
+                <DropdownMenuItem onClick={() => copyToClipboard(account.id)}>
                     <Copy className="mr-2 h-4 w-4" />
                     Copy ID
                 </DropdownMenuItem>

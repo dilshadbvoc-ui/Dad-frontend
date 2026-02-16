@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
@@ -228,9 +229,9 @@ export default function ProductsPage() {
         })
     }
 
-    const copyToClipboard = () => {
+    const handleCopy = () => {
         if (sharedLinkData?.url) {
-            navigator.clipboard.writeText(sharedLinkData.url)
+            copyToClipboard(sharedLinkData.url)
             setIsCopied(true)
             toast.success("Link copied to clipboard")
             setTimeout(() => setIsCopied(false), 2000)
@@ -389,7 +390,7 @@ export default function ProductsPage() {
                                             <Label htmlFor="link" className="sr-only">Link</Label>
                                             <Input id="link" defaultValue={sharedLinkData?.url} readOnly />
                                         </div>
-                                        <Button type="button" size="sm" className="px-3" onClick={copyToClipboard}>
+                                        <Button type="button" size="sm" className="px-3" onClick={handleCopy}>
                                             <span className="sr-only">Copy</span>
                                             {isCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                                         </Button>

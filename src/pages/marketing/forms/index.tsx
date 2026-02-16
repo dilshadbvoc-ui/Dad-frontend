@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWebForms, createWebForm, deleteWebForm, type WebForm } from "@/services/webFormService";
@@ -70,7 +71,7 @@ export default function WebFormsPage() {
 
     const copyEmbedCode = (id: string) => {
         const code = `<iframe src="${window.location.origin}/forms/embed/${id}" width="100%" height="500" frameborder="0"></iframe>`;
-        navigator.clipboard.writeText(code);
+        copyToClipboard(code);
         toast.success("Embed code copied to clipboard");
     };
 

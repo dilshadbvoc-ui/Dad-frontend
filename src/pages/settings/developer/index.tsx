@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
@@ -173,7 +174,7 @@ function ApiKeysTab() {
                                 <div className="flex items-center gap-2">
                                     <Input value={createdKey.key} readOnly className="font-mono" />
                                     <Button size="icon" variant="outline" onClick={() => {
-                                        navigator.clipboard.writeText(createdKey.key)
+                                        copyToClipboard(createdKey.key)
                                         toast.success("Key copied to clipboard")
                                     }}>
                                         <Copy className="w-4 h-4" />
@@ -405,8 +406,8 @@ function DocsTab() {
 
     const [copied, setCopied] = useState<string | null>(null)
 
-    const copyToClipboard = (text: string, id: string) => {
-        navigator.clipboard.writeText(text)
+    const handleCopy = (text: string, id: string) => {
+        copyToClipboard(text)
         setCopied(id)
         setTimeout(() => setCopied(null), 2000)
         toast.success("Copied to clipboard")
@@ -424,7 +425,7 @@ function DocsTab() {
                         <Label>Endpoint URL</Label>
                         <div className="flex items-center gap-2">
                             <Input value={apiEndpoint} readOnly className="bg-gray-50 font-mono text-sm" />
-                            <Button size="icon" variant="outline" onClick={() => copyToClipboard(apiEndpoint, 'url')}>
+                            <Button size="icon" variant="outline" onClick={() => handleCopy(apiEndpoint, 'url')}>
                                 {copied === 'url' ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                             </Button>
                         </div>
@@ -434,7 +435,7 @@ function DocsTab() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label>cURL Example</Label>
-                                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(curlExample, 'curl')}>
+                                <Button variant="ghost" size="sm" onClick={() => handleCopy(curlExample, 'curl')}>
                                     {copied === 'curl' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
                                     Copy
                                 </Button>
@@ -447,7 +448,7 @@ function DocsTab() {
                         <div className="space-y-2">
                             <div className="flex items-center justify-between">
                                 <Label>JavaScript (Fetch) Example</Label>
-                                <Button variant="ghost" size="sm" onClick={() => copyToClipboard(jsExample, 'js')}>
+                                <Button variant="ghost" size="sm" onClick={() => handleCopy(jsExample, 'js')}>
                                     {copied === 'js' ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
                                     Copy
                                 </Button>

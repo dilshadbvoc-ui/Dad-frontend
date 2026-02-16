@@ -1,3 +1,4 @@
+import { copyToClipboard } from "@/lib/utils";
 import { type ColumnDef } from "@tanstack/react-table"
 import { MoreHorizontal, ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -143,7 +144,7 @@ function TaskActions({ task }: { task: Task }) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => navigator.clipboard.writeText(task.id)}>
+                    <DropdownMenuItem onClick={() => copyToClipboard(task.id)}>
                         Copy ID
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
