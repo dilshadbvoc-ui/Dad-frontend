@@ -20,7 +20,7 @@ export function getEnvironmentInfo(): EnvironmentInfo {
     let isLocal = false;
 
     // Check if production
-    if (hostname.includes('vercel.app') || hostname.includes('dad-frontend')) {
+    if (hostname.includes('vercel.app') || hostname.includes('dad-frontend') || hostname === '13.53.145.83') {
         environment = 'production';
         backendUrl = 'http://13.53.145.83';
         isProduction = true;

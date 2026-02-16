@@ -138,7 +138,7 @@ export function getAssetUrl(path?: string): string {
 
     // In production, construct full URL to backend
     // If VITE_API_URL contains /api, we need to strip it for static assets which are at root /uploads
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://13.53.145.83';
+    const apiUrl = (import.meta.env.VITE_API_URL || 'http://13.53.145.83').replace(/\/$/, ''); // Remove trailing slash if present
     const baseUrl = apiUrl.endsWith('/api')
         ? apiUrl.slice(0, -4)
         : apiUrl;
