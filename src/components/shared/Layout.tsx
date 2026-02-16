@@ -111,7 +111,7 @@ export default function Layout() {
 
             {/* Desktop Sidebar */}
             <div className="hidden lg:block">
-                <ErrorBoundary name="Sidebar_V4">
+                <ErrorBoundary name="Sidebar">
                     <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
                 </ErrorBoundary>
             </div>
@@ -121,7 +121,7 @@ export default function Layout() {
                 "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl",
                 mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
             )}>
-                <ErrorBoundary name="MobileSidebar_V4">
+                <ErrorBoundary name="MobileSidebar">
                     <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
                 </ErrorBoundary>
                 {/* Close button inside sidebar for better UX */}
