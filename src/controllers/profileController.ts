@@ -28,6 +28,14 @@ export const updateProfile = async (req: Request, res: Response) => {
     try {
         const userId = (req as any).user.id;
         const updateData = { ...req.body };
+
+        // DEBUG LOGGING
+        if (updateData.profileImage) {
+            console.log(`[ProfileController] updateUser called with profileImage: ${updateData.profileImage}`);
+        } else {
+            console.log(`[ProfileController] updateUser called without profileImage`);
+        }
+
         delete updateData.password;
         delete updateData.email;
 

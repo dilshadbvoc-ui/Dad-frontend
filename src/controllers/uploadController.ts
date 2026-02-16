@@ -176,6 +176,10 @@ export const uploadGenericImage = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const orgId = getOrgId(user);
 
+        // DEBUG LOGGING
+        console.log(`[UploadController] uploadGenericImage called for user ${user.id}`);
+        console.log(`[UploadController] File: ${req.file.originalname}, Size: ${req.file.size}, Mime: ${req.file.mimetype}`);
+
         // Read file data as buffer
         const fileData = req.file.buffer;
 
