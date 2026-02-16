@@ -157,7 +157,9 @@ const allowedOrigins = [
     'https://dad-frontend.vercel.app',
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL,
-    process.env.ALLOWED_ORIGINS
+    process.env.ALLOWED_ORIGINS,
+    'https://pypecrm.com',
+    'https://www.pypecrm.com'
 ].filter(Boolean);
 
 app.use(cors({
