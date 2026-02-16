@@ -127,6 +127,7 @@ export default function TeamSettings() {
             role: formData.get('role'),
             position: formData.get('position'),
             branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
+            reportsTo: formData.get('reportsTo') === 'none' ? null : formData.get('reportsTo'),
         }
 
         if (editingMember) {
@@ -344,6 +345,28 @@ export default function TeamSettings() {
                                 </Select>
                             </div>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="reportsTo">Reports To</Label>
+                            <Select name="reportsTo" defaultValue={editingMember?.reportsTo?.id || "none"}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a manager" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">No Manager</SelectItem>
+                                    {members
+                                        .filter((m: TeamMember) => m.id !== editingMember?.id) // Prevent self-reporting
+                                        .map((member: TeamMember) => (
+                                            <SelectItem key={member.id} value={member.id}>
+                                                {member.firstName} {member.lastName}
+                                            </SelectItem>
+                                        ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                            Assigning a manager creates a reporting hierarchy.
+                        </p>
 
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => setIsInviteOpen(false)}>
