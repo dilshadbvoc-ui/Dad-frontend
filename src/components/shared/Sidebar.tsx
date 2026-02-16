@@ -215,6 +215,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                         <ShieldCheck className="h-5 w-5 shrink-0 text-sidebar-active" />
                                         {!isCollapsed && <span className="text-sm font-medium">Dashboard</span>}
                                     </Link>
+                                </TooltipTrigger>
+                                {isCollapsed && <TooltipContent>Dashboard</TooltipContent>}
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
                                     <Link to="/super-admin?tab=overview" className={cn(
                                         "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
                                         pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
@@ -223,6 +229,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                         <Building className="h-5 w-5 shrink-0 text-sidebar-active" />
                                         {!isCollapsed && <span className="text-sm font-medium">Organisations</span>}
                                     </Link>
+                                </TooltipTrigger>
+                                {isCollapsed && <TooltipContent>Organisations</TooltipContent>}
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
                                     <Link to="/super-admin?tab=plans" className={cn(
                                         "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
                                         location.search.includes('tab=plans') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
@@ -231,22 +243,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                         <CreditCard className="h-5 w-5 shrink-0 text-sidebar-active" />
                                         {!isCollapsed && <span className="text-sm font-medium">License Plans</span>}
                                     </Link>
-                                    <Link to="/super-admin?tab=overview" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <Building className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">Organisations</span>}
-                                    </Link>
-                                    <Link to="/super-admin?tab=plans" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        location.search.includes('tab=plans') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <CreditCard className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">License Plans</span>}
-                                    </Link>
+                                </TooltipTrigger>
+                                {isCollapsed && <TooltipContent>License Plans</TooltipContent>}
+                            </Tooltip>
+
+                            <Tooltip>
+                                <TooltipTrigger asChild>
                                     <Link to="/super-admin/seo" className={cn(
                                         "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
                                         pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
@@ -256,7 +258,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                         {!isCollapsed && <span className="text-sm font-medium">SEO Panel</span>}
                                     </Link>
                                 </TooltipTrigger>
-                                {isCollapsed && <TooltipContent>Super Admin</TooltipContent>}
+                                {isCollapsed && <TooltipContent>SEO Panel</TooltipContent>}
                             </Tooltip>
                         </div>
                     )}
