@@ -13,16 +13,16 @@ export function getEnvironmentInfo(): EnvironmentInfo {
     const hostname = window.location.hostname;
     const port = window.location.port;
     const protocol = window.location.protocol;
-    
+
     let environment: 'production' | 'local' | 'unknown' = 'unknown';
     let backendUrl = '';
     let isProduction = false;
     let isLocal = false;
-    
+
     // Check if production
     if (hostname.includes('vercel.app') || hostname.includes('dad-frontend')) {
         environment = 'production';
-        backendUrl = 'https://dad-backend.onrender.com';
+        backendUrl = 'http://13.53.145.83';
         isProduction = true;
     }
     // Check if local
@@ -31,7 +31,7 @@ export function getEnvironmentInfo(): EnvironmentInfo {
         backendUrl = 'http://localhost:5001';
         isLocal = true;
     }
-    
+
     return {
         environment,
         frontendUrl: `${protocol}//${hostname}${port ? ':' + port : ''}`,

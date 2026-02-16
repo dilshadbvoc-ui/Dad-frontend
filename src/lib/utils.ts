@@ -104,12 +104,12 @@ export function formatCurrency(amount: number, currency?: string, options?: {
 }) {
     const curr = (currency || currentCurrency).toUpperCase();
     const locale = CURRENCY_LOCALES[curr] || 'en-US';
-    
+
     // Determine fraction digits with proper defaults
     const isCompact = options?.compact ?? false;
     const maxFractionDigits = options?.maximumFractionDigits ?? (isCompact ? 0 : 2);
     const minFractionDigits = options?.minimumFractionDigits ?? (isCompact ? 0 : Math.min(maxFractionDigits, 2));
-    
+
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: curr,
@@ -137,6 +137,11 @@ export function getAssetUrl(path?: string): string {
     }
 
     // In production, construct full URL to backend
-    const backendUrl = import.meta.env.VITE_API_URL || 'https://dad-backend.onrender.com';
-    return `${backendUrl}${path}`;
+    // If VITE_API_URL contains /api, we need to strip it for static assets which are at root /uploads
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://13.53.145.83';
+    const baseUrl = apiUrl.endsWith('/api')
+        ? apiUrl.slice(0, -4)
+        : apiUrl;
+
+    return `${baseUrl}${path}`;
 }
