@@ -145,7 +145,6 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     });
 
     const isSuperAdmin = user?.role === 'super_admin';
-    console.log('Sidebar Debug:', { user, role: user?.role, isSuperAdmin });
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
@@ -206,61 +205,97 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {/* Super Admin Link */}
                     {isSuperAdmin && (
                         <div className="mb-2">
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link to="/super-admin" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        pathname === '/super-admin' ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <ShieldCheck className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">Dashboard</span>}
-                                    </Link>
-                                </TooltipTrigger>
-                                {isCollapsed && <TooltipContent>Dashboard</TooltipContent>}
-                            </Tooltip>
+                            {/* Dashboard */}
+                            {isCollapsed ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to="/super-admin" className={cn(
+                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
+                                            pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                        )}>
+                                            <ShieldCheck className="h-5 w-5 shrink-0" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Dashboard</TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Link to="/super-admin" className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
+                                    pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                )}>
+                                    <ShieldCheck className={cn("h-5 w-5 shrink-0", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                    <span>Dashboard</span>
+                                </Link>
+                            )}
 
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link to="/super-admin?tab=overview" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <Building className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">Organisations</span>}
-                                    </Link>
-                                </TooltipTrigger>
-                                {isCollapsed && <TooltipContent>Organisations</TooltipContent>}
-                            </Tooltip>
+                            {/* Organisations */}
+                            {isCollapsed ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to="/super-admin?tab=overview" className={cn(
+                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
+                                            pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                        )}>
+                                            <Building className="h-5 w-5 shrink-0" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>Organisations</TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Link to="/super-admin?tab=overview" className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
+                                    pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                )}>
+                                    <Building className={cn("h-5 w-5 shrink-0", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                    <span>Organisations</span>
+                                </Link>
+                            )}
 
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link to="/super-admin?tab=plans" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        location.search.includes('tab=plans') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <CreditCard className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">License Plans</span>}
-                                    </Link>
-                                </TooltipTrigger>
-                                {isCollapsed && <TooltipContent>License Plans</TooltipContent>}
-                            </Tooltip>
+                            {/* License Plans */}
+                            {isCollapsed ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to="/super-admin?tab=plans" className={cn(
+                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
+                                            location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                        )}>
+                                            <CreditCard className="h-5 w-5 shrink-0" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>License Plans</TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Link to="/super-admin?tab=plans" className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
+                                    location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                )}>
+                                    <CreditCard className={cn("h-5 w-5 shrink-0", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                    <span>License Plans</span>
+                                </Link>
+                            )}
 
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Link to="/super-admin/seo" className={cn(
-                                        "flex items-center gap-3 px-3 py-2 rounded-lg transition-colors mb-1",
-                                        pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover",
-                                        isCollapsed && "justify-center px-0"
-                                    )}>
-                                        <Globe className="h-5 w-5 shrink-0 text-sidebar-active" />
-                                        {!isCollapsed && <span className="text-sm font-medium">SEO Panel</span>}
-                                    </Link>
-                                </TooltipTrigger>
-                                {isCollapsed && <TooltipContent>SEO Panel</TooltipContent>}
-                            </Tooltip>
+                            {/* SEO Panel */}
+                            {isCollapsed ? (
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link to="/super-admin/seo" className={cn(
+                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
+                                            pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                        )}>
+                                            <Globe className="h-5 w-5 shrink-0" />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>SEO Panel</TooltipContent>
+                                </Tooltip>
+                            ) : (
+                                <Link to="/super-admin/seo" className={cn(
+                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
+                                    pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
+                                )}>
+                                    <Globe className={cn("h-5 w-5 shrink-0", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                    <span>SEO Panel</span>
+                                </Link>
+                            )}
                         </div>
                     )}
 
