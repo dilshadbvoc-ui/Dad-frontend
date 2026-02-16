@@ -59,15 +59,21 @@ exports.DistributionService = {
     assignLead(lead, organisationId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                console.log(`[DistributionService] Attempting to assign lead ${lead.id}`);
-                // 1. Fetch active rules for this organisation, sorted by priority
+                console.log(`[DistributionService] Attempting to assign lead ${lead.id} (Branch: ${lead.branchId || 'None'})`);
+                // 1. Fetch active rules for this organisation, filtered by branch
                 const rules = yield prisma_1.default.assignmentRule.findMany({
                     where: {
                         organisationId: organisationId,
                         isActive: true,
-                        isDeleted: false
+                        isDeleted: false,
+                        OR: [
+                            { branchId: lead.branchId }, // Match specific branch
+                            { branchId: null } // OR Global rules
+                        ]
                     },
-                    orderBy: { priority: 'asc' }
+                    orderBy: [
+                        { priority: 'asc' }
+                    ]
                 });
                 if (!rules || rules.length === 0) {
                     console.log('[DistributionService] No active assignment rules found.');
@@ -75,6 +81,9 @@ exports.DistributionService = {
                 }
                 // 2. Iterate through rules to find a match
                 for (const rule of rules) {
+                    // strict check: if rule has branchId, it MUST match (already covered by query, but double check)
+                    if (rule.branchId && rule.branchId !== lead.branchId)
+                        continue;
                     if (this.matchesRule(rule, lead)) {
                         console.log(`[DistributionService] Matched rule: ${rule.name} (${rule.distributionType})`);
                         let assignedUserId = null;
@@ -89,10 +98,10 @@ exports.DistributionService = {
                                 break;
                             }
                             case 'round_robin_role':
-                                assignedUserId = yield this.executeRoundRobin(rule, organisationId);
+                                assignedUserId = yield this.executeRoundRobin(rule, organisationId, lead.branchId);
                                 break;
                             case 'top_performer':
-                                assignedUserId = yield this.executeTopPerformer(rule, organisationId);
+                                assignedUserId = yield this.executeTopPerformer(rule, organisationId, lead.branchId);
                                 break;
                             case 'campaign_users':
                                 // Round-robin among multiple specific users defined in assignTo.users
@@ -202,12 +211,16 @@ exports.DistributionService = {
     /**
      * Helper: Get eligible users for a rule (handling scope + quota)
      */
-    getEligibleUsers(rule, organisationId) {
+    getEligibleUsers(rule, organisationId, branchId) {
         return __awaiter(this, void 0, void 0, function* () {
             const where = {
                 organisationId: organisationId,
                 isActive: true
             };
+            const targetBranchId = rule.branchId || branchId;
+            if (targetBranchId) {
+                where.branchId = targetBranchId;
+            }
             if (rule.targetRole) {
                 where.role = rule.targetRole;
             }
@@ -324,13 +337,13 @@ exports.DistributionService = {
     /**
      * Round Robin Logic: Find next user in the role
      */
-    executeRoundRobin(rule, organisationId) {
+    executeRoundRobin(rule, organisationId, branchId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!rule.targetRole)
                     return null;
                 // Fetch eligible users using helper
-                const users = yield this.getEligibleUsers(rule, organisationId);
+                const users = yield this.getEligibleUsers(rule, organisationId, branchId);
                 if (users.length === 0)
                     return null;
                 // Find index of last assigned user
@@ -358,13 +371,13 @@ exports.DistributionService = {
     /**
      * Top Performer Logic: Find user with most Sales (Closed Won Opportunities)
      */
-    executeTopPerformer(rule, organisationId) {
+    executeTopPerformer(rule, organisationId, branchId) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 if (!rule.targetRole)
                     return null;
                 // Fetch eligible users
-                const users = yield this.getEligibleUsers(rule, organisationId);
+                const users = yield this.getEligibleUsers(rule, organisationId, branchId);
                 if (users.length === 0)
                     return null;
                 // 30 Days lookback window

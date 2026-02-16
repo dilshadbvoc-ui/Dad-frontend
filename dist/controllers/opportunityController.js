@@ -67,6 +67,8 @@ const getOpportunities = (req, res) => __awaiter(void 0, void 0, void 0, functio
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
@@ -125,6 +127,7 @@ const createOpportunity = (req, res) => __awaiter(void 0, void 0, void 0, functi
             type: req.body.type || 'NEW_BUSINESS', // Default
             organisation: { connect: { id: orgId } },
             owner: { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
             // Account is required in schema
             account: { connect: { id: req.body.account } }
         };
@@ -180,6 +183,8 @@ const getOpportunityById = (req, res) => __awaiter(void 0, void 0, void 0, funct
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         const opportunity = yield prisma_1.default.opportunity.findFirst({
             where,
@@ -235,6 +240,8 @@ const updateOpportunity = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId)
+                whereObj.branchId = requester.branchId;
         }
         const opportunity = yield prisma_1.default.opportunity.update({
             where: whereObj,
@@ -341,6 +348,8 @@ const deleteOpportunity = (req, res) => __awaiter(void 0, void 0, void 0, functi
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         const opportunity = yield prisma_1.default.opportunity.findFirst({ where });
         if (!opportunity)

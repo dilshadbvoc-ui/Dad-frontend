@@ -50,6 +50,7 @@ const axios_1 = __importDefault(require("axios"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const DistributionService_1 = require("./DistributionService");
 const client_1 = require("../generated/client");
+const encryption_1 = require("../utils/encryption");
 exports.MetaLeadService = {
     /**
      * Processes an incoming lead from Meta Webhook
@@ -97,6 +98,9 @@ exports.MetaLeadService = {
                     return;
                 }
                 const metaConfig = matchedAccount;
+                if (metaConfig.accessToken) {
+                    metaConfig.accessToken = (0, encryption_1.decrypt)(metaConfig.accessToken);
+                }
                 // Proceed using metaConfig.accessToken
                 // 2. Fetch Lead details from Meta Graph API
                 const response = yield axios_1.default.get(`https://graph.facebook.com/v18.0/${leadgenId}`, {
@@ -138,7 +142,8 @@ exports.MetaLeadService = {
                         rawMetaFields: fieldMap
                     },
                     status: client_1.LeadStatus.new,
-                    organisationId: org.id
+                    organisationId: org.id,
+                    branchId: metaConfig.branchId || null // Assign branch if configured
                 };
                 // 4. Sanitize Phone Number (distribution logic needs clean phone)
                 if (crmData.phone) {

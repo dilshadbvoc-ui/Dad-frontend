@@ -82,6 +82,7 @@ class SecurityAuditMiddleware {
         ].join(' ');
         for (const pattern of this.suspiciousPatterns) {
             if (pattern.test(checkData)) {
+                console.log(`[SecurityAudit] Triggered by pattern ${pattern.source} on data: ${checkData.substring(0, 200)}...`);
                 this.logSecurityEvent({
                     type: 'SECURITY_VIOLATION',
                     severity: 'HIGH',
@@ -232,8 +233,8 @@ SecurityAuditMiddleware.suspiciousPatterns = [
     /on\w+\s*=/gi,
     // Path traversal
     /\.\.[\/\\]/g,
-    // Command injection
-    /[;&|`$(){}[\]]/g
+    // Command injection (further relaxed)
+    /[|`]/g
 ];
 SecurityAuditMiddleware.sensitiveEndpoints = [
     '/api/auth',

@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { prisma } from '../index';
+import { prisma } from '../config/prisma';
 
 export const getSystemSettings = async (req: Request, res: Response) => {
     try {
@@ -11,7 +11,7 @@ export const getSystemSettings = async (req: Request, res: Response) => {
         });
 
         // Convert array to object for easier frontend consumption
-        const settingsMap = settings.reduce((acc, setting) => {
+        const settingsMap = settings.reduce((acc: Record<string, string>, setting) => {
             acc[setting.key] = setting.value;
             return acc;
         }, {} as Record<string, string>);
@@ -65,7 +65,7 @@ export const getPublicSystemSettings = async (req: Request, res: Response) => {
             }
         });
 
-        const settingsMap = settings.reduce((acc, setting) => {
+        const settingsMap = settings.reduce((acc: Record<string, string>, setting) => {
             acc[setting.key] = setting.value;
             return acc;
         }, {} as Record<string, string>);

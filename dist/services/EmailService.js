@@ -34,7 +34,7 @@ exports.EmailService = {
             try {
                 console.log(`[EmailService] Sending email to ${to} | Subject: ${subject}`);
                 const info = yield transporter.sendMail({
-                    from: '"MERN CRM" <no-reply@merncrm.com>',
+                    from: '"PYPE" <no-reply@pype.com>',
                     to,
                     subject,
                     html

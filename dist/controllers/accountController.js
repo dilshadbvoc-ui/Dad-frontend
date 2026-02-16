@@ -66,6 +66,8 @@ const getAccounts = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
@@ -130,6 +132,7 @@ const createAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             tags: req.body.tags,
             organisation: { connect: { id: orgId } },
             owner: req.body.owner ? { connect: { id: req.body.owner } } : { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
         };
         const account = yield prisma_1.default.account.create({
             data: accountData
@@ -165,6 +168,8 @@ const getAccountById = (req, res) => __awaiter(void 0, void 0, void 0, function*
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         const account = yield prisma_1.default.account.findFirst({
             where,
@@ -197,6 +202,8 @@ const updateAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId)
+                whereObj.branchId = requester.branchId;
         }
         // Get current account for validation
         const currentAccount = yield prisma_1.default.account.findUnique({ where: whereObj });
@@ -250,6 +257,8 @@ const deleteAccount = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         const account = yield prisma_1.default.account.findFirst({ where });
         if (!account)

@@ -49,6 +49,7 @@ class GoalService {
                                 where: {
                                     ownerId: userId,
                                     stage: 'closed_won',
+                                    isDeleted: false,
                                     updatedAt: {
                                         gte: goal.startDate,
                                         lte: goal.endDate

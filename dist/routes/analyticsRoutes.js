@@ -14,5 +14,7 @@ router.get('/forecast', authMiddleware_1.protect, analyticsController_1.getSales
 router.get('/lead-sources', authMiddleware_1.protect, analyticsController_1.getLeadSourceAnalytics);
 router.get('/insights', authMiddleware_1.protect, analyticsController_1.getAiInsights);
 router.get('/top-performers', authMiddleware_1.protect, analyticsController_1.getTopPerformers);
+router.get('/sales-book', authMiddleware_1.protect, analyticsController_1.getSalesBook);
+router.get('/user-sales', authMiddleware_1.protect, analyticsController_1.getUserWiseSales);
 router.get('/overview', authMiddleware_1.protect, analyticsController_1.getDashboardStats); // Alias for reports page
 exports.default = router;

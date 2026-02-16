@@ -8,7 +8,11 @@ const superAdminController_1 = require("../controllers/superAdminController");
 const organisationController_1 = require("../controllers/organisationController");
 const subscriptionPlanController_1 = require("../controllers/subscriptionPlanController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
+const systemSettingsController_1 = require("../controllers/systemSettingsController");
 const router = express_1.default.Router();
+// System Settings
+router.get('/settings', authMiddleware_1.protect, systemSettingsController_1.getSystemSettings);
+router.put('/settings', authMiddleware_1.protect, systemSettingsController_1.updateSystemSettings);
 // Organisation Management
 router.get('/organisations', authMiddleware_1.protect, superAdminController_1.getAllOrganisations);
 router.post('/organisations', authMiddleware_1.protect, superAdminController_1.createOrganisation);

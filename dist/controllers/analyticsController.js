@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getTopPerformers = exports.getAiInsights = exports.getLeadSourceAnalytics = exports.getSalesForecast = exports.getTopLeads = exports.getSalesChartData = exports.getDashboardStats = void 0;
+exports.getUserWiseSales = exports.getSalesBook = exports.getTopPerformers = exports.getAiInsights = exports.getLeadSourceAnalytics = exports.getSalesForecast = exports.getTopLeads = exports.getSalesChartData = exports.getDashboardStats = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 const fs_1 = __importDefault(require("fs"));
@@ -59,6 +59,11 @@ const logDebug = (msg) => {
         console.error('Failed to write log', e);
     }
 };
+// Helper to get branch filter
+const getBranchFilter = (req) => {
+    const branchId = req.query.branchId;
+    return branchId ? { branchId } : {};
+};
 const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     logDebug('Entered getDashboardStats');
     try {
@@ -66,6 +71,16 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         const isSuperAdmin = user.role === 'super_admin';
         logDebug(`[Analytics] User: ${user === null || user === void 0 ? void 0 : user.id}, Org: ${orgId}, SuperAdmin: ${isSuperAdmin}`);
+        const branchFilter = getBranchFilter(req);
+        // If user is not admin, they might be restricted to their own branch
+        // But for now, we trust the query param if valid, or fallback to user's branch if not admin?
+        // The requirement is "organisation admin dashboard can see branch vise data"
+        // So this is mainly for Admins filtering.
+        // If a normal user tries to filter by another branch, they shouldn't see data?
+        // For now, let's assume the UI handles visibility validation, and we just filter.
+        // But STRICTLY: standard users should default to their own branch if they have one?
+        // Existing logic for non-admins filters by `assignedToId` or `ownerId`, which implicitly handles branch (users in branch see their own stuff).
+        // So we just add the explicit branch filter.
         logDebug('[Analytics] Importing hierarchyUtils...');
         const { getSubordinateIds } = yield Promise.resolve().then(() => __importStar(require('../utils/hierarchyUtils')));
         logDebug('[Analytics] Fetching subordinateIds...');
@@ -77,6 +92,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         }
         // Build org filter - super admin sees all orgs
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         // Base filter for users who are not admin/super_admin
         const visibilityFilter = {};
         if (!isSuperAdmin && user.role !== 'admin') {
@@ -89,32 +105,32 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         }
         // Leads
         const totalLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { isDeleted: false }), visibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), visibilityFilter)
         });
         const newLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { isDeleted: false, status: 'new' }), visibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'new' }), visibilityFilter)
         });
         const convertedLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { isDeleted: false, status: 'converted' }), visibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'converted' }), visibilityFilter)
         });
         // Revenue calculation and trend
         const revenueResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_won' }), oppVisibilityFilter),
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false }), oppVisibilityFilter),
             _sum: { amount: true }
         });
         const totalRevenue = revenueResult._sum.amount || 0;
         // Pipeline Value
         const pipelineResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign({}, orgFilter), oppVisibilityFilter),
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter),
             _sum: { amount: true }
         });
         const pipelineValue = pipelineResult._sum.amount || 0;
         // Contacts/Accounts
         const totalContacts = yield prisma_1.default.contact.count({
-            where: Object.assign(Object.assign({}, orgFilter), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
         });
         const totalAccounts = yield prisma_1.default.account.count({
-            where: Object.assign(Object.assign({}, orgFilter), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
         });
         // Current Month Dates
         const startOfMonth = new Date();
@@ -124,27 +140,27 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
         // Previous Month Stats for Trends
         const prevLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { isDeleted: false, createdAt: { gte: startOfLastMonth, lt: startOfMonth } }), visibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, createdAt: { gte: startOfLastMonth, lt: startOfMonth } }), visibilityFilter)
         });
         const prevRevenueResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_won', closeDate: { gte: startOfLastMonth, lt: startOfMonth } }), oppVisibilityFilter),
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false, closeDate: { gte: startOfLastMonth, lt: startOfMonth } }), oppVisibilityFilter),
             _sum: { amount: true }
         });
         const prevRevenue = prevRevenueResult._sum.amount || 0;
         // Trending Win Rate
         const totalClosedCurrent = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: { in: ['closed_won', 'closed_lost'] }, closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { in: ['closed_won', 'closed_lost'] }, closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
         });
         const wonCurrent = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_won', closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won', closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
         });
         const currentWinRate = totalClosedCurrent > 0 ? (wonCurrent / totalClosedCurrent) * 100 : 0;
         // Won/Lost for nested object
         const wonTotal = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_won' }), oppVisibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won' }), oppVisibilityFilter)
         });
         const lostTotal = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_lost' }), oppVisibilityFilter)
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_lost' }), oppVisibilityFilter)
         });
         const calculateTrend = (curr, prev) => {
             if (prev === 0)
@@ -154,7 +170,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.json({
             // Flat structure
             totalLeads,
-            activeOpportunities: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: { notIn: ['closed_won', 'closed_lost'] } }), oppVisibilityFilter) }),
+            activeOpportunities: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { notIn: ['closed_won', 'closed_lost'] } }), oppVisibilityFilter) }),
             salesRevenue: totalRevenue,
             winRate: Math.round(currentWinRate),
             // Trends
@@ -166,7 +182,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
             opportunities: {
-                total: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign({}, orgFilter), oppVisibilityFilter) }),
+                total: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter) }),
                 value: pipelineValue,
                 won: wonTotal,
                 lost: lostTotal
@@ -196,6 +212,8 @@ const getSalesChartData = (req, res) => __awaiter(void 0, void 0, void 0, functi
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         const sixMonthsAgo = new Date();
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5); // Go back 5 months to include current month = 6 total
         sixMonthsAgo.setDate(1); // Start of that month
@@ -209,7 +227,7 @@ const getSalesChartData = (req, res) => __awaiter(void 0, void 0, void 0, functi
         }
         // Fetch closed_won opportunities
         const wonOpportunities = yield prisma_1.default.opportunity.findMany({
-            where: Object.assign(Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: 'closed_won' }), visibilityFilter), { OR: [
+            where: Object.assign(Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false }), visibilityFilter), { OR: [
                     { closeDate: { gte: sixMonthsAgo } },
                     { updatedAt: { gte: sixMonthsAgo } }
                 ] }),
@@ -263,6 +281,8 @@ const getTopLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         // Visibility
         const visibilityFilter = {};
         if (!isSuperAdmin && user.role !== 'admin') {
@@ -271,7 +291,7 @@ const getTopLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             visibilityFilter.assignedToId = { in: [...subordinateIds, user.id] };
         }
         const topLeads = yield prisma_1.default.lead.findMany({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { isDeleted: false }), visibilityFilter),
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), visibilityFilter),
             orderBy: { leadScore: 'desc' },
             take: 5,
             select: {
@@ -300,6 +320,8 @@ const getSalesForecast = (req, res) => __awaiter(void 0, void 0, void 0, functio
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         // Visibility
         const visibilityFilter = {};
         if (!isSuperAdmin && user.role !== 'admin') {
@@ -309,7 +331,7 @@ const getSalesForecast = (req, res) => __awaiter(void 0, void 0, void 0, functio
         }
         // Get open opportunities (not closed_won or closed_lost)
         const openOpportunities = yield prisma_1.default.opportunity.findMany({
-            where: Object.assign(Object.assign(Object.assign({}, orgFilter), { stage: { notIn: ['closed_won', 'closed_lost'] } }), visibilityFilter),
+            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: { notIn: ['closed_won', 'closed_lost'] }, isDeleted: false }), visibilityFilter),
             select: {
                 amount: true,
                 probability: true
@@ -343,10 +365,12 @@ const getLeadSourceAnalytics = (req, res) => __awaiter(void 0, void 0, void 0, f
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         // Prisma groupBy for lead sources
         const sourceStats = yield prisma_1.default.lead.groupBy({
             by: ['source'],
-            where: Object.assign(Object.assign({}, orgFilter), { isDeleted: false }),
+            where: Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }),
             _count: { source: true },
             orderBy: { _count: { source: 'desc' } }
         });
@@ -373,11 +397,13 @@ const getAiInsights = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
         const insights = [];
         // 1. Top Lead Source Analysis
         const topSource = yield prisma_1.default.lead.groupBy({
             by: ['source'],
-            where: Object.assign(Object.assign({}, orgFilter), { isDeleted: false }),
+            where: Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }),
             _count: { source: true },
             orderBy: { _count: { source: 'desc' } },
             take: 1
@@ -394,7 +420,7 @@ const getAiInsights = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const stagnantDeals = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign({}, orgFilter), { stage: { in: ['prospecting', 'qualified'] }, updatedAt: { lt: thirtyDaysAgo } })
+            where: Object.assign(Object.assign({}, combinedFilter), { stage: { in: ['prospecting', 'qualified'] }, isDeleted: false, updatedAt: { lt: thirtyDaysAgo } })
         });
         if (stagnantDeals > 0) {
             insights.push({
@@ -406,13 +432,13 @@ const getAiInsights = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         }
         // 3. High Value Deal Alert - Calculate dynamic threshold based on average deal size
         const avgDealResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign({}, orgFilter), { stage: { notIn: ['closed_won', 'closed_lost'] }, amount: { gt: 0 } }),
+            where: Object.assign(Object.assign({}, combinedFilter), { stage: { notIn: ['closed_won', 'closed_lost'] }, isDeleted: false, amount: { gt: 0 } }),
             _avg: { amount: true }
         });
         const avgDealSize = ((_a = avgDealResult._avg) === null || _a === void 0 ? void 0 : _a.amount) || 5000;
         const highValueThreshold = avgDealSize * 2; // Deals worth 2x average are considered high value
         const highValueDeals = yield prisma_1.default.opportunity.findMany({
-            where: Object.assign(Object.assign({}, orgFilter), { stage: { notIn: ['closed_won', 'closed_lost'] }, amount: { gt: highValueThreshold } }),
+            where: Object.assign(Object.assign({}, combinedFilter), { stage: { notIn: ['closed_won', 'closed_lost'] }, isDeleted: false, amount: { gt: highValueThreshold } }),
             take: 2,
             orderBy: { amount: 'desc' },
             select: { name: true, amount: true }
@@ -452,8 +478,14 @@ const getTopPerformers = (req, res) => __awaiter(void 0, void 0, void 0, functio
             return res.status(400).json({ message: 'Organisation not found' });
         }
         const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        // User filter needs to be applied to `User` model, but filtered by branch?
+        // Users belong to a branch. So we can filter users by branchID.
+        const userCombinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
+        // For Active users
+        const activeFilter = { isActive: true };
         const topUsers = yield prisma_1.default.user.findMany({
-            where: Object.assign(Object.assign({}, orgFilter), { isActive: true }),
+            where: Object.assign(Object.assign({}, userCombinedFilter), activeFilter),
             select: {
                 id: true,
                 firstName: true,
@@ -461,7 +493,7 @@ const getTopPerformers = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 email: true,
                 profileImage: true,
                 ownedOpportunities: {
-                    where: { stage: 'closed_won' },
+                    where: { stage: 'closed_won', isDeleted: false },
                     select: { amount: true }
                 }
             }
@@ -484,3 +516,128 @@ const getTopPerformers = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getTopPerformers = getTopPerformers;
+const getSalesBook = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.user;
+        const orgId = (0, hierarchyUtils_1.getOrgId)(user);
+        const isSuperAdmin = user.role === 'super_admin';
+        const { startDate, endDate } = req.query;
+        if (!orgId && !isSuperAdmin) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+        const orgFilter = orgId ? { organisationId: orgId } : {};
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
+        // Visibility
+        const visibilityFilter = {};
+        if (!isSuperAdmin && user.role !== 'admin') {
+            const { getSubordinateIds } = yield Promise.resolve().then(() => __importStar(require('../utils/hierarchyUtils')));
+            const subordinateIds = yield getSubordinateIds(user.id);
+            visibilityFilter.ownerId = { in: subordinateIds };
+        }
+        // Date Filter
+        const dateFilter = {};
+        if (startDate && endDate) {
+            dateFilter.closeDate = {
+                gte: new Date(String(startDate)),
+                lte: new Date(String(endDate))
+            };
+        }
+        const sales = yield prisma_1.default.opportunity.findMany({
+            where: Object.assign(Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false }), visibilityFilter), dateFilter),
+            select: {
+                id: true,
+                name: true,
+                amount: true,
+                closeDate: true,
+                account: { select: { name: true } },
+                owner: { select: { firstName: true, lastName: true } } // Assuming 'owner' relation exists or 'assignedTo'
+            },
+            orderBy: { closeDate: 'desc' }
+        });
+        const formattedSales = sales.map(s => {
+            var _a;
+            return ({
+                id: s.id,
+                opportunityName: s.name,
+                customerName: ((_a = s.account) === null || _a === void 0 ? void 0 : _a.name) || 'N/A',
+                amount: s.amount,
+                closeDate: s.closeDate,
+                ownerName: s.owner ? `${s.owner.firstName} ${s.owner.lastName}` : 'Unknown'
+            });
+        });
+        res.json(formattedSales);
+    }
+    catch (error) {
+        console.error('getSalesBook Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getSalesBook = getSalesBook;
+const getUserWiseSales = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.user;
+        const orgId = (0, hierarchyUtils_1.getOrgId)(user);
+        const isSuperAdmin = user.role === 'super_admin';
+        const { startDate, endDate } = req.query;
+        if (!orgId && !isSuperAdmin) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+        const orgFilter = orgId ? { organisationId: orgId } : {};
+        // Branch filter is optional here, usually user-wise report might be global for admin, but let's respect it if passed
+        const branchFilter = getBranchFilter(req);
+        const combinedFilter = Object.assign(Object.assign({}, orgFilter), branchFilter);
+        // Determine scope of users to report on
+        let userIdsToReport = [];
+        if (!isSuperAdmin && user.role !== 'admin') {
+            const { getSubordinateIds } = yield Promise.resolve().then(() => __importStar(require('../utils/hierarchyUtils')));
+            userIdsToReport = yield getSubordinateIds(user.id);
+        }
+        else {
+            // Admin sees all active users in org (and optional branch)
+            const users = yield prisma_1.default.user.findMany({
+                where: Object.assign(Object.assign({}, combinedFilter), { isActive: true }),
+                select: { id: true }
+            });
+            userIdsToReport = users.map(u => u.id);
+        }
+        // Date Filter for OPPORTUNITIES
+        const dateFilter = {};
+        if (startDate && endDate) {
+            dateFilter.closeDate = {
+                gte: new Date(String(startDate)),
+                lte: new Date(String(endDate))
+            };
+        }
+        // Aggregate per user
+        const userStats = yield Promise.all(userIdsToReport.map((uid) => __awaiter(void 0, void 0, void 0, function* () {
+            const userDetails = yield prisma_1.default.user.findUnique({
+                where: { id: uid },
+                select: { firstName: true, lastName: true, email: true }
+            });
+            if (!userDetails)
+                return null;
+            const aggregates = yield prisma_1.default.opportunity.aggregate({
+                where: Object.assign(Object.assign({ ownerId: uid, stage: 'closed_won', isDeleted: false }, orgFilter), dateFilter),
+                _sum: { amount: true },
+                _count: { id: true },
+                _avg: { amount: true }
+            });
+            return {
+                userId: uid,
+                name: `${userDetails.firstName} ${userDetails.lastName}`,
+                email: userDetails.email,
+                totalRevenue: aggregates._sum.amount || 0,
+                dealsCount: aggregates._count.id || 0,
+                avgDealSize: Math.round(aggregates._avg.amount || 0)
+            };
+        })));
+        const cleanStats = userStats.filter(s => s !== null).sort((a, b) => ((b === null || b === void 0 ? void 0 : b.totalRevenue) || 0) - ((a === null || a === void 0 ? void 0 : a.totalRevenue) || 0));
+        res.json(cleanStats);
+    }
+    catch (error) {
+        console.error('getUserWiseSales Error:', error);
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getUserWiseSales = getUserWiseSales;

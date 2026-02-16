@@ -54,7 +54,14 @@ const getAllOrganisations = (req, res) => __awaiter(void 0, void 0, void 0, func
             return res.status(403).json({ message: 'Access denied. Super admin only.' });
         }
         const organisations = yield prisma_1.default.organisation.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
+            include: {
+                licenses: {
+                    where: { status: 'active' },
+                    include: { plan: true },
+                    take: 1
+                }
+            }
         });
         // Get user counts for each org
         const orgIds = organisations.map(o => o.id);
@@ -64,7 +71,7 @@ const getAllOrganisations = (req, res) => __awaiter(void 0, void 0, void 0, func
             _count: { id: true }
         });
         const countMap = new Map(userCounts.map(u => [u.organisationId, u._count.id]));
-        const result = organisations.map(org => (Object.assign(Object.assign({}, org), { userCount: countMap.get(org.id) || 0 })));
+        const result = organisations.map(org => (Object.assign(Object.assign({}, org), { userCount: countMap.get(org.id) || 0, activeLicense: org.licenses[0] || null })));
         res.json({ organisations: result });
     }
     catch (error) {

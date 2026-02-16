@@ -17,6 +17,7 @@ const prisma_1 = __importDefault(require("../config/prisma"));
 const MetaService_1 = require("./MetaService");
 const logger_1 = require("../utils/logger");
 const DistributionService_1 = require("./DistributionService");
+const encryption_1 = require("../utils/encryption");
 exports.MetaIntegrationService = {
     /**
      * Handle incoming webhook from Meta
@@ -78,9 +79,11 @@ exports.MetaIntegrationService = {
                     logger_1.logger.warn(`No access token found for organization ${org.id}`, 'MetaWebhook', undefined, org.id);
                     return;
                 }
+                // Decrypt token
+                const accessToken = (0, encryption_1.decrypt)(metaConfig.accessToken);
                 // Fetch lead details from Meta API
                 try {
-                    const leadData = yield MetaService_1.metaService.makeRequest(leadgen_id, metaConfig.accessToken, {
+                    const leadData = yield MetaService_1.metaService.makeRequest(leadgen_id, accessToken, {
                         fields: 'id,created_time,field_data'
                     });
                     // Parse field data
@@ -220,7 +223,7 @@ exports.MetaIntegrationService = {
                     throw new Error('Meta integration not configured');
                 }
                 // Fetch campaigns from Meta
-                const campaigns = yield MetaService_1.metaService.getCampaigns(metaConfig);
+                const campaigns = yield MetaService_1.metaService.getCampaigns(Object.assign(Object.assign({}, metaConfig), { accessToken: (0, encryption_1.decrypt)(metaConfig.accessToken) }));
                 // Sync campaigns to database
                 const syncedCampaigns = [];
                 for (const campaign of campaigns) {
@@ -320,6 +323,7 @@ exports.MetaIntegrationService = {
                 if (!(metaConfig === null || metaConfig === void 0 ? void 0 : metaConfig.accessToken) || !(metaConfig === null || metaConfig === void 0 ? void 0 : metaConfig.adAccountId)) {
                     throw new Error('Meta integration not configured');
                 }
+                const accessToken = (0, encryption_1.decrypt)(metaConfig.accessToken);
                 let insights;
                 if (campaignId) {
                     // Get insights for specific campaign
@@ -335,14 +339,14 @@ exports.MetaIntegrationService = {
                     if (!metaCampaignId) {
                         throw new Error('Campaign not linked to Meta');
                     }
-                    insights = yield MetaService_1.metaService.makeRequest(`${metaCampaignId}/insights`, metaConfig.accessToken, {
+                    insights = yield MetaService_1.metaService.makeRequest(`${metaCampaignId}/insights`, accessToken, {
                         fields: 'impressions,clicks,spend,cpc,cpm,cpp,ctr,unique_clicks,reach,actions',
                         date_preset: 'last_30d'
                     });
                 }
                 else {
                     // Get account-level insights
-                    insights = yield MetaService_1.metaService.getInsights(metaConfig, 'account');
+                    insights = yield MetaService_1.metaService.getInsights(Object.assign(Object.assign({}, metaConfig), { accessToken }), 'account');
                 }
                 return insights;
             }

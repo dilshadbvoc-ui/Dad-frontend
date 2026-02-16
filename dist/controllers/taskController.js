@@ -59,6 +59,8 @@ const getTasks = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
@@ -127,6 +129,12 @@ const createTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         if (orgId) {
             data.organisation = { connect: { id: orgId } };
         }
+        if (user.branchId) {
+            data.branch = { connect: { id: user.branchId } };
+        }
+        else if (req.body.branchId) {
+            data.branch = { connect: { id: req.body.branchId } };
+        }
         if (req.body.assignedTo) {
             // Handle if string ID or object? Assuming string ID from frontend
             data.assignedTo = { connect: { id: req.body.assignedTo } };
@@ -178,6 +186,8 @@ const getTaskById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         const task = yield prisma_1.default.task.findFirst({
             where,
@@ -237,6 +247,8 @@ const updateTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId)
+                whereObj.branchId = requester.branchId;
         }
         const task = yield prisma_1.default.task.update({
             where: whereObj,
@@ -273,6 +285,8 @@ const deleteTask = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId)
+                where.branchId = user.branchId;
         }
         yield prisma_1.default.task.update({
             where,

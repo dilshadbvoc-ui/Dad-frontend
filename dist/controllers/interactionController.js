@@ -37,7 +37,8 @@ const createInteractionGeneric = (req, res) => __awaiter(void 0, void 0, void 0,
             callStatus,
             phoneNumber,
             date: date ? new Date(date) : new Date(),
-            createdBy: { connect: { id: user.id } }
+            createdBy: { connect: { id: user.id } },
+            branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined)
         };
         // Only connect organization if user has one
         if (orgId) {
@@ -83,7 +84,8 @@ const createInteraction = (req, res) => __awaiter(void 0, void 0, void 0, functi
             return res.status(400).json({ message: 'Organisation context required' });
         // Verify lead exists and belongs to org
         const lead = yield prisma_1.default.lead.findFirst({
-            where: { id: leadId, organisationId: orgId }
+            where: { id: leadId, organisationId: orgId },
+            include: { branch: true }
         });
         if (!lead)
             return res.status(404).json({ message: 'Lead not found' });
@@ -101,7 +103,8 @@ const createInteraction = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 phoneNumber: phoneNumber || lead.phone,
                 lead: { connect: { id: leadId } },
                 createdBy: { connect: { id: user.id } },
-                organisation: { connect: { id: orgId } }
+                organisation: { connect: { id: orgId } },
+                branch: lead.branchId ? { connect: { id: lead.branchId } } : (user.branchId ? { connect: { id: user.branchId } } : undefined)
             }
         });
         yield (0, auditLogger_1.logAudit)({
@@ -162,6 +165,9 @@ const getAllInteractions = (req, res) => __awaiter(void 0, void 0, void 0, funct
             organisationId: orgId,
             isDeleted: false
         };
+        if (user.branchId) {
+            where.branchId = user.branchId;
+        }
         // Filter: Type
         if (type)
             where.type = type;
@@ -242,7 +248,8 @@ const logQuickInteraction = (req, res) => __awaiter(void 0, void 0, void 0, func
         if (!orgId)
             return res.status(400).json({ message: 'Organisation context required' });
         const lead = yield prisma_1.default.lead.findFirst({
-            where: { id: leadId, organisationId: orgId }
+            where: { id: leadId, organisationId: orgId },
+            include: { branch: true }
         });
         if (!lead)
             return res.status(404).json({ message: 'Lead not found' });
@@ -258,7 +265,8 @@ const logQuickInteraction = (req, res) => __awaiter(void 0, void 0, void 0, func
                 callStatus: 'initiated',
                 lead: { connect: { id: leadId } },
                 createdBy: { connect: { id: user.id } },
-                organisation: { connect: { id: orgId } }
+                organisation: { connect: { id: orgId } },
+                branch: lead.branchId ? { connect: { id: lead.branchId } } : (user.branchId ? { connect: { id: user.branchId } } : undefined)
             }
         });
         yield (0, auditLogger_1.logAudit)({

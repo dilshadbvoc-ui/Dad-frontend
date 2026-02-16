@@ -11,6 +11,9 @@ const router = express_1.default.Router();
 // Memory Storage Configuration - stores files in memory as Buffer
 const memoryStorage = multer_1.default.memoryStorage();
 console.log(`📁 File storage: Database (Persistent)`);
+// Cloudinary removed in favor of Database storage
+// import { v2 as cloudinary } from 'cloudinary';
+// import { CloudinaryStorage } from 'multer-storage-cloudinary';
 const upload = (0, multer_1.default)({
     storage: memoryStorage,
     limits: { fileSize: 50 * 1024 * 1024 } // 50MB limit
@@ -29,7 +32,7 @@ const uploadImage = (0, multer_1.default)({
 });
 const uploadDocument = (0, multer_1.default)({
     storage: memoryStorage,
-    limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: (req, file, cb) => {
         if (file.mimetype === 'application/pdf' || file.mimetype.startsWith('image/')) {
             cb(null, true);

@@ -160,6 +160,12 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         lastName: true,
                         position: true
                     }
+                },
+                branch: {
+                    select: {
+                        id: true,
+                        name: true
+                    }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -170,7 +176,10 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const transformedUsers = users.map(u => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { password } = u, userWithoutPassword = __rest(u, ["password"]);
-            return Object.assign(Object.assign({}, userWithoutPassword), { _id: u.id, id: u.id, role: { id: u.role, name: u.role }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null });
+            return Object.assign(Object.assign({}, userWithoutPassword), { _id: u.id, id: u.id, role: { id: u.role, name: u.role }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null, branch: u.branch ? {
+                    id: u.branch.id,
+                    name: u.branch.name
+                } : null });
         });
         res.json({ users: transformedUsers });
     }
@@ -254,6 +263,22 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             }
             dataToUpdate.reportsTo = { connect: { id: updateData.reportsTo } };
         }
+        // Handle Branch assignment
+        if (updateData.branchId) {
+            const branch = yield prisma_1.default.branch.findUnique({ where: { id: updateData.branchId } });
+            if (!branch)
+                return res.status(400).json({ message: 'Branch not found' });
+            // Check Org
+            if (branch.organisationId !== ((0, hierarchyUtils_1.getOrgId)(currentUser) || (0, hierarchyUtils_1.getOrgId)(yield prisma_1.default.user.findUnique({ where: { id: userId } })))) {
+                return res.status(400).json({ message: 'Branch must belong to same organisation' });
+            }
+            dataToUpdate.branch = { connect: { id: updateData.branchId } };
+            delete dataToUpdate.branchId;
+        }
+        else if (updateData.branchId === null) {
+            dataToUpdate.branch = { disconnect: true };
+            delete dataToUpdate.branchId;
+        }
         if (password && password.trim() !== '') {
             const salt = yield bcryptjs_1.default.genSalt(10);
             dataToUpdate.password = yield bcryptjs_1.default.hash(password, salt);
@@ -284,7 +309,7 @@ exports.updateUser = updateUser;
 // POST /api/users
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password, role, firstName, lastName, organisationId } = req.body;
+        const { email, password, role, firstName, lastName, organisationId, branchId } = req.body;
         const currentUser = req.user;
         // Determine Org ID
         let targetOrgId = organisationId;
@@ -318,7 +343,8 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 organisationId: targetOrgId,
                 isActive: true, // Default to active
                 // If currentUser is non-admin creating a user, maybe set reportsTo?
-                reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined)
+                reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined),
+                branchId: branchId || undefined
             }
         });
         // Audit Log
@@ -344,7 +370,7 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createUser = createUser;
 const inviteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, firstName, lastName, role, organisationId, position, reportsTo, password } = req.body;
+        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId } = req.body;
         const currentUser = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(currentUser) || organisationId;
         // 1. License Check
@@ -398,6 +424,7 @@ const inviteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 position,
                 userId: generatedUserId,
                 reportsTo: reportsTo ? { connect: { id: reportsTo } } : undefined,
+                branch: branchId ? { connect: { id: branchId } } : undefined,
                 isActive: true
             }
         });

@@ -50,6 +50,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const hpp_1 = __importDefault(require("hpp"));
 const http_1 = require("http");
 const socket_1 = require("./socket");
 const rateLimiter_1 = require("./middleware/rateLimiter");
@@ -111,6 +112,7 @@ const landingPageRoutes_1 = __importDefault(require("./routes/landingPageRoutes"
 const bulkRoutes_1 = __importDefault(require("./routes/bulkRoutes"));
 const publicRoutes_1 = __importDefault(require("./routes/publicRoutes"));
 const teamRoutes_1 = __importDefault(require("./routes/teamRoutes"));
+const branchRoutes_1 = __importDefault(require("./routes/branchRoutes"));
 const path_1 = __importDefault(require("path"));
 // import { dataIsolation } from './middleware/dataIsolation';
 const compression_1 = __importDefault(require("compression"));
@@ -135,7 +137,7 @@ app.use((0, helmet_1.default)({
             scriptSrc: ["'self'"],
             connectSrc: ["'self'", "https://api.facebook.com", "https://graph.facebook.com"],
             frameSrc: ["'none'"],
-            objectSrc: ["'none'"],
+            objectSrc: ["'self'", "data:", "blob:"],
             baseUri: ["'self'"],
             formAction: ["'self'"],
             upgradeInsecureRequests: process.env.NODE_ENV === 'production' ? [] : null,
@@ -180,12 +182,14 @@ const allowedOrigins = [
     'https://dad-frontend.vercel.app',
     process.env.CLIENT_URL,
     process.env.FRONTEND_URL,
-    process.env.ALLOWED_ORIGINS
+    process.env.ALLOWED_ORIGINS,
+    'https://pypecrm.com',
+    'https://www.pypecrm.com'
 ].filter(Boolean);
 app.use((0, cors_1.default)({
     origin: function (origin, callback) {
-        // Allow requests with no origin only in development (mobile apps, Postman, etc.)
-        if (!origin && process.env.NODE_ENV === 'development') {
+        // Allow requests with no origin (mobile apps, Postman, health checks, etc.)
+        if (!origin) {
             return callback(null, true);
         }
         // Check if origin is in allowed list or matches allowed origins env var
@@ -231,6 +235,7 @@ app.options('*', (0, cors_1.default)());
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
+app.use((0, hpp_1.default)());
 // CRITICAL: System lock check - must be early in middleware chain
 Promise.resolve().then(() => __importStar(require('./middleware/superAdminProtection'))).then(({ checkSystemLock }) => {
     app.use(checkSystemLock);
@@ -344,6 +349,7 @@ app.use('/api/assignment-rules', assignmentRuleRoutes_1.default);
 app.use('/api/hierarchy', hierarchyRoutes_1.default);
 app.use('/api/organisation', organisationRoutes_1.default);
 app.use('/api/api-keys', apiKeyRoutes_1.default);
+app.use('/api/branches', branchRoutes_1.default);
 app.use('/api/bulk', bulkRoutes_1.default);
 // Licensing & Multi-tenancy
 app.use('/api/plans', subscriptionPlanRoutes_1.default);

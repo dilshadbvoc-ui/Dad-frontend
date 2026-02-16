@@ -103,6 +103,7 @@ const authUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 email: user.email,
                 role: user.role,
                 organisation: user.organisation,
+                branchId: user.branchId,
                 token: (0, generateToken_1.default)(user.id),
             });
         }
@@ -213,6 +214,7 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 email: user.email,
                 role: user.role,
                 organisationId: org.id,
+                branchId: user.branchId,
                 token: (0, generateToken_1.default)(user.id),
             });
         }

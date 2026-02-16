@@ -180,6 +180,7 @@ const getSalesBook = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const where = {
             organisationId: orgId,
             stage: 'closed_won',
+            isDeleted: false,
             updatedAt: { gte: startDate }
         };
         // If not admin, restrict to self and subordinates
@@ -290,7 +291,11 @@ const exportToExcel = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE0E0E0' } };
         }
         else if (type === 'sales') {
-            const where = { organisationId: orgId, stage: 'closed_won' };
+            const where = {
+                organisationId: orgId,
+                stage: 'closed_won',
+                isDeleted: false
+            };
             if (user.role !== 'admin' && user.role !== 'super_admin') {
                 where.ownerId = { in: [...subordinateIds, user.id] };
             }

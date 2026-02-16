@@ -154,7 +154,7 @@ const getOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
         // If super admin requesting specific org, include full details
         if (user.role === 'super_admin' && req.params.id) {
-            const [users, leadCount, contactCount, accountCount, opportunityCount, wonOpportunities] = yield Promise.all([
+            const [users, leadCount, contactCount, accountCount, opportunityCount, wonOpportunities, activeLicense] = yield Promise.all([
                 prisma_1.default.user.findMany({
                     where: { organisationId: orgId, isActive: true },
                     select: { id: true, firstName: true, lastName: true, email: true, role: true, position: true, createdAt: true, userId: true },
@@ -167,11 +167,16 @@ const getOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, function
                 prisma_1.default.opportunity.aggregate({
                     where: { organisationId: orgId, stage: 'closed_won' },
                     _sum: { amount: true }
+                }),
+                prisma_1.default.license.findFirst({
+                    where: { organisationId: orgId, status: 'active' },
+                    include: { plan: true }
                 })
             ]);
             return res.json({
                 organisation: org,
                 users,
+                activeLicense,
                 stats: {
                     userCount: users.length,
                     leadCount,

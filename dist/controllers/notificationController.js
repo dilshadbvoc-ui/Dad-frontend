@@ -16,26 +16,42 @@ exports.markAllAsRead = exports.markAsRead = exports.getNotifications = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const getNotifications = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        console.log('[NotificationController] getNotifications called');
         const user = req.user;
         if (!user || !user.id) {
-            console.error('[NotificationController] No user attached to request');
             return res.status(401).json({ message: 'Not authorized' });
         }
         const userId = user.id;
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
-        console.log(`[NotificationController] Fetching for user: ${userId}, page: ${page}`);
+        const type = req.query.type; // 'info', 'warning', etc.
+        const isRead = req.query.isRead; // 'true', 'false', or undefined
+        const whereClause = { recipientId: userId };
+        if (type && type !== 'all') {
+            whereClause.type = type;
+        }
+        if (isRead === 'true') {
+            whereClause.isRead = true;
+        }
+        else if (isRead === 'false') {
+            whereClause.isRead = false;
+        }
         const notifications = yield prisma_1.default.notification.findMany({
-            where: { recipientId: userId },
+            where: whereClause,
             orderBy: { createdAt: 'desc' },
             take: limit,
             skip: (page - 1) * limit
         });
+        const total = yield prisma_1.default.notification.count({ where: whereClause });
         const unreadCount = yield prisma_1.default.notification.count({
             where: { recipientId: userId, isRead: false }
         });
-        res.json({ notifications, unreadCount });
+        res.json({
+            notifications,
+            unreadCount,
+            total,
+            totalPages: Math.ceil(total / limit),
+            currentPage: page
+        });
     }
     catch (error) {
         console.error('getNotifications Error:', error);

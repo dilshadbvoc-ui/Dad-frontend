@@ -66,10 +66,13 @@ const client_1 = require("../generated/client");
 // GET /api/leads
 const getLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log('[getLeads] Query Params:', req.query); // DEBUG LOG
         const pageSize = Number(req.query.pageSize) || 10;
         const page = Number(req.query.page) || 1;
         const user = req.user;
         const where = { isDeleted: false };
+        const andConditions = [];
+        console.log('[getLeads] User:', user.id, user.role); // DEBUG LOG
         // 1. Organisation Scoping
         if (user.role === 'super_admin') {
             if (req.query.organisationId)
@@ -80,35 +83,51 @@ const getLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            // Branch filtering
+            if (user.branchId) {
+                where.branchId = user.branchId;
+            }
         }
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = yield (0, hierarchyUtils_1.getSubordinateIds)(user.id);
-            // In Prisma: assignedToId IN [...]
-            where.assignedToId = { in: [...subordinateIds, user.id] };
+            // Show leads assigned to user/subordinates OR created by user
+            andConditions.push({
+                OR: [
+                    { assignedToId: { in: [...subordinateIds, user.id] } },
+                    { createdById: user.id }
+                ]
+            });
         }
         // Filter: Status
-        if (req.query.status) {
+        if (req.query.status && Object.values(client_1.LeadStatus).includes(req.query.status)) {
             where.status = req.query.status;
         }
         // Filter: Source
-        if (req.query.source) {
+        if (req.query.source && Object.values(client_1.LeadSource).includes(req.query.source)) {
             where.source = req.query.source;
         }
         // Filter: Search (OR condition)
         if (req.query.search) {
             const search = String(req.query.search);
-            where.OR = [
-                { firstName: { contains: search, mode: 'insensitive' } },
-                { lastName: { contains: search, mode: 'insensitive' } },
-                { email: { contains: search, mode: 'insensitive' } },
-                { company: { contains: search, mode: 'insensitive' } }
-            ];
+            andConditions.push({
+                OR: [
+                    { firstName: { contains: search, mode: 'insensitive' } },
+                    { lastName: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } },
+                    { company: { contains: search, mode: 'insensitive' } }
+                ]
+            });
         }
         // Filter: Assigned User
         if (req.query.assignedTo) {
             where.assignedToId = req.query.assignedTo;
         }
+        // Combine all conditions
+        if (andConditions.length > 0) {
+            where.AND = andConditions;
+        }
+        console.log('[getLeads] Prisma Where:', JSON.stringify(where, null, 2)); // DEBUG LOG
         const total = yield prisma_1.default.lead.count({ where });
         const leads = yield prisma_1.default.lead.findMany({
             where,
@@ -125,7 +144,8 @@ const getLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
     catch (error) {
         console.error('getLeads Error:', error);
-        res.status(500).json({ message: error.message });
+        // Return 500 but include error message for debugging
+        res.status(500).json({ message: error.message, stack: process.env.NODE_ENV === 'development' ? error.stack : undefined });
     }
 });
 exports.getLeads = getLeads;
@@ -167,7 +187,7 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             });
         }
         // Extract assignedTo before spreading
-        const _a = req.body, { assignedTo } = _a, restBody = __rest(_a, ["assignedTo"]);
+        const _a = req.body, { assignedTo, branchId } = _a, restBody = __rest(_a, ["assignedTo", "branchId"]);
         const currentUser = req.user;
         // For manual lead creation: creator owns the lead unless explicitly assigned to someone else
         // If assignedTo is provided, use it; otherwise assign to the creator
@@ -192,9 +212,10 @@ const createLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         }
         // Create
         const lead = yield prisma_1.default.lead.create({
-            data: Object.assign(Object.assign({}, restBody), { phone: cleanPhone, country: req.body.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined, countryCode: req.body.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined, phoneCountryCode: req.body.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined, organisation: { connect: { id: orgId } }, 
+            data: Object.assign(Object.assign({}, restBody), { phone: cleanPhone, country: req.body.country || (geoData === null || geoData === void 0 ? void 0 : geoData.country) || undefined, countryCode: req.body.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined, phoneCountryCode: req.body.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined, organisation: { connect: { id: orgId } }, branch: currentUser.branchId ? { connect: { id: currentUser.branchId } } : (branchId ? { connect: { id: branchId } } : undefined), 
                 // Assign to creator by default, or to specified user
-                assignedTo: { connect: { id: leadOwnerId } }, source: req.body.source || client_1.LeadSource.manual, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0 })
+                assignedTo: { connect: { id: leadOwnerId } }, source: req.body.source || client_1.LeadSource.manual, status: req.body.status || client_1.LeadStatus.new, potentialValue: req.body.potentialValue ? parseFloat(req.body.potentialValue) : 0, createdBy: { connect: { id: currentUser.id } } // Track creator for visibility
+             })
         });
         // 3a. Handle Products if provided (products field is optional)
         if (req.body.products !== undefined && Array.isArray(req.body.products)) {
@@ -305,6 +326,9 @@ const getLeadById = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             if (!orgId)
                 return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
+            if (user.branchId) {
+                where.branchId = user.branchId;
+            }
         }
         const lead = yield prisma_1.default.lead.findFirst({
             where,
@@ -393,6 +417,8 @@ const updateLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             if (!orgId)
                 return res.status(403).json({ message: 'No org' });
             whereObj.organisationId = orgId;
+            if (requester.branchId)
+                whereObj.branchId = requester.branchId;
         }
         // Remove products from updates as it's handled separately
         const { products } = updates, leadUpdates = __rest(updates, ["products"]);
@@ -507,10 +533,25 @@ const deleteLead = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 return res.status(403).json({ message: 'Not authorized to delete this lead' });
             }
         }
-        yield prisma_1.default.lead.update({
-            where: { id: leadId },
-            data: { isDeleted: true }
-        });
+        yield prisma_1.default.$transaction([
+            prisma_1.default.lead.update({
+                where: { id: leadId },
+                data: { isDeleted: true }
+            }),
+            // Cascade delete related entities
+            prisma_1.default.contact.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            }),
+            prisma_1.default.account.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            }),
+            prisma_1.default.opportunity.updateMany({
+                where: { leadId: leadId },
+                data: { isDeleted: true }
+            })
+        ]);
         // Audit Log
         try {
             const { logAudit } = yield Promise.resolve().then(() => __importStar(require('../utils/auditLogger')));
@@ -591,6 +632,7 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
                     phoneCountryCode: l.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined,
                     organisationId: orgId,
                     assignedToId: l.assignedTo || user.id,
+                    branchId: l.branchId || user.branchId, // Support explicit branch or inherit from user
                     source: l.source || client_1.LeadSource.import,
                     status: l.status || client_1.LeadStatus.new,
                     leadScore: l.leadScore || 0
@@ -647,7 +689,7 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const { id } = req.params;
         const leadId = id;
-        const { dealName, amount, accountId } = req.body; // remove leadId from params here if it was redundant
+        const { dealName, amount, accountId } = req.body;
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
@@ -707,10 +749,12 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     data: {
                         name: lead.company || `${lead.firstName} ${lead.lastName}`,
                         organisationId: orgId,
-                        ownerId: user.id, // Assign to converter or keep lead owner? Usually converter or specific rule.
+                        ownerId: user.id, // Assign to converter
                         type: 'customer',
                         phone: lead.phone,
-                        address: lead.address
+                        address: lead.address,
+                        leadId: lead.id, // Link to original lead
+                        branchId: lead.branchId
                     }
                 });
                 targetAccountId = account.id;
@@ -727,18 +771,23 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                     ownerId: user.id,
                     accountId: targetAccountId,
                     address: lead.address,
-                    customFields: lead.customFields // Migrate custom fields
+                    customFields: lead.customFields, // Migrate custom fields
+                    leadId: lead.id, // Link to original lead
+                    branchId: lead.branchId
                 }
             });
-            // 3. Create Opportunity with calculated amount from products
+            // 3. Create Opportunity
             const opportunity = yield tx.opportunity.create({
                 data: {
                     name: dealName || `Deal - ${lead.company || lead.lastName}`,
                     amount: opportunityAmount,
-                    stage: 'prospecting', // Default stage
+                    stage: 'new',
+                    closeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // +30 days
                     organisationId: orgId,
                     ownerId: user.id,
                     accountId: targetAccountId,
+                    leadId: lead.id,
+                    branchId: lead.branchId,
                     contacts: { connect: { id: contact.id } }
                 }
             });
@@ -762,8 +811,6 @@ const convertLead = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
                         }
                     });
                 }
-                // Optional: Delete LeadProduct entries after migration
-                // await tx.leadProduct.deleteMany({ where: { leadId: leadId } });
             }
             // 5. Update Lead
             const updatedLead = yield tx.lead.update({

@@ -38,6 +38,13 @@ const updateProfile = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     try {
         const userId = req.user.id;
         const updateData = Object.assign({}, req.body);
+        // DEBUG LOGGING
+        if (updateData.profileImage) {
+            console.log(`[ProfileController] updateUser called with profileImage: ${updateData.profileImage}`);
+        }
+        else {
+            console.log(`[ProfileController] updateUser called without profileImage`);
+        }
         delete updateData.password;
         delete updateData.email;
         const user = yield prisma_1.default.user.update({

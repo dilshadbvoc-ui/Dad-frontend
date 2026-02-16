@@ -49,7 +49,7 @@ class SalesTargetService {
                         const aggregation = yield prisma_1.default.quoteLineItem.aggregate({
                             where: {
                                 quote: {
-                                    opportunity: Object.assign({ ownerId: userId, stage: 'closed_won', updatedAt: { gte: target.startDate, lte: target.endDate } }, typeFilter)
+                                    opportunity: Object.assign({ ownerId: userId, stage: 'closed_won', isDeleted: false, updatedAt: { gte: target.startDate, lte: target.endDate } }, typeFilter)
                                 },
                                 productId: target.productId || undefined
                             },
@@ -69,7 +69,7 @@ class SalesTargetService {
                     else {
                         // Generic Revenue (Total Opportunity Amount)
                         const aggregation = yield prisma_1.default.opportunity.aggregate({
-                            where: Object.assign({ ownerId: userId, stage: 'closed_won', updatedAt: {
+                            where: Object.assign({ ownerId: userId, stage: 'closed_won', isDeleted: false, updatedAt: {
                                     gte: target.startDate,
                                     lte: target.endDate
                                 } }, typeFilter),

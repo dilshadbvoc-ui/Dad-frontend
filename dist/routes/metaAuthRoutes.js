@@ -19,6 +19,7 @@ const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
 const MetaLeadService_1 = require("../services/MetaLeadService"); // Service for handling Meta leads
 const MetaIntegrationService_1 = require("../services/MetaIntegrationService");
+const encryption_1 = require("../utils/encryption");
 const router = (0, express_1.Router)();
 // Meta OAuth Configuration
 const META_API_VERSION = 'v18.0';
@@ -230,9 +231,9 @@ router.get('/callback', (req, res) => __awaiter(void 0, void 0, void 0, function
         yield prisma_1.default.organisation.update({
             where: { id: orgId },
             data: {
-                integrations: Object.assign(Object.assign({}, currentIntegrations), { meta: newAccount, metaAccounts: metaAccounts, whatsapp: {
+                integrations: Object.assign(Object.assign({}, currentIntegrations), { meta: Object.assign(Object.assign({}, newAccount), { accessToken: (0, encryption_1.encrypt)(newAccount.accessToken) }), metaAccounts: metaAccounts.map((acc) => (Object.assign(Object.assign({}, acc), { accessToken: acc.adAccountId === newAccount.adAccountId ? (0, encryption_1.encrypt)(newAccount.accessToken) : acc.accessToken }))), whatsapp: {
                         connected: !!wabaId && !!phoneNumberId,
-                        accessToken: longLivedToken,
+                        accessToken: (0, encryption_1.encrypt)(longLivedToken),
                         wabaId: wabaId,
                         phoneNumberId: phoneNumberId,
                         appId: appId,

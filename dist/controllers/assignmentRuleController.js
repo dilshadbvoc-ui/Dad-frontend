@@ -63,6 +63,8 @@ const getAssignmentRules = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const where = { isDeleted: false };
         if (orgId)
             where.organisationId = orgId;
+        if (user.branchId)
+            where.branchId = user.branchId; // Restrict to branch if user has one
         const rules = yield prisma_1.default.assignmentRule.findMany({
             where,
             include: {
@@ -99,8 +101,10 @@ const createAssignmentRule = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 ruleType: req.body.ruleType || 'round_robin',
                 criteria: req.body.criteria || [],
                 assignTo: req.body.assignTo,
+                companySize: req.body.companySize,
                 organisation: { connect: { id: orgId } },
-                createdBy: { connect: { id: user.id } }
+                createdBy: { connect: { id: user.id } },
+                branch: (req.body.branchId || user.branchId) ? { connect: { id: req.body.branchId || user.branchId } } : undefined
             }
         });
         // Audit Log
@@ -137,7 +141,7 @@ const updateAssignmentRule = (req, res) => __awaiter(void 0, void 0, void 0, fun
             return res.status(404).json({ message: 'Assignment rule not found' });
         const rule = yield prisma_1.default.assignmentRule.update({
             where: { id: req.params.id },
-            data: req.body
+            data: Object.assign(Object.assign({}, req.body), { branchId: undefined, branch: req.body.branchId ? { connect: { id: req.body.branchId } } : undefined })
         });
         // Audit Log
         try {
