@@ -140,7 +140,7 @@ export const getOrganisation = async (req: Request, res: Response) => {
                     _sum: { amount: true }
                 }),
                 prisma.license.findFirst({
-                    where: { organisationId: orgId, status: 'active' },
+                    where: { organisationId: orgId, status: { in: ['active', 'trial'] } },
                     include: { plan: true }
                 })
             ]);

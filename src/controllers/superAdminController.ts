@@ -12,7 +12,7 @@ export const getAllOrganisations = async (req: Request, res: Response) => {
             orderBy: { createdAt: 'desc' },
             include: {
                 licenses: {
-                    where: { status: 'active' },
+                    where: { status: { in: ['active', 'trial'] } },
                     include: { plan: true },
                     take: 1
                 }
@@ -72,9 +72,9 @@ export const createOrganisation = async (req: Request, res: Response) => {
                     contactEmail,
                     status: 'active',
                     subscription: {
-                        status: 'trial',
+                        status: planId ? 'active' : 'trial',
                         startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+                        endDate: new Date(Date.now() + (planId ? 30 : 14) * 24 * 60 * 60 * 1000).toISOString()
                     }
                 }
             });
@@ -103,7 +103,7 @@ export const createOrganisation = async (req: Request, res: Response) => {
                         data: {
                             organisationId: organisation.id,
                             planId: planId,
-                            status: 'trial',
+                            status: 'active',
                             startDate: new Date(),
                             endDate,
                             maxUsers: plan.maxUsers,
