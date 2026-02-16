@@ -33,14 +33,7 @@ import {
 } from "lucide-react";
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
-import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
-} from "@/components/ui/tooltip";
 
-// New Grouped Structure
 const menuGroups = [
     {
         title: "Overview",
@@ -115,9 +108,8 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
     const pathname = location.pathname;
-    const [openGroups, setOpenGroups] = useState<string[]>(["Sales Engine", "Overview"]); // Default open
+    const [openGroups, setOpenGroups] = useState<string[]>(["Sales Engine", "Overview"]);
 
-    // Auto-open group based on active route
     useEffect(() => {
         if (isCollapsed) return;
         const activeGroup = menuGroups.find(group =>
@@ -126,17 +118,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         if (activeGroup && !openGroups.includes(activeGroup.title)) {
             setOpenGroups(prev => [...prev, activeGroup.title]);
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pathname, isCollapsed]);
 
-    // Toggle function available for future use if accordion-style navigation is needed
-    // const toggleGroup = useCallback((title: string) => {
-    //     setOpenGroups(prev =>
-    //         prev.includes(title) ? prev.filter(t => t !== title) : [...prev, title]
-    //     );
-    // }, []);
-
-    const [user] = useState<{ firstName: string; lastName: string; email: string; role?: string } | null>(() => {
+    const [user] = useState(() => {
         const userStr = localStorage.getItem('userInfo');
         if (userStr) {
             try { return JSON.parse(userStr); } catch (e) { console.error(e); }
@@ -151,12 +135,10 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         navigate('/login');
     };
 
-    // Filter items based on role
     const filteredGroups = menuGroups.map(group => ({
         ...group,
         items: group.items.filter(item => {
             if (isSuperAdmin && item.title !== "Settings") return false;
-            // Check if item requires admin role
             if (item.role === 'admin' && user?.role !== 'admin' && user?.role !== 'super_admin') return false;
             if (item.role && item.role !== 'admin' && item.role !== user?.role) return false;
             return true;
@@ -164,223 +146,118 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     })).filter(group => group.items.length > 0);
 
     return (
-        <TooltipProvider>
+        <div className={cn(
+            "flex flex-col h-full bg-sidebar-bg text-sidebar-text transition-all duration-300 border-r border-sidebar-border",
+            isCollapsed ? "w-20" : "w-64"
+        )}>
+            {/* Logo & Toggle */}
             <div className={cn(
-                "flex flex-col h-full bg-sidebar-bg text-sidebar-text transition-all duration-300 border-r border-sidebar-border",
-                isCollapsed ? "w-20" : "w-64"
+                "relative flex h-20 items-center",
+                isCollapsed ? "justify-center px-0" : "justify-between px-6"
             )}>
-                {/* Logo & Toggle */}
-                <div className={cn(
-                    "relative flex h-20 items-center",
-                    isCollapsed ? "justify-center px-0" : "justify-between px-6"
-                )}>
-                    <Link to="/dashboard" className="flex items-center gap-3 group">
-                        <Logo size="lg" showText={!isCollapsed} />
-                    </Link>
-                    {!isCollapsed && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setIsCollapsed(true)}
-                            className="h-8 w-8 text-muted-foreground hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                    )}
-                    {isCollapsed && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => setIsCollapsed(false)}
-                            className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
-                        >
-                            <ChevronRight className="h-3 w-3" />
-                        </Button>
-                    )}
-                </div>
+                <Link to="/dashboard" className="flex items-center gap-3">
+                    <Logo size="lg" showText={!isCollapsed} />
+                </Link>
+                {!isCollapsed && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsCollapsed(true)}
+                        className="h-8 w-8 text-muted-foreground hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
+                    >
+                        <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                )}
+                {isCollapsed && (
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsCollapsed(false)}
+                        className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
+                    >
+                        <ChevronRight className="h-3 w-3" />
+                    </Button>
+                )}
+            </div>
 
-                {/* Navigation */}
-                <nav className="relative flex-1 overflow-y-auto py-4 px-3 scrollbar-ocean overflow-x-hidden space-y-6">
+            {/* Navigation */}
+            <nav className="relative flex-1 overflow-y-auto py-4 px-3 scrollbar-ocean overflow-x-hidden space-y-6">
+                {isSuperAdmin && (
+                    <div className="mb-2 space-y-1">
+                        <Link to="/super-admin" className={cn(
+                            "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                            pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                            isCollapsed && "justify-center px-0"
+                        )}>
+                            <ShieldCheck className={cn("h-5 w-5 shrink-0", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                            {!isCollapsed && <span>Dashboard</span>}
+                        </Link>
+                        <Link to="/super-admin?tab=overview" className={cn(
+                            "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                            pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                            isCollapsed && "justify-center px-0"
+                        )}>
+                            <Building className={cn("h-5 w-5 shrink-0", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                            {!isCollapsed && <span>Organisations</span>}
+                        </Link>
+                        <Link to="/super-admin?tab=plans" className={cn(
+                            "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                            location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                            isCollapsed && "justify-center px-0"
+                        )}>
+                            <CreditCard className={cn("h-5 w-5 shrink-0", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                            {!isCollapsed && <span>License Plans</span>}
+                        </Link>
+                        <Link to="/super-admin/seo" className={cn(
+                            "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                            pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                            isCollapsed && "justify-center px-0"
+                        )}>
+                            <Globe className={cn("h-5 w-5 shrink-0", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                            {!isCollapsed && <span>SEO Panel</span>}
+                        </Link>
+                    </div>
+                )}
 
-                    {/* Super Admin Link */}
-                    {isSuperAdmin && (
-                        <div className="mb-2">
-                            {/* Dashboard */}
-                            {isCollapsed ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to="/super-admin" className={cn(
-                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
-                                            pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                        )}>
-                                            <ShieldCheck className="h-5 w-5 shrink-0" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Dashboard</TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Link to="/super-admin" className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
-                                    pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                )}>
-                                    <ShieldCheck className={cn("h-5 w-5 shrink-0", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/50")} />
-                                    <span>Dashboard</span>
-                                </Link>
-                            )}
-
-                            {/* Organisations */}
-                            {isCollapsed ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to="/super-admin?tab=overview" className={cn(
-                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
-                                            pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                        )}>
-                                            <Building className="h-5 w-5 shrink-0" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Organisations</TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Link to="/super-admin?tab=overview" className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
-                                    pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                )}>
-                                    <Building className={cn("h-5 w-5 shrink-0", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/50")} />
-                                    <span>Organisations</span>
-                                </Link>
-                            )}
-
-                            {/* License Plans */}
-                            {isCollapsed ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to="/super-admin?tab=plans" className={cn(
-                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
-                                            location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                        )}>
-                                            <CreditCard className="h-5 w-5 shrink-0" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>License Plans</TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Link to="/super-admin?tab=plans" className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
-                                    location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                )}>
-                                    <CreditCard className={cn("h-5 w-5 shrink-0", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
-                                    <span>License Plans</span>
-                                </Link>
-                            )}
-
-                            {/* SEO Panel */}
-                            {isCollapsed ? (
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Link to="/super-admin/seo" className={cn(
-                                            "flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-colors",
-                                            pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg" : "text-sidebar-text/60 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                        )}>
-                                            <Globe className="h-5 w-5 shrink-0" />
-                                        </Link>
-                                    </TooltipTrigger>
-                                    <TooltipContent>SEO Panel</TooltipContent>
-                                </Tooltip>
-                            ) : (
-                                <Link to="/super-admin/seo" className={cn(
-                                    "flex items-center gap-3 px-4 py-3 rounded-full transition-colors mb-1 font-bold text-sm",
-                                    pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                )}>
-                                    <Globe className={cn("h-5 w-5 shrink-0", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
-                                    <span>SEO Panel</span>
-                                </Link>
-                            )}
-                        </div>
-                    )}
-
-                    {filteredGroups.map((group, groupIndex) => (
-                        <div key={groupIndex} className="space-y-1">
-                            {!isCollapsed && (
-                                <div className="px-3 text-xs font-semibold text-sidebar-text/50 uppercase tracking-wider mb-2 mt-2">
-                                    {group.title}
-                                </div>
-                            )}
-
-                            {group.items.map((item, itemIndex) => {
-                                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-
-                                if (isCollapsed) {
-                                    return (
-                                        <Tooltip key={itemIndex}>
-                                            <TooltipTrigger asChild>
-                                                <Link
-                                                    to={item.href}
-                                                    className={cn(
-                                                        "group flex items-center justify-center h-12 w-12 mx-auto rounded-full transition-all duration-200",
-                                                        isActive
-                                                            ? "bg-sidebar-active text-sidebar-bg shadow-md"
-                                                            : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                                    )}
-                                                >
-                                                    <item.icon className={cn(
-                                                        "h-5 w-5 shrink-0 transition-colors",
-                                                        isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
-                                                    )} />
-                                                </Link>
-                                            </TooltipTrigger>
-                                            <TooltipContent className="bg-popover text-popover-foreground border-border">
-                                                {item.title}
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    );
-                                }
-
-                                return (
-                                    <Link
-                                        key={itemIndex}
-                                        to={item.href}
-                                        className={cn(
-                                            "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                            isActive
-                                                ? "bg-sidebar-active text-sidebar-bg shadow-md"
-                                                : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover"
-                                        )}
-                                    >
-                                        <item.icon className={cn(
-                                            "h-5 w-5 shrink-0 transition-colors",
-                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
-                                        )} />
-                                        <span>{item.title}</span>
-                                    </Link>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </nav>
-
-                {/* Footer */}
-                <div className="p-4 border-t border-sidebar-border bg-sidebar-bg mt-auto shrink-0">
-                    {isCollapsed ? (
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button
-                                    type="button"
-                                    className="flex items-center justify-center h-12 w-12 mx-auto rounded-full hover:bg-sidebar-hover transition-colors cursor-pointer"
-                                    onClick={handleLogout}
-                                >
-                                    <div className="h-8 w-8 rounded-lg bg-sidebar-active flex items-center justify-center text-xs font-bold text-sidebar-bg shadow-sm">
-                                        {user?.firstName?.charAt(0) || 'U'}
-                                    </div>
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent>Logout</TooltipContent>
-                        </Tooltip>
-                    ) : (
-                        <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-sidebar-active flex items-center justify-center text-sm font-bold text-sidebar-bg shadow-sm">
-                                {user?.firstName?.charAt(0) || 'U'}
+                {filteredGroups.map((group, groupIndex) => (
+                    <div key={groupIndex} className="space-y-1">
+                        {!isCollapsed && (
+                            <div className="px-3 text-xs font-semibold text-sidebar-text/50 uppercase tracking-wider mb-2 mt-2">
+                                {group.title}
                             </div>
+                        )}
+                        {group.items.map((item, itemIndex) => {
+                            const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                            return (
+                                <Link
+                                    key={itemIndex}
+                                    to={item.href}
+                                    className={cn(
+                                        "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                                        isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                        isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+                                    )}
+                                >
+                                    <item.icon className={cn(
+                                        "h-5 w-5 shrink-0 transition-colors",
+                                        isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
+                                    )} />
+                                    {!isCollapsed && <span>{item.title}</span>}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                ))}
+            </nav>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-sidebar-border bg-sidebar-bg mt-auto shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-sidebar-active flex items-center justify-center text-sm font-bold text-sidebar-bg shadow-sm">
+                        {user?.firstName?.charAt(0) || 'U'}
+                    </div>
+                    {!isCollapsed && (
+                        <>
                             <div className="flex-1 min-w-0">
                                 <p className="text-sm font-medium truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
                                 <p className="text-xs text-sidebar-text/60 truncate">{user?.email}</p>
@@ -388,19 +265,24 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover">
                                 <LogOut className="h-4 w-4" />
                             </Button>
-                        </div>
+                        </>
+                    )}
+                    {isCollapsed && (
+                        <Button variant="ghost" size="icon" onClick={handleLogout} className="h-8 w-8 mx-auto text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover">
+                            <LogOut className="h-4 w-4" />
+                        </Button>
                     )}
                 </div>
             </div>
-        </TooltipProvider>
+        </div>
     );
 }
 
 function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarProps & { className?: string }) {
     return (
         <div className={cn(
-            "flex flex-col bg-[hsl(var(--sidebar-bg))] relative h-full lg:h-screen transition-all duration-300",
-            isCollapsed ? "w-20" : "w-full lg:w-64", // Full width on mobile when shown
+            "flex flex-col bg-sidebar-bg relative h-full lg:h-screen transition-all duration-300",
+            isCollapsed ? "w-20" : "w-full lg:w-64",
             className
         )}>
             <SidebarContent isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
@@ -409,4 +291,3 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
 }
 
 export const Sidebar = memo(SidebarComponent);
-
