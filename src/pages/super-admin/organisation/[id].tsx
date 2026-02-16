@@ -38,6 +38,8 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog"
 import { formatCurrency } from '@/lib/utils'
+import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
+import { useState } from 'react'
 
 interface OrgDetails {
     organisation: {
@@ -96,6 +98,7 @@ interface OrgDetails {
 export default function OrganisationDetailPage() {
     const { id } = useParams()
     const navigate = useNavigate()
+    const [isAssignPlanOpen, setIsAssignPlanOpen] = useState(false)
 
     const { data, isLoading, error } = useQuery<OrgDetails>({
         queryKey: ['organisation', id],
@@ -263,8 +266,16 @@ export default function OrganisationDetailPage() {
                 </Card>
 
                 <Card className="bg-[#1e1b4b] border-indigo-900/50">
-                    <CardHeader className="pb-2">
+                    <CardHeader className="pb-2 flex flex-row items-center justify-between space-y-0">
                         <CardTitle className="text-sm font-medium text-indigo-300">Subscription Status</CardTitle>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setIsAssignPlanOpen(true)}
+                            className="h-6 px-2 text-[10px] text-indigo-400 hover:text-white hover:bg-indigo-800"
+                        >
+                            Update Plan
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <div className="flex items-center justify-between mb-2">
@@ -461,6 +472,15 @@ export default function OrganisationDetailPage() {
                     </CardContent>
                 </Card>
             </div>
+
+            {/* Dialogs */}
+            <AssignPlanDialog
+                open={isAssignPlanOpen}
+                onOpenChange={setIsAssignPlanOpen}
+                organisationId={org.id}
+                currentPlanId={activeLicense?.plan.id}
+                organisationName={org.name}
+            />
         </div>
     )
 }
