@@ -1,6 +1,8 @@
 import { Link, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
+import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
+import { getUsers } from "@/services/settingsService"
 
 import {
     User,
@@ -157,6 +159,15 @@ export default function SettingsPage() {
         return null;
     });
 
+    // Fetch user count
+    const { data: usersData } = useQuery({
+        queryKey: ['users'],
+        queryFn: getUsers,
+        enabled: !!user
+    });
+
+    const userCount = Array.isArray(usersData) ? usersData.length : (usersData?.users?.length || 0);
+
     useEffect(() => {
         if (!user) {
             navigate('/login');
@@ -180,55 +191,16 @@ export default function SettingsPage() {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid gap-4 grid-cols-2 md:grid-cols-4">
-                <Card className="bg-muted/50 border-border backdrop-blur-sm">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
+                <Card className="bg-gradient-to-br from-card to-muted/50 border-border backdrop-blur-sm shadow-sm">
                     <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <Users className="h-5 w-5 text-primary" />
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <Users className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-foreground">-</p>
-                                <p className="text-xs text-muted-foreground">Team Members</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/50 border-border backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <FormInput className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">-</p>
-                                <p className="text-xs text-muted-foreground">Custom Fields</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/50 border-border backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <GitBranch className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">-</p>
-                                <p className="text-xs text-muted-foreground">Assignment Rules</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-                <Card className="bg-muted/50 border-border backdrop-blur-sm">
-                    <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <Webhook className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">-</p>
-                                <p className="text-xs text-muted-foreground">Active Integrations</p>
+                                <p className="text-2xl font-bold text-foreground">{userCount}</p>
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Team Members</p>
                             </div>
                         </div>
                     </CardContent>
@@ -242,7 +214,7 @@ export default function SettingsPage() {
                         <Card className="h-full bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
                             <CardContent className="p-6">
                                 <div className="flex items-start gap-4">
-                                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${section.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0 group-hover:scale-110 transition-transform`}>
+                                    <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${section.gradient} flex items-center justify-center shadow-lg shadow-indigo-500/20 flex-shrink-0 group-hover:scale-110 transition-transform duration-300`}>
                                         <section.icon className="h-6 w-6 text-white" />
                                     </div>
                                     <div className="flex-1 min-w-0">

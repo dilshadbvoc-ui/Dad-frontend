@@ -264,37 +264,45 @@ export default function LeadsPage() {
 
     return (
         <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0">
-            {/* Sidebar - Desktop Only or hidden on mobile in favor of Select dropdown */}
-            <div className="hidden lg:flex w-64 flex-shrink-0 flex-col space-y-6 overflow-y-auto pr-2 pb-10">
-                <div>
-                    <div className="flex items-center gap-2 mb-2 px-2">
-                        <Phone className="h-4 w-4 text-primary" />
-                        <h3 className="font-semibold text-foreground">Leads</h3>
-                    </div>
-                    <div className="space-y-1">
-                        <SidebarItem view="all-leads" label="All Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="no-activity-leads" label="No Activity Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="today-leads" label="Today's Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="leads-by-status" label="Leads by Status" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="leads-by-source" label="Leads by Source" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="leads-by-ownership" label="Leads by Ownership" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="converted-leads" label="Converted Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="lost-leads" label="Lost Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                    </div>
-                </div>
+            {/* Sidebar - Desktop Only */}
+            <div className="hidden lg:flex w-64 flex-shrink-0 flex-col space-y-6">
+                <Card className="h-full border-border/60 shadow-sm bg-card/50 backdrop-blur-sm">
+                    <CardContent className="p-4 space-y-6">
+                        <div>
+                            <div className="flex items-center gap-2 mb-3 px-2">
+                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <Phone className="h-4 w-4 text-primary" />
+                                </div>
+                                <h3 className="font-semibold text-foreground">Leads</h3>
+                            </div>
+                            <div className="space-y-1">
+                                <SidebarItem view="all-leads" label="All Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="no-activity-leads" label="No Activity Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="today-leads" label="Today's Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="leads-by-status" label="Leads by Status" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="leads-by-source" label="Leads by Source" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="leads-by-ownership" label="Leads by Ownership" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="converted-leads" label="Converted Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="lost-leads" label="Lost Leads" currentView={currentView} handleViewChange={handleViewChange} />
+                            </div>
+                        </div>
 
-                <div>
-                    <div className="flex items-center gap-2 mb-2 px-2">
-                        <CalendarCheck className="h-4 w-4 text-primary" />
-                        <h3 className="font-semibold text-foreground">Follow Ups</h3>
-                    </div>
-                    <div className="space-y-1">
-                        <SidebarItem view="overdue-followups" label="Overdue Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="today-followups" label="Today's Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="upcoming-followups" label="Upcoming Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                        <SidebarItem view="all-followups" label="All Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                    </div>
-                </div>
+                        <div className="border-t border-border/50 pt-6">
+                            <div className="flex items-center gap-2 mb-3 px-2">
+                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                                    <CalendarCheck className="h-4 w-4 text-primary" />
+                                </div>
+                                <h3 className="font-semibold text-foreground">Follow Ups</h3>
+                            </div>
+                            <div className="space-y-1">
+                                <SidebarItem view="overdue-followups" label="Overdue Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="today-followups" label="Today's Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="upcoming-followups" label="Upcoming Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                                <SidebarItem view="all-followups" label="All Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
 
             {/* Main Content */}

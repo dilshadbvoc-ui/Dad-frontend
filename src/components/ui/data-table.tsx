@@ -120,10 +120,10 @@ export function DataTable<TData, TValue>({
                 <Table>
                     <TableHeader className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                            <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border">
                                 {headerGroup.headers.map((header) => {
                                     return (
-                                        <TableHead key={header.id} className="font-bold text-xs uppercase tracking-wider h-12">
+                                        <TableHead key={header.id} className="font-semibold text-xs uppercase tracking-wider h-11 text-muted-foreground/80">
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
@@ -151,7 +151,7 @@ export function DataTable<TData, TValue>({
                                     )}
                                 >
                                     {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-3">
+                                        <TableCell key={cell.id} className="py-3 font-medium text-sm">
                                             {flexRender(
                                                 cell.column.columnDef.cell,
                                                 cell.getContext()
@@ -164,9 +164,33 @@ export function DataTable<TData, TValue>({
                             <TableRow>
                                 <TableCell
                                     colSpan={columns.length}
-                                    className="h-24 text-center text-muted-foreground"
+                                    className="h-64 text-center"
                                 >
-                                    No results.
+                                    <div className="flex flex-col items-center justify-center space-y-3">
+                                        <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-2">
+                                            <svg
+                                                className="h-8 w-8 text-muted-foreground/50"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                aria-hidden="true"
+                                            >
+                                                <path
+                                                    vectorEffect="non-scaling-stroke"
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={1.5}
+                                                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="font-semibold text-lg text-foreground">No data found</p>
+                                            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                                                We couldn't find any records matching your criteria. Try adjusting your filters.
+                                            </p>
+                                        </div>
+                                    </div>
                                 </TableCell>
                             </TableRow>
                         )}

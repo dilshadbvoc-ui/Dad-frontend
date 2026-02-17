@@ -98,25 +98,25 @@ export default function ProfileSettingsPage() {
                                     {/* Profile Image Section */}
                                     <div className="flex items-center gap-6">
                                         <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                            <Avatar className="h-24 w-24 border-2 border-primary/20">
-                                                <AvatarImage 
-                                                    src={getAssetUrl(profile?.profileImage)} 
+                                            <Avatar className="h-24 w-24 border-primary/20 ring-4 ring-background shadow-lg transition-transform duration-300 group-hover:scale-105">
+                                                <AvatarImage
+                                                    src={getAssetUrl(profile?.profileImage)}
                                                     className="object-cover"
                                                     onError={(e) => {
                                                         e.currentTarget.style.display = 'none';
                                                     }}
                                                 />
-                                                <AvatarFallback className="text-2xl bg-primary/10 text-primary">
+                                                <AvatarFallback className="text-2xl bg-primary/10 text-primary font-bold">
                                                     {profile?.firstName?.[0]}{profile?.lastName?.[0]}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-[2px]">
                                                 {uploading ? <Loader2 className="h-6 w-6 text-white animate-spin" /> : <Camera className="h-6 w-6 text-white" />}
                                             </div>
                                         </div>
                                         <div>
-                                            <h3 className="font-medium">Profile Picture</h3>
-                                            <p className="text-sm text-muted-foreground">Click to upload a new photo. JPG, PNG or GIF.</p>
+                                            <h3 className="font-semibold text-lg">Profile Picture</h3>
+                                            <p className="text-sm text-muted-foreground mt-1">Click the avatar to upload. SVG, PNG, JPG or GIF (max. 800x400px).</p>
                                             <input
                                                 type="file"
                                                 ref={fileInputRef}
@@ -127,13 +127,15 @@ export default function ProfileSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} /></div>
-                                        <div><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} /></div>
+                                    <div className="grid grid-cols-2 gap-6">
+                                        <div className="space-y-2"><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} className="h-10" /></div>
+                                        <div className="space-y-2"><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} className="h-10" /></div>
                                     </div>
-                                    <div><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-muted text-muted-foreground" /></div>
-                                    <div><Label>Phone</Label><Input value={profile?.phone || ''} onChange={e => setProfile(p => p ? { ...p, phone: e.target.value } : null)} /></div>
-                                    <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
+                                    <div className="space-y-2"><Label>Email</Label><Input value={profile?.email || ''} disabled className="bg-muted/40 text-foreground/70 border-dashed h-10 cursor-not-allowed font-medium" /></div>
+                                    <div className="space-y-2"><Label>Phone</Label><Input value={profile?.phone || ''} onChange={e => setProfile(p => p ? { ...p, phone: e.target.value } : null)} className="h-10" /></div>
+                                    <div className="pt-2">
+                                        <Button type="submit" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"><Save className="h-4 w-4 mr-2" />Save Changes</Button>
+                                    </div>
                                 </form>
                             </CardContent>
                         </Card>

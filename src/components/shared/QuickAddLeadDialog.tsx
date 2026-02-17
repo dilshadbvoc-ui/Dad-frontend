@@ -126,173 +126,189 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                     </DialogDescription>
                 </DialogHeader>
                 <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="firstName"
-                                rules={{ required: "First name is required", minLength: { value: 2, message: "Min 2 chars" } }}
-                                render={({ field }) => (
-                                    <FormItem className="space-y-1">
-                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="John" className="h-11 sm:h-10" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="text-[10px]" />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="lastName"
-                                rules={{ required: "Last name is required", minLength: { value: 2, message: "Min 2 chars" } }}
-                                render={({ field }) => (
-                                    <FormItem className="space-y-1">
-                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name</FormLabel>
-                                        <FormControl>
-                                            <Input placeholder="Doe" className="h-11 sm:h-10" {...field} />
-                                        </FormControl>
-                                        <FormMessage className="text-[10px]" />
-                                    </FormItem>
-                                )}
-                            />
-                        </div>
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            rules={{
-                                pattern: {
-                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                                    message: "Invalid email address"
-                                }
-                            }}
-                            render={({ field }) => (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="john@example.com" className="h-11 sm:h-10" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="phone"
-                            rules={{
-                                required: "Phone number is required",
-                                pattern: {
-                                    value: /^\d{10}$/,
-                                    message: "Phone number must be exactly 10 digits"
-                                }
-                            }}
-                            render={({ field }) => (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="9876543210"
-                                            {...field}
-                                            maxLength={10}
-                                            className="h-11 sm:h-10"
-                                            onChange={(e) => {
-                                                // Allow only digits
-                                                const value = e.target.value.replace(/\D/g, '');
-                                                field.onChange(value);
-                                            }}
-                                        />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="company"
-                            render={({ field }) => (
-                                <FormItem className="space-y-1">
-                                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</FormLabel>
-                                    <FormControl>
-                                        <Input placeholder="Acme Inc" className="h-11 sm:h-10" {...field} />
-                                    </FormControl>
-                                    <FormMessage className="text-[10px]" />
-                                </FormItem>
-                            )}
-                        />
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <FormField
-                                control={form.control}
-                                name="source"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Source</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                        {/* Contact Details Section */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-medium text-foreground border-b pb-2">Contact Details</h4>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="firstName"
+                                    rules={{ required: "First name is required", minLength: { value: 2, message: "Min 2 chars" } }}
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name</FormLabel>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select source" />
-                                                </SelectTrigger>
+                                                <Input placeholder="John" className="h-10" {...field} />
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="manual">Manual</SelectItem>
-                                                <SelectItem value="website">Website</SelectItem>
-                                                <SelectItem value="referral">Referral</SelectItem>
-                                                <SelectItem value="cold_call">Cold Call</SelectItem>
-                                                <SelectItem value="social_media">Social Media</SelectItem>
-                                                <SelectItem value="email_campaign">Email Campaign</SelectItem>
-                                                <SelectItem value="meta_ads">Meta Ads</SelectItem>
-                                                <SelectItem value="google_ads">Google Ads</SelectItem>
-                                                <SelectItem value="import">Bulk Import</SelectItem>
-                                                <SelectItem value="other">Other</SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
-                            <FormField
-                                control={form.control}
-                                name="assignedTo"
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>Assign To</FormLabel>
-                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="lastName"
+                                    rules={{ required: "Last name is required", minLength: { value: 2, message: "Min 2 chars" } }}
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name</FormLabel>
                                             <FormControl>
-                                                <SelectTrigger>
-                                                    <SelectValue placeholder="Select user (Optional)" />
-                                                </SelectTrigger>
+                                                <Input placeholder="Doe" className="h-10" {...field} />
                                             </FormControl>
-                                            <SelectContent>
-                                                <SelectItem value="unassigned">Unassigned</SelectItem>
-                                                {users.map((user: { id: string; firstName: string; lastName: string }) => (
-                                                    <SelectItem key={user.id} value={user.id}>
-                                                        {user.firstName} {user.lastName}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
-                            />
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="email"
+                                    rules={{
+                                        pattern: {
+                                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                            message: "Invalid email address"
+                                        }
+                                    }}
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="john@example.com" className="h-10" {...field} />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="phone"
+                                    rules={{
+                                        required: "Phone number is required",
+                                        pattern: {
+                                            value: /^\d{10}$/,
+                                            message: "Phone number must be exactly 10 digits"
+                                        }
+                                    }}
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="9876543210"
+                                                    {...field}
+                                                    maxLength={10}
+                                                    className="h-10"
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        field.onChange(value);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
                         </div>
 
-                        {/* Custom Fields */}
-                        <DynamicCustomFields
-                            entityType="Lead"
-                            values={customFieldValues}
-                            onChange={handleCustomFieldChange}
-                        />
+                        {/* Lead Info Section */}
+                        <div className="space-y-4">
+                            <h4 className="text-sm font-medium text-foreground border-b pb-2">Lead Info</h4>
+                            <FormField
+                                control={form.control}
+                                name="company"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Acme Inc" className="h-10" {...field} />
+                                        </FormControl>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <FormField
+                                    control={form.control}
+                                    name="source"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="h-10">
+                                                        <SelectValue placeholder="Select source" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="manual">Manual</SelectItem>
+                                                    <SelectItem value="website">Website</SelectItem>
+                                                    <SelectItem value="referral">Referral</SelectItem>
+                                                    <SelectItem value="cold_call">Cold Call</SelectItem>
+                                                    <SelectItem value="social_media">Social Media</SelectItem>
+                                                    <SelectItem value="email_campaign">Email Campaign</SelectItem>
+                                                    <SelectItem value="meta_ads">Meta Ads</SelectItem>
+                                                    <SelectItem value="google_ads">Google Ads</SelectItem>
+                                                    <SelectItem value="import">Bulk Import</SelectItem>
+                                                    <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="assignedTo"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="h-10">
+                                                        <SelectValue placeholder="Unassigned" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                                    {users.map((user: { id: string; firstName: string; lastName: string }) => (
+                                                        <SelectItem key={user.id} value={user.id}>
+                                                            {user.firstName} {user.lastName}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </div>
+                        </div>
+
+                        {/* Custom Fields Section */}
+                        <div className="space-y-2">
+                            {/* Only show header if there are custom fields, but logic is inside component. 
+                                We can wrap it or just separate it visually. 
+                                DynamicCustomFields usually handles its own rendering. 
+                                Adding a wrapper for spacing. */}
+                            <DynamicCustomFields
+                                entityType="Lead"
+                                values={customFieldValues}
+                                onChange={handleCustomFieldChange}
+                            />
+                        </div>
 
                         <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
                             <Button
                                 type="button"
                                 variant="outline"
                                 onClick={() => finalOnOpenChange?.(false)}
-                                className="h-11 sm:h-10 flex-1 sm:flex-none"
+                                className="h-10 flex-1 sm:flex-none"
                             >
                                 Cancel
                             </Button>
-                            <Button type="submit" isLoading={mutation.isPending} className="h-11 sm:h-10 flex-1 sm:flex-none">
+                            <Button type="submit" isLoading={mutation.isPending} className="h-10 flex-1 sm:flex-none">
                                 Create Lead
                             </Button>
                         </DialogFooter>
