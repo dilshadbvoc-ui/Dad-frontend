@@ -285,7 +285,7 @@ export const updateUser = async (req: Request, res: Response) => {
 // POST /api/users
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { email, password, role, firstName, lastName, organisationId, branchId } = req.body;
+        const { email, password, role, firstName, lastName, organisationId, branchId, phone } = req.body;
         const currentUser = (req as any).user;
 
         // Determine Org ID
@@ -323,6 +323,7 @@ export const createUser = async (req: Request, res: Response) => {
                 role: role || 'sales_rep',
                 firstName,
                 lastName,
+                phone,
                 organisationId: targetOrgId,
                 isActive: true, // Default to active
                 // If currentUser is non-admin creating a user, maybe set reportsTo?
@@ -356,7 +357,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const inviteUser = async (req: Request, res: Response) => {
     try {
-        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId } = req.body;
+        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId, phone } = req.body;
         const currentUser = (req as any).user;
         const orgId = getOrgId(currentUser) || organisationId;
 
@@ -416,6 +417,7 @@ export const inviteUser = async (req: Request, res: Response) => {
                 role: role || 'sales_rep',
                 organisation: { connect: { id: targetOrgId } },
                 position,
+                phone,
                 userId: generatedUserId,
                 reportsTo: reportsTo ? { connect: { id: reportsTo } } : undefined,
                 branch: branchId ? { connect: { id: branchId } } : undefined,
