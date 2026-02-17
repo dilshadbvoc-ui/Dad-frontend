@@ -53,6 +53,7 @@ interface Plan {
     maxStorage: number;
     isActive: boolean;
     currency: string;
+    discount?: number;
 }
 
 interface PlanFormData {
@@ -66,6 +67,7 @@ interface PlanFormData {
     maxLeads: number;
     maxContacts: number;
     maxStorage: number;
+    discount?: number;
 }
 
 export function PlansManagement() {
@@ -133,6 +135,7 @@ export function PlansManagement() {
                             <TableHead className="text-muted-foreground">Price</TableHead>
                             <TableHead className="text-muted-foreground">Duration</TableHead>
                             <TableHead className="text-muted-foreground">Limits (Users/Leads/Storage)</TableHead>
+                            <TableHead className="text-muted-foreground">Discount</TableHead>
                             <TableHead className="text-muted-foreground">Status</TableHead>
                             <TableHead className="text-right text-muted-foreground">Actions</TableHead>
                         </TableRow>
@@ -168,6 +171,15 @@ export function PlansManagement() {
                                         Users: {plan.maxUsers} <br />
                                         Leads: {plan.maxLeads} <br />
                                         Storage: {plan.maxStorage}MB
+                                    </TableCell>
+                                    <TableCell>
+                                        {plan.discount ? (
+                                            <Badge variant="outline" className="bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20">
+                                                {plan.discount}% Off
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-slate-500 text-xs">No discount</span>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <Badge variant={plan.isActive ? 'default' : 'secondary'} className={plan.isActive ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}>
@@ -242,7 +254,8 @@ function PlanDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
             maxUsers: 5,
             maxLeads: 1000,
             maxContacts: 5000,
-            maxStorage: 1000
+            maxStorage: 1000,
+            discount: 0
         }
     });
 
@@ -315,6 +328,10 @@ function PlanDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
                         <div className="space-y-2">
                             <Label>Max Leads</Label>
                             <Input type="number" {...register('maxLeads', { valueAsNumber: true })} className="bg-background border-input" />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Discount (%)</Label>
+                            <Input type="number" {...register('discount', { valueAsNumber: true })} placeholder="0" className="bg-background border-input" />
                         </div>
                     </div>
 
