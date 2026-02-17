@@ -4,6 +4,6 @@ import { protect, admin } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-router.get('/', protect, admin, getAuditLogs);
+router.get('/', protect, getAuditLogs);
 
 export default router;
