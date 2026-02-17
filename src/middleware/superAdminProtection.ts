@@ -46,27 +46,35 @@ export const verifySuperAdminSecret = (req: Request, res: Response, next: NextFu
 /**
  * Lock the entire system in case of security breach
  */
-export const lockSystem = (reason: string) => {
+export const lockSystem = async (reason: string) => {
     SYSTEM_LOCKED = true;
     LOCK_REASON = reason;
     console.error('🚨🚨🚨 CRITICAL SECURITY ALERT 🚨🚨🚨');
     console.error(`SYSTEM LOCKED: ${reason}`);
     console.error('Timestamp:', new Date().toISOString());
     console.error('🚨🚨🚨 SYSTEM LOCKED 🚨🚨🚨');
-    
-    // Log to audit trail
-    prisma.auditLog.create({
-        data: {
-            action: 'SYSTEM_LOCKDOWN',
-            entity: 'System',
-            entityId: 'SECURITY_BREACH',
-            actorId: 'SYSTEM',
-            organisationId: 'SYSTEM',
-            details: { reason, timestamp: new Date().toISOString() },
-            ipAddress: 'SYSTEM',
-            userAgent: 'SYSTEM'
-        }
-    }).catch(console.error);
+
+    try {
+        // Find a valid organisation ID for the log (AuditLog requires it)
+        const org = await prisma.organisation.findFirst({ select: { id: true } });
+        const orgId = org?.id || 'SYSTEM'; // Fallback, but might still fail if schema requires valid FK
+
+        // Log to audit trail
+        await prisma.auditLog.create({
+            data: {
+                action: 'SYSTEM_LOCKDOWN',
+                entity: 'System',
+                entityId: 'SECURITY_BREACH',
+                actorId: 'SYSTEM',
+                organisationId: orgId,
+                details: { reason, timestamp: new Date().toISOString() },
+                ipAddress: 'SYSTEM',
+                userAgent: 'SYSTEM'
+            }
+        });
+    } catch (err) {
+        console.error('Failed to log system lockdown to database:', err);
+    }
 };
 
 /**
@@ -90,7 +98,7 @@ export const protectSuperAdmin = async (req: Request, res: Response, next: NextF
     try {
         const user = (req as any).user;
         const targetUserId = req.params.id || req.body.userId || req.body.id;
-        
+
         // If no target user, continue
         if (!targetUserId) {
             return next();
@@ -112,7 +120,7 @@ export const protectSuperAdmin = async (req: Request, res: Response, next: NextF
             if (user?.role !== 'super_admin' || user?.email !== SUPER_ADMIN_EMAIL) {
                 // SECURITY BREACH DETECTED
                 lockSystem(`Unauthorized attempt to modify super admin account by user: ${user?.email || 'UNKNOWN'}`);
-                
+
                 // Log the attempt
                 await prisma.auditLog.create({
                     data: {

@@ -10,6 +10,7 @@
     "lint": "eslint src/**/*.ts",
     "studio": "prisma studio --port 5555",
     "migrate": "npx prisma db push --accept-data-loss && npx prisma generate",
+    "seed": "ts-node src/scripts/seed.ts",
     "postinstall": "node copy-prisma.js"
   },
   "keywords": [],
