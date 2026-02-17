@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getNotifications, markAsRead, markAllAsRead, type CRMNotification } from '@/services/notificationService';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { formatDistanceToNow } from 'date-fns';
@@ -131,8 +131,8 @@ export default function NotificationsPage() {
                                 <div
                                     key={notification.id}
                                     className={`flex gap-4 p-4 rounded-lg border transition-colors ${!notification.isRead
-                                            ? 'bg-primary/5 border-primary/20'
-                                            : 'bg-card hover:bg-muted/50'
+                                        ? 'bg-primary/5 border-primary/20'
+                                        : 'bg-card hover:bg-muted/50'
                                         }`}
                                     onClick={() => !notification.isRead && markReadMutation.mutate(notification.id)}
                                 >

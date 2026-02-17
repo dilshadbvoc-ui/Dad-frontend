@@ -1,5 +1,6 @@
 
-import { useState, useEffect } from "react"
+
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Loader2 } from "lucide-react"
@@ -32,7 +33,6 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { updateOrganisation, getBranches } from "@/services/settingsService"
-import { getOrganisation } from "@/services/settingsService"
 
 interface MetaAccountConfigDialogProps {
     open: boolean

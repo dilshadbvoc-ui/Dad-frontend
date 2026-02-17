@@ -42,6 +42,7 @@ import { toast } from 'sonner';
 import { CreateOrganisationDialog } from '@/components/super-admin/CreateOrganisationDialog';
 import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog';
 import { PlansManagement } from '@/components/super-admin/PlansManagement';
+import { GlobalRolesManagement } from '@/components/super-admin/GlobalRolesManagement';
 import { formatCurrency } from "@/lib/utils";
 
 interface Organisation {
@@ -188,6 +189,7 @@ export default function SuperAdminDashboard() {
                 <TabsList className="bg-[#1e1b4b] border border-indigo-900/50">
                     <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Overview</TabsTrigger>
                     <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">License Plans</TabsTrigger>
+                    <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">System Roles</TabsTrigger>
                     <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Database</TabsTrigger>
                 </TabsList>
 
@@ -417,6 +419,10 @@ export default function SuperAdminDashboard() {
 
                 <TabsContent value="plans">
                     <PlansManagement />
+                </TabsContent>
+
+                <TabsContent value="roles">
+                    <GlobalRolesManagement />
                 </TabsContent>
 
                 <TabsContent value="database">

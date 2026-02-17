@@ -24,21 +24,48 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
+interface User {
+    id: string;
+    name: string;
+    email: string;
+    role: {
+        name: string;
+    } | string;
+    // Add other user properties as needed
+}
+
+interface Branch {
+    id: string;
+    name: string;
+    // Add other branch properties as needed
+}
+
+interface DashboardStats {
+    activeOpportunities: number;
+    opportunities: {
+        won: number;
+        lost: number;
+    };
+    winRate: number;
+    // Add other stats properties as needed
+}
+
+interface SalesForecast {
+    weightedForecast: number;
+    // Add other forecast properties as needed
+}
+
 export default function Dashboard() {
-    const [user, setUser] = useState<any>(null);
-    const [branches, setBranches] = useState<any[]>([]);
+    const [user] = useState<User | null>(() => {
+        const userInfo = localStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo) : null;
+    });
+    const [branches, setBranches] = useState<Branch[]>([]);
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
-    useEffect(() => {
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-            const parsedUser = JSON.parse(userInfo);
-            setUser(parsedUser);
-            // Default to user's branch if they have one and are not super_admin (though analytics handles this)
-        }
-    }, []);
-
-    const isAdmin = user?.role?.name === 'Super Admin' || user?.role === 'super_admin' || user?.role === 'admin';
+    const isAdmin = (typeof user?.role === 'object' && user.role?.name === 'Super Admin') ||
+        user?.role === 'super_admin' ||
+        user?.role === 'admin';
 
     useEffect(() => {
         const fetchBranches = async () => {
@@ -54,12 +81,12 @@ export default function Dashboard() {
         if (user) fetchBranches();
     }, [user, isAdmin]);
 
-    const { data: stats, isLoading: statsLoading } = useQuery({
+    const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
         queryKey: ['dashboardStats', selectedBranchId],
         queryFn: () => getDashboardStats(selectedBranchId || undefined)
     });
 
-    const { data: forecast, isLoading: forecastLoading } = useQuery({
+    const { data: forecast, isLoading: forecastLoading } = useQuery<SalesForecast>({
         queryKey: ['forecast', selectedBranchId],
         queryFn: () => getSalesForecast(selectedBranchId || undefined)
     });
@@ -111,7 +138,7 @@ export default function Dashboard() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Branches</SelectItem>
-                                    {branches.map(branch => (
+                                    {branches.map((branch: Branch) => (
                                         <SelectItem key={branch.id} value={branch.id}>
                                             {branch.name}
                                         </SelectItem>

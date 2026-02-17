@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
@@ -77,7 +77,13 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
         };
     });
 
-    useEffect(() => {
+    const [prevEditingFieldId, setPrevEditingFieldId] = useState<string | null>(editingField?.id || null);
+    const [prevOpen, setPrevOpen] = useState(open);
+
+    if (editingField?.id !== prevEditingFieldId || (open && !prevOpen && !editingField)) {
+        setPrevEditingFieldId(editingField?.id || null);
+        setPrevOpen(open);
+
         if (editingField) {
             setFormData({
                 name: editingField.name,
@@ -90,15 +96,7 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
                 placeholder: editingField.placeholder || '',
                 defaultValue: editingField.defaultValue || ''
             });
-        } else if (!open) {
-            // Reset when closed (optional, but good for UX if reusing same component instance)
-            // actually best to reset when opening in 'create' mode
-        }
-    }, [editingField]);
-
-    // reset when opening separate useEffect
-    useEffect(() => {
-        if (open && !editingField) {
+        } else if (open && !prevOpen) {
             setFormData({
                 name: '',
                 label: '',
@@ -111,10 +109,12 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
                 defaultValue: ''
             });
         }
-    }, [open, editingField]);
+    }
+
+    // State management handled during render to avoid useEffect loops
 
     const createMutation = useMutation({
-        mutationFn: async (data: any) => {
+        mutationFn: async (data: Partial<CustomFieldFormData> & { entityType: string }) => {
             const response = await api.post('/custom-fields', data);
             return response.data;
         },
@@ -125,7 +125,7 @@ export default function CustomFieldDialog({ open, onClose, entityType, editingFi
     });
 
     const updateMutation = useMutation({
-        mutationFn: async (data: any) => {
+        mutationFn: async (data: Partial<CustomFieldFormData>) => {
             const response = await api.put(`/custom-fields/${editingField?.id}`, data);
             return response.data;
         },

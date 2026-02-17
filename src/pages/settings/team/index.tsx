@@ -18,7 +18,6 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/components/ui/dialog"
 import {
     Select,
@@ -29,7 +28,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Trash2, Mail, Shield, User, Search, Building } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 

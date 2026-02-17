@@ -7,11 +7,8 @@ import {
     Workflow,
     Bot,
     Globe,
-    Smartphone,
     Mail,
     Phone,
-    Calendar,
-    ShieldCheck
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

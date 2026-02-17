@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getSalesBook } from "@/services/analyticsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,11 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getBranches } from "@/services/settingsService";
 
 export default function SalesBookPage() {
-    const [user, setUser] = useState<any>(null);
-    useEffect(() => {
+    const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) setUser(JSON.parse(userInfo));
-    }, []);
+        return userInfo ? JSON.parse(userInfo) : null;
+    });
 
     const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
 
@@ -49,7 +48,7 @@ export default function SalesBookPage() {
         const headers = ["Opportunity", "Customer", "Amount", "Close Date", "Owner"];
         const csvContent = [
             headers.join(","),
-            ...sales.map((s: any) => [
+            ...sales.map((s: { opportunityName: string, customerName: string, amount: number, closeDate: string, ownerName: string }) => [
                 `"${s.opportunityName}"`,
                 `"${s.customerName}"`,
                 s.amount,
@@ -111,7 +110,7 @@ export default function SalesBookPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Branches</SelectItem>
-                                {branches.map((b: any) => (
+                                {branches.map((b: { id: string, name: string }) => (
                                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -145,7 +144,7 @@ export default function SalesBookPage() {
                                     <TableCell colSpan={5} className="text-center h-24">Loading...</TableCell>
                                 </TableRow>
                             ) : sales && sales.length > 0 ? (
-                                sales.map((sale: any) => (
+                                sales.map((sale: { id: string, closeDate: string, opportunityName: string, customerName: string, ownerName: string, amount: number }) => (
                                     <TableRow key={sale.id}>
                                         <TableCell>{format(new Date(sale.closeDate), "MMM dd, yyyy")}</TableCell>
                                         <TableCell className="font-medium">{sale.opportunityName}</TableCell>

@@ -3,7 +3,7 @@ import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { MoreHorizontal, Trash2, AlertTriangle } from "lucide-react"
+import { MoreHorizontal, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,

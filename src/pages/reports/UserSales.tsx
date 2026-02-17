@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getUserWiseSales } from "@/services/analyticsService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 
 export default function UserSalesPage() {
-    const [user, setUser] = useState<any>(null);
-    useEffect(() => {
+    const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) setUser(JSON.parse(userInfo));
-    }, []);
+        return userInfo ? JSON.parse(userInfo) : null;
+    });
 
     const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
 
@@ -79,7 +78,7 @@ export default function UserSalesPage() {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">All Branches</SelectItem>
-                                {branches.map((b: any) => (
+                                {branches.map((b: { id: string, name: string }) => (
                                     <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                                 ))}
                             </SelectContent>
@@ -91,7 +90,7 @@ export default function UserSalesPage() {
             {/* Leaderboard Cards (Top 3) */}
             {userStats && userStats.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {userStats.slice(0, 3).map((stat: any, index: number) => (
+                    {userStats.slice(0, 3).map((stat: { userId: string, name: string, totalRevenue: number }, index: number) => (
                         <Card key={stat.userId} className={cn("border-t-4", index === 0 ? "border-t-yellow-400" : index === 1 ? "border-t-gray-400" : "border-t-orange-400")}>
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                 <CardTitle className="text-sm font-medium">Rank #{index + 1}</CardTitle>
@@ -135,7 +134,7 @@ export default function UserSalesPage() {
                                     <TableCell colSpan={4} className="text-center h-24">Loading...</TableCell>
                                 </TableRow>
                             ) : userStats && userStats.length > 0 ? (
-                                userStats.map((stat: any) => (
+                                userStats.map((stat: { userId: string, name: string, email: string, totalRevenue: number, dealsCount: number, avgDealSize: number }) => (
                                     <TableRow key={stat.userId}>
                                         <TableCell>
                                             <div className="flex items-center space-x-3">

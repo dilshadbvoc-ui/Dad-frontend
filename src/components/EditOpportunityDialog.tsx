@@ -59,6 +59,12 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
     const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>(() =>
         (opportunity as any).customFields || {}
     )
+    const [prevOpportunityId, setPrevOpportunityId] = useState(opportunity.id);
+
+    if (opportunity.id !== prevOpportunityId) {
+        setPrevOpportunityId(opportunity.id);
+        setCustomFieldValues((opportunity as any).customFields || {});
+    }
     const isControlled = open !== undefined
 
     const finalOpen = isControlled ? open : internalOpen
@@ -90,9 +96,6 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                 closeDate: opportunity.closeDate ? new Date(opportunity.closeDate).toISOString().split('T')[0] : "",
                 type: opportunity.type || 'NEW_BUSINESS',
             })
-            // Update custom fields if opportunity changes (e.g. invalidation)
-            // But check if it's different to avoid loops if we were to depend on customFieldValues
-            setCustomFieldValues((opportunity as any).customFields || {})
         }
     }, [opportunity, form])
 

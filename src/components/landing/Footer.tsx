@@ -1,4 +1,4 @@
-import { Github, Twitter, Linkedin, Rocket } from "lucide-react";
+import { Github, Twitter, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
 import Logo from "../shared/Logo";
 

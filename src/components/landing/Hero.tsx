@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { ArrowRight, CheckCircle2, Zap, Shield, BarChart3, Globe, Sparkles } from "lucide-react";
+import { ArrowRight, CheckCircle2, Zap, Shield, Sparkles } from "lucide-react";
 
 export default function Hero() {
     return (
