@@ -619,6 +619,7 @@ exports.Prisma.SubscriptionPlanScalarFieldEnum = {
   maxContacts: 'maxContacts',
   maxStorage: 'maxStorage',
   isActive: 'isActive',
+  discount: 'discount',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };

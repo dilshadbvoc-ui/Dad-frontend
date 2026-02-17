@@ -796,6 +796,7 @@ model SubscriptionPlan {
   maxContacts  Int          @default(500)
   maxStorage   Int          @default(1000) // MB
   isActive     Boolean      @default(true)
+  discount     Float        @default(0)
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
   licenses     License[]
