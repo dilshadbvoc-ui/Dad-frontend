@@ -1,5 +1,6 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { isAdmin, getUserInfo } from "@/lib/utils"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm, useFieldArray, type Control, type UseFormWatch } from "react-hook-form"
 import { Loader2, Plus, Trash2 } from "lucide-react"
@@ -28,7 +29,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { createAssignmentRule, updateAssignmentRule, type CreateAssignmentRuleData, type AssignmentRule } from "@/services/assignmentRuleService"
 import { useQuery } from "@tanstack/react-query"
 import { getUsers, getBranches } from "@/services/settingsService"
-import { useEffect } from "react"
 
 interface AssignmentRuleDialogProps {
     children?: React.ReactNode
@@ -46,10 +46,10 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
 
     const queryClient = useQueryClient()
 
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    const userRole = userInfo.role?.name || userInfo.role; // Handle object or string
-    const userBranchId = userInfo.branchId;
-    const canSelectBranch = ['super_admin', 'admin'].includes(userRole) && !userBranchId;
+    const user = getUserInfo();
+    const userRole = user?.role?.name || user?.role; // Handle object or string
+    const userBranchId = user?.branchId;
+    const canSelectBranch = isAdmin(user) && !userBranchId;
 
     const { data: usersData } = useQuery({
         queryKey: ['users'],

@@ -15,7 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { formatCurrencyCompact } from "@/lib/utils";
+import { formatCurrencyCompact, isAdmin as checkIsAdmin } from "@/lib/utils";
 import {
     Select,
     SelectContent,
@@ -63,9 +63,7 @@ export default function Dashboard() {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
-    const isAdmin = (typeof user?.role === 'object' && user.role?.name === 'Super Admin') ||
-        user?.role === 'super_admin' ||
-        user?.role === 'admin';
+    const isAdmin = checkIsAdmin(user);
 
     useEffect(() => {
         const fetchBranches = async () => {

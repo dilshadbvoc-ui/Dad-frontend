@@ -9,6 +9,7 @@ import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
+import { isAdmin, getUserInfo } from "@/lib/utils"
 
 export function BulkImportLeads() {
     const [file, setFile] = useState<File | null>(null)
@@ -19,11 +20,11 @@ export function BulkImportLeads() {
 
     const queryClient = useQueryClient()
 
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    const userRole = userInfo.role?.name || userInfo.role;
-    const userBranchId = userInfo.branchId;
+    const user = getUserInfo();
+    const userRole = user?.role?.name || user?.role;
+    const userBranchId = user?.branchId;
     // Allow branch selection if user is admin/super_admin AND not restricted to a branch
-    const canSelectBranch = ['super_admin', 'admin'].includes(userRole) && !userBranchId;
+    const canSelectBranch = isAdmin(user) && !userBranchId;
 
     const { data: branchesData } = useQuery({
         queryKey: ['branches'],

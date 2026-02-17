@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { Check, CreditCard, Loader2, Sparkles } from 'lucide-react';
 import { billingService } from '@/services/billingService';
 import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscriptionPlanService';
+import { getUserInfo } from '@/lib/utils';
 
 export default function BillingSettingsPage() {
     const [searchParams] = useSearchParams();
@@ -14,10 +15,10 @@ export default function BillingSettingsPage() {
     const [currentPlanName, setCurrentPlanName] = useState<string>('Free / Trial');
 
     // Get Organisation info from local storage
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-    const organisationId = userInfo.organisationId || userInfo.organisation;
+    const user = getUserInfo();
+    const organisationId = user?.organisationId || user?.organisation;
     // In a real app, this should come from a user/org context or API
-    const currentPlanId = userInfo.planId;
+    const currentPlanId = user?.planId;
 
     // Fetch Plans from API
     const { data, isLoading: arePlansLoading } = useQuery({

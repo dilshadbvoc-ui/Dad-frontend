@@ -26,6 +26,7 @@ import { getHierarchy, getProfile } from "@/services/settingsService"
 import type { User } from "@/services/settingsService"
 import { api } from "@/services/api"
 import { Badge } from "@/components/ui/badge"
+import { isAdmin } from "@/lib/utils"
 
 interface AssignLeadDialogProps {
     lead: { id: string; assignedTo?: string | { id: string, _id?: string, firstName?: string } }
@@ -82,7 +83,7 @@ export function AssignLeadDialog({ lead, open, onOpenChange, trigger }: AssignLe
         if (!hierarchyData?.users || !profile) return []
 
         // If admin/super_admin, can assign to anyone
-        if (profile.role === 'admin' || profile.role === 'super_admin') {
+        if (isAdmin(profile)) {
             return hierarchyData.users
         }
 

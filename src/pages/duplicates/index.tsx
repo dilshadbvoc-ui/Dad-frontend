@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { AlertTriangle, Search, Phone, Mail, RefreshCw, ShieldAlert } from "lucide-react"
 import { useNavigate } from "react-router-dom"
+import { isAdmin, getUserInfo } from "@/lib/utils"
 
 interface DuplicateGroup {
     phone?: string;
@@ -20,38 +21,20 @@ interface DuplicateGroup {
 export default function DuplicatesPage() {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("")
-    const [hasAccess] = useState(() => {
-        const userStr = localStorage.getItem('userInfo')
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr)
-                return user.role === 'admin' || user.role === 'super_admin'
-            } catch (e) {
-                console.error(e)
-            }
-        }
-        return false
-    })
+    const [user] = useState(() => getUserInfo())
+    const hasAccess = isAdmin(user)
 
     // Check user role on mount and redirect if needed
     useEffect(() => {
-        const userStr = localStorage.getItem('userInfo')
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr)
-                const isAdmin = user.role === 'admin' || user.role === 'super_admin'
-                if (!isAdmin) {
-                    // Redirect non-admin users
-                    navigate('/dashboard')
-                }
-            } catch (e) {
-                console.error(e)
+        if (user !== undefined) {
+            if (!hasAccess) {
+                // Redirect non-admin users
                 navigate('/dashboard')
             }
-        } else {
+        } else if (localStorage.getItem('userInfo') === null) {
             navigate('/login')
         }
-    }, [navigate])
+    }, [navigate, hasAccess, user])
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['duplicate-leads'],

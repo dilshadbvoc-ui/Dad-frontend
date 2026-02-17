@@ -1,4 +1,4 @@
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
 import { useState } from "react"
 import { MoreHorizontal, Copy, Eye, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -27,22 +27,8 @@ export function AccountActions({ account }: AccountActionsProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
-    // Helper to get user role
-    const getUserRole = () => {
-        try {
-            const userInfo = localStorage.getItem('userInfo');
-            if (userInfo) {
-                const user = JSON.parse(userInfo);
-                return user.role; // 'super_admin' | 'admin' | 'user' ...
-            }
-        } catch (e) {
-            console.error("Failed to parse user info", e);
-        }
-        return null;
-    };
-
-    const role = getUserRole();
-    const canDelete = role === 'super_admin' || role === 'admin';
+    const user = getUserInfo();
+    const canDelete = isAdmin(user);
 
     const deleteMutation = useMutation({
         mutationFn: () => deleteAccount(account.id),

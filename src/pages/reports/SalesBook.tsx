@@ -10,6 +10,7 @@ import { format } from "date-fns";
 import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
 
 export default function SalesBookPage() {
     const [user] = useState<{ role: string } | null>(() => {
@@ -17,7 +18,7 @@ export default function SalesBookPage() {
         return userInfo ? JSON.parse(userInfo) : null;
     });
 
-    const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+    const isAdmin = checkIsAdmin(user);
 
     // State
     const [startDate, setStartDate] = useState<string>("");

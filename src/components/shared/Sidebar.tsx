@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { cn } from "@/lib/utils";
+import { cn, isAdmin, isSuperAdmin } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
     LayoutDashboard,
@@ -126,18 +126,17 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         return null;
     });
 
-    const isSuperAdmin = user?.role === 'super_admin';
+    const userIsSuperAdmin = isSuperAdmin(user);
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
         navigate('/login');
     };
 
-    const filteredGroups = isSuperAdmin ? [] : menuGroups.map(group => ({
+    const filteredGroups = menuGroups.map(group => ({
         ...group,
         items: group.items.filter(item => {
-            const userRole = user?.role;
-            if (item.role === 'admin' && userRole !== 'admin' && userRole !== 'super_admin') return false;
+            if (item.role === 'admin' && !isAdmin(user)) return false;
             return true;
         })
     })).filter(group => group.items.length > 0);
@@ -172,7 +171,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-ocean overflow-x-hidden">
                 <div className="space-y-6">
                     {/* Super Admin Section */}
-                    {isSuperAdmin && (
+                    {userIsSuperAdmin && (
                         <div className="mb-2 space-y-1">
                             <Link to="/super-admin" className={cn(
                                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",

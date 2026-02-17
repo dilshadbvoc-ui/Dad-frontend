@@ -1,4 +1,4 @@
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, isAdmin } from "@/lib/utils";
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
@@ -23,7 +23,7 @@ export function ActionsCell({ lead }: { lead: Lead }) {
     const [isDeleting, setIsDeleting] = useState(false)
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}')
-    const canDelete = userInfo.role === 'admin' || userInfo.role === 'super_admin'
+    const canDelete = isAdmin(userInfo);
 
     const handleDelete = async () => {
         setIsDeleting(true)

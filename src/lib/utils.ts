@@ -176,3 +176,46 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         return false;
     }
 }
+
+/**
+ * Safely retrieves and parses user info from localStorage
+ */
+export function getUserInfo() {
+    try {
+        const userInfo = localStorage.getItem('userInfo');
+        return userInfo ? JSON.parse(userInfo) : null;
+    } catch (e) {
+        console.error("Failed to parse user info", e);
+        return null;
+    }
+}
+
+/**
+ * Robust role checking helper that handles both string and object-based roles,
+ * and is case-insensitive.
+ */
+export function checkRole(user: any, targetRoles: string | string[]): boolean {
+    if (!user || !user.role) return false;
+
+    // Normalize user role to a lowercase string
+    const userRoleStr = typeof user.role === 'object'
+        ? (user.role.name || '').toLowerCase()
+        : String(user.role).toLowerCase();
+
+    const targets = Array.isArray(targetRoles) ? targetRoles : [targetRoles];
+    return targets.some(target => target.toLowerCase() === userRoleStr);
+}
+
+/**
+ * Checks if a user has administrative privileges (Admin or Super Admin)
+ */
+export function isAdmin(user: any): boolean {
+    return checkRole(user, ['admin', 'super_admin']);
+}
+
+/**
+ * Checks if a user is a Super Admin
+ */
+export function isSuperAdmin(user: any): boolean {
+    return checkRole(user, 'super_admin');
+}

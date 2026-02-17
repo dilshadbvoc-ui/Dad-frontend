@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
 import { getUsers } from "@/services/settingsService"
+import { isAdmin } from "@/lib/utils"
 
 import {
     User,
@@ -174,12 +175,12 @@ export default function SettingsPage() {
             return;
         }
 
-        if (user.role !== 'admin' && user.role !== 'super_admin') {
+        if (!isAdmin(user)) {
             navigate('/dashboard');
         }
     }, [user, navigate]);
 
-    if (!user || (user.role !== 'admin' && user.role !== 'super_admin')) {
+    if (!user || !isAdmin(user)) {
         return null; // Or a loading spinner
     }
 

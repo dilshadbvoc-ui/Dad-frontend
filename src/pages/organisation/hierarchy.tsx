@@ -112,8 +112,8 @@ const OrgNode = ({ node, level = 0 }: { node: TreeNode; level?: number }) => {
                         <div className="flex items-start justify-between">
                             <div className="flex items-center gap-3">
                                 <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
-                                    <AvatarImage 
-                                        src={getAssetUrl(node.image)} 
+                                    <AvatarImage
+                                        src={getAssetUrl(node.image)}
                                         onError={(e) => {
                                             e.currentTarget.style.display = 'none';
                                         }}
@@ -128,7 +128,7 @@ const OrgNode = ({ node, level = 0 }: { node: TreeNode; level?: number }) => {
                                     </h3>
                                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                                         <Briefcase className="h-3 w-3" />
-                                        {node.position || (typeof node.role === 'string' ? node.role : node.role?.name) || 'Unknown'}
+                                        {(node.position || (typeof node.role === 'object' ? node.role?.name : node.role)) || 'Unknown'}
                                     </p>
                                 </div>
                             </div>

@@ -8,31 +8,22 @@ import { Input } from "@/components/ui/input"
 import { RefreshCw, Search, Phone, Mail, Building2, Calendar, TrendingUp, ShieldAlert } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
+import { isAdmin, getUserInfo } from "@/lib/utils"
 
 export default function ReEnquiriesPage() {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState("")
-    const [hasAccess] = useState(() => {
-        const userStr = localStorage.getItem('userInfo')
-        if (userStr) {
-            try {
-                const user = JSON.parse(userStr)
-                return user.role === 'admin' || user.role === 'super_admin'
-            } catch {
-                return false
-            }
-        }
-        return false
-    })
+    const [user] = useState(() => getUserInfo())
+    const hasAccess = isAdmin(user)
 
     const [now] = useState(() => Date.now())
 
     // Check user role on mount
     useEffect(() => {
-        if (!hasAccess) {
+        if (!hasAccess && user !== undefined) {
             navigate('/dashboard')
         }
-    }, [hasAccess, navigate])
+    }, [hasAccess, navigate, user])
 
     const { data, isLoading, refetch } = useQuery({
         queryKey: ['re-enquiry-leads'],

@@ -4,7 +4,7 @@ import { getUserWiseSales } from "@/services/analyticsService";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Trophy } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, isAdmin as checkIsAdmin } from "@/lib/utils";
 import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
@@ -17,7 +17,7 @@ export default function UserSalesPage() {
         return userInfo ? JSON.parse(userInfo) : null;
     });
 
-    const isAdmin = user?.role === 'super_admin' || user?.role === 'admin';
+    const isAdmin = checkIsAdmin(user);
 
     // State
     const [startDate, setStartDate] = useState<string>("");
