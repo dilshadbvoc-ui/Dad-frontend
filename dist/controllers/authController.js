@@ -50,7 +50,7 @@ const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
-const client_1 = require("../generated/client");
+// UserRole import removed
 const auditLogger_1 = require("../utils/auditLogger");
 const EmailService_1 = require("../services/EmailService");
 // @desc    Auth user & get token
@@ -182,7 +182,7 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     lastName,
                     email,
                     password: hashedPassword,
-                    role: client_1.UserRole.admin, // Downgrade from super_admin to admin for tenant creators
+                    role: 'admin', // Downgrade from super_admin to admin for tenant creators
                     organisationId: org.id,
                     userId: generatedUserId,
                     isActive: true

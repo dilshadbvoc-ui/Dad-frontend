@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import { logger } from '../utils/logger';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
-import { UserRole } from '../generated/client';
+// UserRole import removed
 import { logAudit } from '../utils/auditLogger';
 
 // GET /api/users/:id/stats - Get user performance stats
@@ -413,7 +413,7 @@ export const inviteUser = async (req: Request, res: Response) => {
                 firstName,
                 lastName,
                 password: hashedPassword,
-                role: role as UserRole || UserRole.sales_rep,
+                role: role || 'sales_rep',
                 organisation: { connect: { id: targetOrgId } },
                 position,
                 userId: generatedUserId,

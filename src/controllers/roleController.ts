@@ -1,35 +1,38 @@
 import { Request, Response } from 'express';
-const ROLE_DEFINITIONS = [
+import { PrismaClient } from '../generated/client';
+const prisma = new PrismaClient();
+
+const SYSTEM_ROLES = [
     {
-        id: 'super_admin',
+        roleKey: 'super_admin',
         name: 'Super Admin',
         description: 'Full system access across all organisations',
         permissions: ['*'],
         isSystemRole: true
     },
     {
-        id: 'admin',
+        roleKey: 'admin',
         name: 'Admin',
         description: 'Full access within organisation',
         permissions: ['users:*', 'leads:*', 'contacts:*', 'accounts:*', 'opportunities:*', 'reports:*', 'settings:*'],
         isSystemRole: true
     },
     {
-        id: 'manager',
+        roleKey: 'manager',
         name: 'Manager',
         description: 'Manage team and view reports',
         permissions: ['users:read', 'leads:*', 'contacts:*', 'accounts:*', 'opportunities:*', 'reports:read', 'team:*'],
         isSystemRole: true
     },
     {
-        id: 'sales_rep',
+        roleKey: 'sales_rep',
         name: 'Sales Rep',
         description: 'Manage assigned leads and opportunities',
         permissions: ['leads:*', 'contacts:*', 'accounts:read', 'opportunities:*'],
         isSystemRole: true
     },
     {
-        id: 'marketing',
+        roleKey: 'marketing',
         name: 'Marketing',
         description: 'Manage campaigns and email lists',
         permissions: ['leads:read', 'contacts:read', 'campaigns:*', 'email-lists:*', 'reports:read'],
@@ -37,13 +40,31 @@ const ROLE_DEFINITIONS = [
     }
 ];
 
-import { PrismaClient, UserRole } from '../generated/client';
-const prisma = new PrismaClient();
-
 export const getRoles = async (req: Request, res: Response) => {
     try {
         const currentUser = (req as any).user;
         const organisationId = currentUser.organisationId;
+
+        // Fetch custom roles for the organisation
+        const customRoles = await prisma.role.findMany({
+            where: {
+                organisationId,
+                isSystemRole: false
+            }
+        });
+
+        // Fetch overrides for system roles
+        const systemRoleOverrides = await prisma.role.findMany({
+            where: {
+                organisationId,
+                isSystemRole: true
+            }
+        });
+
+        const overridesMap = systemRoleOverrides.reduce((acc: any, curr: any) => {
+            acc[curr.roleKey] = curr;
+            return acc;
+        }, {} as Record<string, any>);
 
         // Fetch user count per role
         const userCounts = await prisma.user.groupBy({
@@ -57,36 +78,35 @@ export const getRoles = async (req: Request, res: Response) => {
             }
         });
 
-        // Convert user counts to a map for easy lookup
-        const userCountMap = userCounts.reduce((acc, curr) => {
+        const userCountMap = userCounts.reduce((acc: any, curr: any) => {
             acc[curr.role] = curr._count.role;
             return acc;
         }, {} as Record<string, number>);
 
-        // Fetch role overrides
-        const rolePermissions = await prisma.rolePermission.findMany({
-            where: { organisationId }
-        });
-
-        // Create a map of overrides
-        const overridesMap = rolePermissions.reduce((acc, curr) => {
-            acc[curr.role] = curr;
-            return acc;
-        }, {} as Record<string, any>);
-
-        // Filter out super_admin role for non-super_admin users
-        let roles = ROLE_DEFINITIONS.map(role => {
-            const override = overridesMap[role.id];
+        // Combine system roles (with overrides) and custom roles
+        let roles = SYSTEM_ROLES.map(sr => {
+            const override = overridesMap[sr.roleKey];
             return {
-                ...role,
-                description: override?.description || role.description,
-                permissions: override?.permissions || role.permissions,
-                userCount: userCountMap[role.id] || 0
+                id: override?.id || sr.roleKey, // Use ID if in DB, else roleKey
+                roleKey: sr.roleKey,
+                name: sr.name,
+                description: override?.description || sr.description,
+                permissions: override?.permissions || sr.permissions,
+                isSystemRole: true,
+                userCount: userCountMap[sr.roleKey] || 0
             };
         });
 
+        const customRolesWithCount = customRoles.map((cr: any) => ({
+            ...cr,
+            userCount: userCountMap[cr.roleKey] || 0
+        }));
+
+        roles = [...roles, ...customRolesWithCount];
+
+        // Filter out super_admin for non-super_admins
         if (currentUser.role !== 'super_admin') {
-            roles = roles.filter(r => r.id !== 'super_admin');
+            roles = roles.filter(r => r.roleKey !== 'super_admin');
         }
 
         res.json({ roles });
@@ -96,54 +116,117 @@ export const getRoles = async (req: Request, res: Response) => {
 };
 
 export const createRole = async (req: Request, res: Response) => {
-    // Custom roles not supported in enum-based system
-    res.status(400).json({
-        message: 'Custom roles are not supported. Use the predefined system roles.'
-    });
+    try {
+        const { name, description, permissions } = req.body;
+        const currentUser = (req as any).user;
+        const organisationId = currentUser.organisationId;
+
+        if (!name) {
+            return res.status(400).json({ message: 'Role name is required' });
+        }
+
+        const role = await prisma.role.create({
+            data: {
+                roleKey: `custom_${Date.now()}`,
+                name,
+                description,
+                permissions: permissions || [],
+                isSystemRole: false,
+                organisationId
+            }
+        });
+
+        res.status(201).json(role);
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
 };
 
 export const updateRole = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
-        const { description, permissions } = req.body;
+        const id = req.params.id; // This could be roleKey OR UUID
+        const { name, description, permissions } = req.body;
         const currentUser = (req as any).user;
         const organisationId = currentUser.organisationId;
 
-        // Verify it's a valid system role
-        const systemRole = ROLE_DEFINITIONS.find(r => r.id === id);
-        if (!systemRole) {
-            return res.status(404).json({ message: 'Role not found' });
-        }
-
-        // Upsert the override
-        const updatedRole = await prisma.rolePermission.upsert({
+        // Find existing role in DB or check if it's a known system role
+        let dbRole = await prisma.role.findFirst({
             where: {
-                role_organisationId: {
-                    role: id as UserRole,
-                    organisationId
-                }
-            },
-            update: {
-                description,
-                permissions: permissions || systemRole.permissions
-            },
-            create: {
-                role: id as UserRole,
-                organisationId,
-                description,
-                permissions: permissions || systemRole.permissions
+                OR: [
+                    { id: id },
+                    { roleKey: id, organisationId }
+                ]
             }
         });
 
-        res.json(updatedRole);
+        if (dbRole) {
+            // Update existing record
+            const updated = await prisma.role.update({
+                where: { id: dbRole.id },
+                data: {
+                    name,
+                    description,
+                    permissions: permissions
+                }
+            });
+            return res.json(updated);
+        } else {
+            // If it's a system role without a DB record yet, creating override
+            const systemRole = SYSTEM_ROLES.find(sr => sr.roleKey === id);
+            if (!systemRole) {
+                return res.status(404).json({ message: 'Role not found' });
+            }
+
+            const override = await prisma.role.create({
+                data: {
+                    roleKey: systemRole.roleKey,
+                    name: name || systemRole.name,
+                    description: description || systemRole.description,
+                    permissions: permissions || systemRole.permissions,
+                    isSystemRole: true,
+                    organisationId
+                }
+            });
+            return res.json(override);
+        }
     } catch (error) {
         res.status(500).json({ message: (error as Error).message });
     }
 };
 
 export const deleteRole = async (req: Request, res: Response) => {
-    // System roles cannot be deleted
-    res.status(400).json({
-        message: 'System roles cannot be deleted.'
-    });
+    try {
+        const id = req.params.id;
+        const currentUser = (req as any).user;
+        const organisationId = currentUser.organisationId;
+
+        const role = await prisma.role.findFirst({
+            where: { id, organisationId }
+        });
+
+        if (!role) {
+            return res.status(404).json({ message: 'Role not found' });
+        }
+
+        if (role.isSystemRole) {
+            return res.status(400).json({ message: 'System roles cannot be deleted' });
+        }
+
+        // Check if users are assigned to this role
+        const userCount = await prisma.user.count({
+            where: { role: role.roleKey, organisationId }
+        });
+
+        if (userCount > 0) {
+            return res.status(400).json({ message: 'Cannot delete role that is assigned to users' });
+        }
+
+        await prisma.role.delete({
+            where: { id }
+        });
+
+        res.json({ message: 'Role deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
 };

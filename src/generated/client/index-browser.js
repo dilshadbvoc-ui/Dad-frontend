@@ -1088,11 +1088,13 @@ exports.Prisma.SystemSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.RolePermissionScalarFieldEnum = {
+exports.Prisma.RoleScalarFieldEnum = {
   id: 'id',
-  role: 'role',
+  roleKey: 'roleKey',
+  name: 'name',
   description: 'description',
   permissions: 'permissions',
+  isSystemRole: 'isSystemRole',
   organisationId: 'organisationId',
   updatedAt: 'updatedAt'
 };
@@ -1122,14 +1124,6 @@ exports.Prisma.NullsOrder = {
   first: 'first',
   last: 'last'
 };
-exports.UserRole = exports.$Enums.UserRole = {
-  super_admin: 'super_admin',
-  admin: 'admin',
-  manager: 'manager',
-  sales_rep: 'sales_rep',
-  marketing: 'marketing'
-};
-
 exports.LeadSource = exports.$Enums.LeadSource = {
   website: 'website',
   referral: 'referral',
@@ -1246,7 +1240,7 @@ exports.Prisma.ModelName = {
   ProductShare: 'ProductShare',
   Branch: 'Branch',
   SystemSetting: 'SystemSetting',
-  RolePermission: 'RolePermission'
+  Role: 'Role'
 };
 
 /**

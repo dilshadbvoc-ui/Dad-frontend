@@ -1,6 +1,6 @@
 
 import prisma from '../config/prisma';
-import { UserRole } from '../generated/client';
+// UserRole import removed
 
 // Helper to get start of today (UTC midnight)
 const getStartOfToday = () => {
@@ -189,7 +189,7 @@ export const DistributionService = {
         }
 
         if (rule.targetRole) {
-            where.role = rule.targetRole as UserRole;
+            where.role = rule.targetRole;
         }
 
         // Handle Scope

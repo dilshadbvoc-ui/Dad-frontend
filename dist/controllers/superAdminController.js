@@ -57,7 +57,7 @@ const getAllOrganisations = (req, res) => __awaiter(void 0, void 0, void 0, func
             orderBy: { createdAt: 'desc' },
             include: {
                 licenses: {
-                    where: { status: 'active' },
+                    where: { status: { in: ['active', 'trial'] } },
                     include: { plan: true },
                     take: 1
                 }
@@ -107,9 +107,9 @@ const createOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, funct
                     contactEmail,
                     status: 'active',
                     subscription: {
-                        status: 'trial',
+                        status: planId ? 'active' : 'trial',
                         startDate: new Date().toISOString(),
-                        endDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString()
+                        endDate: new Date(Date.now() + (planId ? 30 : 14) * 24 * 60 * 60 * 1000).toISOString()
                     }
                 }
             });
@@ -135,7 +135,7 @@ const createOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, funct
                         data: {
                             organisationId: organisation.id,
                             planId: planId,
-                            status: 'trial',
+                            status: 'active',
                             startDate: new Date(),
                             endDate,
                             maxUsers: plan.maxUsers,
@@ -172,48 +172,78 @@ exports.createOrganisation = createOrganisation;
 const updateOrganisationAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
+        console.log(`[updateOrganisationAdmin] Incoming update for orgId: ${req.params.id}`);
+        console.log('Body:', JSON.stringify(req.body, null, 2));
         if (!req.user.isSuperAdmin) {
+            console.log('[updateOrganisationAdmin] Access denied: User is not super admin');
             return res.status(403).json({ message: 'Access denied' });
         }
         const orgId = req.params.id;
         const data = Object.assign({}, req.body);
         // Handle Plan Assignment checks
         if (data.planId) {
-            const plan = yield prisma_1.default.subscriptionPlan.findUnique({ where: { id: data.planId } });
-            if (!plan)
-                throw new Error('Invalid Plan ID');
-            // 1. Update Org Limits based on Plan
-            data.userLimit = plan.maxUsers;
-            data.status = 'active'; // Activate org if plan assignment happens
-            // 2. Legacy Subscription JSON sync
-            const existingSubscription = ((_a = (yield prisma_1.default.organisation.findUnique({ where: { id: orgId } }))) === null || _a === void 0 ? void 0 : _a.subscription) || {};
-            data.subscription = Object.assign(Object.assign({}, existingSubscription), { status: 'active', plan: plan.name, planId: plan.id, startDate: new Date(), endDate: new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000) });
-            // 3. Deactivate old active licenses
-            yield prisma_1.default.license.updateMany({
-                where: { organisationId: orgId, status: 'active' },
-                data: { status: 'cancelled', cancelledAt: new Date() }
-            });
-            // 4. Create New License
-            yield prisma_1.default.license.create({
-                data: {
-                    organisationId: orgId,
-                    planId: plan.id,
-                    status: 'active',
-                    startDate: new Date(),
-                    endDate: new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000),
-                    maxUsers: plan.maxUsers,
-                    autoRenew: true
+            const currentOrg = yield prisma_1.default.organisation.findUnique({
+                where: { id: orgId },
+                include: {
+                    licenses: {
+                        where: { status: 'active' },
+                        take: 1
+                    }
                 }
             });
-            // Clean up planId from data intended for Organisation model update
-            delete data.planId;
+            const currentPlanId = (_a = currentOrg === null || currentOrg === void 0 ? void 0 : currentOrg.licenses[0]) === null || _a === void 0 ? void 0 : _a.planId;
+            if (data.planId === currentPlanId) {
+                console.log(`[updateOrganisationAdmin] Plan ID ${data.planId} is same as current. skipping license update.`);
+                delete data.planId;
+            }
+            else {
+                console.log(`[updateOrganisationAdmin] Plan assignment detected. planId: ${data.planId}`);
+                const plan = yield prisma_1.default.subscriptionPlan.findUnique({ where: { id: data.planId } });
+                if (!plan) {
+                    console.log(`[updateOrganisationAdmin] Error: Invalid Plan ID - ${data.planId}`);
+                    throw new Error('Invalid Plan ID');
+                }
+                console.log(`[updateOrganisationAdmin] Found plan: ${plan.name}`);
+                // 1. Update Org Limits based on Plan
+                data.userLimit = plan.maxUsers;
+                data.status = 'active'; // Activate org if plan assignment happens
+                console.log(`[updateOrganisationAdmin] Updating org limits: userLimit=${data.userLimit}, status=${data.status}`);
+                // 2. Legacy Subscription JSON sync
+                const existingSubscription = (currentOrg === null || currentOrg === void 0 ? void 0 : currentOrg.subscription) || {};
+                data.subscription = Object.assign(Object.assign({}, existingSubscription), { status: 'active', plan: plan.name, planId: plan.id, startDate: new Date(), endDate: new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000) });
+                console.log('[updateOrganisationAdmin] Updated subscription JSON:', JSON.stringify(data.subscription, null, 2));
+                // 3. Deactivate old active licenses
+                const deactivated = yield prisma_1.default.license.updateMany({
+                    where: { organisationId: orgId, status: 'active' },
+                    data: { status: 'cancelled', cancelledAt: new Date() }
+                });
+                console.log(`[updateOrganisationAdmin] Deactivated ${deactivated.count} old active licenses`);
+                // 4. Create New License
+                const newLicense = yield prisma_1.default.license.create({
+                    data: {
+                        organisationId: orgId,
+                        planId: plan.id,
+                        status: 'active',
+                        startDate: new Date(),
+                        endDate: new Date(Date.now() + plan.durationDays * 24 * 60 * 60 * 1000),
+                        maxUsers: plan.maxUsers,
+                        autoRenew: true
+                    }
+                });
+                console.log(`[updateOrganisationAdmin] Created new license: ${newLicense.id}`);
+                // Clean up planId from data intended for Organisation model update
+                delete data.planId;
+            }
         }
+        console.log('[updateOrganisationAdmin] Final data for prisma.organisation.update:', JSON.stringify(data, null, 2));
         const organisation = yield prisma_1.default.organisation.update({
             where: { id: orgId },
             data: data
         });
+        console.log('[updateOrganisationAdmin] Organisation updated successfully');
         // Audit Log
         try {
+            console.log('[updateOrganisationAdmin] Creating audit log...');
             const { logAudit } = yield Promise.resolve().then(() => __importStar(require('../utils/auditLogger')));
             yield logAudit({
                 organisationId: organisation.id,
@@ -223,13 +253,15 @@ const updateOrganisationAdmin = (req, res) => __awaiter(void 0, void 0, void 0, 
                 entityId: organisation.id,
                 details: { updatedFields: Object.keys(data) }
             });
+            console.log('[updateOrganisationAdmin] Audit log created');
         }
         catch (e) {
-            console.error('Audit Log Error:', e);
+            console.error('[updateOrganisationAdmin] Audit Log Error:', e);
         }
         res.json(organisation);
     }
     catch (error) {
+        console.error('[updateOrganisationAdmin] Caught error:', error);
         res.status(500).json({ message: error.message });
     }
 });

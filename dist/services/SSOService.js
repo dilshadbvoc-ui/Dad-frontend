@@ -16,7 +16,7 @@ exports.setupPassport = void 0;
 const passport_1 = __importDefault(require("passport"));
 const passport_saml_1 = require("passport-saml");
 const prisma_1 = __importDefault(require("../config/prisma"));
-const client_1 = require("../generated/client");
+// UserRole import removed
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const setupPassport = () => {
     passport_1.default.serializeUser((user, done) => {
@@ -92,7 +92,7 @@ const setupPassport = () => {
                         lastName,
                         email,
                         password: hashedPassword,
-                        role: client_1.UserRole.sales_rep, // Default role
+                        role: 'sales_rep', // Default role
                         organisationId: orgId,
                         userId: `${org.name.slice(0, 3).toUpperCase()}_${Date.now()}`,
                         isActive: true

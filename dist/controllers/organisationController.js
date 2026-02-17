@@ -169,7 +169,7 @@ const getOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, function
                     _sum: { amount: true }
                 }),
                 prisma_1.default.license.findFirst({
-                    where: { organisationId: orgId, status: 'active' },
+                    where: { organisationId: orgId, status: { in: ['active', 'trial'] } },
                     include: { plan: true }
                 })
             ]);

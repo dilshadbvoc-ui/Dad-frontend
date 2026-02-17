@@ -1,7 +1,7 @@
 import passport from 'passport';
 import { MultiSamlStrategy } from 'passport-saml';
 import prisma from '../config/prisma';
-import { UserRole } from '../generated/client';
+// UserRole import removed
 import bcrypt from 'bcryptjs';
 
 export const setupPassport = () => {
@@ -87,7 +87,7 @@ export const setupPassport = () => {
                             lastName,
                             email,
                             password: hashedPassword,
-                            role: UserRole.sales_rep, // Default role
+                            role: 'sales_rep', // Default role
                             organisationId: orgId,
                             userId: `${org.name.slice(0, 3).toUpperCase()}_${Date.now()}`,
                             isActive: true

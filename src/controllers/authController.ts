@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import prisma from '../config/prisma';
 import generateToken from '../utils/generateToken';
 import bcrypt from 'bcryptjs';
-import { UserRole } from '../generated/client';
+// UserRole import removed
 import { logAudit } from '../utils/auditLogger';
 import { EmailService } from '../services/EmailService';
 import { validatePassword } from '../utils/passwordValidator';
@@ -152,7 +152,7 @@ export const registerUser = async (req: Request, res: Response) => {
                     lastName,
                     email,
                     password: hashedPassword,
-                    role: UserRole.admin, // Downgrade from super_admin to admin for tenant creators
+                    role: 'admin', // Downgrade from super_admin to admin for tenant creators
                     organisationId: org.id,
                     userId: generatedUserId,
                     isActive: true

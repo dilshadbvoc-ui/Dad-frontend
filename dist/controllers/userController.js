@@ -61,7 +61,7 @@ const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const logger_1 = require("../utils/logger");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
-const client_1 = require("../generated/client");
+// UserRole import removed
 const auditLogger_1 = require("../utils/auditLogger");
 // GET /api/users/:id/stats - Get user performance stats
 const getUserStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -419,7 +419,7 @@ const inviteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 firstName,
                 lastName,
                 password: hashedPassword,
-                role: role || client_1.UserRole.sales_rep,
+                role: role || 'sales_rep',
                 organisation: { connect: { id: targetOrgId } },
                 position,
                 userId: generatedUserId,

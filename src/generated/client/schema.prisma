@@ -74,7 +74,7 @@ model Organisation {
   documents         Document[]
   productShares     ProductShare[]
   branches          Branch[]
-  rolePermissions   RolePermission[]
+  rolePermissions   Role[]
 }
 
 model User {
@@ -84,7 +84,7 @@ model User {
   email                       String                 @unique
   userId                      String?                @unique
   password                    String
-  role                        UserRole               @default(sales_rep)
+  role                        String                 @default("sales_rep")
   position                    String?
   phone                       String?
   profileImage                String? // URL to profile image
@@ -1143,13 +1143,7 @@ model LeadHistory {
   @@index([newOwnerId])
 }
 
-enum UserRole {
-  super_admin
-  admin
-  manager
-  sales_rep
-  marketing
-}
+// UserRole enum removed for dynamic roles
 
 enum LeadSource {
   website
@@ -1517,16 +1511,18 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
 }
 
-model RolePermission {
+model Role {
   id             String   @id @default(uuid())
-  role           UserRole
+  roleKey        String // internal id like 'sales_rep' or uuid for custom
+  name           String
   description    String?
   permissions    String[]
+  isSystemRole   Boolean  @default(false)
   organisationId String
   updatedAt      DateTime @default(now()) @updatedAt
 
   organisation Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
-  @@unique([role, organisationId])
+  @@unique([roleKey, organisationId])
   @@index([organisationId])
 }
