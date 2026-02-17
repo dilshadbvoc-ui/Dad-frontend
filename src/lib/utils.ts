@@ -197,13 +197,16 @@ export function getUserInfo() {
 export function checkRole(user: any, targetRoles: string | string[]): boolean {
     if (!user || !user.role) return false;
 
-    // Normalize user role to a lowercase string
-    const userRoleStr = typeof user.role === 'object'
-        ? (user.role.name || '').toLowerCase()
-        : String(user.role).toLowerCase();
+    // Normalize user role to a lowercase string, replacing spaces and hyphens with underscores
+    const userRoleStr = (typeof user.role === 'object'
+        ? (user.role.name || '')
+        : String(user.role)).toLowerCase().replace(/[\s-]/g, '_');
 
     const targets = Array.isArray(targetRoles) ? targetRoles : [targetRoles];
-    return targets.some(target => target.toLowerCase() === userRoleStr);
+    return targets.some(target => {
+        const normalizedTarget = target.toLowerCase().replace(/[\s-]/g, '_');
+        return normalizedTarget === userRoleStr;
+    });
 }
 
 /**
