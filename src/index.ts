@@ -120,29 +120,14 @@ app.use(helmet({
 
 
 
-import { redisClient } from './config/redis';
-import { RedisStore } from 'connect-redis';
-
-// Configure session store based on Redis availability
-let sessionStore;
-if (process.env.REDIS_URL || process.env.NODE_ENV === 'production') {
-    sessionStore = new RedisStore({
-        client: redisClient,
-        prefix: 'pype_sess:',
-    });
-} else {
-    console.warn('Using MemoryStore for sessions - NOT recommended for production');
-    sessionStore = undefined; // defaults to MemoryStore
-}
 
 app.use(session({
-    store: sessionStore,
     secret: process.env.JWT_SECRET || 'secret_sso_key',
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production', // true in prod, false in dev
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' requires secure:true
         httpOnly: true,
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
