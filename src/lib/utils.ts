@@ -199,7 +199,7 @@ export function checkRole(user: any, targetRoles: string | string[]): boolean {
 
     // Normalize user role to a lowercase string, replacing spaces and hyphens with underscores
     const userRoleStr = (typeof user.role === 'object'
-        ? (user.role.name || '')
+        ? (user.role.roleKey || user.role.name || '')
         : String(user.role)).toLowerCase().replace(/[\s-]/g, '_');
 
     const targets = Array.isArray(targetRoles) ? targetRoles : [targetRoles];
