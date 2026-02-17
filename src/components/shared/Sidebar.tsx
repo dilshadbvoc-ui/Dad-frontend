@@ -133,7 +133,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         navigate('/login');
     };
 
-    const filteredGroups = menuGroups.map(group => ({
+    const filteredGroups = userIsSuperAdmin ? [] : menuGroups.map(group => ({
         ...group,
         items: group.items.filter(item => {
             if (item.role === 'admin' && !isAdmin(user)) return false;
