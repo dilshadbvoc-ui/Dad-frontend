@@ -229,11 +229,20 @@ export class SecurityAuditMiddleware {
      */
     static detectBruteForce() {
         const attempts = new Map<string, { count: number; lastAttempt: number }>();
-        const MAX_ATTEMPTS = 5;
+        const MAX_ATTEMPTS = process.env.NODE_ENV === 'development' ? 20 : 5;
         const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
         return (req: Request, res: Response, next: NextFunction) => {
             const ip = req.ip;
+            
+            // Skip rate limiting for whitelisted IPs in development
+            if (process.env.NODE_ENV === 'development' && process.env.RATE_LIMIT_WHITELIST) {
+                const whitelist = process.env.RATE_LIMIT_WHITELIST.split(',');
+                if (whitelist.includes(ip || '')) {
+                    return next();
+                }
+            }
+            
             const now = Date.now();
             const key = `${ip}:${req.path}`;
 
