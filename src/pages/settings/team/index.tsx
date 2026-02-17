@@ -42,6 +42,7 @@ interface TeamMember {
         name: string
     }
     position?: string
+    phone?: string
     avatar?: string
     isActive: boolean
     reportsTo?: {
@@ -123,6 +124,8 @@ export default function TeamSettings() {
             firstName: formData.get('firstName'),
             lastName: formData.get('lastName'),
             email: formData.get('email'),
+            phone: formData.get('phone'),
+            password: formData.get('password'),
             role: formData.get('role'),
             position: formData.get('position'),
             branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
@@ -309,6 +312,29 @@ export default function TeamSettings() {
                                 defaultValue={editingMember?.position}
                                 placeholder="e.g. Sales Manager"
                             />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="phone">Phone Number</Label>
+                                <Input
+                                    id="phone"
+                                    name="phone"
+                                    type="tel"
+                                    defaultValue={editingMember?.phone}
+                                    placeholder="+1234567890"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <Label htmlFor="password">{editingMember ? 'New Password (Optional)' : 'Password'}</Label>
+                                <Input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    placeholder={editingMember ? '••••••••' : 'Minimum 8 characters'}
+                                    required={!editingMember}
+                                />
+                            </div>
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
