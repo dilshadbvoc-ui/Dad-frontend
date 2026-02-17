@@ -43,13 +43,13 @@ export function getEnvironmentInfo(): EnvironmentInfo {
 
 export function logEnvironmentInfo() {
     const info = getEnvironmentInfo();
-    console.log('🌍 Environment Info:', {
-        environment: info.environment,
-        frontend: info.frontendUrl,
-        backend: info.backendUrl,
-        isProduction: info.isProduction,
-        isLocal: info.isLocal
-    });
+    // console.log('🌍 Environment Info:', {
+    //     environment: info.environment,
+    //     frontend: info.frontendUrl,
+    //     backend: info.backendUrl,
+    //     isProduction: info.isProduction,
+    //     isLocal: info.isLocal
+    // });
     return info;
 }
 
