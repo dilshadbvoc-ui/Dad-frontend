@@ -2,6 +2,8 @@ import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import prisma from '../config/prisma';
 import crypto from 'crypto';
+import { getOrgId } from '../utils/hierarchyUtils';
+import { isSuperAdmin as checkSuperAdmin, normalizeRole } from '../utils/roleUtils';
 
 export interface AuthRequest extends Request {
     user?: any; // Ideally this should be the Prisma User type, using any for quick migration
@@ -33,10 +35,10 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             // Attach user to request
             req.user = {
                 ...userWithoutPassword,
-                isSuperAdmin: user.role === 'super_admin'
+                isSuperAdmin: checkSuperAdmin(user)
             };
 
-            // console.log(`[AuthMiddleware] Authenticated user: ${user.email}`); 
+            // console.log(`[AuthMiddleware] Authenticated user: ${ user.email } `); 
             return next();
         } catch (error) {
             console.error('[AuthMiddleware] Error:', error);
@@ -72,7 +74,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
                     delete (userWithoutPassword as any).password;
                     req.user = {
                         ...userWithoutPassword,
-                        isSuperAdmin: user.role === 'super_admin'
+                        isSuperAdmin: checkSuperAdmin(user)
                     };
                     return next();
                 }
@@ -90,7 +92,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
 };
 
 export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+    if (req.user && (normalizeRole(req.user.role) === 'admin' || checkSuperAdmin(req.user))) {
         next();
     } else {
         res.status(403).json({ message: 'Not authorized as an admin' });
@@ -99,7 +101,9 @@ export const admin = (req: AuthRequest, res: Response, next: NextFunction) => {
 
 export const authorize = (...roles: string[]) => {
     return (req: AuthRequest, res: Response, next: NextFunction) => {
-        if (!req.user || !roles.includes(req.user.role)) {
+        const userRole = req.user ? normalizeRole(req.user.role) : '';
+        const normRoles = roles.map(r => r.toLowerCase().replace(/[\s-]/g, '_'));
+        if (!req.user || !normRoles.includes(userRole)) {
             return res.status(403).json({ message: `User role ${req.user?.role} is not authorized` });
         }
         next();

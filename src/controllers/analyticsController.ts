@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { isSuperAdmin as checkSuperAdmin } from '../utils/roleUtils';
 import fs from 'fs';
 import path from 'path';
 
@@ -24,7 +25,7 @@ export const getDashboardStats = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
         logDebug(`[Analytics] User: ${user?.id}, Org: ${orgId}, SuperAdmin: ${isSuperAdmin}`);
 
         const branchFilter = getBranchFilter(req);
@@ -212,7 +213,7 @@ export const getSalesChartData = async (req: Request, res: Response) => {
         console.log('[Analytics] Requesting Sales Chart Data');
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             console.error('[Analytics] Org ID missing for user:', user.id);
@@ -297,7 +298,7 @@ export const getTopLeads = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -344,7 +345,7 @@ export const getSalesForecast = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -400,7 +401,7 @@ export const getLeadSourceAnalytics = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -438,7 +439,7 @@ export const getAiInsights = async (req: Request, res: Response) => {
         console.log('[Analytics] Requesting AI Insights');
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -547,7 +548,7 @@ export const getTopPerformers = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
 
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -601,7 +602,7 @@ export const getSalesBook = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
         const { startDate, endDate } = req.query;
 
         if (!orgId && !isSuperAdmin) {
@@ -668,7 +669,7 @@ export const getUserWiseSales = async (req: Request, res: Response) => {
     try {
         const user = (req as any).user;
         const orgId = getOrgId(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = checkSuperAdmin(user);
         const { startDate, endDate } = req.query;
 
         if (!orgId && !isSuperAdmin) {
