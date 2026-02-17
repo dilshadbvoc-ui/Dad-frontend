@@ -112,10 +112,10 @@ export default function RolesSettingsPage() {
                                 <h1 className="text-3xl font-bold text-foreground">Roles & Permissions</h1>
                                 <p className="text-muted-foreground mt-1">Manage user roles and access levels</p>
                             </div>
-                            {/* <Button onClick={openCreateDialog}>
+                            <Button onClick={openCreateDialog}>
                                 <Plus className="h-4 w-4 mr-2" />
                                 Create Role
-                            </Button> */}
+                            </Button>
                         </div>
 
                         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
@@ -142,7 +142,7 @@ export default function RolesSettingsPage() {
                                                         {role.description || 'No description provided.'}
                                                     </CardDescription>
                                                 </div>
-                                                {/* Edit/Delete removed as backend doesn't support custom roles yet */}
+                                                {/* Edit/Delete actions */}
                                                 {!role.isSystemRole ? (
                                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity bg-background shadow-sm rounded-md p-1 border">
                                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(role)}>
