@@ -1088,6 +1088,15 @@ exports.Prisma.SystemSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.RolePermissionScalarFieldEnum = {
+  id: 'id',
+  role: 'role',
+  description: 'description',
+  permissions: 'permissions',
+  organisationId: 'organisationId',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1236,7 +1245,8 @@ exports.Prisma.ModelName = {
   Document: 'Document',
   ProductShare: 'ProductShare',
   Branch: 'Branch',
-  SystemSetting: 'SystemSetting'
+  SystemSetting: 'SystemSetting',
+  RolePermission: 'RolePermission'
 };
 
 /**
