@@ -205,7 +205,12 @@ export const updateUser = async (req: Request, res: Response) => {
         }
 
         // Process Update Data
-        const dataToUpdate: any = { ...updateData };
+        const dataToUpdate: any = {};
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] !== null && updateData[key] !== undefined) {
+                dataToUpdate[key] = updateData[key];
+            }
+        });
 
         // Security: Prevent organisationId or role changes for non-super-admins
         if (currentUser.role !== 'super_admin') {
