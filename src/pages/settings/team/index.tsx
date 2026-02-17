@@ -120,16 +120,19 @@ export default function TeamSettings() {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
         const formData = new FormData(e.currentTarget)
-        const data = {
+        const data: any = {
             firstName: formData.get('firstName'),
             lastName: formData.get('lastName'),
-            email: formData.get('email'),
             phone: formData.get('phone'),
             password: formData.get('password'),
             role: formData.get('role'),
             position: formData.get('position'),
             branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
             reportsTo: formData.get('reportsTo') === 'none' ? null : formData.get('reportsTo'),
+        }
+
+        if (!editingMember) {
+            data.email = formData.get('email');
         }
 
         if (editingMember) {
