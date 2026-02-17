@@ -118,10 +118,15 @@ app.use(helmet({
     }
 }));
 
+
+import { redisClient } from './config/redis';
+import { RedisStore } from 'connect-redis';
+
 app.use(session({
+    store: new RedisStore({ client: redisClient }),
     secret: process.env.JWT_SECRET || 'secret_sso_key',
     resave: false,
-    saveUninitialized: true,
+    saveUninitialized: false, // Changed to false for Redis to save storage
     cookie: {
         secure: process.env.NODE_ENV === 'production', // true in prod, false in dev
         sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' requires secure:true
@@ -129,6 +134,7 @@ app.use(session({
         maxAge: 24 * 60 * 60 * 1000 // 24 hours
     }
 }));
+
 
 app.use(passport.initialize());
 app.use(passport.session());
