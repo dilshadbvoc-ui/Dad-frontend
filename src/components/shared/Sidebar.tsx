@@ -152,21 +152,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         variant="ghost"
                         size="icon"
                         onClick={() => setIsCollapsed(true)}
-                        className="h-8 w-8 text-muted-foreground hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
+                        className="h-8 w-8 text-sidebar-text bg-sidebar-hover/50 hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
                     >
-                        <ChevronLeft className="h-4 w-4" />
+                        <ChevronLeft className="h-4 w-4 stroke-[3]" />
                     </Button>
                 )}
-                {isCollapsed && (
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setIsCollapsed(false)}
-                        className="absolute -right-3 top-1/2 -translate-y-1/2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
-                    >
-                        <ChevronRight className="h-3 w-3" />
-                    </Button>
-                )}
+
             </div>
 
             {/* Scrollable Navigation Area */}
@@ -177,34 +168,34 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         <div className="mb-2 space-y-1">
                             <Link to="/super-admin" className={cn(
                                 "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                                 isCollapsed && "justify-center px-0"
                             )}>
-                                <ShieldCheck className={cn("h-5 w-5 shrink-0", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                <ShieldCheck className={cn("h-5 w-5 shrink-0 stroke-[3]", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/70")} />
                                 {!isCollapsed && <span>Dashboard</span>}
                             </Link>
                             <Link to="/super-admin?tab=overview" className={cn(
                                 "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                                 isCollapsed && "justify-center px-0"
                             )}>
-                                <Building className={cn("h-5 w-5 shrink-0", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                <Building className={cn("h-5 w-5 shrink-0 stroke-[3]", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/70")} />
                                 {!isCollapsed && <span>Organisations</span>}
                             </Link>
                             <Link to="/super-admin?tab=plans" className={cn(
                                 "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                                 isCollapsed && "justify-center px-0"
                             )}>
-                                <CreditCard className={cn("h-5 w-5 shrink-0", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                <CreditCard className={cn("h-5 w-5 shrink-0 stroke-[3]", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/70")} />
                                 {!isCollapsed && <span>License Plans</span>}
                             </Link>
                             <Link to="/super-admin/seo" className={cn(
                                 "flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                                 isCollapsed && "justify-center px-0"
                             )}>
-                                <Globe className={cn("h-5 w-5 shrink-0", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/50")} />
+                                <Globe className={cn("h-5 w-5 shrink-0 stroke-[3]", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/70")} />
                                 {!isCollapsed && <span>SEO Panel</span>}
                             </Link>
                         </div>
@@ -214,7 +205,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {filteredGroups.map((group, groupIndex) => (
                         <div key={groupIndex} className="space-y-1">
                             {!isCollapsed && (
-                                <div className="px-3 text-xs font-semibold text-sidebar-text/50 uppercase tracking-wider mb-2 mt-2">
+                                <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
                                     {group.title}
                                 </div>
                             )}
@@ -226,13 +217,13 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                         to={item.href}
                                         className={cn(
                                             "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                                            isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                            isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                                             isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
                                         )}
                                     >
                                         <item.icon className={cn(
-                                            "h-5 w-5 shrink-0 transition-colors",
-                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/50 group-hover:text-sidebar-text"
+                                            "h-5 w-5 shrink-0 transition-colors stroke-[3]",
+                                            isActive ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text"
                                         )} />
                                         {!isCollapsed && <span>{item.title}</span>}
                                     </Link>
@@ -252,16 +243,16 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {!isCollapsed && (
                         <>
                             <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
-                                <p className="text-xs text-sidebar-text/60 truncate">{user?.email}</p>
+                                <p className="text-sm font-bold truncate text-sidebar-text">{user?.firstName} {user?.lastName}</p>
+                                <p className="text-xs text-sidebar-text/80 truncate">{user?.email}</p>
                             </div>
                             <Button
                                 variant="ghost"
                                 size="icon"
                                 onClick={handleLogout}
-                                className="h-8 w-8 text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
+                                className="h-8 w-8 text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
                             >
-                                <LogOut className="h-4 w-4" />
+                                <LogOut className="h-4 w-4 stroke-[3]" />
                             </Button>
                         </>
                     )}
@@ -270,9 +261,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             variant="ghost"
                             size="icon"
                             onClick={handleLogout}
-                            className="h-8 w-8 mx-auto text-sidebar-text/50 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
+                            className="h-8 w-8 mx-auto text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
                         >
-                            <LogOut className="h-4 w-4" />
+                            <LogOut className="h-4 w-4 stroke-[3]" />
                         </Button>
                     )}
                 </div>
@@ -289,6 +280,18 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
             className
         )}>
             <SidebarContent isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+
+            {/* Expand Button - Moved outside to avoid clipping */}
+            {isCollapsed && (
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsCollapsed(false)}
+                    className="absolute -right-3 top-20 translate-y-2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
+                >
+                    <ChevronRight className="h-3 w-3 stroke-[3]" />
+                </Button>
+            )}
         </div>
     );
 }
