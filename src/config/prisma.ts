@@ -24,7 +24,6 @@ if (!globalForPrisma.prisma) {
 
     // const pool = new Pool(poolConfig);
     // const adapter = new PrismaPg(pool);
-    // @ts-ignore
     globalForPrisma.prisma = new PrismaClient();
 }
 

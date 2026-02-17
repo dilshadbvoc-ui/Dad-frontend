@@ -175,7 +175,7 @@ export const getSalesBook = async (req: Request, res: Response) => {
         const { period = 'month' } = req.query;
 
         const now = new Date();
-        let startDate = new Date();
+        const startDate = new Date();
 
         switch (period) {
             case 'day':

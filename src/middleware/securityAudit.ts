@@ -18,7 +18,7 @@ export class SecurityAuditMiddleware {
         /javascript:/gi,
         /on\w+\s*=/gi,
         // Path traversal
-        /\.\.[\/\\]/g,
+        /\.\.[/\\]/g,
         // Command injection (further relaxed)
         /[|`]/g
     ];
@@ -234,7 +234,7 @@ export class SecurityAuditMiddleware {
 
         return (req: Request, res: Response, next: NextFunction) => {
             const ip = req.ip;
-            
+
             // Skip rate limiting for whitelisted IPs in development
             if (process.env.NODE_ENV === 'development' && process.env.RATE_LIMIT_WHITELIST) {
                 const whitelist = process.env.RATE_LIMIT_WHITELIST.split(',');
@@ -242,7 +242,7 @@ export class SecurityAuditMiddleware {
                     return next();
                 }
             }
-            
+
             const now = Date.now();
             const key = `${ip}:${req.path}`;
 

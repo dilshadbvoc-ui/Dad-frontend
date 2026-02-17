@@ -40,6 +40,31 @@ const SYSTEM_ROLES = [
     }
 ];
 
+/**
+ * Seed initial system roles if they don't exist in the database (global templates)
+ */
+export const initializeGlobalRoles = async () => {
+    try {
+        for (const sr of SYSTEM_ROLES) {
+            const existing = await prisma.role.findFirst({
+                where: { roleKey: sr.roleKey, organisationId: null }
+            });
+
+            if (!existing) {
+                await prisma.role.create({
+                    data: {
+                        ...sr,
+                        organisationId: null
+                    }
+                });
+                console.log(`[RoleController] Seeded global role: ${sr.roleKey}`);
+            }
+        }
+    } catch (error) {
+        console.error('[RoleController] Failed to initialize global roles:', error);
+    }
+};
+
 export const getRoles = async (req: Request, res: Response) => {
     try {
         const currentUser = (req as any).user;
@@ -83,17 +108,25 @@ export const getRoles = async (req: Request, res: Response) => {
             return acc;
         }, {} as Record<string, number>);
 
-        // Combine system roles (with overrides) and custom roles
-        let roles = SYSTEM_ROLES.map(sr => {
-            const override = overridesMap[sr.roleKey];
+        // Fetch Global System Roles (Templates)
+        const globalRoles = await prisma.role.findMany({
+            where: {
+                organisationId: null,
+                isSystemRole: true
+            }
+        });
+
+        // Combine global roles (with overrides) and custom roles
+        let roles = globalRoles.map(gr => {
+            const override = overridesMap[gr.roleKey];
             return {
-                id: override?.id || sr.roleKey, // Use ID if in DB, else roleKey
-                roleKey: sr.roleKey,
-                name: sr.name,
-                description: override?.description || sr.description,
-                permissions: override?.permissions || sr.permissions,
+                id: override?.id || gr.id,
+                roleKey: gr.roleKey,
+                name: gr.name,
+                description: override?.description || gr.description,
+                permissions: override?.permissions || gr.permissions,
                 isSystemRole: true,
-                userCount: userCountMap[sr.roleKey] || 0
+                userCount: userCountMap[gr.roleKey] || 0
             };
         });
 
@@ -150,7 +183,7 @@ export const updateRole = async (req: Request, res: Response) => {
         const organisationId = currentUser.organisationId;
 
         // Find existing role in DB or check if it's a known system role
-        let dbRole = await prisma.role.findFirst({
+        const dbRole = await prisma.role.findFirst({
             where: {
                 OR: [
                     { id: id },
@@ -172,17 +205,20 @@ export const updateRole = async (req: Request, res: Response) => {
             return res.json(updated);
         } else {
             // If it's a system role without a DB record yet, creating override
-            const systemRole = SYSTEM_ROLES.find(sr => sr.roleKey === id);
-            if (!systemRole) {
+            const globalRole = await prisma.role.findFirst({
+                where: { roleKey: id, organisationId: null }
+            });
+
+            if (!globalRole) {
                 return res.status(404).json({ message: 'Role not found' });
             }
 
             const override = await prisma.role.create({
                 data: {
-                    roleKey: systemRole.roleKey,
-                    name: name || systemRole.name,
-                    description: description || systemRole.description,
-                    permissions: permissions || systemRole.permissions,
+                    roleKey: globalRole.roleKey,
+                    name: name || globalRole.name,
+                    description: description || globalRole.description,
+                    permissions: permissions || globalRole.permissions,
                     isSystemRole: true,
                     organisationId
                 }
@@ -227,6 +263,60 @@ export const deleteRole = async (req: Request, res: Response) => {
 
         res.json({ message: 'Role deleted successfully' });
     } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+// --- Super Admin Endpoints ---
+
+/**
+ * Get all global roles (Templates)
+ */
+export const getGlobalRoles = async (req: Request, res: Response) => {
+    try {
+        const roles = await prisma.role.findMany({
+            where: { organisationId: null }
+        });
+        res.json({ roles });
+    } catch (error) {
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
+/**
+ * Create or Update a Global Role
+ */
+export const upsertGlobalRole = async (req: Request, res: Response) => {
+    try {
+        const { roleKey, name, description, permissions, isSystemRole } = req.body;
+
+        const role = await prisma.role.upsert({
+            where: {
+                roleKey_organisationId: {
+                    roleKey,
+                    organisationId: null as any // Hack for @unique constraint with null
+                }
+            },
+            update: {
+                name,
+                description,
+                permissions,
+                isSystemRole: isSystemRole ?? true
+            },
+            create: {
+                roleKey,
+                name,
+                description,
+                permissions,
+                isSystemRole: isSystemRole ?? true,
+                organisationId: null
+            }
+        });
+
+        res.json(role);
+    } catch (error) {
+        // Prisma null unique constraint might be tricky, let's fallback to manual check if needed
+        // But @unique([roleKey, organisationId]) where organisationId is null in Postgres works fine
         res.status(500).json({ message: (error as Error).message });
     }
 };

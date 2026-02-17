@@ -1519,10 +1519,10 @@ model Role {
   description    String?
   permissions    String[]
   isSystemRole   Boolean      @default(false)
-  organisationId String
+  organisationId String?
   updatedAt      DateTime     @updatedAt  @default(now())
   
-  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
 
   @@unique([roleKey, organisationId])
   @@index([organisationId])

@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import twilio from 'twilio';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { TelephonyService } from '../services/telephonyService';
 
 const VoiceResponse = twilio.twiml.VoiceResponse;
 
@@ -156,7 +157,9 @@ export const makeOutboundCall = async (req: Request, res: Response) => {
 
         if (!to) return res.status(400).json({ message: 'Phone number required' });
 
-        const { TelephonyService } = require('../services/telephonyService');
+        if (!orgId) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
         const telephonyService = await TelephonyService.getClientForOrg(orgId);
 
         if (!telephonyService) {

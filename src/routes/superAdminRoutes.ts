@@ -15,6 +15,7 @@ import {
 } from '../controllers/subscriptionPlanController';
 import { protect } from '../middleware/authMiddleware';
 import { getSystemSettings, updateSystemSettings } from '../controllers/systemSettingsController';
+import { getGlobalRoles, upsertGlobalRole } from '../controllers/roleController';
 
 const router = express.Router();
 
@@ -36,6 +37,10 @@ router.get('/plans', protect, getPlans);
 router.post('/plans', protect, createPlan);
 router.put('/plans/:id', protect, updatePlan);
 router.delete('/plans/:id', protect, deletePlan);
+
+// Global Roles management (Super Admin)
+router.get('/roles', protect, getGlobalRoles);
+router.post('/roles', protect, upsertGlobalRole);
 
 router.get('/stats', protect, getOrganisationStats);
 

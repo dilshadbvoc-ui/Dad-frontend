@@ -333,7 +333,7 @@ router.post('/callback', async (req, res) => {
  */
 router.post('/disconnect', protect, async (req: AuthRequest, res: Response) => {
     try {
-        const orgId = req.user?.organisationId!;
+        const orgId = req.user!.organisationId;
         const { type } = req.body; // 'meta', 'whatsapp', or 'both'
 
         const org = await prisma.organisation.findUnique({
@@ -400,7 +400,7 @@ router.post('/disconnect', protect, async (req: AuthRequest, res: Response) => {
  */
 router.get('/status', protect, async (req: AuthRequest, res: Response) => {
     try {
-        const orgId = req.user?.organisationId!;
+        const orgId = req.user!.organisationId;
 
         const org = await prisma.organisation.findUnique({
             where: { id: orgId },

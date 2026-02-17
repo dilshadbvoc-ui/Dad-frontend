@@ -9,6 +9,7 @@ const organisationController_1 = require("../controllers/organisationController"
 const subscriptionPlanController_1 = require("../controllers/subscriptionPlanController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const systemSettingsController_1 = require("../controllers/systemSettingsController");
+const roleController_1 = require("../controllers/roleController");
 const router = express_1.default.Router();
 // System Settings
 router.get('/settings', authMiddleware_1.protect, systemSettingsController_1.getSystemSettings);
@@ -26,5 +27,8 @@ router.get('/plans', authMiddleware_1.protect, subscriptionPlanController_1.getP
 router.post('/plans', authMiddleware_1.protect, subscriptionPlanController_1.createPlan);
 router.put('/plans/:id', authMiddleware_1.protect, subscriptionPlanController_1.updatePlan);
 router.delete('/plans/:id', authMiddleware_1.protect, subscriptionPlanController_1.deletePlan);
+// Global Roles management (Super Admin)
+router.get('/roles', authMiddleware_1.protect, roleController_1.getGlobalRoles);
+router.post('/roles', authMiddleware_1.protect, roleController_1.upsertGlobalRole);
 router.get('/stats', authMiddleware_1.protect, superAdminController_1.getOrganisationStats);
 exports.default = router;

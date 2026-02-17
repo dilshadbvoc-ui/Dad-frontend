@@ -47,8 +47,8 @@ export const createGoal = async (req: Request, res: Response) => {
 
         // Calculate dates based on period
         const now = new Date();
-        let startDate = now;
-        let endDate = new Date();
+        const startDate = now;
+        const endDate = new Date();
 
         switch (req.body.period) {
             case 'weekly':
@@ -114,7 +114,7 @@ export const updateGoal = async (req: Request, res: Response) => {
         const { id } = req.params;
         const updates = { ...req.body };
 
-        let goal = await prisma.goal.findFirst({
+        const goal = await prisma.goal.findFirst({
             where: {
                 id,
                 organisationId: orgId

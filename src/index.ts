@@ -423,6 +423,10 @@ httpServer.listen(PORT, async () => {
     const { verifySuperAdminIntegrity } = await import('./middleware/superAdminProtection');
     await verifySuperAdminIntegrity();
 
+    // Initialize Global Role Templates
+    const { initializeGlobalRoles } = await import('./controllers/roleController');
+    await initializeGlobalRoles();
+
     // Log routes after short delay to ensure all are mounted
     setTimeout(() => {
         console.log('--- Registered Routes ---');

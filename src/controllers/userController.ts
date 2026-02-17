@@ -100,7 +100,7 @@ export const getUsers = async (req: Request, res: Response) => {
             where.organisationId = orgId;
         }
 
-        let users = await prisma.user.findMany({
+        const users = await prisma.user.findMany({
             where,
             include: {
                 organisation: { select: { name: true } }, // Equivalent to populate role? No role is enum.

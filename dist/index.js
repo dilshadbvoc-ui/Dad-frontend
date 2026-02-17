@@ -403,6 +403,9 @@ httpServer.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
     // CRITICAL: Verify super admin integrity on startup
     const { verifySuperAdminIntegrity } = yield Promise.resolve().then(() => __importStar(require('./middleware/superAdminProtection')));
     yield verifySuperAdminIntegrity();
+    // Initialize Global Role Templates
+    const { initializeGlobalRoles } = yield Promise.resolve().then(() => __importStar(require('./controllers/roleController')));
+    yield initializeGlobalRoles();
     // Log routes after short delay to ensure all are mounted
     setTimeout(() => {
         console.log('--- Registered Routes ---');

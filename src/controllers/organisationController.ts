@@ -3,6 +3,7 @@ import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
 import bcrypt from 'bcryptjs';
 import { logAudit } from '../utils/auditLogger';
+import { metaService } from '../services/MetaService';
 
 export const createOrganisation = async (req: Request, res: Response) => {
     try {
@@ -196,7 +197,6 @@ export const updateOrganisation = async (req: Request, res: Response) => {
         // Handle Meta Token Exchange
         if (data.integrations?.meta?.accessToken && data.integrations?.meta?.connected) {
             try {
-                const { metaService } = require('../services/MetaService');
                 const longLivedToken = await metaService.exchangeForLongLivedToken(
                     data.integrations.meta.accessToken,
                     data.integrations.meta
