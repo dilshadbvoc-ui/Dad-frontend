@@ -50,7 +50,9 @@ export class AssignmentRuleService {
                 select: { createdBy: true }
             });
 
-            return org?.createdBy || null;
+            const finalOwner = org?.createdBy || null;
+            console.log(`[AssignmentRuleService] Fallback to Organisation Creator: ${finalOwner}`);
+            return finalOwner;
 
         } catch (error) {
             console.error('Lead assignment error:', error);

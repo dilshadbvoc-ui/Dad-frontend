@@ -595,10 +595,9 @@ export const createBulkLeads = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'No org' });
 
-        // Import services
+        const { AssignmentRuleService } = await import('../services/AssignmentRuleService');
         const { GeoLocationService } = await import('../services/GeoLocationService');
         const { DuplicateLeadService } = await import('../services/DuplicateLeadService');
-
         let createdCount = 0;
         let duplicateCount = 0;
         let reEnquiryCount = 0;
@@ -640,6 +639,18 @@ export const createBulkLeads = async (req: Request, res: Response) => {
                     geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
                 }
 
+                // Determine final owner
+                let finalOwnerId = l.assignedTo;
+
+                // If no owner specified, apply assignment rules
+                if (!finalOwnerId) {
+                    finalOwnerId = await AssignmentRuleService.assignLead(
+                        l,
+                        orgId,
+                        l.branchId || user.branchId || undefined
+                    ) || undefined;
+                }
+
                 const data = {
                     firstName: l.firstName,
                     lastName: l.lastName || '',
@@ -650,7 +661,7 @@ export const createBulkLeads = async (req: Request, res: Response) => {
                     countryCode: l.countryCode || geoData?.countryCode || undefined,
                     phoneCountryCode: l.phoneCountryCode || geoData?.phoneCountryCode || undefined,
                     organisationId: orgId,
-                    assignedToId: l.assignedTo || user.id,
+                    assignedToId: finalOwnerId || user.id,
                     branchId: l.branchId || user.branchId, // Support explicit branch or inherit from user
                     source: l.source || LeadSource.import,
                     status: l.status || LeadStatus.new,
@@ -658,9 +669,6 @@ export const createBulkLeads = async (req: Request, res: Response) => {
                 };
 
                 const lead = await prisma.lead.create({ data });
-
-                // Distribute
-                await DistributionService.assignLead(lead, orgId);
 
                 // AI Scoring
                 import('../services/LeadScoringService').then(({ LeadScoringService }) => {
