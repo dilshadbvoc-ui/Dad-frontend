@@ -25,6 +25,7 @@ import {
     ShieldCheck,
     ChevronLeft,
     ChevronRight,
+    ChevronDown,
     MessageSquare,
     RefreshCw,
     AlertTriangle,
@@ -32,10 +33,12 @@ import {
     CreditCard,
     Smartphone,
     Percent,
-    LifeBuoy
+    LifeBuoy,
+    UsersRound
 } from "lucide-react";
 import Logo from "./Logo";
-import { memo, useState } from "react";
+import { memo, useState, useEffect } from "react";
+import { api } from "@/services/api";
 
 const menuGroups = [
     {
@@ -127,6 +130,18 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     });
 
     const userIsSuperAdmin = isSuperAdmin(user);
+
+    // My Team data for sidebar hierarchy
+    const [teamData, setTeamData] = useState<{ team: any[]; managedBranches: any[] }>({ team: [], managedBranches: [] });
+    const [teamExpanded, setTeamExpanded] = useState(true);
+
+    useEffect(() => {
+        if (user && !userIsSuperAdmin) {
+            api.get('/users/my-team')
+                .then(res => setTeamData(res.data || { team: [], managedBranches: [] }))
+                .catch(() => { });
+        }
+    }, [user, userIsSuperAdmin]);
 
     // Debugging Super Admin role
     if (user) {
@@ -265,6 +280,45 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     ))}
                 </div>
             </nav>
+
+            {/* My Team - Collapsible hierarchy section */}
+            {!isCollapsed && teamData.team.length > 0 && (
+                <div className="border-t border-sidebar-border shrink-0">
+                    <button
+                        onClick={() => setTeamExpanded(!teamExpanded)}
+                        className="w-full flex items-center justify-between px-4 py-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider hover:text-sidebar-text transition-colors"
+                    >
+                        <div className="flex items-center gap-2">
+                            <UsersRound className="h-3.5 w-3.5" />
+                            <span>My Team ({teamData.team.length})</span>
+                        </div>
+                        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", teamExpanded && "rotate-180")} />
+                    </button>
+                    {teamExpanded && (
+                        <div className="px-3 pb-3 space-y-1 max-h-40 overflow-y-auto scrollbar-ocean">
+                            {teamData.team.map((member: any) => (
+                                <div
+                                    key={member.id}
+                                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-sidebar-hover/50 transition-colors"
+                                >
+                                    <div className="h-6 w-6 rounded-full bg-sidebar-active/20 flex items-center justify-center text-[10px] font-bold text-sidebar-active shrink-0">
+                                        {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                        <p className="text-xs font-semibold text-sidebar-text truncate">
+                                            {member.firstName} {member.lastName}
+                                        </p>
+                                        <p className="text-[10px] text-sidebar-text/60 truncate capitalize">{member.role}</p>
+                                    </div>
+                                    {member.hasSubordinates && (
+                                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" title="Has team members" />
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Footer - Fixed Height Section */}
             <div className="p-4 border-t border-sidebar-border bg-sidebar-bg mt-auto shrink-0">

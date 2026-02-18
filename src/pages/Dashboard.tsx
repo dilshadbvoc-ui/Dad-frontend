@@ -63,21 +63,29 @@ export default function Dashboard() {
     const [branches, setBranches] = useState<Branch[]>([]);
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
 
-    const isAdmin = checkIsAdmin(user);
+    const isAdminUser = checkIsAdmin(user);
 
     useEffect(() => {
         const fetchBranches = async () => {
-            if (isAdmin) {
-                try {
+            try {
+                if (isAdminUser) {
+                    // Admins see all branches
                     const data = await getBranches();
                     setBranches(data || []);
-                } catch (error) {
-                    console.error("Failed to fetch branches", error);
+                } else {
+                    // Non-admins: check if they manage any branches
+                    const { api } = await import('@/services/api');
+                    const res = await api.get('/users/my-team');
+                    if (res.data?.managedBranches?.length > 0) {
+                        setBranches(res.data.managedBranches);
+                    }
                 }
+            } catch (error) {
+                console.error("Failed to fetch branches", error);
             }
         };
         if (user) fetchBranches();
-    }, [user, isAdmin]);
+    }, [user, isAdminUser]);
 
     const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
         queryKey: ['dashboardStats', selectedBranchId],
@@ -122,7 +130,7 @@ export default function Dashboard() {
                     </p>
                 </div>
                 <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
-                    {isAdmin && branches.length > 0 && (
+                    {branches.length > 0 && (
                         <div className="w-[200px]">
                             <Select
                                 value={selectedBranchId || "all"}
@@ -236,7 +244,7 @@ export default function Dashboard() {
                 </div>
 
                 {/* License Widget */}
-                {isAdmin && (
+                {isAdminUser && (
                     <ErrorBoundary name="LicenseUsageWidget">
                         <LicenseUsageWidget />
                     </ErrorBoundary>
