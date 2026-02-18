@@ -135,9 +135,12 @@ export default function ImportPage() {
     const [selectedStage, setSelectedStage] = useState<string>("")
     const [selectedStatus, setSelectedStatus] = useState<string>("new")
     const [pipelineStages, setPipelineStages] = useState<(PipelineStage | string)[]>([])
+    const [branches, setBranches] = useState<{ id: string, name: string }[]>([])
+    const [selectedBranch, setSelectedBranch] = useState<string>("")
 
     useEffect(() => {
         fetchPipelines()
+        fetchBranches()
     }, [])
 
     useEffect(() => {
@@ -159,6 +162,15 @@ export default function ImportPage() {
             setPipelines(response.data || [])
         } catch (error) {
             console.error("Failed to fetch pipelines", error)
+        }
+    }
+
+    const fetchBranches = async () => {
+        try {
+            const response = await api.get("/branches")
+            setBranches(response.data || [])
+        } catch (error) {
+            console.error("Failed to fetch branches", error)
         }
     }
 
@@ -250,6 +262,9 @@ export default function ImportPage() {
         }
         if (selectedStage) {
             formData.append("defaultStage", selectedStage)
+        }
+        if (selectedBranch) {
+            formData.append("branchId", selectedBranch)
         }
 
         try {
@@ -454,6 +469,24 @@ export default function ImportPage() {
                             </div>
 
                             <div className="space-y-2">
+                                <Label>Target Branch (Optional)</Label>
+                                <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="No branch" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="">No Branch</SelectItem>
+                                        {branches.map(branch => (
+                                            <SelectItem key={branch.id} value={branch.id}>
+                                                {branch.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                <p className="text-xs text-gray-500">Assign leads to a specific branch</p>
+                            </div>
+
+                            <div className="space-y-2">
                                 <Label>Pipeline (Optional)</Label>
                                 <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
                                     <SelectTrigger>
@@ -504,6 +537,7 @@ export default function ImportPage() {
                                 <li>• Default Status: {LEAD_STATUSES.find(s => s.value === selectedStatus)?.label}</li>
                                 {selectedPipeline && <li>• Pipeline: {pipelines.find(p => p.id === selectedPipeline)?.name}</li>}
                                 {selectedStage && <li>• Stage: {selectedStage}</li>}
+                                {selectedBranch && <li>• Branch: {branches.find(b => b.id === selectedBranch)?.name}</li>}
                             </ul>
                         </div>
 

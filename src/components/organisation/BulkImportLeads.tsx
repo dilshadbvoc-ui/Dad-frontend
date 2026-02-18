@@ -19,12 +19,11 @@ export function BulkImportLeads() {
     const [selectedBranchId, setSelectedBranchId] = useState<string>("")
 
     const queryClient = useQueryClient()
-
     const user = getUserInfo();
-    const userRole = user?.role?.name || user?.role;
     const userBranchId = user?.branchId;
-    // Allow branch selection if user is admin/super_admin AND not restricted to a branch
-    const canSelectBranch = isAdmin(user) && !userBranchId;
+
+    // Allow branch selection if user is admin/super_admin
+    const canSelectBranch = isAdmin(user);
 
     const { data: branchesData } = useQuery({
         queryKey: ['branches'],
@@ -39,7 +38,7 @@ export function BulkImportLeads() {
             // Attach branchId if selected or user has one
             const finalData = data.map(lead => ({
                 ...lead,
-                branchId: canSelectBranch ? (selectedBranchId || undefined) : userBranchId
+                branchId: selectedBranchId || userBranchId || undefined
             }));
             return importLeads(finalData)
         },
@@ -48,7 +47,7 @@ export function BulkImportLeads() {
             setFile(null)
             setParsedData([])
             setPreviewCount(0)
-            setSelectedBranchId("")
+            setSelectedBranchId(userBranchId || "")
             queryClient.invalidateQueries({ queryKey: ['leads'] })
         },
         onError: (err: { message: string }) => {
