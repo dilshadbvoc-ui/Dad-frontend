@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { Button } from "@/components/ui/button"
@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Mail, Shield, Search, Building } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -57,10 +57,118 @@ interface TeamMember {
     }
 }
 
+// ─── Tree helpers ────────────────────────────────────────────────────
+interface TreeNode {
+    user: TeamMember
+    children: TreeNode[]
+}
+
+function buildHierarchyTree(members: TeamMember[]): TreeNode[] {
+    const map = new Map<string, TreeNode>()
+    members.forEach(m => map.set(m.id, { user: m, children: [] }))
+
+    const roots: TreeNode[] = []
+    members.forEach(m => {
+        const node = map.get(m.id)!
+        if (m.reportsTo && map.has(m.reportsTo.id)) {
+            map.get(m.reportsTo.id)!.children.push(node)
+        } else {
+            roots.push(node)
+        }
+    })
+
+    return roots
+}
+
+// ─── Tree Row Component ──────────────────────────────────────────────
+function HierarchyNode({
+    node,
+    depth,
+    onEdit,
+}: {
+    node: TreeNode
+    depth: number
+    onEdit: (m: TeamMember) => void
+}) {
+    const [expanded, setExpanded] = useState(true)
+    const m = node.user
+    const hasChildren = node.children.length > 0
+
+    return (
+        <>
+            <div
+                className="flex items-center gap-2 py-2.5 px-3 hover:bg-muted/50 transition-colors rounded-lg group"
+                style={{ paddingLeft: `${12 + depth * 28}px` }}
+            >
+                {/* Expand/collapse toggle */}
+                <button
+                    className={`w-5 h-5 flex items-center justify-center rounded transition-colors ${hasChildren ? 'hover:bg-muted text-muted-foreground' : 'invisible'}`}
+                    onClick={() => setExpanded(!expanded)}
+                >
+                    {hasChildren && (expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />)}
+                </button>
+
+                {/* Avatar */}
+                <Avatar className="h-8 w-8">
+                    <AvatarImage src={m.avatar} />
+                    <AvatarFallback className="text-xs">{m.firstName[0]}{m.lastName[0]}</AvatarFallback>
+                </Avatar>
+
+                {/* Name + details */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                        <span className="font-medium text-sm text-foreground truncate">{m.firstName} {m.lastName}</span>
+                        <Badge variant="outline" className="text-[10px] capitalize font-normal">
+                            {m.role.name.replace('_', ' ')}
+                        </Badge>
+                        {m.branch && (
+                            <Badge variant="secondary" className="text-[10px] font-normal gap-1">
+                                <Building className="h-2.5 w-2.5" />
+                                {m.branch.name}
+                            </Badge>
+                        )}
+                        {!m.isActive && (
+                            <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
+                        <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{m.email}</span>
+                        {m.position && <span>· {m.position}</span>}
+                        {hasChildren && (
+                            <span className="text-muted-foreground/60">· {node.children.length} report{node.children.length > 1 ? 's' : ''}</span>
+                        )}
+                    </div>
+                </div>
+
+                {/* Actions */}
+                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onEdit(m)}>
+                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            </div>
+
+            {/* Children */}
+            {expanded && node.children.length > 0 && (
+                <div className="relative">
+                    {/* Vertical connector line */}
+                    <div
+                        className="absolute top-0 bottom-0 border-l-2 border-dashed border-border/50"
+                        style={{ left: `${26 + depth * 28}px` }}
+                    />
+                    {node.children.map(child => (
+                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} />
+                    ))}
+                </div>
+            )}
+        </>
+    )
+}
+
+// ─── Main Component ──────────────────────────────────────────────────
 export default function TeamSettings() {
     const [isInviteOpen, setIsInviteOpen] = useState(false)
     const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
+    const [viewMode, setViewMode] = useState<'table' | 'tree'>('tree')
     const queryClient = useQueryClient()
 
     const { data: userData, isLoading } = useQuery({
@@ -94,6 +202,8 @@ export default function TeamSettings() {
         member.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         member.email.toLowerCase().includes(searchQuery.toLowerCase())
     )
+
+    const hierarchyTree = useMemo(() => buildHierarchyTree(filteredMembers), [filteredMembers])
 
     const inviteMutation = useMutation({
         mutationFn: async (data: any) => {
@@ -171,10 +281,27 @@ export default function TeamSettings() {
                         Manage your team, assign roles, and control access.
                     </p>
                 </div>
-                <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Invite Member
-                </Button>
+                <div className="flex items-center gap-2">
+                    {/* View toggle */}
+                    <div className="flex items-center border border-border rounded-lg overflow-hidden">
+                        <button
+                            onClick={() => setViewMode('table')}
+                            className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors ${viewMode === 'table' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                        >
+                            <LayoutList className="h-3.5 w-3.5" /> Table
+                        </button>
+                        <button
+                            onClick={() => setViewMode('tree')}
+                            className={`px-3 py-1.5 text-xs font-medium flex items-center gap-1.5 transition-colors ${viewMode === 'tree' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted'}`}
+                        >
+                            <Network className="h-3.5 w-3.5" /> Hierarchy
+                        </button>
+                    </div>
+                    <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Invite Member
+                    </Button>
+                </div>
             </div>
 
             <div className="flex items-center gap-2 max-w-sm">
@@ -189,101 +316,132 @@ export default function TeamSettings() {
                 </div>
             </div>
 
-            <div className="rounded-md border border-border bg-card">
-                <Table>
-                    <TableHeader>
-                        <TableRow>
-                            <TableHead>Member</TableHead>
-                            <TableHead>Role</TableHead>
-                            <TableHead>Branch</TableHead>
-                            <TableHead>Daily Quota</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead className="text-right">Actions</TableHead>
-                        </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                        {isLoading ? (
+            {/* ─── Table View ─────────────────────────────────── */}
+            {viewMode === 'table' && (
+                <div className="rounded-md border border-border bg-card">
+                    <Table>
+                        <TableHeader>
                             <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8">
-                                    Loading team members...
-                                </TableCell>
+                                <TableHead>Member</TableHead>
+                                <TableHead>Role</TableHead>
+                                <TableHead>Branch</TableHead>
+                                <TableHead>Reports To</TableHead>
+                                <TableHead>Daily Quota</TableHead>
+                                <TableHead>Status</TableHead>
+                                <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
-                        ) : filteredMembers.length === 0 ? (
-                            <TableRow>
-                                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                                    No team members found.
-                                </TableCell>
-                            </TableRow>
-                        ) : (
-                            filteredMembers.map((member: TeamMember) => (
-                                <TableRow key={member.id}>
-                                    <TableCell>
-                                        <div className="flex items-center gap-3">
-                                            <Avatar>
-                                                <AvatarImage src={member.avatar} />
-                                                <AvatarFallback>
-                                                    {member.firstName[0]}{member.lastName[0]}
-                                                </AvatarFallback>
-                                            </Avatar>
-                                            <div>
-                                                <div className="font-medium text-foreground">
-                                                    {member.firstName} {member.lastName}
-                                                </div>
-                                                <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                                    <Mail className="h-3 w-3" />
-                                                    {member.email}
-                                                </div>
-                                                {member.position && (
-                                                    <div className="text-xs text-muted-foreground mt-0.5">
-                                                        {member.position}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div className="flex items-center gap-2">
-                                            <Shield className="h-4 w-4 text-muted-foreground" />
-                                            <span className="capitalize">{member.role.name.replace('_', ' ')}</span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        {member.branch ? (
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <Building className="h-3 w-3 text-muted-foreground" />
-                                                {member.branch.name}
-                                            </div>
-                                        ) : (
-                                            <span className="text-muted-foreground text-sm">-</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        {member.dailyLeadQuota ? (
-                                            <Badge variant="outline" className="font-normal capitalize whitespace-nowrap">
-                                                {member.dailyLeadQuota} leads/day
-                                            </Badge>
-                                        ) : (
-                                            <span className="text-muted-foreground text-sm">No limit</span>
-                                        )}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant={member.isActive ? "default" : "secondary"} className={member.isActive ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-0" : ""}>
-                                            {member.isActive ? "Active" : "Inactive"}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                        <div className="flex justify-end gap-2">
-                                            <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
-                                                <Pencil className="h-4 w-4 text-muted-foreground" />
-                                            </Button>
-                                        </div>
+                        </TableHeader>
+                        <TableBody>
+                            {isLoading ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center py-8">
+                                        Loading team members...
                                     </TableCell>
                                 </TableRow>
-                            ))
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                            ) : filteredMembers.length === 0 ? (
+                                <TableRow>
+                                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                                        No team members found.
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                filteredMembers.map((member: TeamMember) => (
+                                    <TableRow key={member.id}>
+                                        <TableCell>
+                                            <div className="flex items-center gap-3">
+                                                <Avatar>
+                                                    <AvatarImage src={member.avatar} />
+                                                    <AvatarFallback>
+                                                        {member.firstName[0]}{member.lastName[0]}
+                                                    </AvatarFallback>
+                                                </Avatar>
+                                                <div>
+                                                    <div className="font-medium text-foreground">
+                                                        {member.firstName} {member.lastName}
+                                                    </div>
+                                                    <div className="text-xs text-muted-foreground flex items-center gap-1">
+                                                        <Mail className="h-3 w-3" />
+                                                        {member.email}
+                                                    </div>
+                                                    {member.position && (
+                                                        <div className="text-xs text-muted-foreground mt-0.5">
+                                                            {member.position}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            <div className="flex items-center gap-2">
+                                                <Shield className="h-4 w-4 text-muted-foreground" />
+                                                <span className="capitalize">{member.role.name.replace('_', ' ')}</span>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell>
+                                            {member.branch ? (
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <Building className="h-3 w-3 text-muted-foreground" />
+                                                    {member.branch.name}
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-sm">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {member.reportsTo ? (
+                                                <div className="flex items-center gap-2 text-sm">
+                                                    <UserIcon className="h-3 w-3 text-muted-foreground" />
+                                                    {member.reportsTo.firstName} {member.reportsTo.lastName}
+                                                </div>
+                                            ) : (
+                                                <span className="text-muted-foreground text-sm">-</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            {member.dailyLeadQuota ? (
+                                                <Badge variant="outline" className="font-normal capitalize whitespace-nowrap">
+                                                    {member.dailyLeadQuota} leads/day
+                                                </Badge>
+                                            ) : (
+                                                <span className="text-muted-foreground text-sm">No limit</span>
+                                            )}
+                                        </TableCell>
+                                        <TableCell>
+                                            <Badge variant={member.isActive ? "default" : "secondary"} className={member.isActive ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-0" : ""}>
+                                                {member.isActive ? "Active" : "Inactive"}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex justify-end gap-2">
+                                                <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
+                                                    <Pencil className="h-4 w-4 text-muted-foreground" />
+                                                </Button>
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+
+            {/* ─── Tree / Hierarchy View ──────────────────────── */}
+            {viewMode === 'tree' && (
+                <div className="rounded-md border border-border bg-card p-2">
+                    {isLoading ? (
+                        <div className="text-center py-12 text-muted-foreground">Loading hierarchy...</div>
+                    ) : hierarchyTree.length === 0 ? (
+                        <div className="text-center py-12 text-muted-foreground">No team members found.</div>
+                    ) : (
+                        <div className="space-y-0.5">
+                            {hierarchyTree.map(node => (
+                                <HierarchyNode key={node.user.id} node={node} depth={0} onEdit={openEdit} />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
 
             <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
                 <DialogContent className="sm:max-w-[500px]">
