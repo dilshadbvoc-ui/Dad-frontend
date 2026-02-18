@@ -31,7 +31,7 @@ export function BulkImportLeads() {
         enabled: canSelectBranch
     })
 
-    const branches = branchesData?.branches || [];
+    const branches = Array.isArray(branchesData) ? branchesData : (branchesData as any)?.branches || [];
 
     const importMutation = useMutation({
         mutationFn: (data: CreateLeadData[]) => {
@@ -47,7 +47,7 @@ export function BulkImportLeads() {
             setFile(null)
             setParsedData([])
             setPreviewCount(0)
-            setSelectedBranchId(userBranchId || "")
+            setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
             queryClient.invalidateQueries({ queryKey: ['leads'] })
         },
         onError: (err: { message: string }) => {

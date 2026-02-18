@@ -476,7 +476,7 @@ export default function ImportPage() {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="">No Branch</SelectItem>
-                                        {branches.map(branch => (
+                                        {branches.map((branch: any) => (
                                             <SelectItem key={branch.id} value={branch.id}>
                                                 {branch.name}
                                             </SelectItem>
