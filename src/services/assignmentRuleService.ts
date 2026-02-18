@@ -23,6 +23,7 @@ export interface AssignmentRule {
     rotationType?: 'random' | 'selective' | 'manager';
     rotationPool?: string[];
     branchId?: string;
+    branch?: { id: string; name: string } | null;
 }
 
 export interface CreateAssignmentRuleData {
@@ -49,8 +50,8 @@ export interface CreateAssignmentRuleData {
     branchId?: string;
 }
 
-export const getAssignmentRules = async (entity?: string) => {
-    const response = await api.get('/assignment-rules', { params: { entity } });
+export const getAssignmentRules = async (entity?: string, branchId?: string) => {
+    const response = await api.get('/assignment-rules', { params: { entity, branchId } });
     return response.data;
 };
 

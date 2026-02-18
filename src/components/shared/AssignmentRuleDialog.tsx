@@ -49,7 +49,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
     const user = getUserInfo();
     const userRole = user?.role?.name || user?.role; // Handle object or string
     const userBranchId = user?.branchId;
-    const canSelectBranch = isAdmin(user) && !userBranchId;
+    const isAdminUser = isAdmin(user);
 
     const { data: usersData } = useQuery({
         queryKey: ['users'],
@@ -57,13 +57,20 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
     })
 
     const { data: branchesData } = useQuery({
-        queryKey: ['branches'],
-        queryFn: getBranches,
-        enabled: canSelectBranch
+        queryKey: ['branches-for-rules'],
+        queryFn: async () => {
+            if (isAdminUser) {
+                return getBranches();
+            }
+            // Branch managers: fetch managed branches
+            const res = await (await import('@/services/api')).api.get('/users/my-team');
+            return { branches: res.data?.managedBranches || [] };
+        }
     })
 
     const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string }) => u && typeof u === 'object');
     const branches = branchesData?.branches || [];
+    const showBranchSelector = branches.length > 0;
 
     const form = useForm<CreateAssignmentRuleData>({
         defaultValues: {
@@ -167,7 +174,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        {canSelectBranch && (
+                        {showBranchSelector && (
                             <FormField
                                 control={form.control}
                                 name="branchId"

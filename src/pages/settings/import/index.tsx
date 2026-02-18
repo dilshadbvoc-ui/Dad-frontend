@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
 import { Label } from "@/components/ui/label"
+import { isAdmin } from "@/lib/utils"
 
 interface PipelineStage {
     name: string;
@@ -137,6 +138,15 @@ export default function ImportPage() {
     const [pipelineStages, setPipelineStages] = useState<(PipelineStage | string)[]>([])
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([])
     const [selectedBranch, setSelectedBranch] = useState<string>("")
+    const [applyAssignmentRules, setApplyAssignmentRules] = useState(false)
+
+    // User info for branch manager detection
+    const [user] = useState(() => {
+        const str = localStorage.getItem('userInfo')
+        return str ? JSON.parse(str) : null
+    })
+    const isAdminUser = isAdmin(user)
+    const [managedBranchIds, setManagedBranchIds] = useState<string[]>([])
 
     useEffect(() => {
         fetchPipelines()
@@ -167,8 +177,24 @@ export default function ImportPage() {
 
     const fetchBranches = async () => {
         try {
-            const response = await api.get("/branches")
-            setBranches(response.data || [])
+            if (isAdminUser) {
+                const response = await api.get("/branches")
+                setBranches(response.data || [])
+            } else {
+                // Branch managers: fetch managed branches only
+                const response = await api.get('/users/my-team')
+                const managed = response.data?.managedBranches || []
+                setBranches(managed)
+                setManagedBranchIds(managed.map((b: any) => b.id))
+                // Auto-select first managed branch
+                if (managed.length === 1) {
+                    setSelectedBranch(managed[0].id)
+                    setApplyAssignmentRules(true) // auto-enable for branch managers
+                } else if (managed.length > 0) {
+                    setSelectedBranch(managed[0].id)
+                    setApplyAssignmentRules(true)
+                }
+            }
         } catch (error) {
             console.error("Failed to fetch branches", error)
         }
@@ -265,6 +291,9 @@ export default function ImportPage() {
         }
         if (selectedBranch) {
             formData.append("branchId", selectedBranch)
+        }
+        if (applyAssignmentRules) {
+            formData.append("applyAssignmentRules", "true")
         }
 
         try {
@@ -486,6 +515,27 @@ export default function ImportPage() {
                                 <p className="text-xs text-gray-500">Assign leads to a specific branch</p>
                             </div>
 
+                            <div className="space-y-2 md:col-span-2">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="apply-rules"
+                                        checked={applyAssignmentRules}
+                                        onChange={e => setApplyAssignmentRules(e.target.checked)}
+                                        className="h-4 w-4 rounded border-gray-300"
+                                    />
+                                    <Label htmlFor="apply-rules" className="cursor-pointer">
+                                        Apply Assignment Rules
+                                    </Label>
+                                </div>
+                                <p className="text-xs text-gray-500 ml-7">
+                                    {applyAssignmentRules
+                                        ? "Leads will be distributed according to active assignment rules (round-robin, top performer, etc.)"
+                                        : "Leads will be assigned to you (the uploader) by default"
+                                    }
+                                </p>
+                            </div>
+
                             <div className="space-y-2">
                                 <Label>Pipeline (Optional)</Label>
                                 <Select value={selectedPipeline} onValueChange={setSelectedPipeline}>
@@ -538,6 +588,7 @@ export default function ImportPage() {
                                 {selectedPipeline && <li>• Pipeline: {pipelines.find(p => p.id === selectedPipeline)?.name}</li>}
                                 {selectedStage && <li>• Stage: {selectedStage}</li>}
                                 {selectedBranch && <li>• Branch: {branches.find(b => b.id === selectedBranch)?.name}</li>}
+                                <li>• Assignment: {applyAssignmentRules ? '✅ Via assignment rules' : 'To you (uploader)'}</li>
                             </ul>
                         </div>
 

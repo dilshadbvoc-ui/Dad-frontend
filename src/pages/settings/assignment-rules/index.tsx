@@ -1,20 +1,49 @@
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, UserPlus, Trash2, Pencil } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Users, UserPlus, Trash2, Pencil, GitBranch } from "lucide-react"
 import { AssignmentRuleDialog } from "@/components/shared/AssignmentRuleDialog"
 import { getAssignmentRules, deleteAssignmentRule, type AssignmentRule } from "@/services/assignmentRuleService"
 import { Badge } from "@/components/ui/badge"
+import { isAdmin } from "@/lib/utils"
+import { api } from "@/services/api"
 
 export default function AssignmentRulesPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const queryClient = useQueryClient()
 
+    // User & branch info
+    const [user] = useState(() => {
+        const str = localStorage.getItem('userInfo')
+        return str ? JSON.parse(str) : null
+    })
+    const isAdminUser = isAdmin(user)
+
+    // Branch filter
+    const [branches, setBranches] = useState<{ id: string; name: string }[]>([])
+    const [filterBranch, setFilterBranch] = useState<string>("all")
+
+    useEffect(() => {
+        const fetchBranches = async () => {
+            try {
+                if (isAdminUser) {
+                    const res = await api.get('/branches')
+                    setBranches(res.data || [])
+                } else {
+                    const res = await api.get('/users/my-team')
+                    setBranches(res.data?.managedBranches || [])
+                }
+            } catch (e) { console.error(e) }
+        }
+        fetchBranches()
+    }, [isAdminUser])
+
     const { data, isLoading } = useQuery({
-        queryKey: ['assignment-rules'],
-        queryFn: () => getAssignmentRules(),
+        queryKey: ['assignment-rules', filterBranch],
+        queryFn: () => getAssignmentRules(undefined, filterBranch === 'all' ? undefined : filterBranch),
     })
 
     const rules = (data?.assignmentRules || []).filter((r: AssignmentRule) => r && typeof r === 'object' && r.assignTo);
@@ -52,10 +81,27 @@ export default function AssignmentRulesPage() {
                                 <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Assignment Rules</h1>
                                 <p className="text-gray-500">Manage how records are automatically assigned to users.</p>
                             </div>
-                            <Button onClick={handleCreate}>
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Create Rule
-                            </Button>
+                            <div className="flex items-center gap-3">
+                                {branches.length > 0 && (
+                                    <Select value={filterBranch} onValueChange={setFilterBranch}>
+                                        <SelectTrigger className="w-[180px]">
+                                            <GitBranch className="h-4 w-4 mr-2 text-gray-400" />
+                                            <SelectValue placeholder="All Branches" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="all">All Branches</SelectItem>
+                                            <SelectItem value="global">Global Only</SelectItem>
+                                            {branches.map(b => (
+                                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                )}
+                                <Button onClick={handleCreate}>
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Create Rule
+                                </Button>
+                            </div>
                         </div>
 
                         <Card>
@@ -83,7 +129,16 @@ export default function AssignmentRulesPage() {
                                                         {index + 1}
                                                     </div>
                                                     <div>
-                                                        <h3 className="font-medium">{rule.name}</h3>
+                                                        <div className="flex items-center gap-2">
+                                                            <h3 className="font-medium">{rule.name}</h3>
+                                                            {rule.branch ? (
+                                                                <Badge variant="secondary" className="text-xs">
+                                                                    <GitBranch className="h-3 w-3 mr-1" />{rule.branch.name}
+                                                                </Badge>
+                                                            ) : (
+                                                                <Badge variant="outline" className="text-xs">Global</Badge>
+                                                            )}
+                                                        </div>
                                                         <div className="flex gap-2 text-sm text-gray-500">
                                                             <span>Entity: {rule.entity}</span>
                                                             <span>•</span>
