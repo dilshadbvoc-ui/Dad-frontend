@@ -361,3 +361,32 @@ export const resetPassword = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Server Error' });
     }
 };
+
+/**
+ * @desc    Get current user profile (session refresh)
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+export const getMe = async (req: Request, res: Response) => {
+    try {
+        const user = (req as any).user;
+        if (!user) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        res.json({
+            _id: user.id,
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            isBranchManager: user.isBranchManager,
+            isSuperAdmin: user.isSuperAdmin,
+            organisation: user.organisation,
+            branchId: user.branchId,
+        });
+    } catch (error: any) {
+        res.status(500).json({ message: error.message });
+    }
+};
