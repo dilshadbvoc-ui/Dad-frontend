@@ -25,6 +25,13 @@ const SYSTEM_ROLES = [
         isSystemRole: true
     },
     {
+        roleKey: 'sales_manager',
+        name: 'Sales Manager',
+        description: 'Oversee sales operations and team performance',
+        permissions: ['users:read', 'leads:*', 'contacts:*', 'accounts:*', 'opportunities:*', 'reports:read', 'team:*', 'settings:read'],
+        isSystemRole: true
+    },
+    {
         roleKey: 'sales_rep',
         name: 'Sales Rep',
         description: 'Manage assigned leads and opportunities',
