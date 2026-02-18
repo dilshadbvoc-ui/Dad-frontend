@@ -1,39 +1,72 @@
-import { useState } from "react"
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getCustomFields, createCustomField, type CustomFieldData } from "@/services/settingsService"
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useMemo } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Plus, Settings2, Database, Trash2, Edit2 } from 'lucide-react'
 import { Button } from "@/components/ui/button"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Plus, FileText } from "lucide-react"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
+import { getCustomFields, createCustomField, deleteCustomField } from '@/services/settingsService'
 
 interface CustomField {
-    id: string;
-    name: string;
-    label: string;
-    type: string;
-    entity: string;
+    id: string
+    name: string
+    label: string
+    fieldType: string
+    entityType: string
+    isActive: boolean
+    isRequired: boolean
+}
+
+interface CustomFieldData {
+    name: string
+    label: string
+    fieldType: string
+    entityType: string
 }
 
 export default function CustomFieldsSettingsPage() {
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const queryClient = useQueryClient()
 
-    const { data, isLoading } = useQuery({
+    const { data: customFields = [], isLoading } = useQuery<CustomField[]>({
         queryKey: ['customFields'],
         queryFn: () => getCustomFields()
     })
 
-    const customFields = data?.customFields || []
+    const deleteMutation = useMutation({
+        mutationFn: (id: string) => deleteCustomField(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customFields'] })
+            toast.success('Custom field deleted')
+        }
+    })
 
     const createMutation = useMutation({
         mutationFn: (data: CustomFieldData) => createCustomField(data),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['customFields'] }); setIsDialogOpen(false); toast.success('Custom field created') }
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['customFields'] })
+            setIsDialogOpen(false)
+            toast.success('Custom field created')
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || 'Failed to create custom field')
+        }
     })
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -42,72 +75,173 @@ export default function CustomFieldsSettingsPage() {
         createMutation.mutate({
             name: formData.get('name') as string,
             label: formData.get('label') as string,
-            type: formData.get('type') as string,
-            entity: formData.get('entity') as string
+            fieldType: formData.get('fieldType') as string,
+            entityType: formData.get('entityType') as string
         })
     }
 
-    const fieldsByEntity = customFields.reduce((acc: Record<string, CustomField[]>, field: CustomField) => {
-        if (!acc[field.entity]) acc[field.entity] = []
-        acc[field.entity].push(field)
-        return acc
-    }, {} as Record<string, CustomField[]>)
+    const fieldsByEntity = useMemo(() => {
+        // Handle both object with customFields array and direct array response
+        const fields: CustomField[] = Array.isArray(customFields) ? customFields : (customFields as any).customFields || []
+
+        return fields.reduce((acc: Record<string, CustomField[]>, field: CustomField) => {
+            const entity = field.entityType || 'Other'
+            if (!acc[entity]) acc[entity] = []
+            acc[entity].push(field)
+            return acc
+        }, {})
+    }, [customFields])
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+        )
+    }
 
     return (
-        <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
+        <div className="space-y-6">
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-foreground flex items-center gap-2">
+                        <Settings2 className="h-8 w-8 text-primary" />
+                        Custom Fields
+                    </h1>
+                    <p className="text-muted-foreground">Define custom fields for your leads, contacts, and other entities.</p>
+                </div>
+                <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                        <Button className="bg-primary hover:bg-primary/90">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Field
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <DialogHeader>
+                                <DialogTitle>Create Custom Field</DialogTitle>
+                            </DialogHeader>
+                            <div className="grid gap-4 py-4">
+                                <div className="grid gap-2">
+                                    <Label htmlFor="entityType">Entity Type</Label>
+                                    <Select name="entityType" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select entity" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="Lead">Lead</SelectItem>
+                                            <SelectItem value="Contact">Contact</SelectItem>
+                                            <SelectItem value="Account">Account</SelectItem>
+                                            <SelectItem value="Opportunity">Opportunity</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="name">Field Name (ID)</Label>
+                                    <Input id="name" name="name" placeholder="e.g. custom_source" required pattern="^[a-zA-Z_][a-zA-Z0-9_]*$" />
+                                    <p className="text-[10px] text-muted-foreground">Only letters, numbers and underscores. Must start with a letter.</p>
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="label">Display Label</Label>
+                                    <Input id="label" name="label" placeholder="e.g. Lead Source ID" required />
+                                </div>
+                                <div className="grid gap-2">
+                                    <Label htmlFor="fieldType">Field Type</Label>
+                                    <Select name="fieldType" defaultValue="text" required>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="text">Text</SelectItem>
+                                            <SelectItem value="number">Number</SelectItem>
+                                            <SelectItem value="date">Date</SelectItem>
+                                            <SelectItem value="boolean">Boolean (Yes/No)</SelectItem>
+                                            <SelectItem value="select">Dropdown</SelectItem>
+                                            <SelectItem value="textarea">Long Text</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+                            <div className="flex justify-end gap-2">
+                                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>Cancel</Button>
+                                <Button type="submit" disabled={createMutation.isPending}>
+                                    {createMutation.isPending ? "Creating..." : "Create Field"}
+                                </Button>
+                            </div>
+                        </form>
+                    </DialogContent>
+                </Dialog>
+            </div>
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-                    <div className="space-y-6">
-                        <div className="flex justify-between items-center">
-                            <div><h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Custom Fields</h1><p className="text-gray-500">Define custom fields for your entities</p></div>
-                            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                                <DialogTrigger asChild><Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white"><Plus className="h-4 w-4 mr-2" />Add Field</Button></DialogTrigger>
-                                <DialogContent>
-                                    <form onSubmit={handleSubmit}>
-                                        <DialogHeader><DialogTitle>Create Custom Field</DialogTitle></DialogHeader>
-                                        <div className="grid gap-4 py-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><Label>Field Name</Label><Input name="name" placeholder="e.g. custom_source" required /></div>
-                                                <div><Label>Label</Label><Input name="label" placeholder="e.g. Custom Source" required /></div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div><Label>Entity</Label><Select name="entity" defaultValue="Lead"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="Lead">Lead</SelectItem><SelectItem value="Contact">Contact</SelectItem><SelectItem value="Account">Account</SelectItem><SelectItem value="Opportunity">Opportunity</SelectItem></SelectContent></Select></div>
-                                                <div><Label>Type</Label><Select name="type" defaultValue="text"><SelectTrigger><SelectValue /></SelectTrigger><SelectContent><SelectItem value="text">Text</SelectItem><SelectItem value="number">Number</SelectItem><SelectItem value="date">Date</SelectItem><SelectItem value="select">Select</SelectItem><SelectItem value="checkbox">Checkbox</SelectItem></SelectContent></Select></div>
-                                            </div>
-                                        </div>
-                                        <DialogFooter><Button type="submit">Create Field</Button></DialogFooter>
-                                    </form>
-                                </DialogContent>
-                            </Dialog>
-                        </div>
-
-                        {isLoading ? (
-                            <div className="flex justify-center p-16"><div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" /></div>
-                        ) : Object.keys(fieldsByEntity).length === 0 ? (
-                            <Card><CardContent className="py-12"><div className="text-center text-gray-500"><FileText className="h-12 w-12 mx-auto mb-4 opacity-50" /><p>No custom fields defined</p></div></CardContent></Card>
-                        ) : (
-                            (Object.entries(fieldsByEntity) as [string, CustomField[]][]).map(([entity, fields]) => (
-                                <Card key={entity}>
-                                    <CardHeader><CardTitle>{entity} Fields</CardTitle></CardHeader>
-                                    <CardContent>
-                                        <div className="space-y-2">
-                                            {fields.map((field: CustomField) => (
-                                                <div key={field.id} className="flex items-center justify-between p-3 rounded-lg border">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="font-medium">{field.label}</span>
-                                                        <Badge variant="outline">{field.type}</Badge>
-                                                    </div>
-                                                    <code className="text-sm text-gray-500">{field.name}</code>
+            <div className="grid gap-6">
+                {Object.entries(fieldsByEntity).length === 0 ? (
+                    <Card className="bg-muted/50 border-dashed">
+                        <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                            <Database className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                            <h3 className="font-semibold text-lg">No custom fields defined</h3>
+                            <p className="text-muted-foreground max-w-sm">
+                                Create your first custom field to start capturing more data for your leads and contacts.
+                            </p>
+                            <Button variant="outline" className="mt-4" onClick={() => setIsDialogOpen(true)}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Field
+                            </Button>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    Object.entries(fieldsByEntity).map(([entity, fields]) => (
+                        <Card key={entity} className="border-border bg-card">
+                            <CardHeader className="border-b pb-4">
+                                <CardTitle className="text-lg flex items-center gap-2">
+                                    <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20">
+                                        {entity}
+                                    </Badge>
+                                    Fields
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent className="p-0">
+                                <div className="divide-y divide-border">
+                                    {fields.map((field) => (
+                                        <div key={field.id} className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center">
+                                                    <Database className="h-5 w-5 text-muted-foreground" />
                                                 </div>
-                                            ))}
+                                                <div>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-medium">{field.label}</span>
+                                                        <Badge variant="secondary" className="text-[10px] h-4 uppercase">
+                                                            {field.fieldType}
+                                                        </Badge>
+                                                    </div>
+                                                    <code className="text-[10px] text-muted-foreground">ID: {field.name}</code>
+                                                </div>
+                                            </div>
+                                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                                    <Edit2 className="h-4 w-4" />
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to delete this custom field?')) {
+                                                            deleteMutation.mutate(field.id)
+                                                        }
+                                                    }}
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                    </CardContent>
-                                </Card>
-                            ))
-                        )}
-                    </div>
-                </main>
+                                    ))}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ))
+                )}
             </div>
         </div>
     )

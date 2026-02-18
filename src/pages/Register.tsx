@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
+import SEO from '@/components/shared/SEO';
 import { User, Mail, Lock, Loader2, Building, ArrowRight } from 'lucide-react';
 
 const Register = () => {
@@ -45,6 +46,10 @@ const Register = () => {
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2">
+            <SEO
+                title="Create Account"
+                description="Start your free trial with Pype CRM today. The most powerful lead management platform for modern sales teams."
+            />
             {/* Image Section */}
             <div className="hidden lg:block relative h-full bg-slate-900 order-last lg:order-first">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/90 mix-blend-multiply z-10" />

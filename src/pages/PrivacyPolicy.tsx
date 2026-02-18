@@ -1,10 +1,15 @@
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Footer from "@/components/landing/Footer";
+import SEO from "@/components/shared/SEO";
 import { Shield, Lock, Eye, FileText, Trash2 } from "lucide-react";
 
 export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 font-sans">
+            <SEO
+                title="Privacy Policy"
+                description="Read the Pype CRM privacy policy to understand how we protect your information and rights."
+            />
             <LandingNavbar />
             <main className="py-20">
                 <div className="container mx-auto px-4 max-w-4xl">

@@ -29,13 +29,13 @@ const Logo = ({ className, size = "md", showText = true }: LogoProps) => {
                 {/* Light Mode Logo (Visible in Light Mode, Hidden in Dark Mode) */}
                 <img
                     src={logoLight}
-                    alt="PYPE Logo"
+                    alt="PYPE CRM Logo"
                     className="h-full w-full object-contain dark:hidden"
                 />
                 {/* Dark Mode Logo (Hidden in Light Mode, Visible in Dark Mode) */}
                 <img
                     src={logoDark}
-                    alt="PYPE Logo"
+                    alt="PYPE CRM Logo"
                     className="h-full w-full object-contain hidden dark:block"
                 />
             </div>
@@ -46,7 +46,7 @@ const Logo = ({ className, size = "md", showText = true }: LogoProps) => {
                         textClasses[size]
                     )}
                 >
-                    PYPE
+                    PYPE CRM
                 </span>
             )}
         </div>

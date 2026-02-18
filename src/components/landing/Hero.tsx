@@ -29,7 +29,7 @@ export default function Hero() {
                         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-8 leading-[1.1]">
                             Close deals faster with <br className="hidden md:block" />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600">
-                                intelligent CRM.
+                                Pype CRM.
                             </span>
                         </h1>
 

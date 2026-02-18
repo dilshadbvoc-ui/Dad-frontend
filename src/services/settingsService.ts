@@ -35,8 +35,8 @@ export interface ProfileUpdateData {
 export interface CustomFieldData {
     name: string;
     label: string;
-    type: string;
-    entity: string;
+    fieldType: string;
+    entityType: string;
     options?: string[];
 }
 
@@ -147,8 +147,8 @@ export const getTerritories = async () => {
     return response.data;
 };
 
-export const getCustomFields = async (entity?: string) => {
-    const response = await api.get('/custom-fields', { params: { entity } });
+export const getCustomFields = async (entityType?: string) => {
+    const response = await api.get('/custom-fields', { params: { entityType } });
     return response.data;
 };
 

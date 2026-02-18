@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
+import SEO from '@/components/shared/SEO';
 // import { Loader2 } from 'lucide-react';
 
 const Login = () => {
@@ -58,6 +59,10 @@ const Login = () => {
 
     return (
         <div className="min-h-screen grid lg:grid-cols-2">
+            <SEO
+                title="Login"
+                description="Securely access your Pype CRM account. Manage your sales pipeline and leads with ease."
+            />
             {/* Image Section */}
             <div className="hidden lg:block relative h-full bg-slate-900">
                 <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/90 mix-blend-multiply z-10" />

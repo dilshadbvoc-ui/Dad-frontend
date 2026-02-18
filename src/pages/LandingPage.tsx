@@ -6,10 +6,16 @@ import Testimonials from "@/components/landing/Testimonials";
 import PricingTable from "@/components/landing/PricingTable";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+import SEO from "@/components/shared/SEO";
 
 export default function LandingPage() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 font-sans selection:bg-blue-100 dark:selection:bg-blue-900">
+            <SEO
+                title="Intelligent CRM for Lead Management"
+                description="Pype CRM is the ultimate sales automation platform. Manage leads, track conversions, and grow your sales with data-driven insights."
+                keywords="Pype CRM, Lead Management, Sales Automation, CRM Software, Pipeline Tracking"
+            />
             <LandingNavbar />
             <main>
                 <Hero />
