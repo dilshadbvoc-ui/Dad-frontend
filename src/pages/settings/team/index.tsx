@@ -45,6 +45,7 @@ interface TeamMember {
     phone?: string
     avatar?: string
     isActive: boolean
+    dailyLeadQuota?: number
     reportsTo?: {
         id: string
         firstName: string
@@ -129,6 +130,7 @@ export default function TeamSettings() {
             position: formData.get('position'),
             branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
             reportsTo: formData.get('reportsTo') === 'none' ? null : formData.get('reportsTo'),
+            dailyLeadQuota: formData.get('dailyLeadQuota') ? parseInt(formData.get('dailyLeadQuota') as string) : null,
         }
 
         if (!editingMember) {
@@ -186,6 +188,7 @@ export default function TeamSettings() {
                             <TableHead>Member</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead>Branch</TableHead>
+                            <TableHead>Daily Quota</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
@@ -244,6 +247,15 @@ export default function TeamSettings() {
                                             </div>
                                         ) : (
                                             <span className="text-muted-foreground text-sm">-</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell>
+                                        {member.dailyLeadQuota ? (
+                                            <Badge variant="outline" className="font-normal capitalize whitespace-nowrap">
+                                                {member.dailyLeadQuota} leads/day
+                                            </Badge>
+                                        ) : (
+                                            <span className="text-muted-foreground text-sm">No limit</span>
                                         )}
                                     </TableCell>
                                     <TableCell>
@@ -375,6 +387,21 @@ export default function TeamSettings() {
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="dailyLeadQuota">Daily Lead Quota</Label>
+                            <Input
+                                id="dailyLeadQuota"
+                                name="dailyLeadQuota"
+                                type="number"
+                                defaultValue={editingMember?.dailyLeadQuota}
+                                placeholder="Number of leads per day (e.g. 10)"
+                                min="0"
+                            />
+                            <p className="text-[10px] text-muted-foreground">
+                                Limit the number of leads this user can be assigned per day. Leave empty for no limit.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="reportsTo">Reports To</Label>
                             <Select name="reportsTo" defaultValue={editingMember?.reportsTo?.id || "none"}>
                                 <SelectTrigger>
@@ -407,6 +434,6 @@ export default function TeamSettings() {
                     </form>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     )
 }
