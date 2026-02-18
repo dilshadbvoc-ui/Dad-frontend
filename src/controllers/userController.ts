@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import { logger } from '../utils/logger';
 import prisma from '../config/prisma';
-import { getOrgId } from '../utils/hierarchyUtils';
+import { getOrgId, getVisibleUserIds } from '../utils/hierarchyUtils';
 // UserRole import removed
 import { logAudit } from '../utils/auditLogger';
 
@@ -98,6 +98,12 @@ export const getUsers = async (req: Request, res: Response) => {
                 return res.status(403).json({ message: 'User has no organisation' });
             }
             where.organisationId = orgId;
+
+            // Hierarchy filtering: non-admin users only see subordinates + branch members
+            if (currentUser.role !== 'admin') {
+                const visibleIds = await getVisibleUserIds(currentUser.id);
+                where.id = { in: visibleIds };
+            }
         }
 
         const users = await prisma.user.findMany({

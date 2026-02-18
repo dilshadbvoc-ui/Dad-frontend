@@ -292,38 +292,47 @@ export const getGlobalRoles = async (req: Request, res: Response) => {
 
 /**
  * Create or Update a Global Role
+ * Note: Prisma doesn't support null in compound unique where clauses,
+ * so we use findFirst + create/update instead of upsert.
  */
 export const upsertGlobalRole = async (req: Request, res: Response) => {
     try {
         const { roleKey, name, description, permissions, isSystemRole } = req.body;
 
-        const role = await prisma.role.upsert({
+        // Find existing global role (organisationId IS NULL)
+        const existingRole = await prisma.role.findFirst({
             where: {
-                roleKey_organisationId: {
-                    roleKey,
-                    organisationId: null as any // Hack for @unique constraint with null
-                }
-            },
-            update: {
-                name,
-                description,
-                permissions,
-                isSystemRole: isSystemRole ?? true
-            },
-            create: {
                 roleKey,
-                name,
-                description,
-                permissions,
-                isSystemRole: isSystemRole ?? true,
                 organisationId: null
             }
         });
 
+        let role;
+        if (existingRole) {
+            role = await prisma.role.update({
+                where: { id: existingRole.id },
+                data: {
+                    name,
+                    description,
+                    permissions,
+                    isSystemRole: isSystemRole ?? true
+                }
+            });
+        } else {
+            role = await prisma.role.create({
+                data: {
+                    roleKey,
+                    name,
+                    description,
+                    permissions,
+                    isSystemRole: isSystemRole ?? true,
+                    organisationId: null
+                }
+            });
+        }
+
         res.json(role);
     } catch (error) {
-        // Prisma null unique constraint might be tricky, let's fallback to manual check if needed
-        // But @unique([roleKey, organisationId]) where organisationId is null in Postgres works fine
         res.status(500).json({ message: (error as Error).message });
     }
 };

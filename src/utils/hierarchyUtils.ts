@@ -38,6 +38,38 @@ export const getSubordinateIds = async (userId: string): Promise<string[]> => {
  * Safely extracts the Organisation ID as a string from a user object.
  * Handles both Prisma objects (flat or included) and potential legacy inputs.
  */
+/**
+ * Returns all user IDs that _userId_ is allowed to see.
+ * Combines:
+ *  1. The user themselves + all subordinates (reportsTo chain via BFS)
+ *  2. All users in branches the user manages (BranchManager relation)
+ */
+export const getVisibleUserIds = async (userId: string): Promise<string[]> => {
+    // 1. Subordinates via reporting chain
+    const subordinateIds = await getSubordinateIds(userId);
+
+    // 2. Users in managed branches
+    const managedBranches = await prisma.branch.findMany({
+        where: { managerId: userId, isDeleted: false },
+        select: { id: true }
+    });
+
+    if (managedBranches.length > 0) {
+        const branchIds = managedBranches.map(b => b.id);
+        const branchUsers = await prisma.user.findMany({
+            where: { branchId: { in: branchIds } },
+            select: { id: true }
+        });
+        for (const u of branchUsers) {
+            if (!subordinateIds.includes(u.id)) {
+                subordinateIds.push(u.id);
+            }
+        }
+    }
+
+    return subordinateIds;
+};
+
 export const getOrgId = (user: any): string | null => {
     if (!user) return null;
 
