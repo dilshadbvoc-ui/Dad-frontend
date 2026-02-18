@@ -5,6 +5,7 @@ import prisma from '../config/prisma';
 import { getOrgId, getVisibleUserIds } from '../utils/hierarchyUtils';
 // UserRole import removed
 import { logAudit } from '../utils/auditLogger';
+import { isAdmin } from '../utils/roleUtils';
 
 // GET /api/users/:id/stats - Get user performance stats
 export const getUserStats = async (req: Request, res: Response) => {
