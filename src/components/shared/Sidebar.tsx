@@ -116,6 +116,67 @@ interface SidebarProps {
     setIsCollapsed: (value: boolean) => void;
 }
 
+// recursive team member component
+const TeamMemberItem = ({ member, level = 0 }: { member: any, level?: number }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+    const [subordinates, setSubordinates] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const navigate = useNavigate();
+
+    const handleToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (!isExpanded && member.hasSubordinates && subordinates.length === 0) {
+            setIsLoading(true);
+            api.get(`/users/my-team?parentId=${member.id}`)
+                .then(res => setSubordinates(res.data.team || []))
+                .finally(() => setIsLoading(false));
+        }
+        setIsExpanded(!isExpanded);
+    };
+
+    return (
+        <div className="space-y-1">
+            <div
+                className={cn(
+                    "flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-sidebar-hover/50 transition-colors cursor-pointer group",
+                    level > 0 && "ml-4 border-l border-sidebar-border/30"
+                )}
+                onClick={() => navigate(`/users/${member.id}`)}
+            >
+                <div className="h-6 w-6 rounded-full bg-sidebar-active/20 flex items-center justify-center text-[10px] font-bold text-sidebar-active shrink-0">
+                    {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                </div>
+                <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-sidebar-text truncate group-hover:text-sidebar-active transition-colors">
+                        {member.firstName} {member.lastName}
+                    </p>
+                    <p className="text-[10px] text-sidebar-text/60 truncate capitalize">{member.role}</p>
+                </div>
+                {member.hasSubordinates && (
+                    <button
+                        onClick={handleToggle}
+                        className="h-5 w-5 rounded-md hover:bg-sidebar-hover flex items-center justify-center text-sidebar-text/60 hover:text-sidebar-text transition-all"
+                    >
+                        {isLoading ? (
+                            <div className="h-3 w-3 border-2 border-sidebar-active/30 border-t-sidebar-active rounded-full animate-spin" />
+                        ) : (
+                            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isExpanded && "rotate-180")} />
+                        )}
+                    </button>
+                )}
+            </div>
+            {isExpanded && subordinates.length > 0 && (
+                <div className="space-y-1">
+                    {subordinates.map(sub => (
+                        <TeamMemberItem key={sub.id} member={sub} level={level + 1} />
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
+
 export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const location = useLocation();
     const navigate = useNavigate();
@@ -296,25 +357,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                         <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", teamExpanded && "rotate-180")} />
                     </button>
                     {teamExpanded && (
-                        <div className="px-3 pb-3 space-y-1 max-h-40 overflow-y-auto scrollbar-ocean">
+                        <div className="px-3 pb-3 space-y-1 max-h-60 overflow-y-auto scrollbar-ocean">
                             {teamData.team.map((member: any) => (
-                                <div
-                                    key={member.id}
-                                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm hover:bg-sidebar-hover/50 transition-colors"
-                                >
-                                    <div className="h-6 w-6 rounded-full bg-sidebar-active/20 flex items-center justify-center text-[10px] font-bold text-sidebar-active shrink-0">
-                                        {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-xs font-semibold text-sidebar-text truncate">
-                                            {member.firstName} {member.lastName}
-                                        </p>
-                                        <p className="text-[10px] text-sidebar-text/60 truncate capitalize">{member.role}</p>
-                                    </div>
-                                    {member.hasSubordinates && (
-                                        <div className="h-1.5 w-1.5 rounded-full bg-primary/60 shrink-0" title="Has team members" />
-                                    )}
-                                </div>
+                                <TeamMemberItem key={member.id} member={member} />
                             ))}
                         </div>
                     )}

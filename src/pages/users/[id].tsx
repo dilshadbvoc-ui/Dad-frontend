@@ -1,14 +1,61 @@
-import { useNavigate, useParams } from "react-router-dom"
+import { useNavigate, useParams, Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { getUserById, getUserStats } from "@/services/userService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Mail, Briefcase, BarChart3, Users, CheckCircle2, XCircle, DollarSign } from "lucide-react"
+import { ArrowLeft, Mail, Briefcase, BarChart3, Users, CheckCircle2, XCircle, DollarSign, ChevronRight } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { getLeads } from "@/services/leadService"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "@/pages/leads/columns"
+import { api } from "@/services/api"
+
+// Helper to determine if a role can manage others
+const canHaveSubordinates = (role?: string) => {
+    if (!role) return false;
+    const r = role.toLowerCase();
+    return r.includes('admin') || r.includes('manager') || r.includes('director') || r.includes('head');
+};
+
+// Component to list subordinates
+const SubordinatesList = ({ parentId }: { parentId: string }) => {
+    const { data, isLoading } = useQuery({
+        queryKey: ['user-subordinates', parentId],
+        queryFn: () => api.get(`/users/my-team?parentId=${parentId}`).then(res => res.data)
+    });
+
+    if (isLoading) return <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"><Skeleton className="h-16 w-full" /><Skeleton className="h-16 w-full" /></div>;
+
+    const team = data?.team || [];
+
+    if (team.length === 0) {
+        return <p className="text-sm text-muted-foreground italic">No direct reports found.</p>;
+    }
+
+    return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {team.map((member: any) => (
+                <Link key={member.id} to={`/users/${member.id}`}>
+                    <Card className="hover:border-primary/50 transition-colors cursor-pointer group">
+                        <CardContent className="p-4 flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold text-primary shrink-0 transition-colors group-hover:bg-primary group-hover:text-white">
+                                {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold truncate group-hover:text-primary transition-colors">
+                                    {member.firstName} {member.lastName}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate capitalize">{member.role}</p>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                        </CardContent>
+                    </Card>
+                </Link>
+            ))}
+        </div>
+    );
+};
 
 export default function UserProfilePage() {
     const { id } = useParams()
@@ -110,6 +157,17 @@ export default function UserProfilePage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Subordinates Section */}
+            {canHaveSubordinates(user.role) && (
+                <div className="space-y-4">
+                    <h2 className="text-xl font-bold flex items-center gap-2">
+                        <Users className="h-5 w-5" />
+                        Direct Reports
+                    </h2>
+                    <SubordinatesList parentId={id!} />
+                </div>
+            )}
 
             <div className="space-y-4">
                 <h2 className="text-xl font-bold flex items-center gap-2">
