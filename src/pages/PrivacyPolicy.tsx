@@ -18,7 +18,7 @@ export default function PrivacyPolicy() {
                             <Shield className="h-8 w-8" />
                         </div>
                         <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-                            Privacy Policy - PYPE
+                            Privacy Policy - Pype CRM
                         </h1>
                         <p className="text-gray-500 dark:text-gray-400 text-lg">
                             Last Updated: February 8, 2026
@@ -32,7 +32,7 @@ export default function PrivacyPolicy() {
                                 1. Introduction
                             </h2>
                             <p>
-                                Welcome to PYPE ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our CRM services.
+                                Welcome to Pype CRM ("we," "our," or "us"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website and use our CRM services.
                             </p>
                         </section>
 
@@ -91,10 +91,10 @@ export default function PrivacyPolicy() {
                                 <li>
                                     Send an email to{" "}
                                     <a
-                                        href="mailto:privacy@pype.com"
+                                        href="mailto:privacy@pypecrm.com"
                                         className="text-blue-600 font-medium hover:underline"
                                     >
-                                        privacy@pype.com
+                                        privacy@pypecrm.com
                                     </a>{" "}
                                     with the subject "Data Deletion Request".
                                 </li>
@@ -110,8 +110,8 @@ export default function PrivacyPolicy() {
                             <p className="mb-4">
                                 If you have questions or comments about this policy, you may email us at:
                             </p>
-                            <a href="mailto:privacy@pype.com" className="text-blue-600 font-bold hover:underline">
-                                privacy@pype.com
+                            <a href="mailto:privacy@pypecrm.com" className="text-blue-600 font-bold hover:underline">
+                                privacy@pypecrm.com
                             </a>
                         </section>
                     </div>
