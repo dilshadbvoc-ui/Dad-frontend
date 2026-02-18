@@ -212,6 +212,11 @@ export const updateUser = async (req: Request, res: Response) => {
             }
         });
 
+        // Specific handling for dailyLeadQuota to ensure it's an integer
+        if (updateData.dailyLeadQuota !== undefined) {
+            dataToUpdate.dailyLeadQuota = updateData.dailyLeadQuota === null ? null : parseInt(updateData.dailyLeadQuota);
+        }
+
         // Security: Prevent organisationId or role changes for non-super-admins
         if (currentUser.role !== 'super_admin') {
             delete dataToUpdate.organisationId;
@@ -290,7 +295,7 @@ export const updateUser = async (req: Request, res: Response) => {
 // POST /api/users
 export const createUser = async (req: Request, res: Response) => {
     try {
-        const { email, password, role, firstName, lastName, organisationId, branchId, phone } = req.body;
+        const { email, password, role, firstName, lastName, organisationId, branchId, phone, dailyLeadQuota } = req.body;
         const currentUser = (req as any).user;
 
         // Determine Org ID
@@ -331,6 +336,7 @@ export const createUser = async (req: Request, res: Response) => {
                 phone,
                 organisationId: targetOrgId,
                 isActive: true, // Default to active
+                dailyLeadQuota: dailyLeadQuota ? parseInt(dailyLeadQuota) : undefined,
                 // If currentUser is non-admin creating a user, maybe set reportsTo?
                 reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined),
                 branchId: branchId || undefined
@@ -362,7 +368,7 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const inviteUser = async (req: Request, res: Response) => {
     try {
-        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId, phone } = req.body;
+        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId, phone, dailyLeadQuota } = req.body;
         const currentUser = (req as any).user;
         const orgId = getOrgId(currentUser) || organisationId;
 
@@ -426,7 +432,8 @@ export const inviteUser = async (req: Request, res: Response) => {
                 userId: generatedUserId,
                 reportsTo: reportsTo ? { connect: { id: reportsTo } } : undefined,
                 branch: branchId ? { connect: { id: branchId } } : undefined,
-                isActive: true
+                isActive: true,
+                dailyLeadQuota: dailyLeadQuota ? parseInt(dailyLeadQuota) : undefined
             }
         });
 

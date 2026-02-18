@@ -103,7 +103,7 @@ export class ImportJobService {
                         } else if (String(crmField).startsWith('address.')) {
                             const addressField = String(crmField).split('.')[1];
                             leadData.address[addressField] = value;
-                        } else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage'].includes(crmField as string)) {
+                        } else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage', 'assignedToId', 'ownerEmail'].includes(crmField as string)) {
                             (leadData as any)[crmField as string] = value;
                         } else {
                             // Custom Fields
@@ -123,6 +123,22 @@ export class ImportJobService {
                         if (leadData.phone.length > 10) {
                             leadData.phone = leadData.phone.slice(-10);
                         }
+                    }
+
+                    // Handle Owner Lookup by Email
+                    if (leadData.ownerEmail) {
+                        const owner = await prisma.user.findFirst({
+                            where: {
+                                email: leadData.ownerEmail,
+                                organisationId: job.organisationId,
+                                isActive: true
+                            },
+                            select: { id: true }
+                        });
+                        if (owner) {
+                            leadData.assignedToId = owner.id;
+                        }
+                        delete leadData.ownerEmail;
                     }
 
                     // Check for duplicates using DuplicateLeadService
@@ -148,7 +164,7 @@ export class ImportJobService {
                             },
                             job.organisationId
                         );
-                        
+
                         // Count as success (re-enquiry handled)
                         successCount++;
                         continue;
