@@ -11,6 +11,13 @@ export NVM_DIR="$HOME/.nvm"
 echo "📥 Updating Backend..."
 BACKEND_DIR=$(git rev-parse --show-toplevel)
 cd "$BACKEND_DIR"
+
+# Clean up stale locks
+if [ -f .git/index.lock ]; then
+    echo "🧹 Removing stale git lock..."
+    rm -f .git/index.lock
+fi
+
 git fetch origin main
 git reset --hard origin/main
 npm install --ignore-scripts
@@ -33,6 +40,13 @@ fi
 if [ -d "$CLIENT_DIR" ]; then
     echo "📥 Updating Frontend in $CLIENT_DIR..."
     cd "$CLIENT_DIR"
+    
+    # Clean up stale locks
+    if [ -f .git/index.lock ]; then
+        echo "🧹 Removing stale git lock for frontend..."
+        rm -f .git/index.lock
+    fi
+
     git fetch origin main
     git reset --hard origin/main
     npm install
