@@ -131,15 +131,27 @@ export const getUsers = async (req: Request, res: Response) => {
         // logger.debug(`Query where: ${JSON.stringify(where)}`, 'UserController');
         logger.info(`Users found: ${users.length}`, 'UserController');
 
+        // Build role lookup for UUID → name resolution
+        const allRoles = await prisma.role.findMany({
+            select: { id: true, roleKey: true, name: true }
+        });
+        const roleIdToInfo = new Map(allRoles.map(r => [r.id, { key: r.roleKey, name: r.name }]));
+
         // Transform results to match frontend expectations and ensure security
         const transformedUsers = users.map(u => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { password, ...userWithoutPassword } = u;
+
+            // Resolve role: if u.role is a UUID (matches a role id), use roleKey/name
+            const roleInfo = roleIdToInfo.get(u.role);
+            const roleKey = roleInfo ? roleInfo.key : u.role;
+            const roleName = roleInfo ? roleInfo.name : u.role.replace(/_/g, ' ');
+
             return {
                 ...userWithoutPassword,
                 _id: u.id,
                 id: u.id,
-                role: { id: u.role, name: u.role },
+                role: { id: roleKey, name: roleName },
                 reportsTo: u.reportsTo ? {
                     ...u.reportsTo,
                     id: u.reportsTo.id,
