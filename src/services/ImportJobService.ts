@@ -9,6 +9,7 @@ export class ImportJobService {
         pipelineId?: string;
         defaultStage?: string;
         branchId?: string;
+        applyAssignmentRules?: boolean;
     }) {
         return await prisma.importJob.create({
             data: {
@@ -21,7 +22,8 @@ export class ImportJobService {
                     defaultStatus: options.defaultStatus,
                     pipelineId: options.pipelineId,
                     defaultStage: options.defaultStage,
-                    branchId: options.branchId
+                    branchId: options.branchId,
+                    applyAssignmentRules: options.applyAssignmentRules || false
                 } : undefined
             }
         });
@@ -64,12 +66,13 @@ export class ImportJobService {
             const pipelineId = metadata.pipelineId || null;
             const defaultStage = metadata.defaultStage || null;
             const branchId = metadata.branchId || null;
+            const applyAssignmentRules = metadata.applyAssignmentRules || false;
 
             for await (const row of processStream) {
                 try {
                     const leadData: any = {
                         organisationId: job.organisationId,
-                        assignedToId: job.createdById, // Default to uploader
+                        assignedToId: applyAssignmentRules ? undefined : job.createdById,
                         source: 'import',
                         status: defaultStatus,
                         address: {}
@@ -177,10 +180,17 @@ export class ImportJobService {
                         continue;
                     }
 
+                    // Set assignedToId to uploader as fallback if not set by mapping
+                    if (!leadData.assignedToId) {
+                        leadData.assignedToId = job.createdById;
+                    }
+
                     const createdLead = await prisma.lead.create({ data: leadData });
 
-                    // Assign Lead via Rules
-                    await DistributionService.assignLead(createdLead, job.organisationId);
+                    // Assign Lead via Rules (only if flag is set, or if no explicit owner was mapped)
+                    if (applyAssignmentRules) {
+                        await DistributionService.assignLead(createdLead, job.organisationId);
+                    }
 
                     successCount++;
 

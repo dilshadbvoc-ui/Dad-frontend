@@ -16,13 +16,38 @@ export const getAssignmentRules = async (req: Request, res: Response) => {
 
         const where: any = { isDeleted: false };
         if (orgId) where.organisationId = orgId;
-        if (user.branchId) where.branchId = user.branchId; // Restrict to branch if user has one
+
+        // If a specific branchId filter is provided via query param, use it
+        const filterBranchId = req.query.branchId as string | undefined;
+        if (filterBranchId) {
+            if (filterBranchId === 'global') {
+                where.branchId = null;
+            } else {
+                where.branchId = filterBranchId;
+            }
+        } else if (user.role !== 'super_admin' && user.role !== 'admin') {
+            // For non-admins: show rules for their managed branches + global rules
+            const managedBranches = await prisma.branch.findMany({
+                where: { managerId: user.id, isDeleted: false },
+                select: { id: true }
+            });
+            const managedBranchIds = managedBranches.map(b => b.id);
+
+            if (managedBranchIds.length > 0 || user.branchId) {
+                const branchIds = [...new Set([...managedBranchIds, ...(user.branchId ? [user.branchId] : [])])];
+                where.OR = [
+                    { branchId: { in: branchIds } },
+                    { branchId: null } // Global rules
+                ];
+            }
+        }
 
         const rules = await prisma.assignmentRule.findMany({
             where,
             include: {
                 targetManager: { select: { id: true, firstName: true, lastName: true } },
-                createdBy: { select: { id: true, firstName: true, lastName: true } }
+                createdBy: { select: { id: true, firstName: true, lastName: true } },
+                branch: { select: { id: true, name: true } }
             },
             orderBy: { priority: 'asc' }
         });

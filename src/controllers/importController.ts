@@ -16,6 +16,7 @@ export const importLeads = async (req: Request, res: Response) => {
         const pipelineId = req.body.pipelineId || null;
         const defaultStage = req.body.defaultStage || null;
         const branchId = req.body.branchId || null;
+        const applyAssignmentRules = req.body.applyAssignmentRules === 'true';
 
         const user = (req as any).user;
         const orgId = getOrgId(user);
@@ -28,7 +29,8 @@ export const importLeads = async (req: Request, res: Response) => {
             defaultStatus,
             pipelineId,
             defaultStage,
-            branchId
+            branchId,
+            applyAssignmentRules
         });
 
         // Start Processing in Background
