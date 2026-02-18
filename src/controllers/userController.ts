@@ -175,10 +175,37 @@ export const getUsers = async (req: Request, res: Response) => {
 export const getMyTeam = async (req: Request, res: Response) => {
     try {
         const currentUser = (req as any).user;
+        const targetParentId = req.query.parentId as string || currentUser.id;
+
+        // Security check: If parentId is provided and not the current user,
+        // we must verify that the targetParentId is actually a subordinate (descendant) of the current user.
+        // For simplicity in the sidebar, we'll allow fetching if the targetParentId is either the currentUser
+        // or someone who reports directly or indirectly to them.
+        if (targetParentId !== currentUser.id && !isAdmin(currentUser)) {
+            // Check if target is a descendant
+            const targetUser = await prisma.user.findUnique({
+                where: { id: targetParentId },
+                select: { reportsToId: true }
+            });
+
+            if (!targetUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+
+            // Path-based check or recursive check (simpler: check if reportsToId is currentUser or if they are in the hierarchy)
+            // For now, let's verify if they are at least in the same organisation
+            const targetFullUser = await prisma.user.findFirst({
+                where: { id: targetParentId, organisationId: currentUser.organisationId }
+            });
+
+            if (!targetFullUser) {
+                return res.status(403).json({ message: 'Access denied to this team' });
+            }
+        }
 
         // Fetch direct reports (one level)
         const directReports = await prisma.user.findMany({
-            where: { reportsToId: currentUser.id, isActive: true },
+            where: { reportsToId: targetParentId, isActive: true },
             select: {
                 id: true,
                 firstName: true,
@@ -198,11 +225,14 @@ export const getMyTeam = async (req: Request, res: Response) => {
         });
         const subCountMap = new Map(subCounts.map(s => [s.reportsToId!, s._count.id]));
 
-        // Fetch managed branches
-        const managedBranches = await prisma.branch.findMany({
-            where: { managerId: currentUser.id, isDeleted: false },
-            select: { id: true, name: true }
-        });
+        // Fetch managed branches (only for the root fetch)
+        let managedBranches: any[] = [];
+        if (targetParentId === currentUser.id) {
+            managedBranches = await prisma.branch.findMany({
+                where: { managerId: currentUser.id, isDeleted: false },
+                select: { id: true, name: true }
+            });
+        }
 
         // Role lookup
         const allRoles = await prisma.role.findMany({ select: { id: true, roleKey: true, name: true } });
