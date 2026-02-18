@@ -31,7 +31,9 @@ export function BulkImportLeads() {
         enabled: canSelectBranch
     })
 
-    const branches = Array.isArray(branchesData) ? branchesData : (branchesData as any)?.branches || [];
+    const branches = Array.isArray(branchesData)
+        ? branchesData
+        : (branchesData as any)?.branches || [];
 
     const importMutation = useMutation({
         mutationFn: (data: CreateLeadData[]) => {
