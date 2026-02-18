@@ -1,9 +1,9 @@
 import { Link, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
 import { getUsers } from "@/services/settingsService"
-import { isAdmin } from "@/lib/utils"
+import { isAdmin, canAccessSettings, isBranchManager } from "@/lib/utils"
 
 import {
     User,
@@ -23,7 +23,7 @@ import {
     FileText
 } from "lucide-react"
 
-const settingsSections = [
+const ALL_SETTINGS_SECTIONS = [
     {
         title: "Profile Settings",
         description: "Update your personal information and preferences",
@@ -36,42 +36,48 @@ const settingsSections = [
         description: "Manage company profile, address, contact info, and upsell configuration",
         href: "/settings/organisation",
         icon: Building,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Team & Users",
         description: "Manage team members, roles, and permissions",
         href: "/settings/team",
         icon: Users,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Branches",
         description: "Manage organization branches and locations",
         href: "/settings/branches",
         icon: Building,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Roles & Permissions",
         description: "Configure access control and user roles",
         href: "/settings/roles",
         icon: Shield,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Custom Fields",
         description: "Add custom fields to leads, contacts, and opportunities",
         href: "/settings/custom-fields",
         icon: FormInput,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Territories",
         description: "Define and manage sales territories",
         href: "/settings/territories",
         icon: Map,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Assignment Rules",
@@ -85,21 +91,24 @@ const settingsSections = [
         description: "Set up scoring rules to prioritize leads",
         href: "/settings/lead-scoring",
         icon: Star,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Integrations",
         description: "Manage webhooks, APIs, and third-party integrations",
         href: "/settings/integrations",
         icon: Webhook,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Notifications",
         description: "Configure email and in-app notification preferences",
         href: "/settings/notifications",
         icon: Bell,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Data Migration",
@@ -113,35 +122,40 @@ const settingsSections = [
         description: "Configure automatic call recording and storage settings",
         href: "/settings/call-recording",
         icon: Phone,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Billing & Subscription",
         description: "Manage plans, invoices, and payment methods",
         href: "/settings/billing",
         icon: CreditCard,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Audit Logs",
         description: "View system activity and security logs",
         href: "/settings/audit-logs",
         icon: FileText,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Sales Pipelines",
         description: "Configure deal stages and sales processes",
         href: "/settings/pipelines",
         icon: GitBranch,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Developer / API",
         description: "Connect your website or other tools via API and Webhooks",
         href: "/settings/developer",
         icon: Shield,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
 ]
 
@@ -160,11 +174,24 @@ export default function SettingsPage() {
         return null;
     });
 
+    const filteredSections = useMemo(() => {
+        if (!user) return [];
+        const userIsAdmin = isAdmin(user);
+
+        return ALL_SETTINGS_SECTIONS.filter(section => {
+            // If section explicitly requires admin role and user isn't admin, hide it
+            if (section.roles?.includes('admin') && !userIsAdmin) {
+                return false;
+            }
+            return true;
+        });
+    }, [user]);
+
     // Fetch user count
     const { data: usersData } = useQuery({
         queryKey: ['users'],
         queryFn: getUsers,
-        enabled: !!user
+        enabled: !!user && isAdmin(user) // Only fetch user counts for admins
     });
 
     const userCount = Array.isArray(usersData) ? usersData.length : (usersData?.users?.length || 0);
@@ -175,12 +202,12 @@ export default function SettingsPage() {
             return;
         }
 
-        if (!isAdmin(user)) {
+        if (!canAccessSettings(user)) {
             navigate('/dashboard');
         }
     }, [user, navigate]);
 
-    if (!user || !isAdmin(user)) {
+    if (!user || !canAccessSettings(user)) {
         return null; // Or a loading spinner
     }
 
@@ -210,7 +237,7 @@ export default function SettingsPage() {
 
             {/* Settings Cards Grid */}
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {settingsSections.map((section, index) => (
+                {filteredSections.map((section: any, index: number) => (
                     <Link key={index} to={section.href}>
                         <Card className="h-full bg-card border-border hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300 hover:-translate-y-1 cursor-pointer group overflow-hidden">
                             <CardContent className="p-6">

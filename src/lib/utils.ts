@@ -222,3 +222,17 @@ export function isAdmin(user: any): boolean {
 export function isSuperAdmin(user: any): boolean {
     return checkRole(user, 'super_admin');
 }
+
+/**
+ * Checks if a user is a Branch Manager
+ */
+export function isBranchManager(user: any): boolean {
+    return checkRole(user, 'branch_manager');
+}
+
+/**
+ * Checks if a user has access to the settings page
+ */
+export function canAccessSettings(user: any): boolean {
+    return isAdmin(user) || isBranchManager(user);
+}

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { cn, isAdmin, isSuperAdmin } from "@/lib/utils";
+import { cn, isAdmin, isSuperAdmin, canAccessSettings } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
     LayoutDashboard,
@@ -160,6 +160,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const filteredGroups = userIsSuperAdmin ? [] : menuGroups.map(group => ({
         ...group,
         items: group.items.filter(item => {
+            if (item.title === 'Settings') return canAccessSettings(user);
             if (item.role === 'admin' && !isAdmin(user)) return false;
             return true;
         })
