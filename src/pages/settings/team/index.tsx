@@ -71,6 +71,14 @@ export default function TeamSettings() {
         }
     })
 
+    const { data: rolesData } = useQuery({
+        queryKey: ['roles'],
+        queryFn: async () => {
+            const res = await api.get('/roles')
+            return res.data
+        }
+    })
+
     const { data: branches } = useQuery({
         queryKey: ['branches'],
         queryFn: async () => {
@@ -355,15 +363,16 @@ export default function TeamSettings() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="role">Role</Label>
-                                <Select name="role" defaultValue={editingMember?.role.name || "sales_rep"}>
+                                <Select name="role" defaultValue={editingMember?.role.id || (rolesData?.roles?.find((r: any) => r.roleKey === 'sales_rep')?.id || "sales_rep")}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="admin">Admin</SelectItem>
-                                        <SelectItem value="sales_manager">Sales Manager</SelectItem>
-                                        <SelectItem value="sales_rep">Sales Representative</SelectItem>
-                                        <SelectItem value="viewer">Viewer (Read Only)</SelectItem>
+                                        {rolesData?.roles?.map((role: any) => (
+                                            <SelectItem key={role.id} value={role.id}>
+                                                {role.name}
+                                            </SelectItem>
+                                        ))}
                                     </SelectContent>
                                 </Select>
                             </div>
