@@ -81,10 +81,18 @@ export default function CustomFieldsSettingsPage() {
     }
 
     const fieldsByEntity = useMemo(() => {
-        // Handle both object with customFields array and direct array response
-        const fields: CustomField[] = Array.isArray(customFields) ? customFields : (customFields as any).customFields || []
+        // Handle both object with customFields array and direct array response with robust null checks
+        let fields: CustomField[] = [];
 
+        if (Array.isArray(customFields)) {
+            fields = customFields;
+        } else if (customFields && typeof customFields === 'object' && 'customFields' in customFields && Array.isArray((customFields as any).customFields)) {
+            fields = (customFields as any).customFields;
+        }
+
+        // Defensive reduce that skips invalid field objects
         return fields.reduce((acc: Record<string, CustomField[]>, field: CustomField) => {
+            if (!field) return acc;
             const entity = field.entityType || 'Other'
             if (!acc[entity]) acc[entity] = []
             acc[entity].push(field)
