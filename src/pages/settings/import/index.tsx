@@ -103,6 +103,8 @@ const CRM_FIELDS = [
     { label: "Lead Source", value: "source", required: false },
     { label: "Lead Status", value: "status", required: false },
     { label: "Pipeline Stage", value: "stage", required: false },
+    { label: "Owner Email", value: "ownerEmail", required: false },
+    { label: "Assigned To ID", value: "assignedToId", required: false },
     { label: "Street Address", value: "address.street", required: false },
     { label: "City", value: "address.city", required: false },
     { label: "State", value: "address.state", required: false },
@@ -271,7 +273,7 @@ export default function ImportPage() {
             hubspot: ["First Name", "Last Name", "Email", "Phone Number", "Company Name", "Job Title", "Lead Status", "Street Address", "City", "State/Region", "Country/Region", "Postal Code"],
             zoho: ["First Name", "Last Name", "Email", "Phone", "Company", "Designation", "Lead Source", "Lead Status", "Street", "City", "State", "Country", "Zip Code"],
             pipedrive: ["Name", "Email", "Phone", "Organization", "Job Title", "Status", "Address", "City", "State", "Country", "Postal Code"],
-            custom: ["First Name", "Last Name", "Email", "Phone", "Company", "Job Title", "Lead Source", "Lead Status", "Street", "City", "State", "Country", "Zip Code"],
+            custom: ["First Name", "Last Name", "Email", "Phone", "Company", "Job Title", "Lead Source", "Lead Status", "Pipeline Stage", "Owner Email", "Street", "City", "State", "Country", "Zip Code"],
         }
 
         const headers = templateHeaders[template] || templateHeaders.custom
