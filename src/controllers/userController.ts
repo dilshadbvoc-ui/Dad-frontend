@@ -171,6 +171,62 @@ export const getUsers = async (req: Request, res: Response) => {
     }
 };
 
+// GET /api/users/my-team — lightweight endpoint for sidebar hierarchy
+export const getMyTeam = async (req: Request, res: Response) => {
+    try {
+        const currentUser = (req as any).user;
+
+        // Fetch direct reports (one level)
+        const directReports = await prisma.user.findMany({
+            where: { reportsToId: currentUser.id, isActive: true },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                profileImage: true,
+            },
+            orderBy: { firstName: 'asc' }
+        });
+
+        // Check which reports have subordinates
+        const reportIds = directReports.map(r => r.id);
+        const subCounts = await prisma.user.groupBy({
+            by: ['reportsToId'],
+            where: { reportsToId: { in: reportIds }, isActive: true },
+            _count: { id: true }
+        });
+        const subCountMap = new Map(subCounts.map(s => [s.reportsToId!, s._count.id]));
+
+        // Fetch managed branches
+        const managedBranches = await prisma.branch.findMany({
+            where: { managerId: currentUser.id, isDeleted: false },
+            select: { id: true, name: true }
+        });
+
+        // Role lookup
+        const allRoles = await prisma.role.findMany({ select: { id: true, roleKey: true, name: true } });
+        const roleIdToInfo = new Map(allRoles.map(r => [r.id, { key: r.roleKey, name: r.name }]));
+
+        const team = directReports.map(u => {
+            const roleInfo = roleIdToInfo.get(u.role);
+            return {
+                id: u.id,
+                firstName: u.firstName,
+                lastName: u.lastName,
+                role: roleInfo ? roleInfo.name : u.role.replace(/_/g, ' '),
+                profileImage: u.profileImage,
+                hasSubordinates: (subCountMap.get(u.id) || 0) > 0
+            };
+        });
+
+        res.json({ team, managedBranches });
+    } catch (error) {
+        logger.error('getMyTeam Error', error, 'UserController');
+        res.status(500).json({ message: (error as Error).message });
+    }
+};
+
 export const getUserById = async (req: Request, res: Response) => {
     try {
         const currentUser = (req as any).user;
