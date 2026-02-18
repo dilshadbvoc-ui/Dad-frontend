@@ -227,7 +227,7 @@ export function isSuperAdmin(user: any): boolean {
  * Checks if a user is a Branch Manager
  */
 export function isBranchManager(user: any): boolean {
-    return checkRole(user, 'branch_manager');
+    return checkRole(user, 'branch_manager') || !!user?.isBranchManager;
 }
 
 /**
