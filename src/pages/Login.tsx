@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
+import { Sparkles } from 'lucide-react';
 // import { Loader2 } from 'lucide-react';
 
 const Login = () => {
@@ -63,25 +64,61 @@ const Login = () => {
                 title="Login"
                 description="Securely access your Pype CRM account. Manage your sales pipeline and leads with ease."
             />
-            {/* Image Section */}
-            <div className="hidden lg:block relative h-full bg-slate-900">
-                <div className="absolute inset-0 bg-gradient-to-br from-indigo-900/90 to-purple-900/90 mix-blend-multiply z-10" />
-                <img
-                    src="/login-bg.png"
-                    alt="Login Background"
-                    className="absolute inset-0 w-full h-full object-cover"
-                />
-                <div className="relative z-20 h-full flex flex-col justify-between p-12 text-white">
-                    <div className="flex items-center gap-2">
-                        <Logo size="lg" className="text-white" />
-                    </div>
-                    <div className="space-y-4 max-w-md">
-                        <blockquote className="text-2xl font-medium leading-relaxed">
-                            "Streamline your sales process and close deals faster with our intelligent CRM solution."
-                        </blockquote>
-                        <div className="text-sm text-slate-300">
-                            Powering growth for modern sales teams.
+            {/* Visual Section - CSS Mesh Gradient & Animated Elements */}
+            <div className="hidden lg:flex relative h-full overflow-hidden bg-[#0A0C10] flex-col justify-between p-12 text-white">
+                {/* Dynamic Mesh Gradient Background */}
+                <div className="absolute inset-0 z-0">
+                    <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse-soft" />
+                    <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/20 blur-[120px] animate-pulse-soft" style={{ animationDelay: '-5s' }} />
+                    <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[100px] animate-pulse-soft" style={{ animationDelay: '-10s' }} />
+                </div>
+
+                {/* Decorative Elements */}
+                <div className="absolute inset-0 z-0 opacity-30">
+                    <div className="absolute top-[15%] left-[10%] w-64 h-64 rounded-full border border-white/10 animate-float" />
+                    <div className="absolute bottom-[20%] right-[15%] w-96 h-96 rounded-full border border-white/5 animate-float" style={{ animationDelay: '-7s' }} />
+                    <div className="absolute top-[40%] right-[20%] w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent animate-float" style={{ animationDelay: '-12s' }} />
+                </div>
+
+                {/* Grid Overlay */}
+                <div className="absolute inset-0 z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay" />
+                <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+                <div className="relative z-10 flex items-center gap-2">
+                    <Logo size="lg" className="text-white" />
+                </div>
+
+                <div className="relative z-10 space-y-8 max-w-lg">
+                    <div className="space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-xs font-medium text-indigo-200">
+                            <Sparkles className="w-3.5 h-3.5" />
+                            Next-Gen Sales Intelligence
                         </div>
+                        <h2 className="text-5xl font-bold tracking-tight leading-[1.1]">
+                            Accelerate your <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Sales Velocity.</span>
+                        </h2>
+                    </div>
+
+                    <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl space-y-4">
+                        <blockquote className="text-lg font-medium text-slate-200 leading-relaxed italic">
+                            "The transition from spreadsheets to Pype CRM was the single best decision for our sales team's productivity."
+                        </blockquote>
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500" />
+                            <div>
+                                <div className="text-sm font-bold text-white">Sarah Jenkins</div>
+                                <div className="text-xs text-slate-400">Head of Sales @ GrowthScale</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 uppercase tracking-widest font-bold">
+                    <span>© 2026 PYPE CRM</span>
+                    <div className="flex gap-6">
+                        <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
+                        <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
                     </div>
                 </div>
             </div>
