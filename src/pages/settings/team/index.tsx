@@ -521,13 +521,13 @@ export default function TeamSettings() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <Label htmlFor="role">Role</Label>
-                                <Select name="role" defaultValue={editingMember?.role.id || (rolesData?.roles?.find((r: any) => r.roleKey === 'sales_rep')?.id || "sales_rep")}>
+                                <Select name="role" defaultValue={editingMember?.role.id || 'sales_rep'}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a role" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {rolesData?.roles?.map((role: any) => (
-                                            <SelectItem key={role.id} value={role.id}>
+                                            <SelectItem key={role.roleKey} value={role.roleKey}>
                                                 {role.name}
                                             </SelectItem>
                                         ))}
