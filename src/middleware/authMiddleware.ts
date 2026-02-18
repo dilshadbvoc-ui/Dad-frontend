@@ -32,10 +32,16 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
             const userWithoutPassword = { ...user };
             delete (userWithoutPassword as any).password;
 
+            // Check if user manages any branch
+            const branchManaged = await prisma.branch.findFirst({
+                where: { managerId: user.id, isDeleted: false }
+            });
+
             // Attach user to request
             req.user = {
                 ...userWithoutPassword,
-                isSuperAdmin: checkSuperAdmin(user)
+                isSuperAdmin: checkSuperAdmin(user),
+                isBranchManager: !!branchManaged
             };
 
             // console.log(`[AuthMiddleware] Authenticated user: ${ user.email } `); 
@@ -72,9 +78,16 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
                 if (user) {
                     const userWithoutPassword = { ...user };
                     delete (userWithoutPassword as any).password;
+
+                    // Check if user manages any branch
+                    const branchManaged = await prisma.branch.findFirst({
+                        where: { managerId: user.id, isDeleted: false }
+                    });
+
                     req.user = {
                         ...userWithoutPassword,
-                        isSuperAdmin: checkSuperAdmin(user)
+                        isSuperAdmin: checkSuperAdmin(user),
+                        isBranchManager: !!branchManaged
                     };
                     return next();
                 }

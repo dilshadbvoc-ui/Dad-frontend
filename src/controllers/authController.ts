@@ -38,6 +38,12 @@ export const authUser = async (req: Request, res: Response) => {
         if (user && (await bcrypt.compare(password, user.password))) {
             console.log(`Login SUCCESS for: ${email}`);
 
+            // Check if user manages any branch
+            const branchManaged = await prisma.branch.findFirst({
+                where: { managerId: user.id, isDeleted: false }
+            });
+            const isBranchManager = !!branchManaged;
+
             // Check if active
             if (!user.isActive) {
                 res.status(401).json({ message: 'User account is deactivated' });
@@ -64,6 +70,7 @@ export const authUser = async (req: Request, res: Response) => {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
+                isBranchManager,
                 organisation: user.organisation,
                 branchId: user.branchId,
                 token: generateToken(user.id),
