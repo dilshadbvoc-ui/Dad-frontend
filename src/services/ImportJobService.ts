@@ -8,6 +8,7 @@ export class ImportJobService {
         defaultStatus?: string;
         pipelineId?: string;
         defaultStage?: string;
+        branchId?: string;
     }) {
         return await prisma.importJob.create({
             data: {
@@ -19,7 +20,8 @@ export class ImportJobService {
                 metadata: options ? {
                     defaultStatus: options.defaultStatus,
                     pipelineId: options.pipelineId,
-                    defaultStage: options.defaultStage
+                    defaultStage: options.defaultStage,
+                    branchId: options.branchId
                 } : undefined
             }
         });
@@ -61,6 +63,7 @@ export class ImportJobService {
             const defaultStatus = metadata.defaultStatus || 'new';
             const pipelineId = metadata.pipelineId || null;
             const defaultStage = metadata.defaultStage || null;
+            const branchId = metadata.branchId || null;
 
             for await (const row of processStream) {
                 try {
@@ -78,6 +81,10 @@ export class ImportJobService {
                     }
                     if (defaultStage) {
                         leadData.stage = defaultStage;
+                    }
+                    // Add branch if specified
+                    if (branchId) {
+                        leadData.branchId = branchId;
                     }
 
                     const mapping = job.mapping as any || {};

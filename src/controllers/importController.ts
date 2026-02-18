@@ -15,7 +15,8 @@ export const importLeads = async (req: Request, res: Response) => {
         const defaultStatus = req.body.defaultStatus || 'new';
         const pipelineId = req.body.pipelineId || null;
         const defaultStage = req.body.defaultStage || null;
-        
+        const branchId = req.body.branchId || null;
+
         const user = (req as any).user;
         const orgId = getOrgId(user);
 
@@ -26,7 +27,8 @@ export const importLeads = async (req: Request, res: Response) => {
         const job = await ImportJobService.createJob(user.id, orgId, req.file.path, mapping, {
             defaultStatus,
             pipelineId,
-            defaultStage
+            defaultStage,
+            branchId
         });
 
         // Start Processing in Background
