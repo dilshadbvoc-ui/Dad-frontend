@@ -21,6 +21,9 @@ jobs:
           script: |
             cd ~/backend || { echo "❌ Backend directory not found!"; exit 1; }
             
+            # Remove stale git lock if it exists
+            [ -f .git/index.lock ] && rm -f .git/index.lock
+            
             # Force clean state on server
             git fetch origin main
             git reset --hard origin/main
