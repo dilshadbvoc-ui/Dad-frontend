@@ -138,6 +138,24 @@ function AppContent() {
       logEnvironmentInfo();
       warnIfLocalEnvironment();
     });
+
+    // Silent Session Refresh
+    const refreshUserSession = async () => {
+      if (!userInfo) return;
+      try {
+        const { api } = await import('./services/api');
+        const res = await api.get('/auth/me');
+        if (res.data) {
+          const updatedUser = { ...JSON.parse(userInfo), ...res.data };
+          localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+          // Dispatch custom event for reactive components
+          window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updatedUser }));
+        }
+      } catch (err) {
+        console.error('Session refresh failed:', err);
+      }
+    };
+    refreshUserSession();
   }, []);
 
   return (

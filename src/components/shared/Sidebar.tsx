@@ -182,13 +182,21 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
     const navigate = useNavigate();
     const pathname = location.pathname;
 
-    const [user] = useState(() => {
+    const [user, setUser] = useState(() => {
         const userStr = localStorage.getItem('userInfo');
         if (userStr) {
             try { return JSON.parse(userStr); } catch (e) { console.error(e); }
         }
         return null;
     });
+
+    useEffect(() => {
+        const handleRefresh = (e: any) => {
+            if (e.detail) setUser(e.detail);
+        };
+        window.addEventListener('auth-refresh', handleRefresh);
+        return () => window.removeEventListener('auth-refresh', handleRefresh);
+    }, []);
 
     const userIsSuperAdmin = isSuperAdmin(user);
 
