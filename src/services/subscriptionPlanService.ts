@@ -10,6 +10,7 @@ export interface SubscriptionPlan {
     description?: string;
     isActive: boolean;
     features?: string[];
+    discount?: number;
 }
 
 export const getSubscriptionPlans = async () => {

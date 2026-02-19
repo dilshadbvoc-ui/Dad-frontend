@@ -37,13 +37,19 @@ export default function PricingTable() {
     // Assuming backend 'price' is monthly flat rate.
     // If backend doesn't have yearlyPrice, we can calculate it (e.g. x10 or x12 with discount).
 
-    const displayPlans = serverPlans?.length ? serverPlans.map((p: { price: number, name: string, features?: string[], maxUsers: number, durationDays: number, id: string }) => ({
-        ...p,
-        monthlyPrice: p.price,
-        yearlyPrice: p.price * 10, // 2 months free metric
-        popular: p.name.toLowerCase().includes('pro'), // Simple heuristic or add field to DB later
-        features: p.features || [`${p.maxUsers} Users`, `${p.durationDays} Days Duration`] // Fallback features
-    })) : fallbackPlans;
+    const displayPlans = serverPlans?.length ? serverPlans.map((p: { price: number, name: string, features?: string[], maxUsers: number, durationDays: number, id: string, discount?: number }) => {
+        const discount = p.discount || 0;
+        const discountedPrice = discount > 0 ? Math.round(p.price * (1 - discount / 100)) : p.price;
+        return {
+            ...p,
+            monthlyPrice: discountedPrice,
+            originalPrice: p.price,
+            discount,
+            yearlyPrice: discountedPrice * 10, // 2 months free metric
+            popular: p.name.toLowerCase().includes('pro'),
+            features: p.features || [`${p.maxUsers} Users`, `${p.durationDays} Days Duration`]
+        };
+    }) : fallbackPlans;
 
     if (isLoading) return <div className="py-20 text-center">Loading pricing...</div>;
 
@@ -74,7 +80,7 @@ export default function PricingTable() {
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-                    {displayPlans.map((plan: { id?: string, name: string, description?: string, monthlyPrice: number, yearlyPrice: number, popular: boolean, features: string[] }, index: number) => (
+                    {displayPlans.map((plan: { id?: string, name: string, description?: string, monthlyPrice: number, originalPrice?: number, discount?: number, yearlyPrice: number, popular: boolean, features: string[] }, index: number) => (
                         <motion.div
                             key={plan.id || plan.name}
                             initial={{ opacity: 0, y: 20 }}
@@ -92,12 +98,20 @@ export default function PricingTable() {
                                 <CardHeader className="text-center pt-8">
                                     <h3 className="text-xl font-bold">{plan.name}</h3>
                                     <p className="text-gray-500 text-sm mt-2">{plan.description}</p>
-                                    <div className="mt-6 flex items-baseline justify-center gap-1">
+                                    {plan.discount && plan.discount > 0 && (
+                                        <div className="mt-2 inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold">
+                                            {plan.discount}% OFF
+                                        </div>
+                                    )}
+                                    <div className="mt-4 flex items-baseline justify-center gap-1">
                                         <span className="text-4xl font-extrabold text-gray-900 dark:text-white">
                                             ₹{isYearly ? Math.round(plan.yearlyPrice / 12) : plan.monthlyPrice}
                                         </span>
                                         <span className="text-gray-500">/month</span>
                                     </div>
+                                    {plan.discount && plan.discount > 0 && plan.originalPrice && (
+                                        <p className="text-sm text-gray-400 line-through mt-1">₹{isYearly ? Math.round(plan.originalPrice * 10 / 12) : plan.originalPrice}/month</p>
+                                    )}
                                     {isYearly && <p className="text-xs text-green-600 mt-2 font-medium">Billed ₹{plan.yearlyPrice} yearly</p>}
                                 </CardHeader>
                                 <CardContent className="flex-1">

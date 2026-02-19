@@ -137,10 +137,23 @@ export default function BillingSettingsPage() {
                                     <CardHeader>
                                         <CardTitle>{plan.name}</CardTitle>
                                         <CardDescription>{plan.description || `${plan.durationDays} days access`}</CardDescription>
-                                        <div className="mt-4 flex items-baseline gap-1">
-                                            <span className="text-3xl font-bold">₹{plan.price}</span>
-                                            <span className="text-muted-foreground text-sm">/{plan.durationDays} days</span>
-                                        </div>
+                                        {plan.discount && plan.discount > 0 ? (
+                                            <div className="mt-4 space-y-1">
+                                                <div className="inline-block bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-3 py-1 rounded-full text-xs font-bold">
+                                                    {plan.discount}% OFF
+                                                </div>
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-3xl font-bold">₹{Math.round(plan.price * (1 - plan.discount / 100))}</span>
+                                                    <span className="text-muted-foreground text-sm">/{plan.durationDays} days</span>
+                                                </div>
+                                                <p className="text-sm text-muted-foreground line-through">₹{plan.price}</p>
+                                            </div>
+                                        ) : (
+                                            <div className="mt-4 flex items-baseline gap-1">
+                                                <span className="text-3xl font-bold">₹{plan.price}</span>
+                                                <span className="text-muted-foreground text-sm">/{plan.durationDays} days</span>
+                                            </div>
+                                        )}
                                     </CardHeader>
                                     <CardContent className="flex-1">
                                         <ul className="space-y-3 text-sm">

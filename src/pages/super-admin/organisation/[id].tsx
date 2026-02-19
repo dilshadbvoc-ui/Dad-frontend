@@ -74,6 +74,7 @@ interface OrgDetails {
             pricingModel: 'flat_rate' | 'per_user'
             pricePerUser: number
             currency: string
+            discount?: number
         }
     }
     users: Array<{
@@ -143,11 +144,14 @@ export default function OrganisationDetailPage() {
     const calculateBill = () => {
         if (!activeLicense || !activeLicense.plan) return 0;
         const plan = activeLicense.plan;
+        const discount = plan.discount || 0;
+        let total: number;
         if (plan.pricingModel === 'flat_rate') {
-            return plan.price;
+            total = plan.price;
         } else {
-            return (plan.price || 0) + (plan.pricePerUser || 0) * stats.userCount;
+            total = (plan.price || 0) + (plan.pricePerUser || 0) * stats.userCount;
         }
+        return discount > 0 ? Math.round(total * (1 - discount / 100)) : total;
     };
 
     const daysRemaining = activeLicense ? Math.ceil((new Date(activeLicense.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
@@ -238,6 +242,15 @@ export default function OrganisationDetailPage() {
                                                     <span>{formatCurrency((activeLicense?.plan.pricePerUser || 0) * stats.userCount, activeLicense?.plan.currency)}</span>
                                                 </div>
                                             )}
+                                            {(activeLicense?.plan.discount ?? 0) > 0 && (
+                                                <div className="flex justify-between text-sm text-green-400">
+                                                    <span>Discount ({activeLicense?.plan.discount}%)</span>
+                                                    <span>-{formatCurrency(
+                                                        Math.round(((activeLicense?.plan.pricingModel === 'flat_rate' ? activeLicense?.plan.price : (activeLicense?.plan.price || 0) + (activeLicense?.plan.pricePerUser || 0) * stats.userCount) || 0) * ((activeLicense?.plan.discount || 0) / 100)),
+                                                        activeLicense?.plan.currency
+                                                    )}</span>
+                                                </div>
+                                            )}
                                             <div className="flex justify-between pt-2 border-t border-indigo-800 font-bold text-lg mt-2">
                                                 <span>Total Amount Due</span>
                                                 <span className="text-indigo-400">{formatCurrency(calculateBill(), activeLicense?.plan.currency || 'INR')}</span>
@@ -265,6 +278,12 @@ export default function OrganisationDetailPage() {
                                 <span className="text-indigo-500">Base Price:</span>
                                 <span className="text-indigo-300">{formatCurrency(activeLicense?.plan.price || 0, activeLicense?.plan.currency)}</span>
                             </div>
+                            {(activeLicense?.plan.discount ?? 0) > 0 && (
+                                <div className="flex justify-between">
+                                    <span className="text-green-500">Discount:</span>
+                                    <span className="text-green-400 font-bold">{activeLicense?.plan.discount}% OFF</span>
+                                </div>
+                            )}
                             {activeLicense?.plan.pricingModel === 'per_user' && (
                                 <div className="flex justify-between">
                                     <span className="text-indigo-500">Price/User:</span>
