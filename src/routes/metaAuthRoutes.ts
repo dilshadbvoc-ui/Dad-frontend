@@ -275,15 +275,21 @@ router.get('/callback', async (req, res) => {
             }
         });
 
-        console.log(`[Meta OAuth] Successfully connected org ${orgId}`);
-        console.log(`  - Ad Account: ${primaryAdAccount?.name || 'None'}`);
-        console.log(`  - WhatsApp: ${wabaId ? 'Connected' : 'Not available'}`);
+        const finalRedirectUrl = `${returnUrl}?success=true&meta=connected${wabaId ? '&whatsapp=connected' : ''}`;
+        console.log(`[Meta OAuth] Redirecting to: ${finalRedirectUrl}`);
 
-        res.redirect(`${returnUrl}?success=true&meta=connected${wabaId ? '&whatsapp=connected' : ''}`);
+        // Set headers for no-cache to ensure redirect is followed and not stalled by Service Worker
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+
+        // Main redirect
+        res.redirect(finalRedirectUrl);
 
     } catch (err: any) {
         console.error('[Meta OAuth] Callback error:', err.response?.data || err.message);
-        res.redirect(`${returnUrl}?error=callback_failed&message=${encodeURIComponent(err.message)}`);
+        const errorUrl = `${returnUrl || (process.env.CLIENT_URL || 'https://pypecrm.com') + '/settings/integrations'}?error=callback_failed&message=${encodeURIComponent(err.message)}`;
+        res.redirect(errorUrl);
     }
 });
 

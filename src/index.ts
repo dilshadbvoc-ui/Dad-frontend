@@ -199,19 +199,23 @@ app.use(cors({
 // This must be placed BEFORE app.use(express.json())
 // Meta webhook - NO AUTH, needs raw body for signature verification
 // This must be placed BEFORE app.use(express.json())
-app.use('/api/meta/callback', express.raw({ type: 'application/json' }), (req, res, next) => {
-    // Check if we have a buffer and save it for signature verification
-    if (Buffer.isBuffer(req.body)) {
-        (req as any).rawBody = req.body;
-        // Parse the body manually for the controller to use
-        try {
-            req.body = JSON.parse(req.body.toString());
-        } catch (e) {
-            console.error('Error parsing Meta webhook body JSON:', e);
-            // proceed, let controller handle bad json or it might be a verify request
-        }
+app.use('/api/meta/callback', (req, res, next) => {
+    if (req.method === 'POST') {
+        express.raw({ type: 'application/json' })(req, res, (err) => {
+            if (err) return next(err);
+            if (Buffer.isBuffer(req.body)) {
+                (req as any).rawBody = req.body;
+                try {
+                    req.body = JSON.parse(req.body.toString());
+                } catch (e) {
+                    console.error('Error parsing Meta webhook body JSON:', e);
+                }
+            }
+            next();
+        });
+    } else {
+        next();
     }
-    next();
 });
 
 // Handle preflight requests
