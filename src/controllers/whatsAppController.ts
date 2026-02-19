@@ -13,6 +13,8 @@ interface AuthRequest extends Request {
     };
 }
 
+import { decrypt } from '../utils/encryption';
+
 export const getWhatsAppConfig = async (req: AuthRequest) => {
     if (!req.user?.organisationId) {
         throw new Error('User not authenticated or missing organisation');
@@ -43,7 +45,11 @@ export const getWhatsAppConfig = async (req: AuthRequest) => {
         throw new Error('WhatsApp integration not configured. Please check settings.');
     }
 
-    return whatsappConfig;
+    // Decrypt the token before using it
+    return {
+        ...whatsappConfig,
+        accessToken: decrypt(whatsappConfig.accessToken)
+    };
 };
 
 export const sendMessage = async (req: AuthRequest, res: Response) => {

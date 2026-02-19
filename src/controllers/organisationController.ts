@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import prisma from '../config/prisma';
 import { getOrgId } from '../utils/hierarchyUtils';
+import { encrypt } from '../utils/encryption';
+import { metaService } from '../services/MetaService';
 import bcrypt from 'bcryptjs';
 import { logAudit } from '../utils/auditLogger';
-import { metaService } from '../services/MetaService';
 
 export const createOrganisation = async (req: Request, res: Response) => {
     try {
@@ -197,14 +198,23 @@ export const updateOrganisation = async (req: Request, res: Response) => {
         // Handle Meta Token Exchange
         if (data.integrations?.meta?.accessToken && data.integrations?.meta?.connected) {
             try {
-                const longLivedToken = await metaService.exchangeForLongLivedToken(
-                    data.integrations.meta.accessToken,
-                    data.integrations.meta
-                );
-                data.integrations.meta.accessToken = longLivedToken;
+                // If it's not already encrypted (3 parts), try exchanging and always encrypt the result
+                const currentToken = data.integrations.meta.accessToken;
+                const isEncrypted = currentToken.split(':').length === 3;
+
+                if (!isEncrypted) {
+                    const longLivedToken = await metaService.exchangeForLongLivedToken(
+                        currentToken,
+                        data.integrations.meta
+                    );
+                    data.integrations.meta.accessToken = encrypt(longLivedToken);
+                }
             } catch (error) {
                 console.error('Error exchanging Meta token:', error);
-                // Continue with short-lived token if exchange fails
+                // If exchange fails but we have a plain token, still encrypt it
+                if (data.integrations.meta.accessToken.split(':').length !== 3) {
+                    data.integrations.meta.accessToken = encrypt(data.integrations.meta.accessToken);
+                }
             }
         }
 

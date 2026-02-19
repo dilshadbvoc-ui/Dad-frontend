@@ -10,6 +10,8 @@ interface WhatsAppConfig {
     appSecret?: string;
 }
 
+import { decrypt } from '../utils/encryption';
+
 export class WhatsAppService {
     private baseUrl = 'https://graph.facebook.com/v18.0';
     private config: WhatsAppConfig;
@@ -72,7 +74,7 @@ export class WhatsAppService {
         }
 
         return new WhatsAppService({
-            accessToken: whatsappConfig.accessToken,
+            accessToken: decrypt(whatsappConfig.accessToken),
             phoneNumberId: whatsappConfig.phoneNumberId,
             wabaId: whatsappConfig.wabaId,
             appId: whatsappConfig.appId,
