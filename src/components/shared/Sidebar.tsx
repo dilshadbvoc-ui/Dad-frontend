@@ -212,14 +212,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         }
     }, [user, userIsSuperAdmin]);
 
-    // Debugging Super Admin role
-    if (user) {
-        console.log('[SIDEBAR DEBUG]', {
-            role: user.role,
-            isSuperAdmin: userIsSuperAdmin,
-            organisationId: user.organisationId
-        });
-    }
+
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
