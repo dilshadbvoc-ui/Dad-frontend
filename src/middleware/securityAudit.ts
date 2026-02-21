@@ -229,7 +229,7 @@ export class SecurityAuditMiddleware {
      */
     static detectBruteForce() {
         const attempts = new Map<string, { count: number; lastAttempt: number }>();
-        const MAX_ATTEMPTS = process.env.NODE_ENV === 'development' ? 20 : 5;
+        const MAX_ATTEMPTS = process.env.NODE_ENV === 'development' ? 100 : 5;
         const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
 
         return (req: Request, res: Response, next: NextFunction) => {
