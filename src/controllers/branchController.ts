@@ -8,7 +8,12 @@ export const getBranches = async (req: Request, res: Response) => {
         const user = (req as any).user;
         const orgId = getOrgId(user);
 
-        if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
+        if (!orgId) {
+            if (user?.isSuperAdmin || user?.role === 'super_admin') {
+                return res.json([]);
+            }
+            return res.status(403).json({ message: 'User has no organisation' });
+        }
 
         const branches = await prisma.branch.findMany({
             where: {
