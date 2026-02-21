@@ -14,7 +14,7 @@ export default function LandingPage() {
             <SEO
                 title="Intelligent Lead Management & Sales Automation"
                 description="Accelerate your sales with Pype CRM. The all-in-one platform for lead tracking, automated follow-ups, and pipeline management."
-                keywords="Pype CRM, Lead Management, Sales Automation, CRM Software, Pipeline Tracking"
+                keywords="pype crm, crm, best crm, crm software, pipe crm, pipecrm, best crm software in india"
             />
             <LandingNavbar />
             <main>

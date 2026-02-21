@@ -47,7 +47,7 @@ export default function SeoSettingsPage() {
             app_name: settings.app_name || "PYPE CRM",
             seo_title: settings.seo_title || "PYPE - Modern CRM Solution",
             seo_description: settings.seo_description || "The ultimate CRM for sales and marketing teams.",
-            seo_keywords: settings.seo_keywords || "crm, sales, marketing, leads",
+            seo_keywords: settings.seo_keywords || "pype crm, crm, best crm, crm software, pipe crm, pipecrm, best crm software in india",
             og_image: settings.og_image || ""
         });
     }
