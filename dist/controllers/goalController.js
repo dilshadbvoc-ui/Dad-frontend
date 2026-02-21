@@ -89,8 +89,8 @@ const createGoal = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(400).json({ message: 'Organisation not found' });
         // Calculate dates based on period
         const now = new Date();
-        let startDate = now;
-        let endDate = new Date();
+        const startDate = now;
+        const endDate = new Date();
         switch (req.body.period) {
             case 'weekly':
                 endDate.setDate(now.getDate() + 7);
@@ -151,7 +151,7 @@ const updateGoal = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             return res.status(400).json({ message: 'Organisation not found' });
         const { id } = req.params;
         const updates = Object.assign({}, req.body);
-        let goal = yield prisma_1.default.goal.findFirst({
+        const goal = yield prisma_1.default.goal.findFirst({
             where: {
                 id,
                 organisationId: orgId

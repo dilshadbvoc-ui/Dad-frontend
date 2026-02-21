@@ -54,27 +54,35 @@ exports.verifySuperAdminSecret = verifySuperAdminSecret;
 /**
  * Lock the entire system in case of security breach
  */
-const lockSystem = (reason) => {
+const lockSystem = (reason) => __awaiter(void 0, void 0, void 0, function* () {
     SYSTEM_LOCKED = true;
     LOCK_REASON = reason;
     console.error('🚨🚨🚨 CRITICAL SECURITY ALERT 🚨🚨🚨');
     console.error(`SYSTEM LOCKED: ${reason}`);
     console.error('Timestamp:', new Date().toISOString());
     console.error('🚨🚨🚨 SYSTEM LOCKED 🚨🚨🚨');
-    // Log to audit trail
-    prisma_1.default.auditLog.create({
-        data: {
-            action: 'SYSTEM_LOCKDOWN',
-            entity: 'System',
-            entityId: 'SECURITY_BREACH',
-            actorId: 'SYSTEM',
-            organisationId: 'SYSTEM',
-            details: { reason, timestamp: new Date().toISOString() },
-            ipAddress: 'SYSTEM',
-            userAgent: 'SYSTEM'
-        }
-    }).catch(console.error);
-};
+    try {
+        // Find a valid organisation ID for the log (AuditLog requires it)
+        const org = yield prisma_1.default.organisation.findFirst({ select: { id: true } });
+        const orgId = (org === null || org === void 0 ? void 0 : org.id) || 'SYSTEM'; // Fallback, but might still fail if schema requires valid FK
+        // Log to audit trail
+        yield prisma_1.default.auditLog.create({
+            data: {
+                action: 'SYSTEM_LOCKDOWN',
+                entity: 'System',
+                entityId: 'SECURITY_BREACH',
+                actorId: 'SYSTEM',
+                organisationId: orgId,
+                details: { reason, timestamp: new Date().toISOString() },
+                ipAddress: 'SYSTEM',
+                userAgent: 'SYSTEM'
+            }
+        });
+    }
+    catch (err) {
+        console.error('Failed to log system lockdown to database:', err);
+    }
+});
 exports.lockSystem = lockSystem;
 /**
  * Check if system is locked

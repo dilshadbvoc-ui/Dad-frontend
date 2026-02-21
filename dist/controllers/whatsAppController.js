@@ -18,6 +18,7 @@ const WhatsAppIntegrationService_1 = require("../services/WhatsAppIntegrationSer
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 const socket_1 = require("../socket");
+const encryption_1 = require("../utils/encryption");
 const getWhatsAppConfig = (req) => __awaiter(void 0, void 0, void 0, function* () {
     var _a, _b;
     if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.organisationId)) {
@@ -43,7 +44,8 @@ const getWhatsAppConfig = (req) => __awaiter(void 0, void 0, void 0, function* (
     if (!(whatsappConfig === null || whatsappConfig === void 0 ? void 0 : whatsappConfig.connected) || !whatsappConfig.phoneNumberId || !whatsappConfig.accessToken) {
         throw new Error('WhatsApp integration not configured. Please check settings.');
     }
-    return whatsappConfig;
+    // Decrypt the token before using it
+    return Object.assign(Object.assign({}, whatsappConfig), { accessToken: (0, encryption_1.decrypt)(whatsappConfig.accessToken) });
 });
 exports.getWhatsAppConfig = getWhatsAppConfig;
 const sendMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

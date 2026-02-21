@@ -135,7 +135,7 @@ exports.WhatsAppIntegrationService = {
                 }
                 // Determine message type and content
                 let messageType = 'text';
-                let content = {};
+                const content = {};
                 if (message.text) {
                     messageType = 'text';
                     content.text = message.text.body;

@@ -35,6 +35,13 @@ const SYSTEM_ROLES = [
         isSystemRole: true
     },
     {
+        roleKey: 'sales_manager',
+        name: 'Sales Manager',
+        description: 'Oversee sales operations and team performance',
+        permissions: ['users:read', 'leads:*', 'contacts:*', 'accounts:*', 'opportunities:*', 'reports:read', 'team:*', 'settings:read'],
+        isSystemRole: true
+    },
+    {
         roleKey: 'sales_rep',
         name: 'Sales Rep',
         description: 'Manage assigned leads and opportunities',
@@ -173,7 +180,7 @@ const updateRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
         const currentUser = req.user;
         const organisationId = currentUser.organisationId;
         // Find existing role in DB or check if it's a known system role
-        let dbRole = yield prisma.role.findFirst({
+        const dbRole = yield prisma.role.findFirst({
             where: {
                 OR: [
                     { id: id },
@@ -268,37 +275,46 @@ const getGlobalRoles = (req, res) => __awaiter(void 0, void 0, void 0, function*
 exports.getGlobalRoles = getGlobalRoles;
 /**
  * Create or Update a Global Role
+ * Note: Prisma doesn't support null in compound unique where clauses,
+ * so we use findFirst + create/update instead of upsert.
  */
 const upsertGlobalRole = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { roleKey, name, description, permissions, isSystemRole } = req.body;
-        const role = yield prisma.role.upsert({
+        // Find existing global role (organisationId IS NULL)
+        const existingRole = yield prisma.role.findFirst({
             where: {
-                roleKey_organisationId: {
-                    roleKey,
-                    organisationId: null // Hack for @unique constraint with null
-                }
-            },
-            update: {
-                name,
-                description,
-                permissions,
-                isSystemRole: isSystemRole !== null && isSystemRole !== void 0 ? isSystemRole : true
-            },
-            create: {
                 roleKey,
-                name,
-                description,
-                permissions,
-                isSystemRole: isSystemRole !== null && isSystemRole !== void 0 ? isSystemRole : true,
                 organisationId: null
             }
         });
+        let role;
+        if (existingRole) {
+            role = yield prisma.role.update({
+                where: { id: existingRole.id },
+                data: {
+                    name,
+                    description,
+                    permissions,
+                    isSystemRole: isSystemRole !== null && isSystemRole !== void 0 ? isSystemRole : true
+                }
+            });
+        }
+        else {
+            role = yield prisma.role.create({
+                data: {
+                    roleKey,
+                    name,
+                    description,
+                    permissions,
+                    isSystemRole: isSystemRole !== null && isSystemRole !== void 0 ? isSystemRole : true,
+                    organisationId: null
+                }
+            });
+        }
         res.json(role);
     }
     catch (error) {
-        // Prisma null unique constraint might be tricky, let's fallback to manual check if needed
-        // But @unique([roleKey, organisationId]) where organisationId is null in Postgres works fine
         res.status(500).json({ message: error.message });
     }
 });

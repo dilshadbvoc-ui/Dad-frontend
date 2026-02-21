@@ -172,7 +172,7 @@ class SecurityAuditMiddleware {
      */
     static detectBruteForce() {
         const attempts = new Map();
-        const MAX_ATTEMPTS = process.env.NODE_ENV === 'development' ? 20 : 5;
+        const MAX_ATTEMPTS = process.env.NODE_ENV === 'development' ? 100 : 5;
         const WINDOW_MS = 15 * 60 * 1000; // 15 minutes
         return (req, res, next) => {
             const ip = req.ip;
@@ -239,7 +239,7 @@ SecurityAuditMiddleware.suspiciousPatterns = [
     /javascript:/gi,
     /on\w+\s*=/gi,
     // Path traversal
-    /\.\.[\/\\]/g,
+    /\.\.[/\\]/g,
     // Command injection (further relaxed)
     /[|`]/g
 ];

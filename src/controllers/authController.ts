@@ -135,9 +135,10 @@ export const registerUser = async (req: Request, res: Response) => {
                     domain: email.split('@')[1] || 'unknown.com',
                     status: 'active',
                     subscription: {
-                        status: 'active', // Should be active if on free plan? or trial?
+                        status: 'trialing',
                         planId: defaultPlan?.id,
                         startDate: new Date(),
+                        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
                         autoRenew: false
                     },
                     userIdCounter: 1

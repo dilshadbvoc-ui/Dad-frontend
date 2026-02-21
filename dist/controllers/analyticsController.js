@@ -48,6 +48,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getUserWiseSales = exports.getSalesBook = exports.getTopPerformers = exports.getAiInsights = exports.getLeadSourceAnalytics = exports.getSalesForecast = exports.getTopLeads = exports.getSalesChartData = exports.getDashboardStats = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
+const roleUtils_1 = require("../utils/roleUtils");
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const logDebug = (msg) => {
@@ -69,7 +70,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         logDebug(`[Analytics] User: ${user === null || user === void 0 ? void 0 : user.id}, Org: ${orgId}, SuperAdmin: ${isSuperAdmin}`);
         const branchFilter = getBranchFilter(req);
         // If user is not admin, they might be restricted to their own branch
@@ -103,65 +104,67 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         if (!isSuperAdmin && user.role !== 'admin') {
             oppVisibilityFilter.ownerId = { in: [...subordinateIds, user.id] };
         }
-        // Leads
-        const totalLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), visibilityFilter)
-        });
-        const newLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'new' }), visibilityFilter)
-        });
-        const convertedLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'converted' }), visibilityFilter)
-        });
-        // Revenue calculation and trend
-        const revenueResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false }), oppVisibilityFilter),
-            _sum: { amount: true }
-        });
-        const totalRevenue = revenueResult._sum.amount || 0;
-        // Pipeline Value
-        const pipelineResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter),
-            _sum: { amount: true }
-        });
-        const pipelineValue = pipelineResult._sum.amount || 0;
-        // Contacts/Accounts
-        const totalContacts = yield prisma_1.default.contact.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
-        });
-        const totalAccounts = yield prisma_1.default.account.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
-        });
         // Current Month Dates
         const startOfMonth = new Date();
         startOfMonth.setDate(1);
         startOfMonth.setHours(0, 0, 0, 0);
         const startOfLastMonth = new Date(startOfMonth);
         startOfLastMonth.setMonth(startOfLastMonth.getMonth() - 1);
-        // Previous Month Stats for Trends
-        const prevLeads = yield prisma_1.default.lead.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, createdAt: { gte: startOfLastMonth, lt: startOfMonth } }), visibilityFilter)
-        });
-        const prevRevenueResult = yield prisma_1.default.opportunity.aggregate({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false, closeDate: { gte: startOfLastMonth, lt: startOfMonth } }), oppVisibilityFilter),
-            _sum: { amount: true }
-        });
+        // Group independent queries to run concurrently
+        const [totalLeads, newLeads, convertedLeads, revenueResult, pipelineResult, totalContacts, totalAccounts, prevLeads, prevRevenueResult, totalClosedCurrent, wonCurrent, wonTotal, lostTotal, activeOpportunitiesCount, totalOpportunitiesCount] = yield Promise.all([
+            // Leads
+            prisma_1.default.lead.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), visibilityFilter) }),
+            prisma_1.default.lead.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'new' }), visibilityFilter) }),
+            prisma_1.default.lead.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, status: 'converted' }), visibilityFilter) }),
+            // Revenue calculation and trend
+            prisma_1.default.opportunity.aggregate({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false }), oppVisibilityFilter),
+                _sum: { amount: true }
+            }),
+            // Pipeline Value
+            prisma_1.default.opportunity.aggregate({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter),
+                _sum: { amount: true }
+            }),
+            // Contacts/Accounts
+            prisma_1.default.contact.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
+            }),
+            prisma_1.default.account.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), (!isSuperAdmin && user.role !== 'admin' ? { ownerId: { in: [...subordinateIds, user.id] } } : {}))
+            }),
+            // Previous Month Stats for Trends (Leads)
+            prisma_1.default.lead.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, createdAt: { gte: startOfLastMonth, lt: startOfMonth } }), visibilityFilter)
+            }),
+            // Previous Month Stats for Trends (Revenue)
+            prisma_1.default.opportunity.aggregate({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { stage: 'closed_won', isDeleted: false, closeDate: { gte: startOfLastMonth, lt: startOfMonth } }), oppVisibilityFilter),
+                _sum: { amount: true }
+            }),
+            // Trending Win Rate (total closed current month)
+            prisma_1.default.opportunity.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { in: ['closed_won', 'closed_lost'] }, closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
+            }),
+            // Trending Win Rate (won current month)
+            prisma_1.default.opportunity.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won', closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
+            }),
+            // Won/Lost for nested object
+            prisma_1.default.opportunity.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won' }), oppVisibilityFilter)
+            }),
+            prisma_1.default.opportunity.count({
+                where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_lost' }), oppVisibilityFilter)
+            }),
+            // Active and Total Opportunities
+            prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { notIn: ['closed_won', 'closed_lost'] } }), oppVisibilityFilter) }),
+            prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter) })
+        ]);
+        const totalRevenue = revenueResult._sum.amount || 0;
+        const pipelineValue = pipelineResult._sum.amount || 0;
         const prevRevenue = prevRevenueResult._sum.amount || 0;
-        // Trending Win Rate
-        const totalClosedCurrent = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { in: ['closed_won', 'closed_lost'] }, closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
-        });
-        const wonCurrent = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won', closeDate: { gte: startOfMonth } }), oppVisibilityFilter)
-        });
         const currentWinRate = totalClosedCurrent > 0 ? (wonCurrent / totalClosedCurrent) * 100 : 0;
-        // Won/Lost for nested object
-        const wonTotal = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_won' }), oppVisibilityFilter)
-        });
-        const lostTotal = yield prisma_1.default.opportunity.count({
-            where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: 'closed_lost' }), oppVisibilityFilter)
-        });
         const calculateTrend = (curr, prev) => {
             if (prev === 0)
                 return curr > 0 ? 100 : 0;
@@ -170,7 +173,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         res.json({
             // Flat structure
             totalLeads,
-            activeOpportunities: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false, stage: { notIn: ['closed_won', 'closed_lost'] } }), oppVisibilityFilter) }),
+            activeOpportunities: activeOpportunitiesCount,
             salesRevenue: totalRevenue,
             winRate: Math.round(currentWinRate),
             // Trends
@@ -182,7 +185,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
             // Nested structure
             leads: { total: totalLeads, new: newLeads, converted: convertedLeads },
             opportunities: {
-                total: yield prisma_1.default.opportunity.count({ where: Object.assign(Object.assign(Object.assign({}, combinedFilter), { isDeleted: false }), oppVisibilityFilter) }),
+                total: totalOpportunitiesCount,
                 value: pipelineValue,
                 won: wonTotal,
                 lost: lostTotal
@@ -206,7 +209,7 @@ const getSalesChartData = (req, res) => __awaiter(void 0, void 0, void 0, functi
         console.log('[Analytics] Requesting Sales Chart Data');
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             console.error('[Analytics] Org ID missing for user:', user.id);
             return res.status(400).json({ message: 'Organisation not found' });
@@ -276,7 +279,7 @@ const getTopLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
@@ -315,7 +318,7 @@ const getSalesForecast = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
@@ -360,7 +363,7 @@ const getLeadSourceAnalytics = (req, res) => __awaiter(void 0, void 0, void 0, f
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
@@ -392,7 +395,7 @@ const getAiInsights = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         console.log('[Analytics] Requesting AI Insights');
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
@@ -473,7 +476,7 @@ const getTopPerformers = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
         }
@@ -520,7 +523,7 @@ const getSalesBook = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         const { startDate, endDate } = req.query;
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });
@@ -578,7 +581,7 @@ const getUserWiseSales = (req, res) => __awaiter(void 0, void 0, void 0, functio
     try {
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
-        const isSuperAdmin = user.role === 'super_admin';
+        const isSuperAdmin = (0, roleUtils_1.isSuperAdmin)(user);
         const { startDate, endDate } = req.query;
         if (!orgId && !isSuperAdmin) {
             return res.status(400).json({ message: 'Organisation not found' });

@@ -16,6 +16,7 @@ exports.makeOutboundCall = exports.handleStatusWebhook = exports.handleVoiceWebh
 const twilio_1 = __importDefault(require("twilio"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
+const telephonyService_1 = require("../services/telephonyService");
 const VoiceResponse = twilio_1.default.twiml.VoiceResponse;
 // Voice Webhook (Inbound or Outbound Answered)
 const handleVoiceWebhook = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -152,8 +153,10 @@ const makeOutboundCall = (req, res) => __awaiter(void 0, void 0, void 0, functio
         const { to, leadId } = req.body;
         if (!to)
             return res.status(400).json({ message: 'Phone number required' });
-        const { TelephonyService } = require('../services/telephonyService');
-        const telephonyService = yield TelephonyService.getClientForOrg(orgId);
+        if (!orgId) {
+            return res.status(400).json({ message: 'Organisation not found' });
+        }
+        const telephonyService = yield telephonyService_1.TelephonyService.getClientForOrg(orgId);
         if (!telephonyService) {
             return res.status(400).json({ message: 'Telephony not configured' });
         }

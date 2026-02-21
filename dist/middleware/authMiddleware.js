@@ -16,6 +16,7 @@ exports.authorize = exports.admin = exports.protect = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const crypto_1 = __importDefault(require("crypto"));
+const roleUtils_1 = require("../utils/roleUtils");
 const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
     let token;
     if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -34,9 +35,13 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
             // Exclude password from the object attached to request
             const userWithoutPassword = Object.assign({}, user);
             delete userWithoutPassword.password;
+            // Check if user manages any branch
+            const branchManaged = yield prisma_1.default.branch.findFirst({
+                where: { managerId: user.id, isDeleted: false }
+            });
             // Attach user to request
-            req.user = Object.assign(Object.assign({}, userWithoutPassword), { isSuperAdmin: user.role === 'super_admin' });
-            // console.log(`[AuthMiddleware] Authenticated user: ${user.email}`); 
+            req.user = Object.assign(Object.assign({}, userWithoutPassword), { isSuperAdmin: (0, roleUtils_1.isSuperAdmin)(user), isBranchManager: !!branchManaged });
+            // console.log(`[AuthMiddleware] Authenticated user: ${ user.email } `); 
             return next();
         }
         catch (error) {
@@ -64,7 +69,11 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
                 if (user) {
                     const userWithoutPassword = Object.assign({}, user);
                     delete userWithoutPassword.password;
-                    req.user = Object.assign(Object.assign({}, userWithoutPassword), { isSuperAdmin: user.role === 'super_admin' });
+                    // Check if user manages any branch
+                    const branchManaged = yield prisma_1.default.branch.findFirst({
+                        where: { managerId: user.id, isDeleted: false }
+                    });
+                    req.user = Object.assign(Object.assign({}, userWithoutPassword), { isSuperAdmin: (0, roleUtils_1.isSuperAdmin)(user), isBranchManager: !!branchManaged });
                     return next();
                 }
             }
@@ -81,7 +90,7 @@ const protect = (req, res, next) => __awaiter(void 0, void 0, void 0, function* 
 });
 exports.protect = protect;
 const admin = (req, res, next) => {
-    if (req.user && (req.user.role === 'admin' || req.user.role === 'super_admin')) {
+    if (req.user && ((0, roleUtils_1.normalizeRole)(req.user.role) === 'admin' || (0, roleUtils_1.isSuperAdmin)(req.user))) {
         next();
     }
     else {
@@ -92,7 +101,9 @@ exports.admin = admin;
 const authorize = (...roles) => {
     return (req, res, next) => {
         var _a;
-        if (!req.user || !roles.includes(req.user.role)) {
+        const userRole = req.user ? (0, roleUtils_1.normalizeRole)(req.user.role) : '';
+        const normRoles = roles.map(r => r.toLowerCase().replace(/[\s-]/g, '_'));
+        if (!req.user || !normRoles.includes(userRole)) {
             return res.status(403).json({ message: `User role ${(_a = req.user) === null || _a === void 0 ? void 0 : _a.role} is not authorized` });
         }
         next();

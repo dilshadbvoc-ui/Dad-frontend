@@ -241,14 +241,19 @@ router.get('/callback', (req, res) => __awaiter(void 0, void 0, void 0, function
                     } })
             }
         });
-        console.log(`[Meta OAuth] Successfully connected org ${orgId}`);
-        console.log(`  - Ad Account: ${(primaryAdAccount === null || primaryAdAccount === void 0 ? void 0 : primaryAdAccount.name) || 'None'}`);
-        console.log(`  - WhatsApp: ${wabaId ? 'Connected' : 'Not available'}`);
-        res.redirect(`${returnUrl}?success=true&meta=connected${wabaId ? '&whatsapp=connected' : ''}`);
+        const finalRedirectUrl = `${returnUrl}?success=true&meta=connected${wabaId ? '&whatsapp=connected' : ''}`;
+        console.log(`[Meta OAuth] Redirecting to: ${finalRedirectUrl}`);
+        // Set headers for no-cache to ensure redirect is followed and not stalled by Service Worker
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        // Main redirect
+        res.redirect(finalRedirectUrl);
     }
     catch (err) {
         console.error('[Meta OAuth] Callback error:', ((_b = err.response) === null || _b === void 0 ? void 0 : _b.data) || err.message);
-        res.redirect(`${returnUrl}?error=callback_failed&message=${encodeURIComponent(err.message)}`);
+        const errorUrl = `${returnUrl || (process.env.CLIENT_URL || 'https://pypecrm.com') + '/settings/integrations'}?error=callback_failed&message=${encodeURIComponent(err.message)}`;
+        res.redirect(errorUrl);
     }
 }));
 /**
@@ -290,9 +295,9 @@ router.post('/callback', (req, res) => __awaiter(void 0, void 0, void 0, functio
  * Disconnects Meta integration
  */
 router.post('/disconnect', authMiddleware_1.protect, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b;
+    var _a;
     try {
-        const orgId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.organisationId;
+        const orgId = req.user.organisationId;
         const { type } = req.body; // 'meta', 'whatsapp', or 'both'
         const org = yield prisma_1.default.organisation.findUnique({
             where: { id: orgId }
@@ -309,7 +314,7 @@ router.post('/disconnect', authMiddleware_1.protect, (req, res) => __awaiter(voi
                     currentIntegrations.metaAccounts = currentIntegrations.metaAccounts.filter((acc) => acc.adAccountId !== accountIdToRemove);
                 }
                 // Check if primary is the one being removed
-                if (((_b = currentIntegrations.meta) === null || _b === void 0 ? void 0 : _b.adAccountId) === accountIdToRemove) {
+                if (((_a = currentIntegrations.meta) === null || _a === void 0 ? void 0 : _a.adAccountId) === accountIdToRemove) {
                     // Promote another one or clear
                     currentIntegrations.meta = currentIntegrations.metaAccounts[0] || {
                         connected: false,
@@ -348,9 +353,9 @@ router.post('/disconnect', authMiddleware_1.protect, (req, res) => __awaiter(voi
  * Gets current Meta/WhatsApp connection status
  */
 router.get('/status', authMiddleware_1.protect, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h;
+    var _a, _b, _c, _d, _e, _f, _g;
     try {
-        const orgId = (_a = req.user) === null || _a === void 0 ? void 0 : _a.organisationId;
+        const orgId = req.user.organisationId;
         const org = yield prisma_1.default.organisation.findUnique({
             where: { id: orgId },
             select: { integrations: true }
@@ -358,16 +363,16 @@ router.get('/status', authMiddleware_1.protect, (req, res) => __awaiter(void 0, 
         const integrations = (org === null || org === void 0 ? void 0 : org.integrations) || {};
         res.json({
             meta: {
-                connected: ((_b = integrations.meta) === null || _b === void 0 ? void 0 : _b.connected) || false,
-                adAccountName: ((_c = integrations.meta) === null || _c === void 0 ? void 0 : _c.adAccountName) || null,
-                pageName: ((_d = integrations.meta) === null || _d === void 0 ? void 0 : _d.pageName) || null,
-                connectedAt: ((_e = integrations.meta) === null || _e === void 0 ? void 0 : _e.connectedAt) || null,
+                connected: ((_a = integrations.meta) === null || _a === void 0 ? void 0 : _a.connected) || false,
+                adAccountName: ((_b = integrations.meta) === null || _b === void 0 ? void 0 : _b.adAccountName) || null,
+                pageName: ((_c = integrations.meta) === null || _c === void 0 ? void 0 : _c.pageName) || null,
+                connectedAt: ((_d = integrations.meta) === null || _d === void 0 ? void 0 : _d.connectedAt) || null,
                 accounts: integrations.metaAccounts || [] // Return list
             },
             whatsapp: {
-                connected: ((_f = integrations.whatsapp) === null || _f === void 0 ? void 0 : _f.connected) || false,
-                wabaId: ((_g = integrations.whatsapp) === null || _g === void 0 ? void 0 : _g.wabaId) || null,
-                connectedAt: ((_h = integrations.whatsapp) === null || _h === void 0 ? void 0 : _h.connectedAt) || null
+                connected: ((_e = integrations.whatsapp) === null || _e === void 0 ? void 0 : _e.connected) || false,
+                wabaId: ((_f = integrations.whatsapp) === null || _f === void 0 ? void 0 : _f.wabaId) || null,
+                connectedAt: ((_g = integrations.whatsapp) === null || _g === void 0 ? void 0 : _g.connectedAt) || null
             }
         });
     }

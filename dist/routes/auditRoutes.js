@@ -7,5 +7,5 @@ const express_1 = __importDefault(require("express"));
 const auditController_1 = require("../controllers/auditController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
-router.get('/', authMiddleware_1.protect, authMiddleware_1.admin, auditController_1.getAuditLogs);
+router.get('/', authMiddleware_1.protect, auditController_1.getAuditLogs);
 exports.default = router;

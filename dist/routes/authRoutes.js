@@ -5,11 +5,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const authController_1 = require("../controllers/authController");
+const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 router.post('/login', authController_1.authUser);
 router.post('/register', authController_1.registerUser);
 router.post('/forgot-password', authController_1.forgotPassword);
 router.put('/reset-password/:resetToken', authController_1.resetPassword);
+router.get('/me', authMiddleware_1.protect, authController_1.getMe);
 const ssoController_1 = require("../controllers/ssoController");
 router.post('/sso/init', ssoController_1.initSSO);
 router.get('/sso/login/:orgId', ssoController_1.ssoLogin);

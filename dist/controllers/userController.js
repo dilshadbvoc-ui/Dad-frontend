@@ -56,13 +56,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deactivateUser = exports.inviteUser = exports.createUser = exports.updateUser = exports.getUserById = exports.getUsers = exports.getUserStats = void 0;
+exports.deactivateUser = exports.inviteUser = exports.createUser = exports.updateUser = exports.getUserById = exports.getMyTeam = exports.getUsers = exports.getUserStats = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const logger_1 = require("../utils/logger");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
 // UserRole import removed
 const auditLogger_1 = require("../utils/auditLogger");
+const roleUtils_1 = require("../utils/roleUtils");
 // GET /api/users/:id/stats - Get user performance stats
 const getUserStats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
@@ -148,8 +149,13 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 return res.status(403).json({ message: 'User has no organisation' });
             }
             where.organisationId = orgId;
+            // Hierarchy filtering: non-admin users only see subordinates + branch members
+            if (currentUser.role !== 'admin') {
+                const visibleIds = yield (0, hierarchyUtils_1.getVisibleUserIds)(currentUser.id);
+                where.id = { in: visibleIds };
+            }
         }
-        let users = yield prisma_1.default.user.findMany({
+        const users = yield prisma_1.default.user.findMany({
             where,
             include: {
                 organisation: { select: { name: true } }, // Equivalent to populate role? No role is enum.
@@ -172,11 +178,20 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         // logger.debug(`Query where: ${JSON.stringify(where)}`, 'UserController');
         logger_1.logger.info(`Users found: ${users.length}`, 'UserController');
+        // Build role lookup for UUID → name resolution
+        const allRoles = yield prisma_1.default.role.findMany({
+            select: { id: true, roleKey: true, name: true }
+        });
+        const roleIdToInfo = new Map(allRoles.map(r => [r.id, { key: r.roleKey, name: r.name }]));
         // Transform results to match frontend expectations and ensure security
         const transformedUsers = users.map(u => {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const { password } = u, userWithoutPassword = __rest(u, ["password"]);
-            return Object.assign(Object.assign({}, userWithoutPassword), { _id: u.id, id: u.id, role: { id: u.role, name: u.role }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null, branch: u.branch ? {
+            // Resolve role: if u.role is a UUID (matches a role id), use roleKey/name
+            const roleInfo = roleIdToInfo.get(u.role);
+            const roleKey = roleInfo ? roleInfo.key : u.role;
+            const roleName = roleInfo ? roleInfo.name : u.role.replace(/_/g, ' ');
+            return Object.assign(Object.assign({}, userWithoutPassword), { _id: u.id, id: u.id, role: { id: roleKey, name: roleName }, reportsTo: u.reportsTo ? Object.assign(Object.assign({}, u.reportsTo), { id: u.reportsTo.id, _id: u.reportsTo.id }) : null, branch: u.branch ? {
                     id: u.branch.id,
                     name: u.branch.name
                 } : null });
@@ -189,6 +204,83 @@ const getUsers = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     }
 });
 exports.getUsers = getUsers;
+// GET /api/users/my-team — lightweight endpoint for sidebar hierarchy
+const getMyTeam = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const currentUser = req.user;
+        const targetParentId = req.query.parentId || currentUser.id;
+        // Security check: If parentId is provided and not the current user,
+        // we must verify that the targetParentId is actually a subordinate (descendant) of the current user.
+        // For simplicity in the sidebar, we'll allow fetching if the targetParentId is either the currentUser
+        // or someone who reports directly or indirectly to them.
+        if (targetParentId !== currentUser.id && !(0, roleUtils_1.isAdmin)(currentUser)) {
+            // Check if target is a descendant
+            const targetUser = yield prisma_1.default.user.findUnique({
+                where: { id: targetParentId },
+                select: { reportsToId: true }
+            });
+            if (!targetUser) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            // Path-based check or recursive check (simpler: check if reportsToId is currentUser or if they are in the hierarchy)
+            // For now, let's verify if they are at least in the same organisation
+            const targetFullUser = yield prisma_1.default.user.findFirst({
+                where: { id: targetParentId, organisationId: currentUser.organisationId }
+            });
+            if (!targetFullUser) {
+                return res.status(403).json({ message: 'Access denied to this team' });
+            }
+        }
+        // Fetch direct reports (one level)
+        const directReports = yield prisma_1.default.user.findMany({
+            where: { reportsToId: targetParentId, isActive: true },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                role: true,
+                profileImage: true,
+            },
+            orderBy: { firstName: 'asc' }
+        });
+        // Check which reports have subordinates
+        const reportIds = directReports.map(r => r.id);
+        const subCounts = yield prisma_1.default.user.groupBy({
+            by: ['reportsToId'],
+            where: { reportsToId: { in: reportIds }, isActive: true },
+            _count: { id: true }
+        });
+        const subCountMap = new Map(subCounts.map(s => [s.reportsToId, s._count.id]));
+        // Fetch managed branches (only for the root fetch)
+        let managedBranches = [];
+        if (targetParentId === currentUser.id) {
+            managedBranches = yield prisma_1.default.branch.findMany({
+                where: { managerId: currentUser.id, isDeleted: false },
+                select: { id: true, name: true }
+            });
+        }
+        // Role lookup
+        const allRoles = yield prisma_1.default.role.findMany({ select: { id: true, roleKey: true, name: true } });
+        const roleIdToInfo = new Map(allRoles.map(r => [r.id, { key: r.roleKey, name: r.name }]));
+        const team = directReports.map(u => {
+            const roleInfo = roleIdToInfo.get(u.role);
+            return {
+                id: u.id,
+                firstName: u.firstName,
+                lastName: u.lastName,
+                role: roleInfo ? roleInfo.name : u.role.replace(/_/g, ' '),
+                profileImage: u.profileImage,
+                hasSubordinates: (subCountMap.get(u.id) || 0) > 0
+            };
+        });
+        res.json({ team, managedBranches });
+    }
+    catch (error) {
+        logger_1.logger.error('getMyTeam Error', error, 'UserController');
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getMyTeam = getMyTeam;
 const getUserById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const currentUser = req.user;
@@ -236,7 +328,16 @@ const updateUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             }
         }
         // Process Update Data
-        const dataToUpdate = Object.assign({}, updateData);
+        const dataToUpdate = {};
+        Object.keys(updateData).forEach(key => {
+            if (updateData[key] !== null && updateData[key] !== undefined) {
+                dataToUpdate[key] = updateData[key];
+            }
+        });
+        // Specific handling for dailyLeadQuota to ensure it's an integer
+        if (updateData.dailyLeadQuota !== undefined) {
+            dataToUpdate.dailyLeadQuota = updateData.dailyLeadQuota === null ? null : parseInt(updateData.dailyLeadQuota);
+        }
         // Security: Prevent organisationId or role changes for non-super-admins
         if (currentUser.role !== 'super_admin') {
             delete dataToUpdate.organisationId;
@@ -309,7 +410,7 @@ exports.updateUser = updateUser;
 // POST /api/users
 const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, password, role, firstName, lastName, organisationId, branchId } = req.body;
+        const { email, password, role, firstName, lastName, organisationId, branchId, phone, dailyLeadQuota } = req.body;
         const currentUser = req.user;
         // Determine Org ID
         let targetOrgId = organisationId;
@@ -340,8 +441,10 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 role: role || 'sales_rep',
                 firstName,
                 lastName,
+                phone,
                 organisationId: targetOrgId,
                 isActive: true, // Default to active
+                dailyLeadQuota: dailyLeadQuota ? parseInt(dailyLeadQuota) : undefined,
                 // If currentUser is non-admin creating a user, maybe set reportsTo?
                 reportsToId: req.body.reportsTo || (currentUser.role !== 'super_admin' ? currentUser.id : undefined),
                 branchId: branchId || undefined
@@ -370,7 +473,7 @@ const createUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
 exports.createUser = createUser;
 const inviteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId } = req.body;
+        const { email, firstName, lastName, role, organisationId, position, reportsTo, password, branchId, phone, dailyLeadQuota } = req.body;
         const currentUser = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(currentUser) || organisationId;
         // 1. License Check
@@ -422,10 +525,12 @@ const inviteUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 role: role || 'sales_rep',
                 organisation: { connect: { id: targetOrgId } },
                 position,
+                phone,
                 userId: generatedUserId,
                 reportsTo: reportsTo ? { connect: { id: reportsTo } } : undefined,
                 branch: branchId ? { connect: { id: branchId } } : undefined,
-                isActive: true
+                isActive: true,
+                dailyLeadQuota: dailyLeadQuota ? parseInt(dailyLeadQuota) : undefined
             }
         });
         // Audit Log

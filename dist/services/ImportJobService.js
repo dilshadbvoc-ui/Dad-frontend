@@ -70,7 +70,9 @@ class ImportJobService {
                     metadata: options ? {
                         defaultStatus: options.defaultStatus,
                         pipelineId: options.pipelineId,
-                        defaultStage: options.defaultStage
+                        defaultStage: options.defaultStage,
+                        branchId: options.branchId,
+                        applyAssignmentRules: options.applyAssignmentRules || false
                     } : undefined
                 }
             });
@@ -109,6 +111,8 @@ class ImportJobService {
                 const defaultStatus = metadata.defaultStatus || 'new';
                 const pipelineId = metadata.pipelineId || null;
                 const defaultStage = metadata.defaultStage || null;
+                const branchId = metadata.branchId || null;
+                const applyAssignmentRules = metadata.applyAssignmentRules || false;
                 try {
                     for (var _d = true, processStream_1 = __asyncValues(processStream), processStream_1_1; processStream_1_1 = yield processStream_1.next(), _a = processStream_1_1.done, !_a; _d = true) {
                         _c = processStream_1_1.value;
@@ -117,7 +121,7 @@ class ImportJobService {
                         try {
                             const leadData = {
                                 organisationId: job.organisationId,
-                                assignedToId: job.createdById, // Default to uploader
+                                assignedToId: applyAssignmentRules ? undefined : job.createdById,
                                 source: 'import',
                                 status: defaultStatus,
                                 address: {}
@@ -128,6 +132,10 @@ class ImportJobService {
                             }
                             if (defaultStage) {
                                 leadData.stage = defaultStage;
+                            }
+                            // Add branch if specified
+                            if (branchId) {
+                                leadData.branchId = branchId;
                             }
                             const mapping = job.mapping || {};
                             // Map fields
@@ -157,7 +165,7 @@ class ImportJobService {
                                     const addressField = String(crmField).split('.')[1];
                                     leadData.address[addressField] = value;
                                 }
-                                else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage'].includes(crmField)) {
+                                else if (['firstName', 'lastName', 'email', 'phone', 'company', 'jobTitle', 'source', 'status', 'stage', 'assignedToId', 'ownerEmail'].includes(crmField)) {
                                     leadData[crmField] = value;
                                 }
                                 else {
@@ -178,6 +186,21 @@ class ImportJobService {
                                     leadData.phone = leadData.phone.slice(-10);
                                 }
                             }
+                            // Handle Owner Lookup by Email
+                            if (leadData.ownerEmail) {
+                                const owner = yield prisma_1.default.user.findFirst({
+                                    where: {
+                                        email: leadData.ownerEmail,
+                                        organisationId: job.organisationId,
+                                        isActive: true
+                                    },
+                                    select: { id: true }
+                                });
+                                if (owner) {
+                                    leadData.assignedToId = owner.id;
+                                }
+                                delete leadData.ownerEmail;
+                            }
                             // Check for duplicates using DuplicateLeadService
                             const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('./DuplicateLeadService')));
                             const duplicateCheck = yield DuplicateLeadService.checkDuplicate(leadData.phone, leadData.email, job.organisationId);
@@ -196,9 +219,15 @@ class ImportJobService {
                                 successCount++;
                                 continue;
                             }
+                            // Set assignedToId to uploader as fallback if not set by mapping
+                            if (!leadData.assignedToId) {
+                                leadData.assignedToId = job.createdById;
+                            }
                             const createdLead = yield prisma_1.default.lead.create({ data: leadData });
-                            // Assign Lead via Rules
-                            yield DistributionService_1.DistributionService.assignLead(createdLead, job.organisationId);
+                            // Assign Lead via Rules (only if flag is set, or if no explicit owner was mapped)
+                            if (applyAssignmentRules) {
+                                yield DistributionService_1.DistributionService.assignLead(createdLead, job.organisationId);
+                            }
                             successCount++;
                         }
                         catch (err) {

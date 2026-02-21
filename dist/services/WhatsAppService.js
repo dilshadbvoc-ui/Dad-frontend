@@ -16,6 +16,7 @@ exports.WhatsAppService = void 0;
 const axios_1 = __importDefault(require("axios"));
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = __importDefault(require("../config/prisma"));
+const encryption_1 = require("../utils/encryption");
 class WhatsAppService {
     constructor(config) {
         this.baseUrl = 'https://graph.facebook.com/v18.0';
@@ -71,7 +72,7 @@ class WhatsAppService {
                 return null;
             }
             return new WhatsAppService({
-                accessToken: whatsappConfig.accessToken,
+                accessToken: (0, encryption_1.decrypt)(whatsappConfig.accessToken),
                 phoneNumberId: whatsappConfig.phoneNumberId,
                 wabaId: whatsappConfig.wabaId,
                 appId: whatsappConfig.appId,

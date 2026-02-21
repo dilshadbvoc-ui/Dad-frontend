@@ -17,6 +17,7 @@ const MetaService_1 = require("../services/MetaService");
 const MetaIntegrationService_1 = require("../services/MetaIntegrationService");
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
+const encryption_1 = require("../utils/encryption");
 const getMetaConfig = (req) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     if (!((_a = req.user) === null || _a === void 0 ? void 0 : _a.organisationId)) {
@@ -32,7 +33,8 @@ const getMetaConfig = (req) => __awaiter(void 0, void 0, void 0, function* () {
     if (!(metaConfig === null || metaConfig === void 0 ? void 0 : metaConfig.accessToken) || !(metaConfig === null || metaConfig === void 0 ? void 0 : metaConfig.adAccountId)) {
         throw new Error('Meta integration not configured. Please check settings.');
     }
-    return metaConfig;
+    // Decrypt the token before using it
+    return Object.assign(Object.assign({}, metaConfig), { accessToken: (0, encryption_1.decrypt)(metaConfig.accessToken) });
 });
 exports.getMetaConfig = getMetaConfig;
 const getCampaigns = (req, res) => __awaiter(void 0, void 0, void 0, function* () {

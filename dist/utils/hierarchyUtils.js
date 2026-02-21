@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getOrgId = exports.getSubordinateIds = void 0;
+exports.getOrgId = exports.getVisibleUserIds = exports.getSubordinateIds = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 /**
  * Recursively fetches all subordinate user IDs for a given user.
@@ -47,6 +47,35 @@ exports.getSubordinateIds = getSubordinateIds;
  * Safely extracts the Organisation ID as a string from a user object.
  * Handles both Prisma objects (flat or included) and potential legacy inputs.
  */
+/**
+ * Returns all user IDs that _userId_ is allowed to see.
+ * Combines:
+ *  1. The user themselves + all subordinates (reportsTo chain via BFS)
+ *  2. All users in branches the user manages (BranchManager relation)
+ */
+const getVisibleUserIds = (userId) => __awaiter(void 0, void 0, void 0, function* () {
+    // 1. Subordinates via reporting chain
+    const subordinateIds = yield (0, exports.getSubordinateIds)(userId);
+    // 2. Users in managed branches
+    const managedBranches = yield prisma_1.default.branch.findMany({
+        where: { managerId: userId, isDeleted: false },
+        select: { id: true }
+    });
+    if (managedBranches.length > 0) {
+        const branchIds = managedBranches.map(b => b.id);
+        const branchUsers = yield prisma_1.default.user.findMany({
+            where: { branchId: { in: branchIds } },
+            select: { id: true }
+        });
+        for (const u of branchUsers) {
+            if (!subordinateIds.includes(u.id)) {
+                subordinateIds.push(u.id);
+            }
+        }
+    }
+    return subordinateIds;
+});
+exports.getVisibleUserIds = getVisibleUserIds;
 const getOrgId = (user) => {
     if (!user)
         return null;

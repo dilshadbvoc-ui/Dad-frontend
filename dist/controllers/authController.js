@@ -45,7 +45,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetPassword = exports.forgotPassword = exports.registerUser = exports.authUser = void 0;
+exports.getMe = exports.resetPassword = exports.forgotPassword = exports.registerUser = exports.authUser = void 0;
 const crypto_1 = __importDefault(require("crypto"));
 const prisma_1 = __importDefault(require("../config/prisma"));
 const generateToken_1 = __importDefault(require("../utils/generateToken"));
@@ -78,6 +78,11 @@ const authUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         if (user && (yield bcryptjs_1.default.compare(password, user.password))) {
             console.log(`Login SUCCESS for: ${email}`);
+            // Check if user manages any branch
+            const branchManaged = yield prisma_1.default.branch.findFirst({
+                where: { managerId: user.id, isDeleted: false }
+            });
+            const isBranchManager = !!branchManaged;
             // Check if active
             if (!user.isActive) {
                 res.status(401).json({ message: 'User account is deactivated' });
@@ -102,6 +107,7 @@ const authUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 lastName: user.lastName,
                 email: user.email,
                 role: user.role,
+                isBranchManager,
                 organisation: user.organisation,
                 branchId: user.branchId,
                 token: (0, generateToken_1.default)(user.id),
@@ -161,9 +167,10 @@ const registerUser = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                     domain: email.split('@')[1] || 'unknown.com',
                     status: 'active',
                     subscription: {
-                        status: 'active', // Should be active if on free plan? or trial?
+                        status: 'trialing',
                         planId: defaultPlan === null || defaultPlan === void 0 ? void 0 : defaultPlan.id,
                         startDate: new Date(),
+                        trialEndsAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14-day trial
                         autoRenew: false
                     },
                     userIdCounter: 1
@@ -365,3 +372,32 @@ const resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     }
 });
 exports.resetPassword = resetPassword;
+/**
+ * @desc    Get current user profile (session refresh)
+ * @route   GET /api/auth/me
+ * @access  Private
+ */
+const getMe = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const user = req.user;
+        if (!user) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+        res.json({
+            _id: user.id,
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            email: user.email,
+            role: user.role,
+            isBranchManager: user.isBranchManager,
+            isSuperAdmin: user.isSuperAdmin,
+            organisation: user.organisation,
+            branchId: user.branchId,
+        });
+    }
+    catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+exports.getMe = getMe;

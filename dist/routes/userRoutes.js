@@ -10,6 +10,7 @@ const subscriptionMiddleware_1 = require("../middleware/subscriptionMiddleware")
 const superAdminProtection_1 = require("../middleware/superAdminProtection");
 const router = express_1.default.Router();
 router.get('/', authMiddleware_1.protect, userController_1.getUsers);
+router.get('/my-team', authMiddleware_1.protect, userController_1.getMyTeam);
 router.get('/:id', authMiddleware_1.protect, userController_1.getUserById);
 router.get('/:id/stats', authMiddleware_1.protect, userController_1.getUserStats);
 router.put('/:id', authMiddleware_1.protect, superAdminProtection_1.verifySuperAdminSecret, superAdminProtection_1.protectSuperAdmin, userController_1.updateUser);

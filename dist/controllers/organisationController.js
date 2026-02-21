@@ -48,6 +48,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.permanentlyDeleteOrganisation = exports.sendTestReport = exports.restoreOrganisation = exports.deleteOrganisation = exports.updateOrganisation = exports.getOrganisation = exports.getAllOrganisations = exports.createOrganisation = void 0;
 const prisma_1 = __importDefault(require("../config/prisma"));
 const hierarchyUtils_1 = require("../utils/hierarchyUtils");
+const encryption_1 = require("../utils/encryption");
+const MetaService_1 = require("../services/MetaService");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const auditLogger_1 = require("../utils/auditLogger");
 const createOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -222,13 +224,20 @@ const updateOrganisation = (req, res) => __awaiter(void 0, void 0, void 0, funct
         // Handle Meta Token Exchange
         if (((_b = (_a = data.integrations) === null || _a === void 0 ? void 0 : _a.meta) === null || _b === void 0 ? void 0 : _b.accessToken) && ((_d = (_c = data.integrations) === null || _c === void 0 ? void 0 : _c.meta) === null || _d === void 0 ? void 0 : _d.connected)) {
             try {
-                const { metaService } = require('../services/MetaService');
-                const longLivedToken = yield metaService.exchangeForLongLivedToken(data.integrations.meta.accessToken, data.integrations.meta);
-                data.integrations.meta.accessToken = longLivedToken;
+                // If it's not already encrypted (3 parts), try exchanging and always encrypt the result
+                const currentToken = data.integrations.meta.accessToken;
+                const isEncrypted = currentToken.split(':').length === 3;
+                if (!isEncrypted) {
+                    const longLivedToken = yield MetaService_1.metaService.exchangeForLongLivedToken(currentToken, data.integrations.meta);
+                    data.integrations.meta.accessToken = (0, encryption_1.encrypt)(longLivedToken);
+                }
             }
             catch (error) {
                 console.error('Error exchanging Meta token:', error);
-                // Continue with short-lived token if exchange fails
+                // If exchange fails but we have a plain token, still encrypt it
+                if (data.integrations.meta.accessToken.split(':').length !== 3) {
+                    data.integrations.meta.accessToken = (0, encryption_1.encrypt)(data.integrations.meta.accessToken);
+                }
             }
         }
         // Handle Plan Assignment checks

@@ -57,6 +57,8 @@ const importLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const defaultStatus = req.body.defaultStatus || 'new';
         const pipelineId = req.body.pipelineId || null;
         const defaultStage = req.body.defaultStage || null;
+        const branchId = req.body.branchId || null;
+        const applyAssignmentRules = req.body.applyAssignmentRules === 'true';
         const user = req.user;
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
@@ -66,7 +68,9 @@ const importLeads = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
         const job = yield ImportJobService.createJob(user.id, orgId, req.file.path, mapping, {
             defaultStatus,
             pipelineId,
-            defaultStage
+            defaultStage,
+            branchId,
+            applyAssignmentRules
         });
         // Start Processing in Background
         ImportJobService.processJob(job.id).catch(console.error);

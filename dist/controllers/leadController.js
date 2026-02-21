@@ -586,7 +586,7 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
         const orgId = (0, hierarchyUtils_1.getOrgId)(user);
         if (!orgId)
             return res.status(400).json({ message: 'No org' });
-        // Import services
+        const { AssignmentRuleService } = yield Promise.resolve().then(() => __importStar(require('../services/AssignmentRuleService')));
         const { GeoLocationService } = yield Promise.resolve().then(() => __importStar(require('../services/GeoLocationService')));
         const { DuplicateLeadService } = yield Promise.resolve().then(() => __importStar(require('../services/DuplicateLeadService')));
         let createdCount = 0;
@@ -621,6 +621,12 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
                 if (!l.country && !l.countryCode && cleanPhone) {
                     geoData = GeoLocationService.detectCountryFromPhone(cleanPhone);
                 }
+                // Determine final owner
+                let finalOwnerId = l.assignedTo;
+                // If no owner specified, apply assignment rules
+                if (!finalOwnerId) {
+                    finalOwnerId = (yield AssignmentRuleService.assignLead(l, orgId, l.branchId || user.branchId || undefined)) || undefined;
+                }
                 const data = {
                     firstName: l.firstName,
                     lastName: l.lastName || '',
@@ -631,15 +637,13 @@ const createBulkLeads = (req, res) => __awaiter(void 0, void 0, void 0, function
                     countryCode: l.countryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.countryCode) || undefined,
                     phoneCountryCode: l.phoneCountryCode || (geoData === null || geoData === void 0 ? void 0 : geoData.phoneCountryCode) || undefined,
                     organisationId: orgId,
-                    assignedToId: l.assignedTo || user.id,
+                    assignedToId: finalOwnerId || user.id,
                     branchId: l.branchId || user.branchId, // Support explicit branch or inherit from user
                     source: l.source || client_1.LeadSource.import,
                     status: l.status || client_1.LeadStatus.new,
                     leadScore: l.leadScore || 0
                 };
                 const lead = yield prisma_1.default.lead.create({ data });
-                // Distribute
-                yield DistributionService_1.DistributionService.assignLead(lead, orgId);
                 // AI Scoring
                 Promise.resolve().then(() => __importStar(require('../services/LeadScoringService'))).then(({ LeadScoringService }) => {
                     LeadScoringService.scoreLead(lead.id).catch(console.error);

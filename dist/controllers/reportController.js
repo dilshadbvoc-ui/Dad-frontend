@@ -162,7 +162,7 @@ const getSalesBook = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         const subordinateIds = yield (0, hierarchyUtils_1.getSubordinateIds)(user.id);
         const { period = 'month' } = req.query;
         const now = new Date();
-        let startDate = new Date();
+        const startDate = new Date();
         switch (period) {
             case 'day':
                 startDate.setHours(0, 0, 0, 0);
