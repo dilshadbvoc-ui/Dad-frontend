@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
 import { User, Mail, Lock, Loader2, Building, ArrowRight } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 
 const Register = () => {
     const [firstName, setFirstName] = useState('');
@@ -16,6 +17,7 @@ const Register = () => {
     const [companyName, setCompanyName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -23,6 +25,12 @@ const Register = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
+
+        if (!acceptedTerms) {
+            setError('Please accept the Terms and Conditions to proceed.');
+            return;
+        }
+
         setIsLoading(true);
 
         try {
@@ -160,6 +168,17 @@ const Register = () => {
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div className="flex items-center space-x-2">
+                                <Checkbox
+                                    id="terms"
+                                    checked={acceptedTerms}
+                                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                                />
+                                <Label htmlFor="terms" className="text-sm font-normal">
+                                    I agree to the <a href="/terms" target="_blank" className="text-primary hover:underline">Terms and Conditions</a>
+                                </Label>
                             </div>
 
                             {error && (

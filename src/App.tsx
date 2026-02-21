@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
 import Layout from './components/shared/Layout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
+import Terms from './pages/Terms';
 import SharedProductPage from './pages/public/SharedProductPage';
 import { PageLoader } from './components/ui/page-loader';
 
@@ -251,6 +252,7 @@ function AppContent() {
             </Route>
 
             <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/shared-product/:slug" element={<SharedProductPage />} />
             <Route path="/" element={<LandingPage />} />
           </Routes>
