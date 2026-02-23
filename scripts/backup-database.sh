@@ -10,7 +10,7 @@ BACKUP_FILE="$BACKUP_DIR/pype_backup_$DATE.sql"
 RETENTION_DAYS=30
 
 # Database connection from .env
-DATABASE_URL="postgresql://postgres:troy1998@database-1.cziccmgq4kxr.eu-north-1.rds.amazonaws.com:5432/mern_crm?sslmode=require"
+DATABASE_URL="postgresql://postgres:troy1998@pypecrm.cj0mo4q44gde.ap-south-1.rds.amazonaws.com:5432/mern_crm?sslmode=require"
 
 # Create backup directory if it doesn't exist
 mkdir -p "$BACKUP_DIR"
