@@ -285,7 +285,7 @@ app.get('/api/csrf-token', setCSRFToken, (req: any, res) => {
 app.use('/api/public', publicRoutes);
 
 // Auth & Core (with enhanced security)
-app.use('/api/auth', authLimiter, detectBruteForce, authRoutes);
+app.use('/api/auth', authRoutes);
 app.use('/api/analytics', verifyCSRFToken, analyticsRoutes);
 app.use('/api/workflow', verifyCSRFToken, workflowRoutes);
 app.use('/api/import', verifyCSRFToken, importRoutes);
