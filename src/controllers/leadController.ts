@@ -35,8 +35,20 @@ export const getLeads = async (req: Request, res: Response) => {
         // Only apply hierarchy restrictions for non-admin users
         if (!user.isSuperAdmin && !isSuperAdmin(user) && !isAdmin(user)) {
             // Get user's role to determine visibility rules
+            // Handle both UUID-based roles (new) and string-based roles (legacy)
+            let roleName = '';
+            
+            // Try to get role from Role table (UUID-based)
             const userRole = await prisma.role.findUnique({ where: { id: user.role } });
-            const roleName = userRole?.name || '';
+            if (userRole) {
+                roleName = userRole.name;
+            } else {
+                // Fallback to legacy string-based role
+                // Normalize: 'sales_rep' -> 'Sales Rep', 'manager' -> 'Manager'
+                roleName = user.role.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            }
             
             // Sales Reps: Only see leads assigned to them or created by them
             if (roleName === 'Sales Rep') {
@@ -340,8 +352,18 @@ export const getLeadById = async (req: Request, res: Response) => {
             // Apply role-based visibility for non-admins
             if (!isAdmin(user)) {
                 // Get user's role to determine visibility rules
+                // Handle both UUID-based roles (new) and string-based roles (legacy)
+                let roleName = '';
+                
                 const userRole = await prisma.role.findUnique({ where: { id: user.role } });
-                const roleName = userRole?.name || '';
+                if (userRole) {
+                    roleName = userRole.name;
+                } else {
+                    // Fallback to legacy string-based role
+                    roleName = user.role.split('_').map(word => 
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                    ).join(' ');
+                }
                 
                 // Sales Reps: Only see leads assigned to them or created by them
                 if (roleName === 'Sales Rep') {
