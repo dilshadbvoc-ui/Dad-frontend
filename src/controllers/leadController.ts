@@ -37,11 +37,15 @@ export const getLeads = async (req: Request, res: Response) => {
         // 2. Hierarchy Visibility
         if (user.role !== 'super_admin' && user.role !== 'admin') {
             const subordinateIds = await getSubordinateIds(user.id);
-            // Show leads assigned to user/subordinates OR created by user
+            // Show leads:
+            // - Assigned to user (directly)
+            // - Assigned to subordinates
+            // - Created by user
             andConditions.push({
                 OR: [
-                    { assignedToId: { in: [...subordinateIds, user.id] } },
-                    { createdById: user.id }
+                    { assignedToId: user.id }, // Directly assigned to this user
+                    { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
+                    { createdById: user.id } // Created by user
                 ]
             });
         }
