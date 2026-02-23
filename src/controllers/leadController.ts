@@ -34,26 +34,36 @@ export const getLeads = async (req: Request, res: Response) => {
         // 2. Hierarchy Visibility
         // Only apply hierarchy restrictions for non-admin users
         if (!user.isSuperAdmin && !isSuperAdmin(user) && !isAdmin(user)) {
-            const subordinateIds = await getSubordinateIds(user.id);
-            // Show leads:
-            // - Assigned to user (directly)
-            // - Assigned to subordinates
-            // - Created by user
-            // - In user's branch (if user has a branch)
-            const visibilityConditions: any[] = [
-                { assignedToId: user.id }, // Directly assigned to this user
-                { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
-                { createdById: user.id } // Created by user
-            ];
+            // Get user's role to determine visibility rules
+            const userRole = await prisma.role.findUnique({ where: { id: user.role } });
+            const roleName = userRole?.name || '';
             
-            // Add branch filtering only for leads not directly assigned
-            if (user.branchId) {
-                visibilityConditions.push({ branchId: user.branchId });
+            // Sales Reps: Only see leads assigned to them or created by them
+            if (roleName === 'Sales Rep') {
+                andConditions.push({
+                    OR: [
+                        { assignedToId: user.id }, // Directly assigned to this user
+                        { createdById: user.id } // Created by user
+                    ]
+                });
+            } else {
+                // Managers and other roles: See their team's leads + branch leads
+                const subordinateIds = await getSubordinateIds(user.id);
+                const visibilityConditions: any[] = [
+                    { assignedToId: user.id }, // Directly assigned to this user
+                    { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
+                    { createdById: user.id } // Created by user
+                ];
+                
+                // Add branch filtering for unassigned leads
+                if (user.branchId) {
+                    visibilityConditions.push({ branchId: user.branchId });
+                }
+                
+                andConditions.push({
+                    OR: visibilityConditions
+                });
             }
-            
-            andConditions.push({
-                OR: visibilityConditions
-            });
         }
 
         // Filter: Status
