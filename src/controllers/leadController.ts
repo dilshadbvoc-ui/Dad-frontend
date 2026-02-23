@@ -29,10 +29,6 @@ export const getLeads = async (req: Request, res: Response) => {
             const orgId = getOrgId(user);
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
-            // Branch filtering
-            if (user.branchId) {
-                where.branchId = user.branchId;
-            }
         }
 
         // 2. Hierarchy Visibility
@@ -43,12 +39,20 @@ export const getLeads = async (req: Request, res: Response) => {
             // - Assigned to user (directly)
             // - Assigned to subordinates
             // - Created by user
+            // - In user's branch (if user has a branch)
+            const visibilityConditions: any[] = [
+                { assignedToId: user.id }, // Directly assigned to this user
+                { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
+                { createdById: user.id } // Created by user
+            ];
+            
+            // Add branch filtering only for leads not directly assigned
+            if (user.branchId) {
+                visibilityConditions.push({ branchId: user.branchId });
+            }
+            
             andConditions.push({
-                OR: [
-                    { assignedToId: user.id }, // Directly assigned to this user
-                    { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
-                    { createdById: user.id } // Created by user
-                ]
+                OR: visibilityConditions
             });
         }
 
