@@ -208,7 +208,10 @@ export default function LeadsPage() {
             case 'all-leads':
                 return leads; // Apply table filters normally
             case 'today-leads':
-                return leads.filter((l: Lead) => isSameDay(new Date(l.createdAt), new Date()));
+                return leads.filter((l: Lead) =>
+                    isSameDay(new Date(l.createdAt), new Date()) ||
+                    (l.lastEnquiryDate && isSameDay(new Date(l.lastEnquiryDate), new Date()))
+                );
             case 'converted-leads':
                 return leads.filter((l: Lead) => l.status === 'converted');
             case 'lost-leads':
