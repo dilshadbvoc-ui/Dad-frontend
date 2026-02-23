@@ -91,7 +91,7 @@ export const getLeads = async (req: Request, res: Response) => {
             },
             skip: (page - 1) * pageSize,
             take: pageSize,
-            orderBy: { createdAt: 'desc' }
+            orderBy: { updatedAt: 'desc' }
         });
 
         res.json({ leads, page, pages: Math.ceil(total / pageSize), total });
