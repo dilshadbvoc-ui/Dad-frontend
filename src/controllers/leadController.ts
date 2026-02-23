@@ -4,6 +4,7 @@ import { getOrgId, getSubordinateIds } from '../utils/hierarchyUtils';
 import { DistributionService } from '../services/DistributionService';
 import { WorkflowEngine } from '../services/WorkflowEngine';
 import { LeadSource, LeadStatus } from '../generated/client';
+import { isAdmin, isSuperAdmin } from '../utils/roleUtils';
 // Dynamic import used for OpenAI to avoid startup errors if missing
 
 
@@ -22,7 +23,7 @@ export const getLeads = async (req: Request, res: Response) => {
         console.log('[getLeads] User:', user.id, user.role); // DEBUG LOG
 
         // 1. Organisation Scoping
-        if (user.role === 'super_admin') {
+        if (user.isSuperAdmin || isSuperAdmin(user)) {
             if (req.query.organisationId) where.organisationId = req.query.organisationId as string;
         } else {
             const orgId = getOrgId(user);
@@ -35,7 +36,8 @@ export const getLeads = async (req: Request, res: Response) => {
         }
 
         // 2. Hierarchy Visibility
-        if (user.role !== 'super_admin' && user.role !== 'admin') {
+        // Only apply hierarchy restrictions for non-admin users
+        if (!user.isSuperAdmin && !isSuperAdmin(user) && !isAdmin(user)) {
             const subordinateIds = await getSubordinateIds(user.id);
             // Show leads:
             // - Assigned to user (directly)
@@ -1055,7 +1057,7 @@ export const submitExplanation = async (req: Request, res: Response) => {
         const data: any = {};
 
         if (type === 'user') {
-            if (lead.previousOwnerId !== user.id && user.role !== 'admin') {
+            if (lead.previousOwnerId !== user.id && !isAdmin(user) && !user.isSuperAdmin) {
                 return res.status(403).json({ message: 'Only the previous owner can submit a user explanation' });
             }
             data.userExplanation = explanation;
@@ -1063,7 +1065,8 @@ export const submitExplanation = async (req: Request, res: Response) => {
             // Check if user is manager of previousOwner
             // Ideally we check hierarchy properly.
             // For MVP, if user is admin or has subordinates including previousOwner
-            if (user.role === 'sales_rep') {
+            const userRole = await prisma.role.findUnique({ where: { id: user.role } });
+            if (userRole && userRole.name === 'Sales Rep') {
                 return res.status(403).json({ message: 'Sales reps cannot submit manager explanations' });
             }
             data.managerExplanation = explanation;
