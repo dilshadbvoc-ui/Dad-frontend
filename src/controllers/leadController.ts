@@ -59,21 +59,14 @@ export const getLeads = async (req: Request, res: Response) => {
                     ]
                 });
             } else {
-                // Managers and other roles: See their team's leads + branch leads
+                // Managers: Only see leads assigned to them or their direct subordinates
                 const subordinateIds = await getSubordinateIds(user.id);
-                const visibilityConditions: any[] = [
-                    { assignedToId: user.id }, // Directly assigned to this user
-                    { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
-                    { createdById: user.id } // Created by user
-                ];
-                
-                // Add branch filtering for unassigned leads
-                if (user.branchId) {
-                    visibilityConditions.push({ branchId: user.branchId });
-                }
-                
                 andConditions.push({
-                    OR: visibilityConditions
+                    OR: [
+                        { assignedToId: user.id }, // Directly assigned to this user
+                        { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } }, // Assigned to subordinates
+                        { createdById: user.id } // Created by user
+                    ]
                 });
             }
         }
@@ -372,19 +365,13 @@ export const getLeadById = async (req: Request, res: Response) => {
                         { createdById: user.id }
                     ];
                 } else {
-                    // Managers: See their team's leads + branch leads
+                    // Managers: Only see leads assigned to them or their direct subordinates
                     const subordinateIds = await getSubordinateIds(user.id);
-                    const visibilityConditions: any[] = [
+                    where.OR = [
                         { assignedToId: user.id },
                         { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } },
                         { createdById: user.id }
                     ];
-                    
-                    if (user.branchId) {
-                        visibilityConditions.push({ branchId: user.branchId });
-                    }
-                    
-                    where.OR = visibilityConditions;
                 }
             }
         }
