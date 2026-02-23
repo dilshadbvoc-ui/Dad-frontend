@@ -45,7 +45,7 @@ export const getLeads = async (req: Request, res: Response) => {
             } else {
                 // Fallback to legacy string-based role
                 // Normalize: 'sales_rep' -> 'Sales Rep', 'manager' -> 'Manager'
-                roleName = user.role.split('_').map(word => 
+                roleName = user.role.split('_').map((word: string) => 
                     word.charAt(0).toUpperCase() + word.slice(1)
                 ).join(' ');
             }
@@ -360,7 +360,7 @@ export const getLeadById = async (req: Request, res: Response) => {
                     roleName = userRole.name;
                 } else {
                     // Fallback to legacy string-based role
-                    roleName = user.role.split('_').map(word => 
+                    roleName = user.role.split('_').map((word: string) => 
                         word.charAt(0).toUpperCase() + word.slice(1)
                     ).join(' ');
                 }
