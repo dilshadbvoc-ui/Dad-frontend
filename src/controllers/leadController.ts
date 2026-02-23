@@ -329,11 +329,41 @@ export const getLeadById = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
 
         const where: any = { id: req.params.id, isDeleted: false };
-        if (user.role !== 'super_admin') {
+        
+        // Organization scoping
+        if (user.isSuperAdmin || isSuperAdmin(user)) {
+            // Super admins can see any lead
+        } else {
             if (!orgId) return res.status(403).json({ message: 'User has no organisation' });
             where.organisationId = orgId;
-            if (user.branchId) {
-                where.branchId = user.branchId;
+            
+            // Apply role-based visibility for non-admins
+            if (!isAdmin(user)) {
+                // Get user's role to determine visibility rules
+                const userRole = await prisma.role.findUnique({ where: { id: user.role } });
+                const roleName = userRole?.name || '';
+                
+                // Sales Reps: Only see leads assigned to them or created by them
+                if (roleName === 'Sales Rep') {
+                    where.OR = [
+                        { assignedToId: user.id },
+                        { createdById: user.id }
+                    ];
+                } else {
+                    // Managers: See their team's leads + branch leads
+                    const subordinateIds = await getSubordinateIds(user.id);
+                    const visibilityConditions: any[] = [
+                        { assignedToId: user.id },
+                        { assignedToId: { in: subordinateIds.filter(id => id !== user.id) } },
+                        { createdById: user.id }
+                    ];
+                    
+                    if (user.branchId) {
+                        visibilityConditions.push({ branchId: user.branchId });
+                    }
+                    
+                    where.OR = visibilityConditions;
+                }
             }
         }
 
@@ -366,7 +396,7 @@ export const updateLead = async (req: Request, res: Response) => {
         if (updates.assignedToId || updates.assignedTo) { // Handle payload differences
             const targetUserId = updates.assignedToId || updates.assignedTo; // Assuming ID string
 
-            if (requester.role !== 'super_admin' && requester.role !== 'admin') {
+            if (!requester.isSuperAdmin && !isSuperAdmin(requester) && !isAdmin(requester)) {
                 const allowedIds = await getSubordinateIds(requester.id);
 
                 // If passing an object (legacy), extract ID?? Usually frontend sends ID string for update.
