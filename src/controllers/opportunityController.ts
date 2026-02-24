@@ -87,8 +87,8 @@ export const createOpportunity = async (req: Request, res: Response) => {
             owner: { connect: { id: user.id } },
             branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
 
-            // Account is required in schema
-            account: { connect: { id: req.body.account } }
+            // Account is optional - only connect if provided
+            account: req.body.account ? { connect: { id: req.body.account } } : undefined
         };
 
         // Custom Field Validation

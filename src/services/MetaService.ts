@@ -8,7 +8,7 @@ interface MetaConfig {
 }
 
 export class MetaService {
-    private baseUrl = 'https://graph.facebook.com/v18.0';
+    private baseUrl = 'https://graph.facebook.com/v21.0';
 
     async makeRequest(endpoint: string, accessToken: string, params: any = {}, retries: number = 3) {
         let lastError: any;
@@ -178,7 +178,7 @@ export class MetaService {
             name: details.name,
             objective: details.objective,
             status: details.status || 'PAUSED', // Always create as paused by default
-            special_ad_categories: 'NONE'
+            special_ad_categories: ['NONE']
         });
     }
 
@@ -251,7 +251,7 @@ export class MetaService {
         return await this.makePostRequest(`${adAccountId}/ads`, config.accessToken, {
             name: details.name,
             adset_id: details.adSetId,
-            creative_id: details.creativeId,
+            creative: { creative_id: details.creativeId },
             status: details.status || 'PAUSED'
         });
     }
