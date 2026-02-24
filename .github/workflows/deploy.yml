@@ -1,0 +1,32 @@
+name: Deploy Backend & Frontend
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          command_timeout: 30m
+          script: |
+            cd ~/backend || { echo "❌ Backend directory not found!"; exit 1; }
+            
+            # Remove stale git lock if it exists
+            [ -f .git/index.lock ] && rm -f .git/index.lock
+            
+            # Force clean state on server
+            git fetch origin main
+            git reset --hard origin/main
+            
+            chmod +x scripts/deploy.sh
+            ./scripts/deploy.sh

@@ -1,0 +1,564 @@
+2026-02-11T10:53:04.608Z - Entered getDashboardStats
+2026-02-11T10:53:04.609Z - [Analytics] User: ce8e3946-d9ea-4de3-aef1-aab79111b400, Org: f14f6c41-3229-4628-b666-d1ce683842a6, SuperAdmin: false
+2026-02-11T10:53:04.609Z - [Analytics] Importing hierarchyUtils...
+2026-02-11T10:53:04.610Z - [Analytics] Fetching subordinateIds...
+2026-02-11T10:53:04.650Z - [Leads] Entered getViolations
+2026-02-11T10:53:04.650Z - [Leads] User: ce8e3946-d9ea-4de3-aef1-aab79111b400, Role: admin
+2026-02-11T10:53:04.650Z - [Leads] Fetching subordinates...
+2026-02-11T10:53:05.129Z - [Analytics] Subordinates: 1
+2026-02-11T10:53:05.150Z - [Leads] Subordinates found: 1
+2026-02-11T10:53:05.150Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"f14f6c41-3229-4628-b666-d1ce683842a6","OR":[{"previousOwnerId":"ce8e3946-d9ea-4de3-aef1-aab79111b400"},{"previousOwnerId":{"in":["ce8e3946-d9ea-4de3-aef1-aab79111b400"]}}]}
+2026-02-11T10:53:05.674Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:53:55.646Z - Entered getDashboardStats
+2026-02-11T10:53:55.647Z - [Analytics] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Org: null, SuperAdmin: true
+2026-02-11T10:53:55.647Z - [Analytics] Importing hierarchyUtils...
+2026-02-11T10:53:55.648Z - [Analytics] Fetching subordinateIds...
+2026-02-11T10:53:56.176Z - [Analytics] Subordinates: 1
+2026-02-11T10:53:56.700Z - [Leads] Entered getViolations
+2026-02-11T10:53:56.701Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:53:56.701Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:53:57.225Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:55:08.485Z - [Leads] Entered getViolations
+2026-02-11T10:55:08.486Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:55:08.486Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:55:09.118Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:56:10.146Z - [Leads] Entered getViolations
+2026-02-11T10:56:10.146Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:56:10.147Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:56:10.454Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:57:11.145Z - [Leads] Entered getViolations
+2026-02-11T10:57:11.146Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:57:11.146Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:57:11.420Z - [Leads] [Leads] Violations found: 0
+2026-02-11T10:58:15.940Z - [Leads] Entered getViolations
+2026-02-11T10:58:15.941Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T10:58:15.941Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T10:58:16.539Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:00:17.849Z - [Leads] Entered getViolations
+2026-02-11T11:00:17.851Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:00:17.851Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:00:18.479Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:02:19.812Z - [Leads] Entered getViolations
+2026-02-11T11:02:19.813Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:02:19.813Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:02:20.423Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:02:49.952Z - [Leads] Entered getViolations
+2026-02-11T11:02:49.953Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:02:49.953Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:02:50.452Z - [Leads] [Leads] Violations found: 0
+2026-02-11T11:03:51.539Z - [Leads] Entered getViolations
+2026-02-11T11:03:51.540Z - [Leads] User: 3ee3dc72-0eb5-4e84-bb7a-24b16d3e6097, Role: super_admin
+2026-02-11T11:03:51.541Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-11T11:03:52.078Z - [Leads] [Leads] Violations found: 0
+2026-02-14T19:29:59.531Z - [Leads] Entered getViolations
+2026-02-14T19:29:59.533Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-14T19:29:59.533Z - [Leads] Fetching subordinates...
+2026-02-14T19:29:59.880Z - Entered getDashboardStats
+2026-02-14T19:29:59.880Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-14T19:29:59.880Z - [Analytics] Importing hierarchyUtils...
+2026-02-14T19:29:59.881Z - [Analytics] Fetching subordinateIds...
+2026-02-14T19:30:00.128Z - [Leads] Subordinates found: 2
+2026-02-14T19:30:00.128Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-14T19:30:00.516Z - [Leads] [Leads] Violations found: 0
+2026-02-14T19:30:00.553Z - [Analytics] Subordinates: 2
+2026-02-14T19:32:50.788Z - [Leads] Entered getViolations
+2026-02-14T19:32:50.790Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-14T19:32:50.791Z - [Leads] Fetching subordinates...
+2026-02-14T19:32:51.174Z - [Leads] Subordinates found: 2
+2026-02-14T19:32:51.175Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-14T19:32:51.364Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:13:37.335Z - [Leads] Entered getViolations
+2026-02-15T06:13:37.337Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:13:37.337Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:13:37.340Z - Entered getDashboardStats
+2026-02-15T06:13:37.341Z - [Analytics] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Org: null, SuperAdmin: true
+2026-02-15T06:13:37.341Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T06:13:37.341Z - [Analytics] Fetching subordinateIds...
+2026-02-15T06:13:37.922Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:13:37.989Z - [Analytics] Subordinates: 1
+2026-02-15T06:14:39.546Z - [Leads] Entered getViolations
+2026-02-15T06:14:39.549Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:14:39.549Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:14:40.171Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:15:41.613Z - [Leads] Entered getViolations
+2026-02-15T06:15:41.615Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:15:41.615Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:15:42.366Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:16:43.770Z - [Leads] Entered getViolations
+2026-02-15T06:16:43.772Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:16:43.772Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:16:44.076Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:17:44.697Z - [Leads] Entered getViolations
+2026-02-15T06:17:44.698Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:17:44.699Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:17:44.957Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:18:45.626Z - [Leads] Entered getViolations
+2026-02-15T06:18:45.629Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:18:45.629Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:18:45.933Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:19:46.869Z - [Leads] Entered getViolations
+2026-02-15T06:19:46.872Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:19:46.872Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:19:47.168Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:20:47.992Z - [Leads] Entered getViolations
+2026-02-15T06:20:47.994Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:20:47.994Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:20:48.608Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:21:49.579Z - [Leads] Entered getViolations
+2026-02-15T06:21:49.580Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:21:49.581Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:21:49.792Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:22:50.671Z - [Leads] Entered getViolations
+2026-02-15T06:22:50.672Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:22:50.672Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:22:50.977Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:23:51.808Z - [Leads] Entered getViolations
+2026-02-15T06:23:51.811Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:23:51.811Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:23:52.227Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:24:53.244Z - [Leads] Entered getViolations
+2026-02-15T06:24:53.246Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:24:53.246Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:24:53.779Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:25:55.195Z - [Leads] Entered getViolations
+2026-02-15T06:25:55.197Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:25:55.197Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:25:55.498Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:27:57.257Z - [Leads] Entered getViolations
+2026-02-15T06:27:57.259Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:27:57.259Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:27:57.870Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:48:53.210Z - [Leads] Entered getViolations
+2026-02-15T06:48:53.213Z - [Leads] User: 227bbb7d-b5e1-4757-9e96-f3ab57c89a44, Role: super_admin
+2026-02-15T06:48:53.213Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false}
+2026-02-15T06:48:53.778Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:49:10.426Z - Entered getDashboardStats
+2026-02-15T06:49:10.428Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T06:49:10.428Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T06:49:10.429Z - [Analytics] Fetching subordinateIds...
+2026-02-15T06:49:11.464Z - [Analytics] Subordinates: 2
+2026-02-15T06:50:10.382Z - [Leads] Entered getViolations
+2026-02-15T06:50:10.384Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:50:10.384Z - [Leads] Fetching subordinates...
+2026-02-15T06:50:11.178Z - [Leads] Subordinates found: 2
+2026-02-15T06:50:11.179Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:50:11.789Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:51:18.126Z - [Leads] Entered getViolations
+2026-02-15T06:51:18.127Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:51:18.127Z - [Leads] Fetching subordinates...
+2026-02-15T06:51:18.959Z - [Leads] Subordinates found: 2
+2026-02-15T06:51:18.960Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:51:19.470Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:52:20.969Z - [Leads] Entered getViolations
+2026-02-15T06:52:20.971Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:52:20.971Z - [Leads] Fetching subordinates...
+2026-02-15T06:52:21.581Z - [Leads] Subordinates found: 2
+2026-02-15T06:52:21.582Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:52:21.856Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:53:23.052Z - [Leads] Entered getViolations
+2026-02-15T06:53:23.054Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:53:23.054Z - [Leads] Fetching subordinates...
+2026-02-15T06:53:23.585Z - [Leads] Subordinates found: 2
+2026-02-15T06:53:23.585Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:53:23.943Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:54:25.225Z - [Leads] Entered getViolations
+2026-02-15T06:54:25.227Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:54:25.227Z - [Leads] Fetching subordinates...
+2026-02-15T06:54:25.859Z - [Leads] Subordinates found: 2
+2026-02-15T06:54:25.859Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:54:26.202Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:55:27.223Z - [Leads] Entered getViolations
+2026-02-15T06:55:27.225Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:55:27.225Z - [Leads] Fetching subordinates...
+2026-02-15T06:55:28.558Z - [Leads] Subordinates found: 2
+2026-02-15T06:55:28.558Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:55:29.074Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:56:30.531Z - [Leads] Entered getViolations
+2026-02-15T06:56:30.532Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:56:30.532Z - [Leads] Fetching subordinates...
+2026-02-15T06:56:31.130Z - [Leads] Subordinates found: 2
+2026-02-15T06:56:31.131Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:56:31.437Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:57:32.531Z - [Leads] Entered getViolations
+2026-02-15T06:57:32.532Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:57:32.533Z - [Leads] Fetching subordinates...
+2026-02-15T06:57:33.445Z - [Leads] Subordinates found: 2
+2026-02-15T06:57:33.446Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:57:33.935Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:58:35.349Z - [Leads] Entered getViolations
+2026-02-15T06:58:35.351Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:58:35.351Z - [Leads] Fetching subordinates...
+2026-02-15T06:58:35.955Z - [Leads] Subordinates found: 2
+2026-02-15T06:58:35.956Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:58:36.191Z - [Leads] [Leads] Violations found: 0
+2026-02-15T06:59:37.277Z - [Leads] Entered getViolations
+2026-02-15T06:59:37.279Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T06:59:37.279Z - [Leads] Fetching subordinates...
+2026-02-15T06:59:37.838Z - [Leads] Subordinates found: 2
+2026-02-15T06:59:37.839Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T06:59:38.110Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:00:38.939Z - [Leads] Entered getViolations
+2026-02-15T07:00:38.941Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:00:38.941Z - [Leads] Fetching subordinates...
+2026-02-15T07:00:39.426Z - [Leads] Subordinates found: 2
+2026-02-15T07:00:39.427Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:00:39.755Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:01:40.901Z - [Leads] Entered getViolations
+2026-02-15T07:01:40.902Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:01:40.903Z - [Leads] Fetching subordinates...
+2026-02-15T07:01:41.352Z - [Leads] Subordinates found: 2
+2026-02-15T07:01:41.353Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:01:41.607Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:02:42.357Z - [Leads] Entered getViolations
+2026-02-15T07:02:42.360Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:02:42.361Z - [Leads] Fetching subordinates...
+2026-02-15T07:02:43.045Z - [Leads] Subordinates found: 2
+2026-02-15T07:02:43.046Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:02:43.570Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:03:45.074Z - [Leads] Entered getViolations
+2026-02-15T07:03:45.076Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:03:45.076Z - [Leads] Fetching subordinates...
+2026-02-15T07:03:45.615Z - [Leads] Subordinates found: 2
+2026-02-15T07:03:45.616Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:03:45.880Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:04:12.163Z - Entered getDashboardStats
+2026-02-15T07:04:12.165Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T07:04:12.165Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T07:04:12.165Z - [Analytics] Fetching subordinateIds...
+2026-02-15T07:04:12.869Z - [Analytics] Subordinates: 2
+2026-02-15T07:04:46.666Z - [Leads] Entered getViolations
+2026-02-15T07:04:46.668Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:04:46.668Z - [Leads] Fetching subordinates...
+2026-02-15T07:04:47.166Z - [Leads] Subordinates found: 2
+2026-02-15T07:04:47.167Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:04:47.680Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:05:48.723Z - [Leads] Entered getViolations
+2026-02-15T07:05:48.725Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:05:48.726Z - [Leads] Fetching subordinates...
+2026-02-15T07:05:49.324Z - [Leads] Subordinates found: 2
+2026-02-15T07:05:49.324Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:05:49.630Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:06:50.920Z - [Leads] Entered getViolations
+2026-02-15T07:06:50.923Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:06:50.923Z - [Leads] Fetching subordinates...
+2026-02-15T07:06:51.584Z - [Leads] Subordinates found: 2
+2026-02-15T07:06:51.585Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:06:51.892Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:07:55.203Z - [Leads] Entered getViolations
+2026-02-15T07:07:55.205Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:07:55.205Z - [Leads] Fetching subordinates...
+2026-02-15T07:07:56.135Z - [Leads] Subordinates found: 2
+2026-02-15T07:07:56.137Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:07:56.712Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:08:58.048Z - [Leads] Entered getViolations
+2026-02-15T07:08:58.051Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:08:58.051Z - [Leads] Fetching subordinates...
+2026-02-15T07:08:58.971Z - [Leads] Subordinates found: 2
+2026-02-15T07:08:58.973Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:08:59.583Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:09:15.685Z - Entered getDashboardStats
+2026-02-15T07:09:15.686Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T07:09:15.687Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T07:09:15.687Z - [Analytics] Fetching subordinateIds...
+2026-02-15T07:09:16.125Z - [Analytics] Subordinates: 2
+2026-02-15T07:09:17.691Z - [Leads] Entered getViolations
+2026-02-15T07:09:17.691Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:09:17.692Z - [Leads] Fetching subordinates...
+2026-02-15T07:09:18.472Z - [Leads] Subordinates found: 2
+2026-02-15T07:09:18.473Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:09:18.969Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:10:20.540Z - [Leads] Entered getViolations
+2026-02-15T07:10:20.543Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:10:20.543Z - [Leads] Fetching subordinates...
+2026-02-15T07:10:21.449Z - [Leads] Subordinates found: 2
+2026-02-15T07:10:21.449Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:10:21.934Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:11:23.253Z - [Leads] Entered getViolations
+2026-02-15T07:11:23.256Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:11:23.256Z - [Leads] Fetching subordinates...
+2026-02-15T07:11:24.073Z - [Leads] Subordinates found: 2
+2026-02-15T07:11:24.074Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:11:24.609Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:12:26.742Z - [Leads] Entered getViolations
+2026-02-15T07:12:26.744Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:12:26.744Z - [Leads] Fetching subordinates...
+2026-02-15T07:12:27.869Z - [Leads] Subordinates found: 2
+2026-02-15T07:12:27.870Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:12:28.481Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:13:29.879Z - [Leads] Entered getViolations
+2026-02-15T07:13:29.881Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:13:29.881Z - [Leads] Fetching subordinates...
+2026-02-15T07:13:30.536Z - [Leads] Subordinates found: 2
+2026-02-15T07:13:30.537Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:13:30.843Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:14:32.079Z - [Leads] Entered getViolations
+2026-02-15T07:14:32.082Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:14:32.082Z - [Leads] Fetching subordinates...
+2026-02-15T07:14:32.693Z - [Leads] Subordinates found: 2
+2026-02-15T07:14:32.694Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:14:33.000Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:15:34.236Z - [Leads] Entered getViolations
+2026-02-15T07:15:34.237Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:15:34.238Z - [Leads] Fetching subordinates...
+2026-02-15T07:15:34.744Z - [Leads] Subordinates found: 2
+2026-02-15T07:15:34.745Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:15:34.970Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:16:36.139Z - [Leads] Entered getViolations
+2026-02-15T07:16:36.140Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:16:36.140Z - [Leads] Fetching subordinates...
+2026-02-15T07:16:36.803Z - [Leads] Subordinates found: 2
+2026-02-15T07:16:36.804Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:16:37.123Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:17:38.248Z - [Leads] Entered getViolations
+2026-02-15T07:17:38.249Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:17:38.249Z - [Leads] Fetching subordinates...
+2026-02-15T07:17:39.062Z - [Leads] Subordinates found: 2
+2026-02-15T07:17:39.063Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:17:39.574Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:18:40.839Z - [Leads] Entered getViolations
+2026-02-15T07:18:40.843Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:18:40.843Z - [Leads] Fetching subordinates...
+2026-02-15T07:18:41.237Z - [Leads] Subordinates found: 2
+2026-02-15T07:18:41.238Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:18:41.445Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:19:42.606Z - [Leads] Entered getViolations
+2026-02-15T07:19:42.608Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:19:42.608Z - [Leads] Fetching subordinates...
+2026-02-15T07:19:43.284Z - [Leads] Subordinates found: 2
+2026-02-15T07:19:43.285Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:19:43.695Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:20:44.830Z - [Leads] Entered getViolations
+2026-02-15T07:20:44.831Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:20:44.832Z - [Leads] Fetching subordinates...
+2026-02-15T07:20:45.440Z - [Leads] Subordinates found: 2
+2026-02-15T07:20:45.442Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:20:45.754Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:20:53.547Z - Entered getDashboardStats
+2026-02-15T07:20:53.548Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T07:20:53.548Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T07:20:53.549Z - [Analytics] Fetching subordinateIds...
+2026-02-15T07:20:54.229Z - [Analytics] Subordinates: 2
+2026-02-15T07:21:46.487Z - [Leads] Entered getViolations
+2026-02-15T07:21:46.488Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:21:46.488Z - [Leads] Fetching subordinates...
+2026-02-15T07:21:47.187Z - [Leads] Subordinates found: 2
+2026-02-15T07:21:47.187Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:21:48.108Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:22:27.012Z - Entered getDashboardStats
+2026-02-15T07:22:27.013Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T07:22:27.014Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T07:22:27.014Z - [Analytics] Fetching subordinateIds...
+2026-02-15T07:22:27.857Z - [Analytics] Subordinates: 2
+2026-02-15T07:22:49.861Z - [Leads] Entered getViolations
+2026-02-15T07:22:49.863Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:22:49.863Z - [Leads] Fetching subordinates...
+2026-02-15T07:22:50.958Z - [Leads] Subordinates found: 2
+2026-02-15T07:22:50.958Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:22:51.513Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:23:53.039Z - [Leads] Entered getViolations
+2026-02-15T07:23:53.041Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:23:53.041Z - [Leads] Fetching subordinates...
+2026-02-15T07:23:53.653Z - [Leads] Subordinates found: 2
+2026-02-15T07:23:53.653Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:23:53.961Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:24:54.889Z - [Leads] Entered getViolations
+2026-02-15T07:24:54.891Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:24:54.891Z - [Leads] Fetching subordinates...
+2026-02-15T07:24:55.502Z - [Leads] Subordinates found: 2
+2026-02-15T07:24:55.503Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:24:55.811Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:25:59.463Z - [Leads] Entered getViolations
+2026-02-15T07:25:59.466Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:25:59.466Z - [Leads] Fetching subordinates...
+2026-02-15T07:26:00.319Z - [Leads] Subordinates found: 2
+2026-02-15T07:26:00.320Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:26:00.836Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:27:02.143Z - [Leads] Entered getViolations
+2026-02-15T07:27:02.145Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:27:02.146Z - [Leads] Fetching subordinates...
+2026-02-15T07:27:03.095Z - [Leads] Subordinates found: 2
+2026-02-15T07:27:03.095Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:27:03.645Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:28:04.701Z - [Leads] Entered getViolations
+2026-02-15T07:28:04.703Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:28:04.704Z - [Leads] Fetching subordinates...
+2026-02-15T07:28:05.251Z - [Leads] Subordinates found: 2
+2026-02-15T07:28:05.252Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:28:05.503Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:29:06.488Z - [Leads] Entered getViolations
+2026-02-15T07:29:06.488Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:29:06.489Z - [Leads] Fetching subordinates...
+2026-02-15T07:29:07.046Z - [Leads] Subordinates found: 2
+2026-02-15T07:29:07.046Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:29:07.434Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:30:08.441Z - [Leads] Entered getViolations
+2026-02-15T07:30:08.442Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:30:08.442Z - [Leads] Fetching subordinates...
+2026-02-15T07:30:09.054Z - [Leads] Subordinates found: 2
+2026-02-15T07:30:09.055Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:30:09.323Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:30:56.049Z - Entered getDashboardStats
+2026-02-15T07:30:56.051Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T07:30:56.051Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T07:30:56.051Z - [Analytics] Fetching subordinateIds...
+2026-02-15T07:30:56.052Z - [Leads] Entered getViolations
+2026-02-15T07:30:56.053Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:30:56.053Z - [Leads] Fetching subordinates...
+2026-02-15T07:30:57.103Z - [Analytics] Subordinates: 2
+2026-02-15T07:30:57.319Z - [Leads] Subordinates found: 2
+2026-02-15T07:30:57.320Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:30:57.886Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:31:59.545Z - [Leads] Entered getViolations
+2026-02-15T07:31:59.547Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:31:59.547Z - [Leads] Fetching subordinates...
+2026-02-15T07:32:00.172Z - [Leads] Subordinates found: 2
+2026-02-15T07:32:00.172Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:32:00.610Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:33:01.702Z - [Leads] Entered getViolations
+2026-02-15T07:33:01.703Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:33:01.703Z - [Leads] Fetching subordinates...
+2026-02-15T07:33:02.623Z - [Leads] Subordinates found: 2
+2026-02-15T07:33:02.623Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:33:02.929Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:34:03.700Z - [Leads] Entered getViolations
+2026-02-15T07:34:03.702Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:34:03.702Z - [Leads] Fetching subordinates...
+2026-02-15T07:34:04.161Z - [Leads] Subordinates found: 2
+2026-02-15T07:34:04.162Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:34:04.399Z - [Leads] [Leads] Violations found: 0
+2026-02-15T07:35:05.105Z - [Leads] Entered getViolations
+2026-02-15T07:35:05.108Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T07:35:05.108Z - [Leads] Fetching subordinates...
+2026-02-15T07:35:05.713Z - [Leads] Subordinates found: 2
+2026-02-15T07:35:05.714Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T07:35:05.947Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:27:21.564Z - [Leads] Entered getViolations
+2026-02-15T08:27:21.566Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:27:21.566Z - [Leads] Fetching subordinates...
+2026-02-15T08:27:21.967Z - Entered getDashboardStats
+2026-02-15T08:27:21.967Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T08:27:21.967Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T08:27:21.967Z - [Analytics] Fetching subordinateIds...
+2026-02-15T08:27:22.218Z - [Leads] Subordinates found: 2
+2026-02-15T08:27:22.218Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:27:22.649Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:27:22.908Z - [Analytics] Subordinates: 2
+2026-02-15T08:27:34.552Z - [Leads] Entered getViolations
+2026-02-15T08:27:34.552Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:27:34.552Z - [Leads] Fetching subordinates...
+2026-02-15T08:27:35.073Z - [Leads] Subordinates found: 2
+2026-02-15T08:27:35.073Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:27:35.634Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:28:11.218Z - [Leads] Entered getViolations
+2026-02-15T08:28:11.219Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:28:11.219Z - [Leads] Fetching subordinates...
+2026-02-15T08:28:11.257Z - Entered getDashboardStats
+2026-02-15T08:28:11.258Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T08:28:11.258Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T08:28:11.258Z - [Analytics] Fetching subordinateIds...
+2026-02-15T08:28:11.849Z - [Leads] Subordinates found: 2
+2026-02-15T08:28:11.849Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:28:11.880Z - [Analytics] Subordinates: 2
+2026-02-15T08:28:12.285Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:28:44.060Z - Entered getDashboardStats
+2026-02-15T08:28:44.061Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T08:28:44.061Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T08:28:44.061Z - [Analytics] Fetching subordinateIds...
+2026-02-15T08:28:44.207Z - [Leads] Entered getViolations
+2026-02-15T08:28:44.208Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:28:44.208Z - [Leads] Fetching subordinates...
+2026-02-15T08:28:44.692Z - [Analytics] Subordinates: 2
+2026-02-15T08:28:44.873Z - [Leads] Subordinates found: 2
+2026-02-15T08:28:44.873Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:28:45.333Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:29:01.527Z - Entered getDashboardStats
+2026-02-15T08:29:01.529Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T08:29:01.529Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T08:29:01.529Z - [Analytics] Fetching subordinateIds...
+2026-02-15T08:29:02.152Z - [Analytics] Subordinates: 2
+2026-02-15T08:31:06.565Z - [Leads] Entered getViolations
+2026-02-15T08:31:06.567Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:31:06.567Z - [Leads] Fetching subordinates...
+2026-02-15T08:31:07.259Z - [Leads] Subordinates found: 2
+2026-02-15T08:31:07.260Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:31:07.717Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:32:08.676Z - [Leads] Entered getViolations
+2026-02-15T08:32:08.678Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:32:08.679Z - [Leads] Fetching subordinates...
+2026-02-15T08:32:09.583Z - [Leads] Subordinates found: 2
+2026-02-15T08:32:09.583Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:32:10.102Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:32:23.648Z - [Leads] Entered getViolations
+2026-02-15T08:32:23.649Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:32:23.649Z - [Leads] Fetching subordinates...
+2026-02-15T08:32:24.272Z - [Leads] Subordinates found: 2
+2026-02-15T08:32:24.272Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:32:24.705Z - [Leads] [Leads] Violations found: 0
+2026-02-15T08:32:53.364Z - Entered getDashboardStats
+2026-02-15T08:32:53.365Z - [Analytics] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Org: 9abfb72c-5c3f-4c06-a8d0-36686dddeaf7, SuperAdmin: false
+2026-02-15T08:32:53.365Z - [Analytics] Importing hierarchyUtils...
+2026-02-15T08:32:53.366Z - [Analytics] Fetching subordinateIds...
+2026-02-15T08:32:54.322Z - [Analytics] Subordinates: 2
+2026-02-15T08:33:25.832Z - [Leads] Entered getViolations
+2026-02-15T08:33:25.834Z - [Leads] User: a9347e28-c430-41a1-980a-1eca1f71c63c, Role: admin
+2026-02-15T08:33:25.834Z - [Leads] Fetching subordinates...
+2026-02-15T08:33:26.264Z - [Leads] Subordinates found: 2
+2026-02-15T08:33:26.265Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"9abfb72c-5c3f-4c06-a8d0-36686dddeaf7","OR":[{"previousOwnerId":"a9347e28-c430-41a1-980a-1eca1f71c63c"},{"previousOwnerId":{"in":["a9347e28-c430-41a1-980a-1eca1f71c63c","75cfd31e-0e84-4664-bbc3-3c33ba9d26c8"]}}]}
+2026-02-15T08:33:26.489Z - [Leads] [Leads] Violations found: 0
+2026-02-19T04:57:04.742Z - Entered getDashboardStats
+2026-02-19T04:57:04.744Z - [Analytics] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Org: 47a9aadc-3374-4b52-92b3-18c92c3600a8, SuperAdmin: false
+2026-02-19T04:57:04.744Z - [Analytics] Importing hierarchyUtils...
+2026-02-19T04:57:04.745Z - [Analytics] Fetching subordinateIds...
+2026-02-19T04:57:04.749Z - [Leads] Entered getViolations
+2026-02-19T04:57:04.749Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T04:57:04.749Z - [Leads] Fetching subordinates...
+2026-02-19T04:57:15.417Z - [Leads] Subordinates found: 28
+2026-02-19T04:57:15.418Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T04:57:15.793Z - [Analytics] Subordinates: 28
+2026-02-19T04:57:16.131Z - [Leads] [Leads] Violations found: 0
+2026-02-19T04:58:01.361Z - [Leads] Entered getViolations
+2026-02-19T04:58:01.364Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T04:58:01.364Z - [Leads] Fetching subordinates...
+2026-02-19T04:58:01.366Z - Entered getDashboardStats
+2026-02-19T04:58:01.366Z - [Analytics] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Org: 47a9aadc-3374-4b52-92b3-18c92c3600a8, SuperAdmin: false
+2026-02-19T04:58:01.366Z - [Analytics] Importing hierarchyUtils...
+2026-02-19T04:58:01.367Z - [Analytics] Fetching subordinateIds...
+2026-02-19T04:58:12.829Z - [Leads] Subordinates found: 28
+2026-02-19T04:58:12.830Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T04:58:12.831Z - [Analytics] Subordinates: 28
+2026-02-19T04:58:13.648Z - [Leads] [Leads] Violations found: 0
+2026-02-19T05:00:53.006Z - [Leads] Entered getViolations
+2026-02-19T05:00:53.007Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T05:00:53.008Z - [Leads] Fetching subordinates...
+2026-02-19T05:01:01.876Z - [Leads] Subordinates found: 28
+2026-02-19T05:01:01.877Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T05:01:02.515Z - [Leads] [Leads] Violations found: 0
+2026-02-19T05:08:17.560Z - [Leads] Entered getViolations
+2026-02-19T05:08:17.561Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T05:08:17.561Z - [Leads] Fetching subordinates...
+2026-02-19T05:08:27.437Z - [Leads] Subordinates found: 28
+2026-02-19T05:08:27.438Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T05:08:28.210Z - [Leads] [Leads] Violations found: 0
+2026-02-19T05:09:05.341Z - [Leads] Entered getViolations
+2026-02-19T05:09:05.343Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T05:09:05.343Z - [Leads] Fetching subordinates...
+2026-02-19T05:09:15.464Z - [Leads] Subordinates found: 28
+2026-02-19T05:09:15.465Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T05:09:16.694Z - [Leads] [Leads] Violations found: 0
+2026-02-19T05:09:31.816Z - [Leads] Entered getViolations
+2026-02-19T05:09:31.818Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T05:09:31.818Z - [Leads] Fetching subordinates...
+2026-02-19T05:09:33.589Z - Entered getDashboardStats
+2026-02-19T05:09:33.590Z - [Analytics] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Org: 47a9aadc-3374-4b52-92b3-18c92c3600a8, SuperAdmin: false
+2026-02-19T05:09:33.591Z - [Analytics] Importing hierarchyUtils...
+2026-02-19T05:09:33.591Z - [Analytics] Fetching subordinateIds...
+2026-02-19T05:09:41.999Z - [Leads] Subordinates found: 28
+2026-02-19T05:09:42.001Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T05:09:42.703Z - [Leads] [Leads] Violations found: 0
+2026-02-19T05:09:43.527Z - [Analytics] Subordinates: 28
+2026-02-19T05:10:00.815Z - [Leads] Entered getViolations
+2026-02-19T05:10:00.817Z - [Leads] User: fd5d3776-6c9e-43f1-879a-413070c0faf5, Role: admin
+2026-02-19T05:10:00.817Z - [Leads] Fetching subordinates...
+2026-02-19T05:10:09.598Z - [Leads] Subordinates found: 28
+2026-02-19T05:10:09.599Z - [Leads] [Leads] Querying Prisma with where: {"rotationViolation":true,"isDeleted":false,"organisationId":"47a9aadc-3374-4b52-92b3-18c92c3600a8","OR":[{"previousOwnerId":"fd5d3776-6c9e-43f1-879a-413070c0faf5"},{"previousOwnerId":{"in":["fd5d3776-6c9e-43f1-879a-413070c0faf5","437d9c78-e48f-473a-a92c-d8d3794ec2f9","2d2eb0a9-be06-44dc-bb3b-edd90c9f2df2","f1da3bfc-4a8a-44cc-ace2-1310ffacf71a","75c4540d-3f05-4bee-86be-6e82013591b7","22523ee8-d42d-475b-a526-3891ee82d300","2208b5b2-3d53-4134-a7fb-8f88e03e4159","cb5b0259-eaad-48d1-ab2a-6b0016f80be3","696ef54d-606e-4f04-b739-ae7406d70b25","a6db9ced-c3bb-4b7c-9a76-d120b2f215e0","fc8ae833-3cff-4278-aef3-b25709c3eb40","595d3f09-d793-46e6-be7c-c66fb2df6837","0af542d3-8f47-4c04-ba49-79f93cc0b098","0ff96846-1a3f-4fb9-b58e-22e6a387d531","4aa3cd24-c42e-4183-a474-98f6eed47407","895d16fa-cd01-477d-bd30-cf0498bb058c","f1b177b9-cc83-455a-bf1d-84867b8fb3ea","1481e256-707d-4d8b-9bb0-686cbdaea09e","fb9bca87-b8d0-48a5-87a3-0c78d7b85e97","f85984c9-1c75-4f5a-ba1e-95e293273b6f","00449870-26b5-4a0b-a560-53afecfca58c","1f1f60e1-8a77-4e25-a6d9-ec6a58bd7316","3b451835-2409-41ff-920c-113317cf7ccd","627b9d8c-d0bb-4b0f-8a4d-feec3bf856ea","c1c633e2-2b50-4fa7-a4d9-d67f78bb2a2f","be9afd06-a467-40fa-9ed1-4c82b567a73c","4b7fbdda-f35e-459f-9022-cde9f0059fad","ff17bc00-3941-453a-a624-4b08b54b0224"]}}]}
+2026-02-19T05:10:10.224Z - [Leads] [Leads] Violations found: 0
