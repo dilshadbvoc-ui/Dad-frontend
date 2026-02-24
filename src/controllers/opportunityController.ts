@@ -71,6 +71,11 @@ export const createOpportunity = async (req: Request, res: Response) => {
         const orgId = getOrgId(user);
         if (!orgId) return res.status(400).json({ message: 'Organisation context required' });
 
+        // Validate required fields
+        if (!req.body.account) {
+            return res.status(400).json({ message: 'Account is required to create an opportunity' });
+        }
+
         const opportunityData: Prisma.OpportunityCreateInput = {
             name: req.body.name,
             amount: Number(req.body.amount),
@@ -87,8 +92,8 @@ export const createOpportunity = async (req: Request, res: Response) => {
             owner: { connect: { id: user.id } },
             branch: user.branchId ? { connect: { id: user.branchId } } : (req.body.branchId ? { connect: { id: req.body.branchId } } : undefined),
 
-            // Account is optional - only connect if provided
-            account: req.body.account ? { connect: { id: req.body.account } } : undefined
+            // Account is required in schema
+            account: { connect: { id: req.body.account } }
         };
 
         // Custom Field Validation
