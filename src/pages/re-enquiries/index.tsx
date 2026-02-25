@@ -54,7 +54,7 @@ export default function ReEnquiriesPage() {
         const searchLower = searchTerm.toLowerCase()
         return (
             lead.firstName.toLowerCase().includes(searchLower) ||
-            lead.lastName.toLowerCase().includes(searchLower) ||
+            lead.lastName?.toLowerCase().includes(searchLower) ||
             lead.email?.toLowerCase().includes(searchLower) ||
             lead.phone?.includes(searchLower) ||
             lead.company?.toLowerCase().includes(searchLower)
@@ -170,7 +170,7 @@ export default function ReEnquiriesPage() {
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-3">
                                             <h3 className="text-lg font-semibold text-foreground">
-                                                {lead.firstName} {lead.lastName}
+                                                {lead.firstName} {lead.lastName || ''}
                                             </h3>
                                             <Badge variant={getReEnquiryBadgeColor(lead.reEnquiryCount || 0)}>
                                                 {lead.reEnquiryCount || 0}x Re-Enquiry
