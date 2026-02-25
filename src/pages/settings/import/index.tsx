@@ -95,7 +95,7 @@ const CRM_FIELD_MAPPINGS: Record<string, Record<string, string>> = {
 
 const CRM_FIELDS = [
     { label: "First Name", value: "firstName", required: true },
-    { label: "Last Name", value: "lastName", required: true },
+    { label: "Last Name", value: "lastName", required: false },
     { label: "Full Name (will split)", value: "fullName", required: false },
     { label: "Email", value: "email", required: false },
     { label: "Phone", value: "phone", required: true },

@@ -296,12 +296,15 @@ function ConvertDialog({
                 <DialogHeader>
                     <DialogTitle>Convert to EMI</DialogTitle>
                     <DialogDescription>
-                        Set up installment schedule for the remaining amount.
+                        Set up installment schedule for the remaining balance.
                         {opportunityAmount && (
                             <span className="block mt-1 font-medium text-foreground">
                                 Opportunity Amount: {formatCurrency(opportunityAmount)}
                             </span>
                         )}
+                        <span className="block mt-1 text-xs text-muted-foreground">
+                            Note: The total of all installments must equal the remaining amount after partial payments.
+                        </span>
                     </DialogDescription>
                 </DialogHeader>
 

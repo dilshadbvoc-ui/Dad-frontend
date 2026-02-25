@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface EditLeadFormData {
     firstName: string
-    lastName: string
+    lastName?: string
     email: string
     phone: string
     company: string
