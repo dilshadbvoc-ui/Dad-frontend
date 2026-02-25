@@ -179,7 +179,7 @@ export default function LeadDetailPage() {
                     <div className="flex-1 min-w-0">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
                             <h1 className="text-xl sm:text-3xl font-bold truncate">
-                                {lead.firstName} {lead.lastName}
+                                {lead.firstName} {lead.lastName || ''}
                             </h1>
                             <div className="flex items-center gap-2">
                                 {id && <CollaborationBadge resourceId={`leads/${id}`} />}
@@ -287,7 +287,7 @@ export default function LeadDetailPage() {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName}</Link> : 'Unassigned'}</span></div>
+                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName || ''}</Link> : 'Unassigned'}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
 
                             <div className="pt-2 border-t">
@@ -401,7 +401,7 @@ export default function LeadDetailPage() {
                         open={isLogCallOpen}
                         onOpenChange={setIsLogCallOpen}
                         leadId={lead.id}
-                        leadName={`${lead.firstName} ${lead.lastName}`}
+                        leadName={`${lead.firstName} ${lead.lastName || ''}`}
                         leadPhone={lead.phone}
                         onSuccess={() => {
                             queryClient.invalidateQueries({ queryKey: ['calls', id] })
@@ -429,7 +429,7 @@ export default function LeadDetailPage() {
                         open={isScheduleMeetingOpen}
                         onOpenChange={setIsScheduleMeetingOpen}
                         leadId={lead.id}
-                        leadName={`${lead.firstName} ${lead.lastName}`}
+                        leadName={`${lead.firstName} ${lead.lastName || ''}`}
                         onSuccess={() => {
                             queryClient.invalidateQueries({ queryKey: ['lead', id] })
                             toast.success('Meeting added to calendar!')
