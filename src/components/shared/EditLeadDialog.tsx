@@ -127,10 +127,9 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                             <FormField
                                 control={form.control}
                                 name="lastName"
-                                rules={{ required: "Last name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Last Name</FormLabel>
+                                        <FormLabel>Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="Doe" {...field} />
                                         </FormControl>

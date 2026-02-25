@@ -148,10 +148,9 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 <FormField
                                     control={form.control}
                                     name="lastName"
-                                    rules={{ required: "Last name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                             <FormControl>
                                                 <Input placeholder="Doe" className="h-10" {...field} />
                                             </FormControl>

@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/services/api"
+import { EMISchedulePanel } from "@/components/EMISchedulePanel"
 
 export interface Opportunity {
     id: string
@@ -37,6 +38,7 @@ export interface Opportunity {
             }
         }>
     }
+    paymentStatus?: string
 }
 
 interface AccountProduct {
@@ -185,6 +187,13 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                 </CardContent>
                             </Card>
                         )}
+
+                        {/* EMI Schedule */}
+                        <EMISchedulePanel
+                            opportunityId={displayOpportunity.id}
+                            paymentStatus={displayOpportunity.paymentStatus}
+                            opportunityAmount={displayOpportunity.amount}
+                        />
                     </div>
                 )}
             </DialogContent>

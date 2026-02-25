@@ -1,6 +1,6 @@
 import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
 import { useState } from "react"
-import { MoreHorizontal, Pencil, Copy, Eye, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Copy, Eye, Trash2, CreditCard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -17,6 +17,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { EMISchedulePanel } from "@/components/EMISchedulePanel"
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from "@/components/ui/dialog"
 
 interface OpportunityActionsProps {
     opportunity: Opportunity
@@ -26,6 +34,7 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [isViewOpen, setIsViewOpen] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+    const [showEMIDialog, setShowEMIDialog] = useState(false)
     const queryClient = useQueryClient()
 
     const user = getUserInfo();
@@ -74,6 +83,10 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                         <Pencil className="mr-2 h-4 w-4" />
                         Edit Opportunity
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setShowEMIDialog(true)}>
+                        <CreditCard className="mr-2 h-4 w-4" />
+                        Manage EMI
+                    </DropdownMenuItem>
                     {canDelete && (
                         <>
                             <DropdownMenuSeparator />
@@ -107,6 +120,22 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                 confirmText="Delete Opportunity"
                 isDeleting={deleteMutation.isPending}
             />
+
+            <Dialog open={showEMIDialog} onOpenChange={setShowEMIDialog}>
+                <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                        <DialogTitle>EMI Schedule</DialogTitle>
+                        <DialogDescription>
+                            Manage EMI installments for {opportunity.name}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <EMISchedulePanel
+                        opportunityId={opportunity.id}
+                        paymentStatus={(opportunity as any).paymentStatus}
+                        opportunityAmount={opportunity.amount}
+                    />
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

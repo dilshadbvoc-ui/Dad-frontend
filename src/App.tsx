@@ -92,6 +92,7 @@ const ImportSettingsPage = lazy(() => import('./pages/settings/import'));
 const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
+const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 
 
 
@@ -247,6 +248,7 @@ function AppContent() {
               <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
+              <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
 
             </Route>

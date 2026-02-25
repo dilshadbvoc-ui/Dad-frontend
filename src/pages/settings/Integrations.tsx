@@ -19,6 +19,7 @@ import {
 } from "@/components/icons/BrandLogos";
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
+import { GmailConnect } from "@/components/settings/GmailConnect";
 
 interface MetaAccount {
     adAccountId?: string;
@@ -199,6 +200,23 @@ export default function IntegrationsPage() {
             <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Integrations</h1>
                 <p className="text-indigo-300/70 mt-1">Manage webhooks, APIs, and third-party integrations.</p>
+            </div>
+
+            {/* Personal Email Integration */}
+            <div className="space-y-3">
+                <h2 className="text-lg font-semibold text-white">Your Email</h2>
+                <p className="text-sm text-indigo-300/70">Connect your personal Gmail to send emails from the CRM.</p>
+                <div className="max-w-md">
+                    <GmailConnect />
+                </div>
+            </div>
+
+            <hr className="border-indigo-900/50" />
+
+            {/* Organisation Integrations */}
+            <div>
+                <h2 className="text-lg font-semibold text-white mb-1">Organisation Integrations</h2>
+                <p className="text-sm text-indigo-300/70 mb-4">Manage webhooks, APIs, and third-party integrations.</p>
             </div>
 
             {/* Main Content */}

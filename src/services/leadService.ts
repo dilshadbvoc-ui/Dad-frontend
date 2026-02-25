@@ -3,7 +3,7 @@ import { api } from './api';
 export interface Lead {
     id: string;
     firstName: string;
-    lastName: string;
+    lastName?: string;
     email: string;
     phone?: string;
     company?: string;
@@ -54,8 +54,8 @@ export interface LeadQueryParams {
 
 export interface CreateLeadData {
     firstName: string;
-    lastName: string;
-    email: string;
+    lastName?: string;
+    email?: string;
     phone?: string;
     company?: string;
     jobTitle?: string;
