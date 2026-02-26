@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, Mail, Send, Clock } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CampaignReportsPage() {
@@ -38,9 +39,14 @@ export default function CampaignReportsPage() {
 
     return (
         <div className="p-8 space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Campaign Reports</h1>
-                <p className="text-muted-foreground mt-2">Analytics for email campaigns and performance.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Campaign Reports</h1>
+                    <p className="text-muted-foreground mt-2">Analytics for email campaigns and performance.</p>
+                </div>
+                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/campaigns`, '_blank')}>
+                    Download Excel
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import { type Opportunity, updateOpportunity } from "@/services/opportunityService";
+import { CloseWonDialog } from "@/components/CloseWonDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency, getAssetUrl } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -35,14 +37,16 @@ const STAGES: { id: string; label: string; color: string }[] = [
 ];
 
 export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoardProps) {
-    const [opportunities, setOpportunities] = useState(initialOpportunities);
+    const { formatCurrency } = useCurrency();
+    const [opportunities, setOpportunities] = useState<Opportunity[]>(initialOpportunities);
+    const [closeWonOpp, setCloseWonOpp] = useState<Opportunity | null>(null);
 
     // Group opportunities by stage
     const columns = useMemo(() => {
         const cols: Record<string, Opportunity[]> = {};
         STAGES.forEach((stage) => (cols[stage.id] = []));
 
-        opportunities.forEach((opp) => {
+        opportunities.forEach((opp: Opportunity) => {
             const stage = opp.stage || "prospecting";
             if (!cols[stage]) {
                 if (cols["prospecting"]) cols["prospecting"].push(opp);
@@ -64,9 +68,15 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
     const handleDrop = async (e: React.DragEvent, stageId: string) => {
         e.preventDefault();
         const id = e.dataTransfer.getData("text/plain");
+        const opportunity = opportunities.find(o => o.id === id);
+
+        if (stageId === 'closed_won' && opportunity && opportunity.stage !== 'closed_won') {
+            setCloseWonOpp(opportunity);
+            return;
+        }
 
         // Optimistic update
-        setOpportunities(prev => prev.map(opp =>
+        setOpportunities((prev: Opportunity[]) => prev.map((opp: Opportunity) =>
             opp.id === id ? { ...opp, stage: stageId as Opportunity['stage'], updatedAt: new Date().toISOString() } : opp
         ));
 
@@ -74,7 +84,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
             await updateOpportunity(id, { stage: stageId as Opportunity['stage'] });
         } catch (error) {
             console.error("Failed to update opportunity stage:", error);
-            // Revert on failure (reload from props or fetch)
+            // Revert on failure
         }
     };
 
@@ -188,7 +198,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                     <DropdownMenuItem
                                                                         onClick={async () => {
                                                                             // Optimistic update
-                                                                            setOpportunities(prev => prev.map(o =>
+                                                                            setOpportunities((prev: Opportunity[]) => prev.map((o: Opportunity) =>
                                                                                 o.id === opp.id ? { ...o, paymentStatus: 'paid', paymentDate: new Date().toISOString() } : o
                                                                             ));
                                                                             try {
@@ -250,8 +260,8 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                 <Tooltip>
                                                                     <TooltipTrigger>
                                                                         <Avatar className="h-6 w-6 border border-background shadow-sm">
-                                                                            <AvatarImage 
-                                                                                src={getAssetUrl(opp.owner.profileImage)} 
+                                                                            <AvatarImage
+                                                                                src={getAssetUrl(opp.owner.profileImage)}
                                                                                 onError={(e) => {
                                                                                     e.currentTarget.style.display = 'none';
                                                                                 }}
@@ -278,6 +288,21 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                     );
                 })}
             </TooltipProvider >
+
+            {closeWonOpp && (
+                <CloseWonDialog
+                    open={!!closeWonOpp}
+                    onOpenChange={(open) => !open && setCloseWonOpp(null)}
+                    opportunityId={closeWonOpp.id}
+                    opportunityName={closeWonOpp.name}
+                    amount={closeWonOpp.amount}
+                    onSuccess={() => {
+                        setOpportunities((prev: Opportunity[]) => prev.map((o: Opportunity) =>
+                            o.id === closeWonOpp.id ? { ...o, stage: 'closed_won' } : o
+                        ));
+                    }}
+                />
+            )}
         </div >
     );
 }

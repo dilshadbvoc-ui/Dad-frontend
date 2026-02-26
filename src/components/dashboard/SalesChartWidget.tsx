@@ -4,8 +4,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ensureArray } from "@/hooks/useArrayData";
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 export function SalesChartWidget({ branchId }: { branchId?: string | null }) {
+    const { currencySymbol } = useCurrency();
     const { data: salesDataRaw, isLoading } = useQuery({
         queryKey: ['salesChart', branchId],
         queryFn: () => getSalesChartData(branchId || undefined)
@@ -53,12 +55,12 @@ export function SalesChartWidget({ branchId }: { branchId?: string | null }) {
                                         fontSize={12}
                                         tickLine={false}
                                         axisLine={false}
-                                        tickFormatter={(value) => `₹${value}`}
+                                        tickFormatter={(value) => `${currencySymbol}${value}`}
                                     />
                                     <Tooltip
                                         contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '8px' }}
                                         itemStyle={{ color: 'hsl(var(--foreground))' }}
-                                        formatter={(value: number | undefined) => [`₹${(value || 0).toLocaleString()}`, 'Revenue']}
+                                        formatter={(value: number | undefined) => [`${currencySymbol}${(value || 0).toLocaleString()}`, 'Revenue']}
                                     />
                                     <Area
                                         type="monotone"

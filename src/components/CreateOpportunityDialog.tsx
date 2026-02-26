@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { isAxiosError } from 'axios';
 import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
+import { CloseWonDialog } from './CloseWonDialog';
 
 interface CreateOpportunityDialogProps {
     open: boolean;
@@ -32,6 +33,8 @@ interface UpsellConfig {
 export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onSuccess }: CreateOpportunityDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [customFieldValues, setCustomFieldValues] = useState<Record<string, any>>({});
+    const [showCloseWonDialog, setShowCloseWonDialog] = useState(false);
+    const [createdOpp, setCreatedOpp] = useState<any>(null);
     const queryClient = useQueryClient();
 
     // Form States
@@ -108,7 +111,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
         setIsLoading(true);
 
         try {
-            await api.post('/opportunities', {
+            const res = await api.post('/opportunities', {
                 name,
                 amount,
                 stage,
@@ -120,12 +123,18 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                 customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
             });
 
-            toast.success('Opportunity created successfully');
-            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
-            if (accountId) queryClient.invalidateQueries({ queryKey: ['account', accountId] });
+            const newOpp = res.data;
 
-            onSuccess?.();
-            onOpenChange(false);
+            if (stage === 'closed_won') {
+                setCreatedOpp(newOpp);
+                setShowCloseWonDialog(true);
+            } else {
+                toast.success('Opportunity created successfully');
+                queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+                if (accountId) queryClient.invalidateQueries({ queryKey: ['account', accountId] });
+                onSuccess?.();
+                onOpenChange(false);
+            }
         } catch (error: unknown) {
             console.error(error);
             let message = 'Failed to create opportunity';
@@ -303,6 +312,31 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                     </DialogFooter>
                 </form>
             </DialogContent>
+
+            {createdOpp && showCloseWonDialog && (
+                <CloseWonDialog
+                    open={showCloseWonDialog}
+                    onOpenChange={(open) => {
+                        setShowCloseWonDialog(open);
+                        if (!open) {
+                            // When closing EMI dialog, finalize everything
+                            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+                            if (accountId) queryClient.invalidateQueries({ queryKey: ['account', accountId] });
+                            onSuccess?.();
+                            onOpenChange(false);
+                        }
+                    }}
+                    opportunityId={createdOpp.id}
+                    opportunityName={createdOpp.name}
+                    amount={createdOpp.amount}
+                    onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+                        if (accountId) queryClient.invalidateQueries({ queryKey: ['account', accountId] });
+                        onSuccess?.();
+                        onOpenChange(false);
+                    }}
+                />
+            )}
         </Dialog>
     );
 }

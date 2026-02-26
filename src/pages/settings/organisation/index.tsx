@@ -16,6 +16,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { setGlobalCurrency } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 interface UpsellConfig {
     itemLabel?: string;
@@ -25,6 +26,7 @@ interface UpsellConfig {
 
 export default function OrganisationSettingsPage() {
     const queryClient = useQueryClient()
+    const { setCurrency } = useCurrency()
 
     const { data: org, isLoading } = useQuery({
         queryKey: ['organisation'],
@@ -55,7 +57,8 @@ export default function OrganisationSettingsPage() {
             name: formData.get('name'),
             contactEmail: formData.get('contactEmail'),
             contactPhone: formData.get('contactPhone'),
-            address: formData.get('address')
+            address: formData.get('address'),
+            dailyReportTime: formData.get('dailyReportTime')
         })
     }
 
@@ -98,9 +101,15 @@ export default function OrganisationSettingsPage() {
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label>Address</Label>
-                                <Input name="address" defaultValue={org?.address} placeholder="123 Business St, City, Country" />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label>Address</Label>
+                                    <Input name="address" defaultValue={org?.address} placeholder="123 Business St, City, Country" />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Daily Report Time (WhatsApp)</Label>
+                                    <Input name="dailyReportTime" type="time" defaultValue={org?.dailyReportTime || "09:00"} />
+                                </div>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-4">
@@ -183,6 +192,7 @@ export default function OrganisationSettingsPage() {
                             updateMutation.mutate({ currency }, {
                                 onSuccess: () => {
                                     // Update global currency immediately
+                                    setCurrency(currency);
                                     setGlobalCurrency(currency);
 
                                     // Update localStorage to persist across reloads

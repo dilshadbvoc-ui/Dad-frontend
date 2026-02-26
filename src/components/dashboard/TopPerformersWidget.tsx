@@ -3,10 +3,12 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy, AlertCircle } from "lucide-react"
 import { formatCurrency, getAssetUrl } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 import { getTopPerformers } from "@/services/analyticsService"
 
 export function TopPerformersWidget({ branchId }: { branchId?: string | null }) {
+    const { formatCurrency } = useCurrency();
     const { data: performers = [], isLoading, isError } = useQuery({
         queryKey: ['top-performers', branchId],
         queryFn: () => getTopPerformers(branchId || undefined),
@@ -87,17 +89,10 @@ export function TopPerformersWidget({ branchId }: { branchId?: string | null }) 
                                     </div>
                                     <div className="text-right shrink-0">
                                         <p className="text-xs sm:text-sm font-bold text-primary">
-                                            {(() => {
-                                                try {
-                                                    return formatCurrency(user.totalRevenue || 0, undefined, {
-                                                        minimumFractionDigits: 0,
-                                                        maximumFractionDigits: 0
-                                                    });
-                                                } catch (error) {
-                                                    console.error('Currency format error:', error);
-                                                    return `$${(user.totalRevenue || 0).toFixed(0)}`;
-                                                }
-                                            })()}
+                                            {formatCurrency(user.totalRevenue || 0, {
+                                                minimumFractionDigits: 0,
+                                                maximumFractionDigits: 0
+                                            })}
                                         </p>
                                     </div>
                                 </div>

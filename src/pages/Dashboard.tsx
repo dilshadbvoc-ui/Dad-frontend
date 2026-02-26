@@ -15,14 +15,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
-import { formatCurrencyCompact, isAdmin as checkIsAdmin } from "@/lib/utils";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { useCurrency } from '@/contexts/CurrencyContext';
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 
 interface User {
     id: string;
@@ -56,6 +57,7 @@ interface SalesForecast {
 }
 
 export default function Dashboard() {
+    const { formatCurrency, formatCurrencyCompact } = useCurrency();
     const [user] = useState<User | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;

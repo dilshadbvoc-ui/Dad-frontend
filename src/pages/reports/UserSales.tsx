@@ -9,6 +9,8 @@ import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 
 export default function UserSalesPage() {
@@ -46,6 +48,11 @@ export default function UserSalesPage() {
             <PageHeader
                 title="User-wise Sales Report"
                 description="Performance analysis of sales representatives."
+                actions={
+                    <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/user-sales`, '_blank')}>
+                        Download Excel
+                    </Button>
+                }
             />
 
             {/* Filters */}

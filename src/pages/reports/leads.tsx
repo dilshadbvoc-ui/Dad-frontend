@@ -177,11 +177,16 @@ export default function LeadReportsPage() {
 
     return (
         <div className="p-8 space-y-4">
-            <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => navigate('/reports')}>
-                    <ArrowLeft className="h-4 w-4" />
+            <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => navigate('/reports')}>
+                        <ArrowLeft className="h-4 w-4" />
+                    </Button>
+                    <h1 className="text-3xl font-bold tracking-tight">Lead Reports</h1>
+                </div>
+                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/leads`, '_blank')}>
+                    Download Excel
                 </Button>
-                <h1 className="text-3xl font-bold tracking-tight">Lead Reports</h1>
             </div>
             {renderContent()}
         </div>

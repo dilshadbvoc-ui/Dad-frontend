@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { MapPin, Users } from "lucide-react";
 import { format } from "date-fns";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
@@ -37,9 +38,14 @@ export default function FieldForceReportsPage() {
 
     return (
         <div className="p-8 space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Field Force Activity</h1>
-                <p className="text-muted-foreground mt-2">Track agent visits, check-ins, and field operations.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Field Force Activity</h1>
+                    <p className="text-muted-foreground mt-2">Track agent visits, check-ins, and field operations.</p>
+                </div>
+                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/check-ins`, '_blank')}>
+                    Download Excel
+                </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

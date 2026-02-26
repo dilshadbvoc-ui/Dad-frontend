@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { CloseWonDialog } from "./CloseWonDialog"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -60,6 +61,8 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
         (opportunity as any).customFields || {}
     )
     const [prevOpportunityId, setPrevOpportunityId] = useState(opportunity.id);
+    const [showCloseWonDialog, setShowCloseWonDialog] = useState(false)
+    const [pendingData, setPendingData] = useState<EditOpportunityFormData | null>(null)
 
     if (opportunity.id !== prevOpportunityId) {
         setPrevOpportunityId(opportunity.id);
@@ -119,6 +122,11 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
     })
 
     function onSubmit(values: EditOpportunityFormData) {
+        if (values.stage === 'closed_won' && opportunity.stage !== 'closed_won') {
+            setPendingData(values);
+            setShowCloseWonDialog(true);
+            return;
+        }
         mutation.mutate(values)
     }
 
@@ -277,6 +285,19 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                     </form>
                 </Form>
             </DialogContent>
+
+            {showCloseWonDialog && (
+                <CloseWonDialog
+                    open={showCloseWonDialog}
+                    onOpenChange={setShowCloseWonDialog}
+                    opportunityId={opportunity.id}
+                    opportunityName={opportunity.name}
+                    amount={pendingData?.amount || opportunity.amount}
+                    onSuccess={() => {
+                        finalOnOpenChange?.(false)
+                    }}
+                />
+            )}
         </Dialog>
     )
 }

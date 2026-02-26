@@ -72,9 +72,9 @@ export default function SalesBookPage() {
                 title="Sales Book"
                 description="Detailed record of all closed sales."
                 actions={
-                    <Button variant="outline" onClick={handleExport} disabled={!sales || sales.length === 0}>
+                    <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/sales`, '_blank')} disabled={!sales || sales.length === 0}>
                         <Download className="mr-2 h-4 w-4" />
-                        Export CSV
+                        Download Excel
                     </Button>
                 }
             />

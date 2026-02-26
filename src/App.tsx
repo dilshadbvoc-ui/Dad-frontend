@@ -264,24 +264,28 @@ function AppContent() {
   );
 }
 
+import { CurrencyProvider } from './contexts/CurrencyContext';
+
 function App() {
   return (
     <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AppContent />
-        <Toaster
-          position="bottom-right"
-          expand={true}
-          richColors
-          closeButton
-          duration={4000}
-          toastOptions={{
-            style: {
-              borderRadius: '12px',
-            },
-          }}
-        />
-      </QueryClientProvider>
+      <CurrencyProvider>
+        <QueryClientProvider client={queryClient}>
+          <AppContent />
+          <Toaster
+            position="bottom-right"
+            expand={true}
+            richColors
+            closeButton
+            duration={4000}
+            toastOptions={{
+              style: {
+                borderRadius: '12px',
+              },
+            }}
+          />
+        </QueryClientProvider>
+      </CurrencyProvider>
     </ThemeProvider>
   );
 }
