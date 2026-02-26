@@ -1,6 +1,6 @@
 import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
 import { useState } from "react"
-import { MoreHorizontal, Pencil, Copy, Eye, Trash2, CreditCard } from "lucide-react"
+import { MoreHorizontal, Pencil, Copy, Eye, Trash2, CreditCard, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
@@ -10,8 +10,10 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { EditOpportunityDialog, type Opportunity } from "@/components/EditOpportunityDialog"
+import { EditOpportunityDialog } from "@/components/EditOpportunityDialog"
+import { type Opportunity } from "@/services/opportunityService"
 import { ViewOpportunityDialog } from "@/components/ViewOpportunityDialog"
+import { CloseWonDialog } from "@/components/CloseWonDialog"
 import { deleteOpportunity } from "@/services/opportunityService"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -35,6 +37,7 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
     const [isViewOpen, setIsViewOpen] = useState(false)
     const [showDeleteDialog, setShowDeleteDialog] = useState(false)
     const [showEMIDialog, setShowEMIDialog] = useState(false)
+    const [showPaymentDialog, setShowPaymentDialog] = useState(false)
     const queryClient = useQueryClient()
 
     const user = getUserInfo();
@@ -85,8 +88,14 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setShowEMIDialog(true)}>
                         <CreditCard className="mr-2 h-4 w-4" />
-                        Manage EMI
+                        View EMI Schedule
                     </DropdownMenuItem>
+                    {opportunity.stage === 'closed_won' && opportunity.paymentStatus !== 'paid' && (
+                        <DropdownMenuItem onClick={() => setShowPaymentDialog(true)} className="text-success focus:text-success focus:bg-success/10 font-medium">
+                            <DollarSign className="mr-2 h-4 w-4" />
+                            Record Payment / EMI
+                        </DropdownMenuItem>
+                    )}
                     {canDelete && (
                         <>
                             <DropdownMenuSeparator />
@@ -136,6 +145,19 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
                     />
                 </DialogContent>
             </Dialog>
+
+            {showPaymentDialog && (
+                <CloseWonDialog
+                    open={showPaymentDialog}
+                    onOpenChange={setShowPaymentDialog}
+                    opportunityId={opportunity.id}
+                    opportunityName={opportunity.name}
+                    amount={opportunity.amount}
+                    onSuccess={() => {
+                        queryClient.invalidateQueries({ queryKey: ["opportunities"] })
+                    }}
+                />
+            )}
         </>
     )
 }

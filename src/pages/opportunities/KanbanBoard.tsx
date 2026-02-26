@@ -210,22 +210,11 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
 
                                                                 {opp.stage === 'closed_won' && opp.paymentStatus !== 'paid' && (
                                                                     <DropdownMenuItem
-                                                                        onClick={async () => {
-                                                                            // Optimistic update
-                                                                            setOpportunities((prev: Opportunity[]) => prev.map((o: Opportunity) =>
-                                                                                o.id === opp.id ? { ...o, paymentStatus: 'paid', paymentDate: new Date().toISOString() } : o
-                                                                            ));
-                                                                            try {
-                                                                                await updateOpportunity(opp.id, { paymentStatus: 'paid', paymentDate: new Date().toISOString() });
-                                                                                toast.success("Marked as Paid");
-                                                                            } catch {
-                                                                                toast.error("Failed to update status");
-                                                                                // Revert
-                                                                            }
-                                                                        }}
-                                                                        className="text-success focus:text-success focus:bg-success/10"
+                                                                        onClick={() => setCloseWonOpp(opp)}
+                                                                        className="text-success focus:text-success focus:bg-success/10 font-medium"
                                                                     >
-                                                                        Mark as Paid
+                                                                        <DollarSign className="mr-2 h-4 w-4" />
+                                                                        Record Payment / EMI
                                                                     </DropdownMenuItem>
                                                                 )}
 

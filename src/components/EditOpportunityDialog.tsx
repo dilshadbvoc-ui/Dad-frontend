@@ -28,15 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { api } from "@/services/api"
 import DynamicCustomFields from "@/components/forms/DynamicCustomFields";
 
-export interface Opportunity {
-    id: string
-    name: string
-    amount: number
-    stage: string
-    probability: number
-    closeDate?: string
-    type?: 'NEW_BUSINESS' | 'UPSALE'
-}
+import { type Opportunity } from "@/services/opportunityService"
 
 interface EditOpportunityDialogProps {
     children?: React.ReactNode
