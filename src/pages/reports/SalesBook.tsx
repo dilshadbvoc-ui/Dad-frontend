@@ -72,7 +72,17 @@ export default function SalesBookPage() {
                 title="Sales Book"
                 description="Detailed record of all closed sales."
                 actions={
-                    <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/sales`, '_blank')} disabled={!sales || sales.length === 0}>
+                    <Button
+                        variant="outline"
+                        onClick={() => {
+                            const params = new URLSearchParams();
+                            if (startDate) params.append('startDate', startDate);
+                            if (endDate) params.append('endDate', endDate);
+                            if (selectedBranchId) params.append('branchId', selectedBranchId);
+                            window.open(`${import.meta.env.VITE_API_URL}/reports/export/sales?${params.toString()}`, '_blank');
+                        }}
+                        disabled={!sales || sales.length === 0}
+                    >
                         <Download className="mr-2 h-4 w-4" />
                         Download Excel
                     </Button>

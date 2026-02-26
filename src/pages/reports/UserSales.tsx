@@ -49,7 +49,13 @@ export default function UserSalesPage() {
                 title="User-wise Sales Report"
                 description="Performance analysis of sales representatives."
                 actions={
-                    <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/user-sales`, '_blank')}>
+                    <Button variant="outline" onClick={() => {
+                        const params = new URLSearchParams();
+                        if (startDate) params.append('startDate', startDate);
+                        if (endDate) params.append('endDate', endDate);
+                        if (selectedBranchId) params.append('branchId', selectedBranchId);
+                        window.open(`${import.meta.env.VITE_API_URL}/reports/export/user-sales?${params.toString()}`, '_blank');
+                    }}>
                         Download Excel
                     </Button>
                 }

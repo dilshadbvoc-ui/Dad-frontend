@@ -184,7 +184,17 @@ export default function LeadReportsPage() {
                     </Button>
                     <h1 className="text-3xl font-bold tracking-tight">Lead Reports</h1>
                 </div>
-                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/leads`, '_blank')}>
+                <Button variant="outline" onClick={() => {
+                    const params = new URLSearchParams();
+                    // leads.tsx uses viewType in searchParams
+                    if (viewType === 'converted') params.append('status', 'converted');
+                    if (viewType === 'lost') params.append('status', 'lost');
+                    if (viewType === 'today') {
+                        params.append('startDate', new Date().toISOString().split('T')[0]);
+                        params.append('endDate', new Date().toISOString().split('T')[0]);
+                    }
+                    window.open(`${import.meta.env.VITE_API_URL}/reports/export/leads?${params.toString()}`, '_blank');
+                }}>
                     Download Excel
                 </Button>
             </div>
