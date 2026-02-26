@@ -2,7 +2,9 @@ import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { Loader2, Plus, Trash2 } from "lucide-react"
+import { Loader2, Plus, Trash2, Percent } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -71,11 +73,13 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
         opportunity?: string
         contact?: string
         validUntil: string
+        enableEMI: boolean
     }>({
         defaultValues: {
             title: "",
             description: "",
             validUntil: defaultValidUntil, // 30 days from now
+            enableEMI: false,
         },
     })
 
@@ -172,7 +176,8 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
         return { subtotal, totalDiscount, totalTax, grandTotal }
     }
 
-    function onSubmit(values: { title: string; description?: string; account?: string; opportunity?: string; contact?: string; validUntil: string }) {
+    function onSubmit(v: any) {
+        const values = v as { title: string; description?: string; account?: string; opportunity?: string; contact?: string; validUntil: string; enableEMI: boolean };
         const totals = calculateTotals()
 
         const quoteData: CreateQuoteData & { totalDiscount: number; totalTax: number } = {
@@ -182,6 +187,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
             opportunity: values.opportunity,
             contact: values.contact,
             validUntil: values.validUntil,
+            isEMIEnabled: values.enableEMI,
             lineItems: lineItems.map(item => ({
                 productName: item.productName,
                 description: item.description,
@@ -408,22 +414,51 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
                         </div>
 
                         {/* Totals */}
-                        <div className="border-t pt-4 space-y-2">
-                            <div className="flex justify-between text-sm">
-                                <span>Subtotal:</span>
-                                <span>${totals.subtotal.toFixed(2)}</span>
+                        <div className="border-t pt-4 space-y-4">
+                            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border border-dashed">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 bg-primary/10 rounded-full">
+                                        <Percent className="h-4 w-4 text-primary" />
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="emi-toggle" className="text-sm font-semibold cursor-pointer">Enable EMI Option</Label>
+                                        <p className="text-xs text-muted-foreground">Allow customer to pay in installments</p>
+                                    </div>
+                                </div>
+                                <FormField
+                                    control={form.control}
+                                    name="enableEMI"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormControl>
+                                                <Switch
+                                                    id="emi-toggle"
+                                                    checked={field.value}
+                                                    onCheckedChange={field.onChange}
+                                                />
+                                            </FormControl>
+                                        </FormItem>
+                                    )}
+                                />
                             </div>
-                            <div className="flex justify-between text-sm">
-                                <span>Discount:</span>
-                                <span className="text-red-600">-${totals.totalDiscount.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-sm">
-                                <span>Tax:</span>
-                                <span>${totals.totalTax.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between text-lg font-bold border-t pt-2">
-                                <span>Grand Total:</span>
-                                <span className="text-green-600">${totals.grandTotal.toFixed(2)}</span>
+
+                            <div className="space-y-2">
+                                <div className="flex justify-between text-sm">
+                                    <span>Subtotal:</span>
+                                    <span>${totals.subtotal.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>Discount:</span>
+                                    <span className="text-red-600">-${totals.totalDiscount.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                    <span>Tax:</span>
+                                    <span>${totals.totalTax.toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between text-lg font-bold border-t pt-2">
+                                    <span>Grand Total:</span>
+                                    <span className="text-green-600">${totals.grandTotal.toFixed(2)}</span>
+                                </div>
                             </div>
                         </div>
 

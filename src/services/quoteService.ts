@@ -45,6 +45,7 @@ export interface CreateQuoteData {
     subtotal: number;
     grandTotal: number;
     validUntil: string;
+    isEMIEnabled?: boolean;
 }
 
 export interface QuoteSearchParams {

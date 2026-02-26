@@ -137,7 +137,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                     rules={{ required: "First name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name <span className="text-red-500">*</span></FormLabel>
                                             <FormControl>
                                                 <Input placeholder="John" className="h-10" {...field} />
                                             </FormControl>
@@ -191,7 +191,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                     }}
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone <span className="text-red-500">*</span></FormLabel>
                                             <FormControl>
                                                 <Input
                                                     placeholder="9876543210"
