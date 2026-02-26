@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency, getAssetUrl } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2 } from "lucide-react";
+import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2, CreditCard, Clock } from "lucide-react";
 import { toast } from "sonner";
 import {
     DropdownMenu,
@@ -148,9 +148,23 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                 {opp.paymentStatus === 'paid' && (
                                                                     <Tooltip>
                                                                         <TooltipTrigger>
-                                                                            <CheckCircle2 className="h-4 w-4 text-success fill-success/10" />
+                                                                            <CheckCircle2 className="h-4 w-4 text-emerald-500 fill-emerald-500/10" />
                                                                         </TooltipTrigger>
                                                                         <TooltipContent>Payment Complete</TooltipContent>
+                                                                    </Tooltip>
+                                                                )}
+                                                                {opp.paymentStatus === 'partial' && (
+                                                                    <Tooltip>
+                                                                        <TooltipTrigger>
+                                                                            {opp.emiSchedule ? (
+                                                                                <CreditCard className="h-4 w-4 text-amber-500" />
+                                                                            ) : (
+                                                                                <Clock className="h-4 w-4 text-sky-500" />
+                                                                            )}
+                                                                        </TooltipTrigger>
+                                                                        <TooltipContent>
+                                                                            {opp.emiSchedule ? 'EMI Schedule Active' : 'Partially Paid'}
+                                                                        </TooltipContent>
                                                                     </Tooltip>
                                                                 )}
                                                             </div>

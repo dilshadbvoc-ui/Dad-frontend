@@ -48,6 +48,7 @@ export const columns: ColumnDef<Opportunity>[] = [
         header: "Stage",
         cell: ({ row }) => {
             const stage = row.getValue("stage") as string
+            const opportunity = row.original
             let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
 
             switch (stage) {
@@ -57,7 +58,16 @@ export const columns: ColumnDef<Opportunity>[] = [
                 default: variant = "secondary";
             }
 
-            return <Badge variant={variant} className="capitalize">{stage.replace('_', ' ')}</Badge>
+            let label = stage.replace('_', ' ')
+            if (stage === 'closed_won') {
+                if (opportunity.paymentStatus === 'paid') {
+                    label += ' (Paid)'
+                } else if (opportunity.paymentStatus === 'partial') {
+                    label += opportunity.emiSchedule ? ' (EMI)' : ' (Partial)'
+                }
+            }
+
+            return <Badge variant={variant} className="capitalize">{label}</Badge>
         }
     },
     {
