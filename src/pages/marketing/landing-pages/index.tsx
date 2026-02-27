@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getLandingPages, createLandingPage, deleteLandingPage, type LandingPage } from "@/services/landingPageService";
+import { useQuery, useMutation, useQueryClient } from "@tantml:react-query";
+import { getLandingPages, createLandingPage, deleteLandingPage, updateLandingPage, type LandingPage } from "@/services/landingPageService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2, Globe, Eye, MousePointerClick, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Globe, Eye, MousePointerClick, ExternalLink, MoreVertical, CheckCircle } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -17,6 +17,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import {
     Table,
     TableBody,
@@ -60,6 +67,18 @@ export default function LandingPagesManager() {
         },
         onError: () => {
             toast.error("Failed to delete page");
+        }
+    });
+
+    const updateStatusMutation = useMutation({
+        mutationFn: ({ id, status }: { id: string; status: 'draft' | 'published' | 'archived' }) => 
+            updateLandingPage(id, { status }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['landing-pages'] });
+            toast.success("Status updated");
+        },
+        onError: () => {
+            toast.error("Failed to update status");
         }
     });
 
@@ -184,9 +203,34 @@ export default function LandingPagesManager() {
                                                     <Button variant="ghost" size="icon" onClick={() => window.open(`/pages/${item.slug}`, '_blank')}>
                                                         <ExternalLink className="h-4 w-4" />
                                                     </Button>
-                                                    <Button variant="ghost" size="icon" className="text-red-500" onClick={() => deleteMutation.mutate(item.id)}>
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </Button>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            {item.status !== 'published' && (
+                                                                <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'published' })}>
+                                                                    <CheckCircle className="h-4 w-4 mr-2" />
+                                                                    Publish
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            {item.status === 'published' && (
+                                                                <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'draft' })}>
+                                                                    Unpublish
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem 
+                                                                onClick={() => deleteMutation.mutate(item.id)}
+                                                                className="text-destructive focus:text-destructive"
+                                                            >
+                                                                <Trash2 className="h-4 w-4 mr-2" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </TableCell>
                                         </TableRow>
