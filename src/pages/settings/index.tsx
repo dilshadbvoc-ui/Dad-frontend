@@ -107,12 +107,11 @@ const ALL_SETTINGS_SECTIONS = [
         description: "Configure email and in-app notification preferences",
         href: "/settings/notifications",
         icon: Bell,
-        gradient: "from-indigo-600 to-violet-600",
-        roles: ['admin']
+        gradient: "from-indigo-600 to-violet-600"
     },
     {
-        title: "Data Migration",
-        description: "Import data from CSV files",
+        title: "Bulk Import Leads",
+        description: "Upload a CSV or Excel file to import leads in bulk",
         href: "/settings/import",
         icon: Upload,
         gradient: "from-indigo-600 to-violet-600"
