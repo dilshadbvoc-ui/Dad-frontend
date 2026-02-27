@@ -1,13 +1,12 @@
-import type { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tantml:function_calls>
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { OpportunityActions } from "./OpportunityActions"
 import type { Opportunity } from "@/services/opportunityService"
-import { formatCurrency } from "@/lib/utils"
 
-export const columns: ColumnDef<Opportunity>[] = [
+export const createOpportunityColumns = (formatCurrency: (amount: number) => string): ColumnDef<Opportunity>[] => [
     {
         accessorKey: "name",
         header: ({ column }) => {

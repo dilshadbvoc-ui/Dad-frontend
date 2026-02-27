@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Loader2, CheckCircle2, Clock, AlertCircle, XCircle, Plus, CreditCard, Trash2, CalendarDays } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -40,6 +40,7 @@ const statusConfig: Record<string, { icon: React.ReactNode; color: string; label
 }
 
 export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmount }: EMISchedulePanelProps) {
+    const { formatCurrency } = useCurrency()
     const [showConvertDialog, setShowConvertDialog] = useState(false)
     const [installmentRows, setInstallmentRows] = useState<Array<{ dueDate: string; amount: string }>>([
         { dueDate: "", amount: "" }

@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
 import { Loader2, CreditCard, ChevronRight, Plus, Trash2 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 import { api } from "@/services/api"
 
 import { Button } from "@/components/ui/button"
@@ -37,6 +37,7 @@ export function CloseWonDialog({
     amount,
     onSuccess
 }: CloseWonDialogProps) {
+    const { formatCurrency } = useCurrency()
     const [paymentType, setPaymentType] = useState<PaymentOption>('paid')
     const [paidAmount, setPaidAmount] = useState<string>("0")
     const [installmentRows, setInstallmentRows] = useState<Array<{ dueDate: string; amount: string }>>([])

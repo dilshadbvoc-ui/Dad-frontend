@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
-import { columns } from "./columns"
+import { createOpportunityColumns } from "./columns"
 import { getOpportunities } from "@/services/opportunityService"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "./KanbanBoard"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 import {
     Target,
@@ -19,6 +20,8 @@ import { useState } from "react"
 import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
 
 export default function OpportunitiesPage() {
+    const { formatCurrency } = useCurrency()
+    const columns = createOpportunityColumns(formatCurrency)
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [viewMode, setViewMode] = useState<'list' | 'board'>('board') // Default to board for better UX
     const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')

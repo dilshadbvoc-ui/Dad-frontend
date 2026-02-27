@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { Search, Loader2, User, Building, FileText, CheckSquare, TrendingUp } from "lucide-react"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
-import { formatCurrency } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 interface SearchResult {
     id: string;
@@ -21,6 +21,7 @@ interface SearchResult {
 
 
 export function GlobalSearch() {
+    const { formatCurrency } = useCurrency()
     const [query, setQuery] = useState("")
     const [results, setResults] = useState<SearchResult[]>([])
     const [suggestions, setSuggestions] = useState<string[]>([])

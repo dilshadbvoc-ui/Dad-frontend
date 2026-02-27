@@ -16,7 +16,23 @@ interface CurrencyContextType {
 const CurrencyContext = createContext<CurrencyContextType | undefined>(undefined);
 
 export const CurrencyProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [currency, setCurrencyState] = useState(getGlobalCurrency());
+    // Initialize currency from localStorage if available, otherwise use global default
+    const [currency, setCurrencyState] = useState(() => {
+        try {
+            const userInfo = localStorage.getItem('userInfo');
+            if (userInfo) {
+                const parsed = JSON.parse(userInfo);
+                if (parsed.organisation?.currency) {
+                    const orgCurrency = parsed.organisation.currency.toUpperCase();
+                    setGlobalCurrency(orgCurrency);
+                    return orgCurrency;
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load currency from localStorage', e);
+        }
+        return getGlobalCurrency();
+    });
 
     useEffect(() => {
         // Listen for storage changes or custom events if needed
