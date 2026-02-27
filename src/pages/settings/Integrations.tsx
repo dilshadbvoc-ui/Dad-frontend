@@ -2,10 +2,10 @@ import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, CheckCircle2 } from "lucide-react";
+import { Settings, CheckCircle2, Unplug } from "lucide-react";
 import {
     FacebookLogo,
     WhatsAppLogo,
@@ -220,58 +220,45 @@ export default function IntegrationsPage() {
             </div>
 
             {/* Main Content */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredIntegrations.map((integration) => (
-                    <Card key={integration.id} className="h-full bg-[#1e1b4b] hover:shadow-md hover:shadow-indigo-900/20 transition-shadow duration-200 border border-indigo-900/50">
-                        <CardContent className="p-5 flex flex-col h-full">
-                            <div className="flex justify-between items-start mb-4">
+                    <Card key={integration.id} className={integration.connected ? "border-green-200 dark:border-green-800" : ""}>
+                        <CardHeader className="pb-3">
+                            <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-indigo-900/50 rounded-lg">
-                                        <integration.icon className={`h-6 w-6 ${integration.iconColor}`} />
+                                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+                                        <integration.icon className={`h-5 w-5 ${integration.iconColor}`} />
                                     </div>
-                                    <h3 className="font-semibold text-white text-lg">
-                                        {integration.name}
-                                    </h3>
+                                    <div>
+                                        <CardTitle className="text-base">{integration.name}</CardTitle>
+                                        <CardDescription className="text-xs">
+                                            {integration.description}
+                                        </CardDescription>
+                                    </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                    {integration.connected && (
-                                        <Badge variant="outline" className="text-green-400 border-green-500/30 bg-green-500/10 gap-1 px-2 py-0.5 rounded-full">
-                                            <CheckCircle2 className="h-3 w-3" />
-                                            Enabled
-                                        </Badge>
-                                    )}
-                                    {integration.connected && integration.hasSettings && (
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-6 w-6 text-indigo-300/60 hover:text-indigo-200"
-                                            onClick={() => openConfig(integration.settingsType!)}
-                                        >
-                                            <Settings className="h-4 w-4" />
-                                        </Button>
-                                    )}
-                                </div>
+                                {integration.connected ? (
+                                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 gap-1">
+                                        <CheckCircle2 className="w-3 h-3" />
+                                        Connected
+                                    </Badge>
+                                ) : null}
                             </div>
-
-                            <p className="text-sm text-indigo-300/70 mb-4 flex-1 leading-relaxed">
-                                {integration.description}
-                            </p>
-
+                        </CardHeader>
+                        <CardContent>
                             {/* Show connected accounts for Facebook */}
-                            {integration.id === 'facebook' && integration.accounts && integration.accounts.length > 0 && (
-                                <div className="mb-4 space-y-2">
-                                    <p className="text-xs font-medium text-indigo-300">Connected Accounts:</p>
+                            {integration.id === 'facebook' && integration.accounts && integration.accounts.length > 0 ? (
+                                <div className="space-y-3">
                                     {integration.accounts.map((acc: MetaAccount, idx: number) => (
-                                        <div key={acc.adAccountId || idx} className="flex items-center justify-between bg-indigo-900/30 p-2 rounded-lg text-xs">
+                                        <div key={acc.adAccountId || idx} className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
                                             <div className="flex flex-col">
-                                                <span className="font-medium text-white">{acc.adAccountName || acc.pageName || 'Account'}</span>
-                                                <span className="text-[10px] text-indigo-400">ID: {acc.adAccountId || 'N/A'}</span>
+                                                <span className="text-sm font-medium">{acc.adAccountName || acc.pageName || 'Account'}</span>
+                                                <span className="text-xs text-muted-foreground">ID: {acc.adAccountId || 'N/A'}</span>
                                             </div>
                                             <div className="flex gap-1">
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-6 text-indigo-300 hover:text-white text-xs"
+                                                    className="h-7 text-xs"
                                                     onClick={() => {
                                                         setSelectedMetaAccount(acc);
                                                         setMetaConfigOpen(true);
@@ -283,7 +270,7 @@ export default function IntegrationsPage() {
                                                 <Button
                                                     size="sm"
                                                     variant="ghost"
-                                                    className="h-6 text-red-400 hover:text-red-300 text-xs"
+                                                    className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                                                     onClick={async () => {
                                                         try {
                                                             const { api } = await import('@/services/api');
@@ -295,43 +282,75 @@ export default function IntegrationsPage() {
                                                         }
                                                     }}
                                                 >
+                                                    <Unplug className="h-3 w-3 mr-1" />
                                                     Disconnect
                                                 </Button>
                                             </div>
                                         </div>
                                     ))}
+                                    <Button
+                                        size="sm"
+                                        variant="outline"
+                                        onClick={handleConnectMeta}
+                                    >
+                                        Add Another Account
+                                    </Button>
+                                </div>
+                            ) : integration.connected ? (
+                                <div className="space-y-3">
+                                    <p className="text-xs text-muted-foreground">
+                                        This integration is active and syncing data to your CRM.
+                                    </p>
+                                    <div className="flex gap-2">
+                                        {integration.hasSettings && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => openConfig(integration.settingsType!)}
+                                                className="gap-1.5"
+                                            >
+                                                <Settings className="w-3.5 h-3.5" />
+                                                Settings
+                                            </Button>
+                                        )}
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="text-destructive hover:text-destructive hover:bg-destructive/10 gap-1.5"
+                                            onClick={() => integration.onDisable?.()}
+                                        >
+                                            <Unplug className="w-3.5 h-3.5" />
+                                            Disconnect
+                                        </Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {integration.link ? (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => window.location.href = integration.link!}
+                                            className="gap-2"
+                                        >
+                                            Enable
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (integration.isPlaceholder) {
+                                                    toast.info("This integration is coming soon!");
+                                                    return;
+                                                }
+                                                integration.onEnable?.();
+                                            }}
+                                            className="gap-2"
+                                        >
+                                            Enable
+                                        </Button>
+                                    )}
                                 </div>
                             )}
-
-                            <div className="mt-auto flex justify-end">
-                                {integration.link ? (
-                                    <Button
-                                        className="bg-indigo-600 hover:bg-indigo-500 text-white px-6 h-9 text-sm font-medium"
-                                        onClick={() => window.location.href = integration.link!}
-                                    >
-                                        Enable
-                                    </Button>
-                                ) : (
-                                    <Button
-                                        className={`${integration.connected
-                                            ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-                                            : 'bg-indigo-600 hover:bg-indigo-500 text-white'} px-6 h-9 text-sm font-medium`}
-                                        onClick={() => {
-                                            if (integration.isPlaceholder) {
-                                                toast.info("This integration is coming soon!");
-                                                return;
-                                            }
-                                            if (integration.connected) {
-                                                integration.onDisable?.();
-                                            } else {
-                                                integration.onEnable?.();
-                                            }
-                                        }}
-                                    >
-                                        {integration.connected ? 'Disable' : 'Enable'}
-                                    </Button>
-                                )}
-                            </div>
                         </CardContent>
                     </Card>
                 ))}
