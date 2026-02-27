@@ -26,9 +26,16 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -85,10 +92,14 @@ function HierarchyNode({
     node,
     depth,
     onEdit,
+    onSuspend,
+    onActivate,
 }: {
     node: TreeNode
     depth: number
     onEdit: (m: TeamMember) => void
+    onSuspend: (userId: string) => void
+    onActivate: (userId: string) => void
 }) {
     const [expanded, setExpanded] = useState(true)
     const m = node.user
@@ -141,9 +152,37 @@ function HierarchyNode({
                 </div>
 
                 {/* Actions */}
-                <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity" onClick={() => onEdit(m)}>
-                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <MoreVertical className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEdit(m)}>
+                            <Pencil className="h-4 w-4 mr-2" />
+                            Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {m.isActive ? (
+                            <DropdownMenuItem 
+                                onClick={() => onSuspend(m.id)}
+                                className="text-destructive focus:text-destructive"
+                            >
+                                <UserX className="h-4 w-4 mr-2" />
+                                Suspend User
+                            </DropdownMenuItem>
+                        ) : (
+                            <DropdownMenuItem 
+                                onClick={() => onActivate(m.id)}
+                                className="text-green-600 focus:text-green-600"
+                            >
+                                <UserCheck className="h-4 w-4 mr-2" />
+                                Activate User
+                            </DropdownMenuItem>
+                        )}
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             {/* Children */}
@@ -155,7 +194,7 @@ function HierarchyNode({
                         style={{ left: `${26 + depth * 28}px` }}
                     />
                     {node.children.map(child => (
-                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} />
+                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} />
                     ))}
                 </div>
             )}
@@ -233,6 +272,34 @@ export default function TeamSettings() {
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || "Failed to update team member")
+        }
+    })
+
+    const suspendMutation = useMutation({
+        mutationFn: async (userId: string) => {
+            const res = await api.post(`/users/${userId}/deactivate`)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            toast.success("User suspended successfully")
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to suspend user")
+        }
+    })
+
+    const activateMutation = useMutation({
+        mutationFn: async (userId: string) => {
+            const res = await api.post(`/users/${userId}/activate`)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            toast.success("User activated successfully")
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to activate user")
         }
     })
 
@@ -413,9 +480,37 @@ export default function TeamSettings() {
                                         </TableCell>
                                         <TableCell className="text-right">
                                             <div className="flex justify-end gap-2">
-                                                <Button variant="ghost" size="icon" onClick={() => openEdit(member)}>
-                                                    <Pencil className="h-4 w-4 text-muted-foreground" />
-                                                </Button>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="icon">
+                                                            <MoreVertical className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem onClick={() => openEdit(member)}>
+                                                            <Pencil className="h-4 w-4 mr-2" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        {member.isActive ? (
+                                                            <DropdownMenuItem 
+                                                                onClick={() => suspendMutation.mutate(member.id)}
+                                                                className="text-destructive focus:text-destructive"
+                                                            >
+                                                                <UserX className="h-4 w-4 mr-2" />
+                                                                Suspend User
+                                                            </DropdownMenuItem>
+                                                        ) : (
+                                                            <DropdownMenuItem 
+                                                                onClick={() => activateMutation.mutate(member.id)}
+                                                                className="text-green-600 focus:text-green-600"
+                                                            >
+                                                                <UserCheck className="h-4 w-4 mr-2" />
+                                                                Activate User
+                                                            </DropdownMenuItem>
+                                                        )}
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -436,7 +531,14 @@ export default function TeamSettings() {
                     ) : (
                         <div className="space-y-0.5">
                             {hierarchyTree.map(node => (
-                                <HierarchyNode key={node.user.id} node={node} depth={0} onEdit={openEdit} />
+                                <HierarchyNode 
+                                    key={node.user.id} 
+                                    node={node} 
+                                    depth={0} 
+                                    onEdit={openEdit} 
+                                    onSuspend={(userId) => suspendMutation.mutate(userId)}
+                                    onActivate={(userId) => activateMutation.mutate(userId)}
+                                />
                             ))}
                         </div>
                     )}
