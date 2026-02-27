@@ -85,9 +85,13 @@ export default function SharedProductPage() {
     const brochureType = product.brochureUrl?.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image'
     const brochureFullUrl = product.brochureUrl ? getAssetUrl(product.brochureUrl) : '';
 
+    console.log('=== BROCHURE DEBUG ===');
     console.log('Product brochure URL:', product.brochureUrl);
     console.log('Constructed brochure URL:', brochureFullUrl);
+    console.log('URL starts with http:', brochureFullUrl.startsWith('http'));
+    console.log('Window location:', typeof window !== 'undefined' ? window.location.href : 'N/A');
     console.log('Lead data:', lead);
+    console.log('======================');
 
     // Handle call now action
     const handleCallNow = () => {

@@ -129,18 +129,26 @@ export function formatCurrencyCompact(amount: number, currency?: string) {
  */
 export function getAssetUrl(path?: string): string {
     if (!path) return '';
-    if (path.startsWith('http')) return path;
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
 
-    // Always use absolute URL to prevent React Router from intercepting
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // Ensure path starts with /
+    const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     
     // In development, use localhost backend
     if (import.meta.env.DEV) {
-        return `http://localhost:5001${path}`;
+        return `http://localhost:5001${normalizedPath}`;
     }
 
-    // In production, use current origin
-    return `${origin}${path}`;
+    // In production, ALWAYS use full absolute URL with protocol
+    // This ensures React Router cannot intercept the request
+    if (typeof window !== 'undefined') {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        return `${protocol}//${host}${normalizedPath}`;
+    }
+
+    // Fallback for SSR
+    return normalizedPath;
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
