@@ -127,7 +127,7 @@ export function GlobalSearch() {
 
     const formatValue = (value?: number) => {
         if (!value) return null
-        return formatCurrency(value, undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
+        return formatCurrency(value, { minimumFractionDigits: 0, maximumFractionDigits: 0 })
     }
 
     const formatDate = (dateString: string) => {

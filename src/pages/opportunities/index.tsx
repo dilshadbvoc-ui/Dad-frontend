@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-table"
+import { useQuery } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { createOpportunityColumns } from "./columns"
 import { getOpportunities } from "@/services/opportunityService"

@@ -149,6 +149,7 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
                         onSubmit={() => convertMutation.mutate()}
                         isPending={convertMutation.isPending}
                         opportunityAmount={opportunityAmount}
+                        formatCurrency={formatCurrency}
                     />
                 </CardContent>
             </Card>
@@ -282,11 +283,12 @@ interface ConvertDialogProps {
     onSubmit: () => void
     isPending: boolean
     opportunityAmount?: number
+    formatCurrency: (amount: number) => string
 }
 
 function ConvertDialog({
     open, onOpenChange, installmentRows, onAddRow, onRemoveRow,
-    onUpdateRow, onAutoSplit, onSubmit, isPending, opportunityAmount
+    onUpdateRow, onAutoSplit, onSubmit, isPending, opportunityAmount, formatCurrency
 }: ConvertDialogProps) {
     const totalEMI = installmentRows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0)
     const isValid = installmentRows.length > 0 && installmentRows.every(r => r.dueDate && r.amount && parseFloat(r.amount) > 0)
