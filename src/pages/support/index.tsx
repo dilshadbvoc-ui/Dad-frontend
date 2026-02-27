@@ -1,17 +1,18 @@
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { getCases, createCase, type Case, type CaseInput } from "@/services/caseService"
+import { getCases, createCase, updateCase, type Case, type CaseInput } from "@/services/caseService"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Headphones, Clock, CheckCircle, AlertCircle, MoreVertical, User } from "lucide-react"
+import { Plus, Headphones, Clock, CheckCircle, AlertCircle, MoreVertical, User, ArrowUp } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { toast } from "sonner"
 
 const statusColors: Record<string, string> = {
     new: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
@@ -40,7 +41,19 @@ export default function SupportPage() {
 
     const createMutation = useMutation({
         mutationFn: (data: CaseInput) => createCase(data),
-        onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['cases'] }); setIsDialogOpen(false) }
+        onSuccess: () => { 
+            queryClient.invalidateQueries({ queryKey: ['cases'] })
+            setIsDialogOpen(false)
+            toast.success('Support case created and assigned to your manager')
+        }
+    })
+
+    const updateMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string, data: Partial<CaseInput> }) => updateCase(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['cases'] })
+            toast.success('Case updated successfully')
+        }
     })
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -52,6 +65,20 @@ export default function SupportPage() {
             type: formData.get('type') as 'question' | 'problem' | 'feature_request',
             priority: formData.get('priority') as 'low' | 'medium' | 'high' | 'critical',
             status: 'new'
+        })
+    }
+
+    const handleResolve = (caseId: string) => {
+        updateMutation.mutate({
+            id: caseId,
+            data: { status: 'resolved' }
+        })
+    }
+
+    const handleStatusChange = (caseId: string, status: string) => {
+        updateMutation.mutate({
+            id: caseId,
+            data: { status }
         })
     }
 
@@ -158,13 +185,35 @@ export default function SupportPage() {
                                                         <div className="flex items-center gap-3 mt-1 text-sm text-muted-foreground">
                                                             <span>{c.caseNumber}</span>
                                                             <span className={priorityColors[c.priority]}>• {c.priority}</span>
-                                                            {c.contact && <span>• <User className="h-3 w-3 inline" /> {c.contact.firstName} {c.contact.lastName}</span>}
+                                                            {c.assignedTo && <span>• <User className="h-3 w-3 inline" /> Assigned to: {c.assignedTo.firstName} {c.assignedTo.lastName}</span>}
+                                                            {c.contact && <span>• Contact: {c.contact.firstName} {c.contact.lastName}</span>}
                                                         </div>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</p>
-                                                    <DropdownMenu><DropdownMenuTrigger asChild><Button variant="ghost" size="icon" className="hover:bg-muted"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuItem><CheckCircle className="h-4 w-4 mr-2" />Resolve</DropdownMenuItem></DropdownMenuContent></DropdownMenu>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="hover:bg-muted"><MoreVertical className="h-4 w-4" /></Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            {c.status !== 'resolved' && c.status !== 'closed' && (
+                                                                <>
+                                                                    <DropdownMenuItem onClick={() => handleStatusChange(c.id, 'in_progress')}>
+                                                                        <Clock className="h-4 w-4 mr-2" />Set In Progress
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem onClick={() => handleResolve(c.id)}>
+                                                                        <CheckCircle className="h-4 w-4 mr-2" />Mark as Resolved
+                                                                    </DropdownMenuItem>
+                                                                </>
+                                                            )}
+                                                            {c.status === 'resolved' && (
+                                                                <DropdownMenuItem onClick={() => handleStatusChange(c.id, 'closed')}>
+                                                                    <CheckCircle className="h-4 w-4 mr-2" />Close Case
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
                                             </div>
                                         ))}
