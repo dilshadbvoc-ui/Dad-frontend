@@ -75,7 +75,7 @@ export default function SupportPage() {
         })
     }
 
-    const handleStatusChange = (caseId: string, status: string) => {
+    const handleStatusChange = (caseId: string, status: 'new' | 'open' | 'in_progress' | 'resolved' | 'closed') => {
         updateMutation.mutate({
             id: caseId,
             data: { status }
