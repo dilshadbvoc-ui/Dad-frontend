@@ -24,6 +24,11 @@ export default function BulkImportLeadsPage() {
         return str ? JSON.parse(str) : null
     })
     const isAdminUser = isAdmin(user)
+    const [managedBranchIds, setManagedBranchIds] = useState<string[]>([])
+    
+    // Check if user is a branch manager
+    const isBranchManager = managedBranchIds.length > 0
+    const canConfigureImport = isAdminUser || isBranchManager
 
     useEffect(() => {
         fetchBranches()
@@ -38,6 +43,7 @@ export default function BulkImportLeadsPage() {
                 const response = await api.get('/users/my-team')
                 const managed = response.data?.managedBranches || []
                 setBranches(managed)
+                setManagedBranchIds(managed.map((b: any) => b.id))
                 if (managed.length === 1) {
                     setSelectedBranch(managed[0].id)
                     setApplyAssignmentRules(true)
@@ -216,53 +222,55 @@ export default function BulkImportLeadsPage() {
                             </CardContent>
                         </Card>
 
-                        {/* Configuration */}
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Step 3: Configure Import</CardTitle>
-                                <CardDescription>Set branch and assignment preferences</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Target Branch (Optional)</Label>
-                                    <Select value={selectedBranch || "none"} onValueChange={(val) => setSelectedBranch(val === "none" ? "" : val)}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Select Branch (Default: All/Head Office)" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="none">No Branch (Head Office)</SelectItem>
-                                            {branches.map((branch: any) => (
-                                                <SelectItem key={branch.id} value={branch.id}>
-                                                    {branch.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">Leads will be assigned to this branch</p>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <input
-                                            type="checkbox"
-                                            id="apply-rules"
-                                            checked={applyAssignmentRules}
-                                            onChange={e => setApplyAssignmentRules(e.target.checked)}
-                                            className="h-4 w-4 rounded border-gray-300"
-                                        />
-                                        <Label htmlFor="apply-rules" className="cursor-pointer">
-                                            Apply Assignment Rules
-                                        </Label>
+                        {/* Configuration - Only for Admins and Branch Managers */}
+                        {canConfigureImport && (
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle>Step 3: Configure Import</CardTitle>
+                                    <CardDescription>Set branch and assignment preferences</CardDescription>
+                                </CardHeader>
+                                <CardContent className="space-y-4">
+                                    <div className="space-y-2">
+                                        <Label>Target Branch (Optional)</Label>
+                                        <Select value={selectedBranch || "none"} onValueChange={(val) => setSelectedBranch(val === "none" ? "" : val)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Select Branch (Default: All/Head Office)" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="none">No Branch (Head Office)</SelectItem>
+                                                {branches.map((branch: any) => (
+                                                    <SelectItem key={branch.id} value={branch.id}>
+                                                        {branch.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <p className="text-xs text-muted-foreground">Leads will be assigned to this branch</p>
                                     </div>
-                                    <p className="text-xs text-muted-foreground ml-7">
-                                        {applyAssignmentRules
-                                            ? "Leads will be distributed according to active assignment rules"
-                                            : "Leads will be assigned to you by default"
-                                        }
-                                    </p>
-                                </div>
-                            </CardContent>
-                        </Card>
+
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-3">
+                                            <input
+                                                type="checkbox"
+                                                id="apply-rules"
+                                                checked={applyAssignmentRules}
+                                                onChange={e => setApplyAssignmentRules(e.target.checked)}
+                                                className="h-4 w-4 rounded border-gray-300"
+                                            />
+                                            <Label htmlFor="apply-rules" className="cursor-pointer">
+                                                Apply Assignment Rules
+                                            </Label>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground ml-7">
+                                            {applyAssignmentRules
+                                                ? "Leads will be distributed according to active assignment rules"
+                                                : "Leads will be assigned to you by default"
+                                            }
+                                        </p>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
                         {/* Import Button */}
                         <Card className="border-green-200 bg-green-50/50 dark:bg-green-950/20 dark:border-green-900">
@@ -288,7 +296,10 @@ export default function BulkImportLeadsPage() {
                                 {file && (
                                     <div className="mt-4 flex items-start gap-2 text-sm text-green-800 dark:text-green-200">
                                         <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                        <p>Ready to import. The process will run in the background and you'll be notified when complete.</p>
+                                        <p>
+                                            Ready to import. The process will run in the background and you'll be notified when complete.
+                                            {!canConfigureImport && " Leads will be assigned to you by default."}
+                                        </p>
                                     </div>
                                 )}
                             </CardContent>
