@@ -171,7 +171,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                     }}
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                             <FormControl>
                                                 <Input placeholder="john@example.com" className="h-10" {...field} />
                                             </FormControl>
@@ -219,7 +219,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                 name="company"
                                 render={({ field }) => (
                                     <FormItem className="space-y-1">
-                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company</FormLabel>
+                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="Acme Inc" className="h-10" {...field} />
                                         </FormControl>
@@ -233,7 +233,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                     name="source"
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger className="h-10">
@@ -262,7 +262,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                     name="assignedTo"
                                     render={({ field }) => (
                                         <FormItem className="space-y-1">
-                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To</FormLabel>
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                             <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                 <FormControl>
                                                     <SelectTrigger className="h-10">
