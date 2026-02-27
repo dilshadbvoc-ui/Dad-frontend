@@ -1,8 +1,8 @@
 
 import { useState, useEffect, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
-import { getWorkflows, runWorkflow, type Workflow, type WorkflowCondition, type WorkflowAction } from '@/services/workflowService';
+import { getWorkflows, runWorkflow, deleteWorkflow, type Workflow, type WorkflowCondition, type WorkflowAction } from '@/services/workflowService';
 import { getLeads, type Lead } from '@/services/leadService';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
@@ -20,13 +20,35 @@ import {
     MousePointerClick,
     Users,
     Search,
-    GripVertical
+    GripVertical,
+    Trash2,
+    MoreVertical
 } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+    DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function WorkflowsPage() {
+    const queryClient = useQueryClient();
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [draggedLeadId, setDraggedLeadId] = useState<string | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [workflowToDelete, setWorkflowToDelete] = useState<string | null>(null);
 
     const { data, isLoading } = useQuery({
         queryKey: ['workflows'],
@@ -57,6 +79,36 @@ export default function WorkflowsPage() {
             toast.error(error.response?.data?.message || 'Failed to execute workflow');
         }
     });
+
+    const deleteMutation = useMutation({
+        mutationFn: deleteWorkflow,
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['workflows'] });
+            toast.success('Workflow deleted successfully');
+            setDeleteDialogOpen(false);
+            setWorkflowToDelete(null);
+            // If the deleted workflow was selected, clear selection
+            if (selectedId === workflowToDelete) {
+                setSelectedId(null);
+            }
+        },
+        onError: (err: unknown) => {
+            const error = err as AxiosError<{ message: string }>;
+            toast.error(error.response?.data?.message || 'Failed to delete workflow');
+        }
+    });
+
+    const handleDeleteClick = (workflowId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setWorkflowToDelete(workflowId);
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = () => {
+        if (workflowToDelete) {
+            deleteMutation.mutate(workflowToDelete);
+        }
+    };
 
     const workflows = useMemo(() => data?.workflows || [], [data]);
     const selectedWorkflow = workflows.find((w: Workflow) => w.id === selectedId) || workflows[0];
@@ -119,19 +171,47 @@ export default function WorkflowsPage() {
                                 <div
                                     key={workflow.id}
                                     onClick={() => setSelectedId(workflow.id)}
-                                    className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${selectedId === workflow.id
+                                    className={`p-3 rounded-lg border cursor-pointer transition-all hover:shadow-sm group ${selectedId === workflow.id
                                         ? 'bg-primary/5 border-primary ring-1 ring-primary'
                                         : 'bg-card border-border hover:bg-muted/50'
                                         }`}
                                 >
                                     <div className="flex items-start justify-between">
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 flex-1 min-w-0">
                                             <div className={`p-1.5 rounded-md ${workflow.isActive ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'}`}>
                                                 <GitBranch className="h-4 w-4" />
                                             </div>
-                                            <span className="font-medium text-sm truncate w-24">{workflow.name}</span>
+                                            <span className="font-medium text-sm truncate">{workflow.name}</span>
                                         </div>
-                                        {workflow.isActive && <div className="h-2 w-2 rounded-full bg-green-500" />}
+                                        <div className="flex items-center gap-1">
+                                            {workflow.isActive && <div className="h-2 w-2 rounded-full bg-green-500" />}
+                                            <DropdownMenu>
+                                                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                    <Button 
+                                                        variant="ghost" 
+                                                        size="icon" 
+                                                        className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    >
+                                                        <MoreVertical className="h-3 w-3" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent align="end">
+                                                    <DropdownMenuItem asChild>
+                                                        <Link to={`/automation/${workflow.id}`} className="cursor-pointer">
+                                                            Edit
+                                                        </Link>
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuSeparator />
+                                                    <DropdownMenuItem 
+                                                        onClick={(e) => handleDeleteClick(workflow.id, e)}
+                                                        className="text-destructive focus:text-destructive cursor-pointer"
+                                                    >
+                                                        <Trash2 className="h-3 w-3 mr-2" />
+                                                        Delete
+                                                    </DropdownMenuItem>
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
+                                        </div>
                                     </div>
                                 </div>
                             ))
@@ -328,6 +408,28 @@ export default function WorkflowsPage() {
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.05] bg-[radial-gradient(circle_at_1px_1px,currentColor_1px,transparent_0)] bg-[length:24px_24px]">
                 </div>
             </div>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Delete Workflow</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Are you sure you want to delete this workflow? This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setWorkflowToDelete(null)}>Cancel</AlertDialogCancel>
+                        <AlertDialogAction 
+                            onClick={handleDeleteConfirm}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            disabled={deleteMutation.isPending}
+                        >
+                            {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }
