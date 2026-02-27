@@ -120,8 +120,10 @@ export function BulkImportLeads() {
                         const obj: Partial<CreateLeadData> = {}
                         
                         // Map Excel columns to lead fields (case-insensitive)
-                        for (const [key, value] of Object.entries(row as Record<string, unknown>)) {
-                            const keyStr = key.toString()
+                        const entries = Object.entries(row as Record<string, unknown>)
+                        for (let i = 0; i < entries.length; i++) {
+                            const [key, value] = entries[i]
+                            const keyStr = `${key}`
                             const normalizedKey = keyStr.trim().toLowerCase()
                             let mappedKey = keyStr.trim()
                             
