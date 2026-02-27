@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { Plus, Trash2, Globe, Eye, MousePointerClick, ExternalLink, MoreVertical, CheckCircle } from "lucide-react";
+import { Plus, Trash2, Globe, Eye, MousePointerClick, ExternalLink, MoreVertical, CheckCircle, Edit } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -36,9 +37,15 @@ import {
 export default function LandingPagesManager() {
     const queryClient = useQueryClient();
     const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+    const [editingPage, setEditingPage] = useState<LandingPage | null>(null);
     const [formData, setFormData] = useState({
         name: "",
         slug: "",
+    });
+    const [editFormData, setEditFormData] = useState({
+        name: "",
+        html: "",
     });
 
     const { data: pages = [], isLoading } = useQuery({
@@ -82,9 +89,40 @@ export default function LandingPagesManager() {
         }
     });
 
+    const updateContentMutation = useMutation({
+        mutationFn: ({ id, data }: { id: string; data: { name: string; html: string } }) => 
+            updateLandingPage(id, data),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['landing-pages'] });
+            setIsEditDialogOpen(false);
+            setEditingPage(null);
+            toast.success("Content updated");
+        },
+        onError: () => {
+            toast.error("Failed to update content");
+        }
+    });
+
     const handleSubmit = () => {
         if (!formData.name || !formData.slug) return;
         createMutation.mutate(formData);
+    };
+
+    const handleEditClick = (page: LandingPage) => {
+        setEditingPage(page);
+        setEditFormData({
+            name: page.name,
+            html: page.html || "",
+        });
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateContent = () => {
+        if (!editingPage) return;
+        updateContentMutation.mutate({
+            id: editingPage.id,
+            data: editFormData,
+        });
     };
 
     return (
@@ -210,6 +248,11 @@ export default function LandingPagesManager() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => handleEditClick(item)}>
+                                                                <Edit className="h-4 w-4 mr-2" />
+                                                                Edit Content
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
                                                             {item.status !== 'published' && (
                                                                 <DropdownMenuItem onClick={() => updateStatusMutation.mutate({ id: item.id, status: 'published' })}>
                                                                     <CheckCircle className="h-4 w-4 mr-2" />
@@ -247,6 +290,47 @@ export default function LandingPagesManager() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Edit Content Dialog */}
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+                <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Edit Landing Page Content</DialogTitle>
+                        <DialogDescription>
+                            Add HTML content for your landing page. You can use any HTML, CSS, and inline JavaScript.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-name">Page Name</Label>
+                            <Input
+                                id="edit-name"
+                                value={editFormData.name}
+                                onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                            />
+                        </div>
+                        <div className="grid gap-2">
+                            <Label htmlFor="edit-html">HTML Content</Label>
+                            <Textarea
+                                id="edit-html"
+                                placeholder="Enter your HTML content here..."
+                                value={editFormData.html}
+                                onChange={(e) => setEditFormData({ ...editFormData, html: e.target.value })}
+                                className="font-mono text-sm min-h-[400px]"
+                            />
+                            <p className="text-xs text-muted-foreground">
+                                Tip: You can paste complete HTML including styles and scripts. The content will be rendered as-is.
+                            </p>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleUpdateContent} disabled={updateContentMutation.isPending}>
+                            {updateContentMutation.isPending ? 'Saving...' : 'Save Content'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
