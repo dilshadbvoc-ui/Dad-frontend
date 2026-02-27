@@ -10,6 +10,7 @@ import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { isAdmin, getUserInfo } from "@/lib/utils"
+import * as XLSX from 'xlsx'
 
 export function BulkImportLeads() {
     const [file, setFile] = useState<File | null>(null)
@@ -62,17 +63,29 @@ export function BulkImportLeads() {
         const selectedFile = e.target.files?.[0]
         if (!selectedFile) return
 
-        if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith('.csv')) {
-            toast.error("Please upload a CSV file")
+        const fileName = selectedFile.name.toLowerCase()
+        const isCSV = fileName.endsWith('.csv')
+        const isExcel = fileName.endsWith('.xlsx') || fileName.endsWith('.xls')
+
+        if (!isCSV && !isExcel) {
+            toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
             return
         }
 
         setFile(selectedFile)
         setError(null)
 
-        const text = await selectedFile.text()
         try {
-            const data = parseCSV(text)
+            let data: CreateLeadData[]
+            
+            if (isCSV) {
+                const text = await selectedFile.text()
+                data = parseCSV(text)
+            } else {
+                // Parse Excel file
+                data = await parseExcel(selectedFile)
+            }
+
             if (data.length === 0) {
                 setError("No data found in file")
                 return
@@ -80,9 +93,63 @@ export function BulkImportLeads() {
             setParsedData(data)
             setPreviewCount(data.length)
         } catch (err) {
-            setError("Failed to parse CSV file. Please ensure it is valid.")
+            setError(`Failed to parse file. Please ensure it is valid. ${(err as Error).message}`)
             console.error(err)
         }
+    }
+
+    const parseExcel = async (file: File): Promise<CreateLeadData[]> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            
+            reader.onload = (e) => {
+                try {
+                    const data = e.target?.result
+                    const workbook = XLSX.read(data, { type: 'binary' })
+                    
+                    // Get first sheet
+                    const firstSheetName = workbook.SheetNames[0]
+                    const worksheet = workbook.Sheets[firstSheetName]
+                    
+                    // Convert to JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
+                    
+                    const result: CreateLeadData[] = []
+                    
+                    for (const row of jsonData) {
+                        const obj: Partial<CreateLeadData> = {}
+                        
+                        // Map Excel columns to lead fields (case-insensitive)
+                        for (const [key, value] of Object.entries(row as Record<string, unknown>)) {
+                            const normalizedKey = String(key).trim().toLowerCase()
+                            let mappedKey = String(key).trim()
+                            
+                            // Map common variations
+                            if (normalizedKey === 'first name' || normalizedKey === 'firstname') mappedKey = 'firstName'
+                            else if (normalizedKey === 'last name' || normalizedKey === 'lastname') mappedKey = 'lastName'
+                            else if (normalizedKey === 'job title' || normalizedKey === 'jobtitle') mappedKey = 'jobTitle'
+                            else if (normalizedKey === 'lead score' || normalizedKey === 'leadscore') mappedKey = 'leadScore'
+                            else if (normalizedKey === 'owner email' || normalizedKey === 'owneremail') mappedKey = 'ownerEmail'
+                            
+                            (obj as Record<string, unknown>)[mappedKey] = value
+                        }
+                        
+                        // Basic validation
+                        if (obj.firstName || obj.lastName || obj.email) {
+                            if (!obj.source) obj.source = 'import'
+                            result.push(obj as CreateLeadData)
+                        }
+                    }
+                    
+                    resolve(result)
+                } catch (error) {
+                    reject(error)
+                }
+            }
+            
+            reader.onerror = () => reject(new Error('Failed to read file'))
+            reader.readAsBinaryString(file)
+        })
     }
 
     const parseCSV = (text: string): CreateLeadData[] => {
@@ -143,7 +210,7 @@ export function BulkImportLeads() {
         <Card>
             <CardHeader>
                 <CardTitle>Bulk Import Leads</CardTitle>
-                <CardDescription>Upload a CSV file to import leads in bulk.</CardDescription>
+                <CardDescription>Upload a CSV or Excel file to import leads in bulk.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
                 {canSelectBranch && (
@@ -169,13 +236,13 @@ export function BulkImportLeads() {
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors cursor-pointer relative">
                     <input
                         type="file"
-                        accept=".csv"
+                        accept=".csv,.xlsx,.xls"
                         onChange={handleFileChange}
                         className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                     />
                     <Upload className="h-8 w-8 text-gray-400 mb-2" />
                     <p className="text-sm font-medium">Click to upload or drag and drop</p>
-                    <p className="text-xs text-gray-500">CSV files only</p>
+                    <p className="text-xs text-gray-500">CSV or Excel files (.csv, .xlsx, .xls)</p>
                 </div>
 
                 <div className="flex justify-between items-center text-sm">
