@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getAssetUrl } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ProductsPage() {
+    const { formatCurrency } = useCurrency()
     const [searchQuery, setSearchQuery] = useState("")
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -425,7 +427,7 @@ export default function ProductsPage() {
                                         <DollarSign className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-foreground">${totalValue.toFixed(2)}</p>
+                                        <p className="text-2xl font-bold text-foreground">{formatCurrency(totalValue)}</p>
                                         <p className="text-xs text-muted-foreground">Total Catalog Value</p>
                                     </div>
                                 </CardContent>
@@ -484,7 +486,7 @@ export default function ProductsPage() {
                                                     </DropdownMenu>
                                                 </div>
                                                 <div className="mt-4 flex items-center justify-between">
-                                                    <span className="text-xl font-bold text-primary">${product.basePrice.toFixed(2)}</span>
+                                                    <span className="text-xl font-bold text-primary">{formatCurrency(product.basePrice)}</span>
                                                     <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
                                                 </div>
                                                 {product.category && <Badge variant="outline" className="mt-2">{product.category}</Badge>}

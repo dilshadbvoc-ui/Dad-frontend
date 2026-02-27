@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Loader2, Trophy, AlertCircle } from "lucide-react"
-import { formatCurrency, getAssetUrl } from "@/lib/utils"
+import { getAssetUrl } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 
 import { getTopPerformers } from "@/services/analyticsService"

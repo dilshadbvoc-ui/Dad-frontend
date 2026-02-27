@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, DollarSign, Target, Package, Loader2 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
+import { useCurrency } from "@/contexts/CurrencyContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/services/api"
@@ -63,6 +63,7 @@ interface ViewOpportunityDialogProps {
 }
 
 export function ViewOpportunityDialog({ children, open, onOpenChange, opportunity }: ViewOpportunityDialogProps) {
+    const { formatCurrency } = useCurrency()
     // Fetch full opportunity details when dialog opens
     const { data: fullOpportunity, isLoading } = useQuery({
         queryKey: ['opportunity', opportunity.id],
