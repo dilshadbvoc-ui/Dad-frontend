@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { useMutation } from "@tanstack/react-query"
-import { useNavigate } from "react-router-dom"
 import { getProfile, updateProfile, changePassword, uploadImage, type ProfileUpdateData } from "@/services/settingsService"
-import { getAssetUrl, isAdmin } from "@/lib/utils"
+import { getAssetUrl } from "@/lib/utils"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -21,34 +20,11 @@ interface ProfileData {
 }
 
 export default function ProfileSettingsPage() {
-    const navigate = useNavigate();
     const [profile, setProfile] = useState<ProfileData | null>(null)
     const [loading, setLoading] = useState(true)
     const [uploading, setUploading] = useState(false)
     const [passwords, setPasswords] = useState({ currentPassword: '', newPassword: '', confirmPassword: '' })
     const fileInputRef = useRef<HTMLInputElement>(null)
-
-    // Check if user is authorized (admin only)
-    useEffect(() => {
-        const userStr = localStorage.getItem('userInfo');
-        if (!userStr) {
-            navigate('/login');
-            return;
-        }
-        
-        try {
-            const user = JSON.parse(userStr);
-            if (!isAdmin(user)) {
-                toast.error('Access denied. Only administrators can access profile settings.');
-                navigate('/dashboard');
-                return;
-            }
-        } catch (e) {
-            console.error('Error parsing user', e);
-            navigate('/login');
-            return;
-        }
-    }, [navigate]);
 
     useEffect(() => {
         getProfile().then(data => { setProfile(data); setLoading(false) }).catch(() => setLoading(false))
