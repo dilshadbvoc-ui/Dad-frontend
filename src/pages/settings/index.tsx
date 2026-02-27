@@ -200,13 +200,11 @@ export default function SettingsPage() {
             navigate('/login');
             return;
         }
-
-        if (!canAccessSettings(user)) {
-            navigate('/dashboard');
-        }
+        // All authenticated users can access settings now
+        // They'll see filtered sections based on their role
     }, [user, navigate]);
 
-    if (!user || !canAccessSettings(user)) {
+    if (!user) {
         return null; // Or a loading spinner
     }
 

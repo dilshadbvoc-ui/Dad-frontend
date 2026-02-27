@@ -237,7 +237,8 @@ export function isBranchManager(user: any): boolean {
 
 /**
  * Checks if a user has access to the settings page
+ * All users can access settings (they'll see filtered sections based on role)
  */
 export function canAccessSettings(user: any): boolean {
-    return isAdmin(user) || isBranchManager(user);
+    return !!user; // All authenticated users can access settings
 }
