@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react"
 import Papa from "papaparse"
+import * as XLSX from "xlsx"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -204,8 +205,13 @@ export default function ImportPage() {
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             const selectedFile = e.target.files[0]
-            if (selectedFile.type !== "text/csv" && !selectedFile.name.endsWith(".csv")) {
-                toast.error("Please upload a CSV file")
+            const isCSV = selectedFile.type === "text/csv" || selectedFile.name.endsWith(".csv")
+            const isExcel = selectedFile.name.endsWith(".xlsx") || selectedFile.name.endsWith(".xls") || 
+                           selectedFile.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+                           selectedFile.type === "application/vnd.ms-excel"
+            
+            if (!isCSV && !isExcel) {
+                toast.error("Please upload a CSV or Excel file (.csv, .xlsx, .xls)")
                 return
             }
             setFile(selectedFile)
@@ -221,20 +227,43 @@ export default function ImportPage() {
     }
 
     const parseFile = (file: File, template: string = "custom") => {
-        Papa.parse(file, {
-            header: true,
-            preview: 5,
-            skipEmptyLines: true,
-            complete: (results) => {
-                if (results.meta.fields) {
-                    setHeaders(results.meta.fields)
-                    setPreviewData(results.data as Record<string, string | number | boolean | null>[])
-
+        const isExcel = file.name.endsWith(".xlsx") || file.name.endsWith(".xls")
+        
+        if (isExcel) {
+            // Parse Excel file
+            const reader = new FileReader()
+            reader.onload = (e) => {
+                try {
+                    const data = e.target?.result
+                    const workbook = XLSX.read(data, { type: "binary" })
+                    const sheetName = workbook.SheetNames[0]
+                    const worksheet = workbook.Sheets[sheetName]
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
+                    
+                    if (jsonData.length === 0) {
+                        toast.error("Excel file is empty")
+                        return
+                    }
+                    
+                    // First row is headers
+                    const headers = jsonData[0].map(h => String(h || ""))
+                    // Next 5 rows are preview data
+                    const previewRows = jsonData.slice(1, 6).map(row => {
+                        const obj: Record<string, string | number | boolean | null> = {}
+                        headers.forEach((header, index) => {
+                            obj[header] = row[index] !== undefined ? row[index] : null
+                        })
+                        return obj
+                    })
+                    
+                    setHeaders(headers)
+                    setPreviewData(previewRows)
+                    
                     // Auto-map based on template or fuzzy matching
                     const initialMapping: Record<string, string> = {}
                     const templateMapping = CRM_FIELD_MAPPINGS[template] || {}
 
-                    results.meta.fields.forEach(header => {
+                    headers.forEach(header => {
                         // First try exact template match
                         if (templateMapping[header]) {
                             initialMapping[header] = templateMapping[header]
@@ -252,12 +281,52 @@ export default function ImportPage() {
                     })
                     setMapping(initialMapping)
                     setStep(2)
+                } catch (error) {
+                    console.error("Error parsing Excel:", error)
+                    toast.error("Error parsing Excel file")
                 }
-            },
-            error: (err) => {
-                toast.error("Error parsing CSV: " + err.message)
             }
-        })
+            reader.readAsBinaryString(file)
+        } else {
+            // Parse CSV file
+            Papa.parse(file, {
+                header: true,
+                preview: 5,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    if (results.meta.fields) {
+                        setHeaders(results.meta.fields)
+                        setPreviewData(results.data as Record<string, string | number | boolean | null>[])
+
+                        // Auto-map based on template or fuzzy matching
+                        const initialMapping: Record<string, string> = {}
+                        const templateMapping = CRM_FIELD_MAPPINGS[template] || {}
+
+                        results.meta.fields.forEach(header => {
+                            // First try exact template match
+                            if (templateMapping[header]) {
+                                initialMapping[header] = templateMapping[header]
+                            } else {
+                                // Fallback to fuzzy matching
+                                const normalizedHeader = header.toLowerCase().replace(/[^a-z0-9]/g, "")
+                                const match = CRM_FIELDS.find(f =>
+                                    f.label.toLowerCase().replace(/[^a-z0-9]/g, "") === normalizedHeader ||
+                                    f.value.toLowerCase().replace(/[^a-z0-9]/g, "") === normalizedHeader
+                                )
+                                if (match) {
+                                    initialMapping[header] = match.value
+                                }
+                            }
+                        })
+                        setMapping(initialMapping)
+                        setStep(2)
+                    }
+                },
+                error: (err) => {
+                    toast.error("Error parsing CSV: " + err.message)
+                }
+            })
+        }
     }
 
     const handleMappingChange = (csvHeader: string, crmField: string) => {
@@ -389,11 +458,11 @@ export default function ImportPage() {
                     </Card>
 
                     <Card>
-                        <CardHeader><CardTitle>Upload CSV File</CardTitle></CardHeader>
+                        <CardHeader><CardTitle>Upload CSV or Excel File</CardTitle></CardHeader>
                         <CardContent className="flex flex-col items-center justify-center h-64 border-2 border-dashed rounded-lg border-gray-200 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900/50 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors">
                             <input
                                 type="file"
-                                accept=".csv"
+                                accept=".csv,.xlsx,.xls"
                                 onChange={handleFileChange}
                                 className="hidden"
                                 id="file-upload"
@@ -403,7 +472,7 @@ export default function ImportPage() {
                                     <Upload className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <p className="text-lg font-medium">Click to upload or drag and drop</p>
-                                <p className="text-sm text-gray-500">CSV files only (max 10MB)</p>
+                                <p className="text-sm text-gray-500">CSV or Excel files (.csv, .xlsx, .xls) - max 10MB</p>
                             </label>
                         </CardContent>
                     </Card>
