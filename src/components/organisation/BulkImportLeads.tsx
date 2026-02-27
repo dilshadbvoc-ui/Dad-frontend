@@ -46,12 +46,18 @@ export function BulkImportLeads() {
             return importLeads(finalData)
         },
         onSuccess: (data) => {
-            toast.success(`Successfully imported ${data.count} leads`)
+            const total = (data.created || 0) + (data.reEnquiries || 0)
+            const message = data.reEnquiries > 0 
+                ? `Successfully imported ${data.created} new leads and ${data.reEnquiries} re-enquiries`
+                : `Successfully imported ${data.created} leads`
+            toast.success(message)
             setFile(null)
             setParsedData([])
             setPreviewCount(0)
             setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
+            // Invalidate all leads queries
             queryClient.invalidateQueries({ queryKey: ['leads'] })
+            queryClient.invalidateQueries({ queryKey: ['leads', 'all'] })
         },
         onError: (err: { message: string }) => {
             toast.error(err.message || 'Failed to import leads')
