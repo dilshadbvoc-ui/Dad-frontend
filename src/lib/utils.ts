@@ -131,19 +131,16 @@ export function getAssetUrl(path?: string): string {
     if (!path) return '';
     if (path.startsWith('http')) return path;
 
-    // In development, always use localhost to avoid React Router conflicts
+    // Always use absolute URL to prevent React Router from intercepting
+    const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    
+    // In development, use localhost backend
     if (import.meta.env.DEV) {
         return `http://localhost:5001${path}`;
     }
 
-    // In production, construct full URL to backend
-    // If VITE_API_URL contains /api, we need to strip it for static assets which are at root /uploads
-    const apiUrl = (import.meta.env.VITE_API_URL || 'https://pypecrm.com').replace(/\/$/, ''); // Remove trailing slash if present
-    const baseUrl = apiUrl.endsWith('/api')
-        ? apiUrl.slice(0, -4)
-        : apiUrl;
-
-    return `${baseUrl}${path}`;
+    // In production, use current origin
+    return `${origin}${path}`;
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
