@@ -11,6 +11,7 @@ import Layout from './components/shared/Layout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
 import SharedProductPage from './pages/public/SharedProductPage';
+import LandingPageView from './pages/public/LandingPageView';
 import { PageLoader } from './components/ui/page-loader';
 
 
@@ -173,6 +174,9 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
+            
+            {/* Public landing pages */}
+            <Route path="/pages/:slug" element={<LandingPageView />} />
 
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
