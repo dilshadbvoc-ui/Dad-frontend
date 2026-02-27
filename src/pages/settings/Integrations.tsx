@@ -303,24 +303,6 @@ export default function IntegrationsPage() {
                                 </div>
                             )}
 
-                            {/* Debug: Client-side Login Button */}
-                            {integration.id === 'facebook' && window.location.protocol === 'https:' && (
-                                <div className="mb-4 p-2 bg-indigo-950/30 rounded border border-indigo-500/20 text-center">
-                                    <p className="text-xs text-indigo-400 mb-2">Client SDK Test</p>
-                                    <div
-                                        className="fb-login-button"
-                                        data-width=""
-                                        data-size="large"
-                                        data-button-type="continue_with"
-                                        data-layout="default"
-                                        data-auto-logout-link="false"
-                                        data-use-continue-as="false"
-                                        data-scope="public_profile,email,ads_read,ads_management,business_management,leads_retrieval,pages_read_engagement,pages_show_list,pages_manage_ads"
-                                        data-onlogin="checkLoginState();">
-                                    </div>
-                                </div>
-                            )}
-
                             <div className="mt-auto flex justify-end">
                                 {integration.link ? (
                                     <Button

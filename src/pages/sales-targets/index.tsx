@@ -60,6 +60,7 @@ import {
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
+import { useCurrency } from "@/contexts/CurrencyContext"
 
 // Tree Node interface for hierarchical display
 interface TargetTreeNode extends SalesTarget {
@@ -92,6 +93,7 @@ const buildTargetTree = (targets: SalesTarget[]): TargetTreeNode[] => {
 
 // Target Tree Node Component
 const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNode; level?: number; onDelete: (id: string) => void; onEdit: (target: SalesTarget) => void }) => {
+    const { formatCurrency } = useCurrency();
     const [expanded, setExpanded] = useState(true);
     const hasChildren = node.children.length > 0;
     const achievementPercent = node.targetValue > 0
@@ -139,7 +141,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="text-right">
-                            <p className="font-bold text-lg text-foreground">₹{node.achievedValue.toLocaleString()} <span className="text-muted-foreground font-normal">/</span> ₹{node.targetValue.toLocaleString()}</p>
+                            <p className="font-bold text-lg text-foreground">{formatCurrency(node.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-muted-foreground font-normal">/</span> {formatCurrency(node.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                             <p className="text-sm text-muted-foreground">{achievementPercent}% achieved</p>
                         </div>
                         <DropdownMenu>
@@ -172,6 +174,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
 };
 
 export default function SalesTargetsPage() {
+    const { formatCurrency } = useCurrency()
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [selectedSubordinate, setSelectedSubordinate] = useState("")
     const [targetValue, setTargetValue] = useState("")
@@ -378,7 +381,7 @@ export default function SalesTargetsPage() {
                                                             <SelectValue />
                                                         </SelectTrigger>
                                                         <SelectContent>
-                                                            <SelectItem value="revenue">Revenue Amount (₹)</SelectItem>
+                                                            <SelectItem value="revenue">Revenue Amount</SelectItem>
                                                             <SelectItem value="units">Product Units (Qty)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
@@ -434,7 +437,7 @@ export default function SalesTargetsPage() {
                                                 </div>
 
                                                 <div>
-                                                    <Label>{metric === 'revenue' ? 'Target Amount (₹)' : 'Target Units (Qty)'}</Label>
+                                                    <Label>{metric === 'revenue' ? 'Target Amount' : 'Target Units (Qty)'}</Label>
                                                     <Input
                                                         type="number"
                                                         value={targetValue}
@@ -481,7 +484,7 @@ export default function SalesTargetsPage() {
                                             </DialogHeader>
                                             <div className="grid gap-4 py-4">
                                                 <div>
-                                                    <Label>Target Amount (₹)</Label>
+                                                    <Label>Target Amount</Label>
                                                     <Input
                                                         type="number"
                                                         value={editValue}
@@ -515,7 +518,7 @@ export default function SalesTargetsPage() {
                                         <Target className="h-5 w-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-foreground">₹{totalTargetValue.toLocaleString()}</p>
+                                        <p className="text-2xl font-bold text-foreground">{formatCurrency(totalTargetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                                         <p className="text-xs text-muted-foreground">My Total Target</p>
                                     </div>
                                 </CardContent>
@@ -526,7 +529,7 @@ export default function SalesTargetsPage() {
                                         <TrendingUp className="h-5 w-5 text-green-600" />
                                     </div>
                                     <div>
-                                        <p className="text-2xl font-bold text-foreground">₹{totalAchieved.toLocaleString()}</p>
+                                        <p className="text-2xl font-bold text-foreground">{formatCurrency(totalAchieved, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                                         <p className="text-xs text-muted-foreground">My Achieved</p>
                                     </div>
                                 </CardContent>
@@ -609,7 +612,7 @@ export default function SalesTargetsPage() {
                                                                 </div>
                                                                 <div className="flex items-center gap-4">
                                                                     <div className="text-right">
-                                                                        <p className="font-bold text-lg text-foreground">₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}</p>
+                                                                        <p className="font-bold text-lg text-foreground">{formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / {formatCurrency(target.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                                                                         <p className="text-sm text-muted-foreground">{percent}% achieved</p>
                                                                     </div>
                                                                     {/* Note: Employees can't usually edit their own targets assigned by managers, blocking edit here for 'My Targets' view unless we want self-assigned targets logic. Assuming 'Team' view is where management happens. */}

@@ -54,14 +54,29 @@ export const updateProduct = async (id: string, data: Partial<CreateProductData>
 
 // Upload Brochure
 export const uploadBrochure = async (file: File) => {
+    // Client-side validation: Check file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    if (file.size > maxSize) {
+        throw new Error(`File size exceeds the 5MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB. Please upload a smaller file.`);
+    }
+
     const formData = new FormData();
     formData.append('document', file);
-    const response = await api.post('/upload/document', formData, {
-        headers: {
-            'Content-Type': 'multipart/form-data',
-        },
-    });
-    return response.data;
+    
+    try {
+        const response = await api.post('/upload/document', formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
+    } catch (error: any) {
+        // Handle server-side file size error
+        if (error.response?.status === 413 || error.response?.data?.error === 'FILE_TOO_LARGE') {
+            throw new Error(error.response?.data?.message || 'File size exceeds the 5MB limit. Please upload a smaller file.');
+        }
+        throw error;
+    }
 };
 
 // Generate Share Link

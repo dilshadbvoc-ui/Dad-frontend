@@ -12,8 +12,10 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function UserSalesPage() {
+    const { formatCurrency } = useCurrency();
     const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;
@@ -116,7 +118,7 @@ export default function UserSalesPage() {
                                         <AvatarFallback>{stat.name.substring(0, 2)}</AvatarFallback>
                                     </Avatar>
                                     <div>
-                                        <div className="text-2xl font-bold">${stat.totalRevenue.toLocaleString()}</div>
+                                        <div className="text-2xl font-bold">{formatCurrency(stat.totalRevenue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                                         <p className="text-xs text-muted-foreground">{stat.name}</p>
                                     </div>
                                 </div>
@@ -161,10 +163,10 @@ export default function UserSalesPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right font-bold text-green-600">
-                                            ${stat.totalRevenue.toLocaleString()}
+                                            {formatCurrency(stat.totalRevenue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                         </TableCell>
                                         <TableCell className="text-right">{stat.dealsCount}</TableCell>
-                                        <TableCell className="text-right">${stat.avgDealSize.toLocaleString()}</TableCell>
+                                        <TableCell className="text-right">{formatCurrency(stat.avgDealSize, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
                                     </TableRow>
                                 ))
                             ) : (

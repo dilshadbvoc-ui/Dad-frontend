@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { X, Plus, Trash2 } from 'lucide-react';
 import { api } from '../../services/api';
@@ -50,68 +50,48 @@ const fieldTypes = [
 
 export default function CustomFieldDialog({ open, onClose, entityType, editingField }: CustomFieldDialogProps) {
     const queryClient = useQueryClient();
-    const [formData, setFormData] = useState<CustomFieldFormData>(() => {
-        if (editingField) {
-            return {
-                name: editingField.name,
-                label: editingField.label,
-                fieldType: editingField.fieldType,
-                options: editingField.options && editingField.options.length > 0 ? editingField.options : [''],
-                isRequired: editingField.isRequired,
-                showInList: editingField.showInList,
-                showInForm: editingField.showInForm,
-                placeholder: editingField.placeholder || '',
-                defaultValue: editingField.defaultValue || ''
-            };
-        }
-        return {
-            name: '',
-            label: '',
-            fieldType: 'text',
-            options: [''],
-            isRequired: false,
-            showInList: false,
-            showInForm: true,
-            placeholder: '',
-            defaultValue: ''
-        };
+    const [formData, setFormData] = useState<CustomFieldFormData>({
+        name: '',
+        label: '',
+        fieldType: 'text',
+        options: [''],
+        isRequired: false,
+        showInList: false,
+        showInForm: true,
+        placeholder: '',
+        defaultValue: ''
     });
 
-    const [prevEditingFieldId, setPrevEditingFieldId] = useState<string | null>(editingField?.id || null);
-    const [prevOpen, setPrevOpen] = useState(open);
-
-    if (editingField?.id !== prevEditingFieldId || (open && !prevOpen && !editingField)) {
-        setPrevEditingFieldId(editingField?.id || null);
-        setPrevOpen(open);
-
-        if (editingField) {
-            setFormData({
-                name: editingField.name,
-                label: editingField.label,
-                fieldType: editingField.fieldType,
-                options: editingField.options && editingField.options.length > 0 ? editingField.options : [''],
-                isRequired: editingField.isRequired,
-                showInList: editingField.showInList,
-                showInForm: editingField.showInForm,
-                placeholder: editingField.placeholder || '',
-                defaultValue: editingField.defaultValue || ''
-            });
-        } else if (open && !prevOpen) {
-            setFormData({
-                name: '',
-                label: '',
-                fieldType: 'text',
-                options: [''],
-                isRequired: false,
-                showInList: false,
-                showInForm: true,
-                placeholder: '',
-                defaultValue: ''
-            });
+    // Reset form when dialog opens or editingField changes
+    React.useEffect(() => {
+        if (open) {
+            if (editingField) {
+                setFormData({
+                    name: editingField.name,
+                    label: editingField.label,
+                    fieldType: editingField.fieldType,
+                    options: editingField.options && editingField.options.length > 0 ? editingField.options : [''],
+                    isRequired: editingField.isRequired,
+                    showInList: editingField.showInList,
+                    showInForm: editingField.showInForm,
+                    placeholder: editingField.placeholder || '',
+                    defaultValue: editingField.defaultValue || ''
+                });
+            } else {
+                setFormData({
+                    name: '',
+                    label: '',
+                    fieldType: 'text',
+                    options: [''],
+                    isRequired: false,
+                    showInList: false,
+                    showInForm: true,
+                    placeholder: '',
+                    defaultValue: ''
+                });
+            }
         }
-    }
-
-    // State management handled during render to avoid useEffect loops
+    }, [open, editingField])
 
     const createMutation = useMutation({
         mutationFn: async (data: Partial<CustomFieldFormData> & { entityType: string }) => {

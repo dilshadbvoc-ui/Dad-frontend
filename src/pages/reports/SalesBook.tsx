@@ -11,8 +11,10 @@ import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function SalesBookPage() {
+    const { formatCurrency } = useCurrency();
     const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;
@@ -162,7 +164,7 @@ export default function SalesBookPage() {
                                         <TableCell>{sale.customerName}</TableCell>
                                         <TableCell>{sale.ownerName}</TableCell>
                                         <TableCell className="text-right font-semibold text-green-600">
-                                            ${sale.amount.toLocaleString()}
+                                            {formatCurrency(sale.amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                         </TableCell>
                                     </TableRow>
                                 ))

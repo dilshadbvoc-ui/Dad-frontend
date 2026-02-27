@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query"
 import { api } from "@/services/api"
+import { useCurrency } from "@/contexts/CurrencyContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -48,6 +49,7 @@ const WhatsAppIcon = () => (
 
 
 export default function LeadDetailPage() {
+    const { formatCurrency } = useCurrency()
     const { id } = useParams()
     const navigate = useNavigate()
     const [isLogCallOpen, setIsLogCallOpen] = useState(false)
@@ -197,7 +199,7 @@ export default function LeadDetailPage() {
                     <div className="hidden sm:flex flex-col items-end shrink-0">
                         {lead.potentialValue > 0 && (
                             <span className="text-sm font-bold text-success mb-1">
-                                ${lead.potentialValue.toLocaleString()}
+                                {formatCurrency(lead.potentialValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </span>
                         )}
                     </div>
@@ -302,7 +304,7 @@ export default function LeadDetailPage() {
                                         {lead.products.map((kp: { productId: string; product?: { name: string }; quantity: number; price: number }) => (
                                             <div key={kp.productId} className="text-sm flex justify-between">
                                                 <span>{kp.product?.name} <span className="text-muted-foreground text-xs">x{kp.quantity}</span></span>
-                                                <span className="font-medium">${(kp.price * kp.quantity).toLocaleString()}</span>
+                                                <span className="font-medium">{formatCurrency(kp.price * kp.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                                             </div>
                                         ))}
                                     </div>

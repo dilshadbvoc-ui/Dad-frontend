@@ -14,6 +14,7 @@ import { Check, ShoppingCart, Trash2, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface Product {
     id: string
@@ -37,6 +38,7 @@ export function AddProductToLeadDialog({
     currentProducts = [],
     onSuccess
 }: AddProductToLeadDialogProps) {
+    const { formatCurrency } = useCurrency();
     // Local state for selected products management
     // We start with existing products if any
     const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number }[]>([])
@@ -182,7 +184,7 @@ export function AddProductToLeadDialog({
                     <div className="w-1/2 flex flex-col border rounded-md">
                         <div className="p-3 bg-muted/50 border-b font-medium text-sm flex justify-between">
                             <span>Selected Items ({selectedProducts.length})</span>
-                            <span>Total: ${calculateTotal().toLocaleString()}</span>
+                            <span>Total: {formatCurrency(calculateTotal(), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                         </div>
                         <ScrollArea className="flex-1 p-2">
                             {selectedProducts.length === 0 ? (
@@ -218,7 +220,7 @@ export function AddProductToLeadDialog({
                                                     </Button>
                                                 </div>
                                                 <div className="text-sm font-bold">
-                                                    ${(item.product.basePrice * item.quantity).toLocaleString()}
+                                                    {formatCurrency(item.product.basePrice * item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                                 </div>
                                             </div>
                                         </div>

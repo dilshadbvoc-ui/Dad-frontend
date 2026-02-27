@@ -113,8 +113,9 @@ export default function ProductsPage() {
             try {
                 const uploadRes = await uploadBrochure(brochureFile)
                 brochureUrl = uploadRes.url
-            } catch {
-                toast.error("Failed to upload brochure")
+            } catch (error: any) {
+                const errorMessage = error.message || "Failed to upload brochure";
+                toast.error(errorMessage);
                 return
             }
         }
@@ -143,9 +144,10 @@ export default function ProductsPage() {
             try {
                 const uploadRes = await uploadBrochure(brochureFile)
                 brochureUrl = uploadRes.url
-            } catch (error) {
+            } catch (error: any) {
+                const errorMessage = error.message || "Failed to upload brochure";
                 console.error("Brochure upload error:", error);
-                toast.error("Failed to upload brochure")
+                toast.error(errorMessage);
                 return
             }
         }

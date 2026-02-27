@@ -82,6 +82,7 @@ const CampaignReportsPage = lazy(() => import('./pages/reports/campaigns'));
 const FieldForceReportsPage = lazy(() => import('./pages/reports/field-force'));
 const LeadReportsPage = lazy(() => import('./pages/reports/leads'));
 const FollowUpReportsPage = lazy(() => import('./pages/reports/follow-ups'));
+const AuditLogsReportPage = lazy(() => import('./pages/reports/audit-logs'));
 
 const IntegrationsSettingsPage = lazy(() => import('./pages/settings/Integrations'));
 const PipelinesSettingsPage = lazy(() => import('./pages/settings/pipelines'));
@@ -237,6 +238,7 @@ function AppContent() {
               <Route path="/reports/field-force" element={<FieldForceReportsPage />} />
               <Route path="/reports/leads" element={<LeadReportsPage />} />
               <Route path="/reports/follow-ups" element={<FollowUpReportsPage />} />
+              <Route path="/reports/audit-logs" element={<AuditLogsReportPage />} />
 
               {/* Super Admin & Organisation Settings */}
               <Route path="/super-admin" element={<SuperAdminDashboard />} />

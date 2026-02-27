@@ -6,6 +6,7 @@ import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
+import * as XLSX from 'xlsx'
 
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -13,7 +14,9 @@ import {
     Plus,
     Phone,
     CalendarCheck,
-    RefreshCw
+    RefreshCw,
+    Download,
+    ArrowUpDown
 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -26,23 +29,7 @@ import {
     SelectLabel
 } from "@/components/ui/select"
 
-// --- Sidebar Item Component ---
-const SidebarItem = ({ view, label, count, currentView, handleViewChange }: { view: string, label: string, count?: number, currentView: string, handleViewChange: (view: string) => void }) => (
-    <button
-        onClick={() => handleViewChange(view)}
-        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentView === view
-            ? 'bg-primary/10 text-primary'
-            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-            }`}
-    >
-        <span>{label}</span>
-        {count !== undefined && (
-            <span className="text-xs bg-background border border-border px-1.5 py-0.5 rounded-md shadow-sm">
-                {count}
-            </span>
-        )}
-    </button>
-);
+// --- Sidebar Item Component (removed - now using dropdown) ---
 
 
 import { format, isSameDay, isPast, isFuture, isToday } from "date-fns"
@@ -177,6 +164,7 @@ export default function LeadsPage() {
     const queryClient = useQueryClient();
     // Default view is 'all-leads' if not specified
     const currentView = searchParams.get('view') || 'all-leads';
+    const currentSort = searchParams.get('sort') || 'newest';
 
     // Manual refresh function
     const handleRefresh = () => {
@@ -199,6 +187,27 @@ export default function LeadsPage() {
 
     const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
     const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
+
+    // Sort function
+    const sortLeads = (leadsToSort: Lead[]) => {
+        const sorted = [...leadsToSort];
+        switch (currentSort) {
+            case 'newest':
+                return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+            case 'oldest':
+                return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            case 'name-asc':
+                return sorted.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
+            case 'name-desc':
+                return sorted.sort((a, b) => (b.firstName || '').localeCompare(a.firstName || ''));
+            case 'score-high':
+                return sorted.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0));
+            case 'score-low':
+                return sorted.sort((a, b) => (a.leadScore || 0) - (b.leadScore || 0));
+            default:
+                return sorted;
+        }
+    };
 
 
     // --- View Logic ---
@@ -239,6 +248,7 @@ export default function LeadsPage() {
     const displayData = getDisplayData();
     const isTaskView = currentView.includes('followup');
     const isChartView = ['leads-by-status', 'leads-by-source', 'leads-by-ownership'].includes(currentView);
+    const sortedDisplayData = isTaskView ? displayData : sortLeads(displayData as Lead[]);
 
     // --- Chart Data Helpers ---
     const getChartData = () => {
@@ -258,7 +268,45 @@ export default function LeadsPage() {
 
 
     const handleViewChange = (view: string) => {
-        setSearchParams({ view });
+        setSearchParams({ view, sort: currentSort });
+    };
+
+    const handleSortChange = (sort: string) => {
+        setSearchParams({ view: currentView, sort });
+    };
+
+    // Excel download function
+    const handleExcelDownload = () => {
+        const dataToExport = sortedDisplayData as Lead[];
+        
+        const excelData = dataToExport.map((lead: Lead) => ({
+            'First Name': lead.firstName || '',
+            'Last Name': lead.lastName || '',
+            'Email': lead.email || '',
+            'Phone': lead.phone || '',
+            'Company': lead.company || '',
+            'Status': lead.status || '',
+            'Source': lead.source || '',
+            'Lead Score': lead.leadScore || 0,
+            'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
+            'Created At': lead.createdAt ? format(new Date(lead.createdAt), 'yyyy-MM-dd HH:mm:ss') : '',
+            'Country': lead.country || '',
+            'Re-Enquiry': lead.isReEnquiry ? 'Yes' : 'No'
+        }));
+
+        const worksheet = XLSX.utils.json_to_sheet(excelData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
+        
+        // Auto-size columns
+        const maxWidth = 50;
+        const colWidths = Object.keys(excelData[0] || {}).map(key => ({
+            wch: Math.min(Math.max(key.length, 10), maxWidth)
+        }));
+        worksheet['!cols'] = colWidths;
+        
+        const fileName = `leads_${currentView}_${currentSort}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
     };
 
     const isLoading = leadsLoading || tasksLoading;
@@ -266,48 +314,7 @@ export default function LeadsPage() {
     const isAnalyticsView = currentView === 'leads-analytics';
 
     return (
-        <div className="flex flex-col lg:flex-row gap-6 h-full min-h-0">
-            {/* Sidebar - Desktop Only */}
-            <div className="hidden lg:flex w-64 flex-shrink-0 flex-col space-y-6">
-                <Card className="h-full border-border/60 shadow-sm bg-card/50 backdrop-blur-sm">
-                    <CardContent className="p-4 space-y-6">
-                        <div>
-                            <div className="flex items-center gap-2 mb-3 px-2">
-                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <Phone className="h-4 w-4 text-primary" />
-                                </div>
-                                <h3 className="font-semibold text-foreground">Leads</h3>
-                            </div>
-                            <div className="space-y-1">
-                                <SidebarItem view="all-leads" label="All Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="no-activity-leads" label="No Activity Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="today-leads" label="Today's Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="leads-by-status" label="Leads by Status" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="leads-by-source" label="Leads by Source" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="leads-by-ownership" label="Leads by Ownership" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="converted-leads" label="Converted Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="lost-leads" label="Lost Leads" currentView={currentView} handleViewChange={handleViewChange} />
-                            </div>
-                        </div>
-
-                        <div className="border-t border-border/50 pt-6">
-                            <div className="flex items-center gap-2 mb-3 px-2">
-                                <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                                    <CalendarCheck className="h-4 w-4 text-primary" />
-                                </div>
-                                <h3 className="font-semibold text-foreground">Follow Ups</h3>
-                            </div>
-                            <div className="space-y-1">
-                                <SidebarItem view="overdue-followups" label="Overdue Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="today-followups" label="Today's Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="upcoming-followups" label="Upcoming Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                                <SidebarItem view="all-followups" label="All Follow Ups" currentView={currentView} handleViewChange={handleViewChange} />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
+        <div className="flex flex-col gap-6 h-full min-h-0">
             {/* Main Content */}
             <div className="flex-1 flex flex-col space-y-6 min-w-0">
 
@@ -328,36 +335,96 @@ export default function LeadsPage() {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        <div className="lg:hidden flex-1 min-w-[140px]">
+                        <div className="flex-1 min-w-[180px] sm:min-w-[200px]">
                             <Select value={currentView} onValueChange={handleViewChange}>
-                                <SelectTrigger className="w-full h-9 text-xs">
+                                <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
                                     <SelectValue placeholder="Select View" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
                                         <SelectLabel>Leads</SelectLabel>
                                         <SelectItem value="all-leads">All Leads</SelectItem>
-                                        <SelectItem value="no-activity-leads">No Activity</SelectItem>
+                                        <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
                                         <SelectItem value="today-leads">Today's Leads</SelectItem>
-                                        <SelectItem value="converted-leads">Converted</SelectItem>
-                                        <SelectItem value="lost-leads">Lost</SelectItem>
+                                        <SelectItem value="converted-leads">Converted Leads</SelectItem>
+                                        <SelectItem value="lost-leads">Lost Leads</SelectItem>
                                     </SelectGroup>
                                     <SelectGroup>
                                         <SelectLabel>Analysis</SelectLabel>
-                                        <SelectItem value="leads-by-status">By Status</SelectItem>
-                                        <SelectItem value="leads-by-source">By Source</SelectItem>
-                                        <SelectItem value="leads-by-ownership">By Ownership</SelectItem>
+                                        <SelectItem value="leads-by-status">Leads by Status</SelectItem>
+                                        <SelectItem value="leads-by-source">Leads by Source</SelectItem>
+                                        <SelectItem value="leads-by-ownership">Leads by Ownership</SelectItem>
                                     </SelectGroup>
                                     <SelectGroup>
                                         <SelectLabel>Follow Ups</SelectLabel>
-                                        <SelectItem value="overdue-followups">Overdue</SelectItem>
-                                        <SelectItem value="today-followups">Today's</SelectItem>
-                                        <SelectItem value="upcoming-followups">Upcoming</SelectItem>
+                                        <SelectItem value="overdue-followups">Overdue Follow Ups</SelectItem>
+                                        <SelectItem value="today-followups">Today's Follow Ups</SelectItem>
+                                        <SelectItem value="upcoming-followups">Upcoming Follow Ups</SelectItem>
                                         <SelectItem value="all-followups">All Follow Ups</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        {!isTaskView && !isChartView && (
+                            <div className="min-w-[140px] sm:min-w-[160px]">
+                                <Select value={currentSort} onValueChange={handleSortChange}>
+                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                        <SelectValue placeholder="Sort by" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="newest">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Newest First
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="oldest">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Oldest First
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="name-asc">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Name (A-Z)
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="name-desc">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Name (Z-A)
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="score-high">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Score (High-Low)
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="score-low">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Score (Low-High)
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {!isTaskView && !isChartView && (sortedDisplayData as Lead[]).length > 0 && (
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={handleExcelDownload}
+                                className="h-9 px-3 gap-2 text-xs"
+                            >
+                                <Download className="h-3.5 w-3.5" />
+                                <span className="hidden xs:inline">Excel</span>
+                            </Button>
+                        )}
 
                         <Button
                             size="sm"
@@ -416,7 +483,7 @@ export default function LeadsPage() {
                                 <div className="p-0">
                                     <DataTable
                                         columns={columns}
-                                        data={displayData as Lead[]}
+                                        data={sortedDisplayData as Lead[]}
                                         searchKey="email"
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
                                     />

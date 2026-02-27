@@ -1,6 +1,7 @@
 import { useNavigate, useParams, Link } from "react-router-dom"
 import { useQuery } from "@tanstack/react-query"
 import { getUserById, getUserStats } from "@/services/userService"
+import { useCurrency } from "@/contexts/CurrencyContext"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -58,6 +59,7 @@ const SubordinatesList = ({ parentId }: { parentId: string }) => {
 };
 
 export default function UserProfilePage() {
+    const { formatCurrency } = useCurrency()
     const { id } = useParams()
     const navigate = useNavigate()
 
@@ -153,7 +155,7 @@ export default function UserProfilePage() {
                 <CardContent>
                     <div className="flex items-center gap-2">
                         <DollarSign className="h-8 w-8 text-green-600" />
-                        <span className="text-4xl font-bold">${stats?.totalSalesValue?.toLocaleString() || 0}</span>
+                        <span className="text-4xl font-bold">{formatCurrency(stats?.totalSalesValue || 0, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                     </div>
                 </CardContent>
             </Card>

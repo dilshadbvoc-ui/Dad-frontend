@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getDailyAchievement, acknowledgeDailyNotification } from '@/services/salesTargetService'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import {
     Dialog,
     DialogContent,
@@ -13,6 +14,7 @@ import { Button } from "@/components/ui/button"
 import { Target, TrendingUp, Calendar, Trophy, Flame } from 'lucide-react'
 
 export function AchievementNotification() {
+    const { formatCurrency } = useCurrency()
     const [isOpen, setIsOpen] = useState(false)
 
     const { data } = useQuery({
@@ -90,7 +92,7 @@ export function AchievementNotification() {
                         <div className="flex justify-between text-sm mb-2">
                             <span className="text-muted-foreground">Progress</span>
                             <span className="font-medium text-foreground">
-                                ₹{target.achievedValue.toLocaleString()} / ₹{target.targetValue.toLocaleString()}
+                                {formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / {formatCurrency(target.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                             </span>
                         </div>
                         <Progress value={Math.min(target.achievementPercent, 100)} className="h-3 bg-muted" indicatorClassName="bg-primary" />
@@ -103,7 +105,7 @@ export function AchievementNotification() {
                                 <TrendingUp className="h-4 w-4" />
                                 <span className="text-sm">Remaining</span>
                             </div>
-                            <p className="text-xl font-bold text-foreground">₹{target.amountRemaining.toLocaleString()}</p>
+                            <p className="text-xl font-bold text-foreground">{formatCurrency(target.amountRemaining, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
                         </div>
                         <div className="p-4 rounded-xl bg-muted/50">
                             <div className="flex items-center gap-2 text-muted-foreground mb-1">
@@ -120,7 +122,7 @@ export function AchievementNotification() {
                             <div className="flex items-center gap-2">
                                 <Flame className="h-5 w-5 text-orange-500" />
                                 <span className="font-medium text-primary">
-                                    Daily target: ₹{Math.ceil(target.amountRemaining / target.daysRemaining).toLocaleString()}
+                                    Daily target: {formatCurrency(Math.ceil(target.amountRemaining / target.daysRemaining), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                 </span>
                             </div>
                             <p className="text-sm text-primary/80 mt-1">

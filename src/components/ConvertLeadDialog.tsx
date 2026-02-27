@@ -7,6 +7,8 @@ import { api } from '@/services/api';
 import { Loader2, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface ConvertLeadDialogProps {
     open: boolean;
@@ -32,6 +34,8 @@ interface ConvertLeadDialogProps {
 export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const { formatCurrency } = useCurrency();
 
     // Calculate total value from products
     const calculateProductValue = () => {
@@ -61,6 +65,13 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
             });
 
             toast.success('Lead converted successfully!');
+            
+            // Invalidate queries to refresh data
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            queryClient.invalidateQueries({ queryKey: ['opportunities'] });
+            queryClient.invalidateQueries({ queryKey: ['accounts'] });
+            queryClient.invalidateQueries({ queryKey: ['contacts'] });
+            
             onOpenChange(false);
 
             // Redirect to the new Opportunity (if returned) or Leads list
@@ -130,13 +141,13 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
                                 {lead.products.map((item) => (
                                     <div key={item.id} className="text-xs text-muted-foreground flex justify-between">
                                         <span>{item.product.name} (x{item.quantity})</span>
-                                        <span className="font-medium">${(item.product.basePrice * item.quantity).toLocaleString()}</span>
+                                        <span className="font-medium">{formatCurrency(item.product.basePrice * item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                                     </div>
                                 ))}
                             </div>
                             <div className="text-xs font-semibold mt-2 pt-2 border-t flex justify-between">
                                 <span>Opportunity Amount:</span>
-                                <span className="text-green-600">${opportunityAmount.toLocaleString()}</span>
+                                <span className="text-green-600">{formatCurrency(opportunityAmount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                             </div>
                             <div className="text-xs text-muted-foreground mt-1">
                                 These products will be added to the account as purchased items.
@@ -148,7 +159,7 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
                         <div className="rounded-md border p-3 bg-muted/50">
                             <div className="text-xs font-semibold flex justify-between">
                                 <span>Opportunity Amount:</span>
-                                <span className="text-green-600">${opportunityAmount.toLocaleString()}</span>
+                                <span className="text-green-600">{formatCurrency(opportunityAmount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
                             </div>
                         </div>
                     )}

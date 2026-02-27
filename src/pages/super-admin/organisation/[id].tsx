@@ -40,6 +40,7 @@ import {
 import { formatCurrency } from '@/lib/utils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
 import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog'
+import { SetCustomPriceDialog } from '@/components/super-admin/SetCustomPriceDialog'
 import { useState } from 'react'
 
 interface OrgDetails {
@@ -67,6 +68,7 @@ interface OrgDetails {
         startDate: string
         endDate: string
         maxUsers: number
+        customPrice?: number | null
         plan: {
             id: string
             name: string
@@ -102,6 +104,7 @@ export default function OrganisationDetailPage() {
     const navigate = useNavigate()
     const [isAssignPlanOpen, setIsAssignPlanOpen] = useState(false)
     const [isEditOrgOpen, setIsEditOrgOpen] = useState(false)
+    const [isCustomPriceOpen, setIsCustomPriceOpen] = useState(false)
 
     const { data, isLoading, error } = useQuery<OrgDetails>({
         queryKey: ['organisation', id],
@@ -142,17 +145,36 @@ export default function OrganisationDetailPage() {
     const { organisation: org, users, stats, activeLicense } = data
 
     const calculateBill = () => {
-        if (!activeLicense || !activeLicense.plan) return 0;
+        if (!activeLicense || !activeLicense.plan) return { subtotal: 0, gst: 0, total: 0 };
         const plan = activeLicense.plan;
-        const discount = plan.discount || 0;
-        let total: number;
-        if (plan.pricingModel === 'flat_rate') {
-            total = plan.price;
+        
+        let subtotal: number;
+        
+        // If custom price is set, multiply by user count (custom price is per user)
+        if (activeLicense.customPrice !== null && activeLicense.customPrice !== undefined) {
+            subtotal = activeLicense.customPrice * stats.userCount;
         } else {
-            total = (plan.price || 0) + (plan.pricePerUser || 0) * stats.userCount;
+            // Use standard plan pricing with discount
+            const discount = plan.discount || 0;
+            
+            if (plan.pricingModel === 'flat_rate') {
+                subtotal = plan.price;
+            } else {
+                subtotal = (plan.price || 0) + (plan.pricePerUser || 0) * stats.userCount;
+            }
+            
+            // Apply discount only for standard pricing
+            if (discount > 0) {
+                subtotal = Math.round(subtotal * (1 - discount / 100));
+            }
         }
-        return discount > 0 ? Math.round(total * (1 - discount / 100)) : total;
+        
+        const gst = Math.round(subtotal * 0.18); // 18% GST
+        const total = subtotal + gst;
+        return { subtotal, gst, total };
     };
+
+    const billAmounts = calculateBill();
 
     const daysRemaining = activeLicense ? Math.ceil((new Date(activeLicense.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
@@ -200,9 +222,9 @@ export default function OrganisationDetailPage() {
                         <div className="flex justify-between items-baseline mb-4">
                             <div>
                                 <h3 className="text-2xl font-bold text-white">
-                                    {formatCurrency(calculateBill(), activeLicense?.plan.currency || 'INR')}
+                                    {formatCurrency(billAmounts.total, activeLicense?.plan.currency || 'INR')}
                                 </h3>
-                                <p className="text-xs text-indigo-400">Current Projected Bill</p>
+                                <p className="text-xs text-indigo-400">Current Projected Bill (incl. GST)</p>
                             </div>
                             <Dialog>
                                 <DialogTrigger asChild>
@@ -232,28 +254,58 @@ export default function OrganisationDetailPage() {
                                         </div>
 
                                         <div className="bg-indigo-950/30 p-4 rounded-lg space-y-2 mt-4">
-                                            <div className="flex justify-between text-sm">
-                                                <span className="text-indigo-400">Base Price ({activeLicense?.plan.pricingModel === 'flat_rate' ? 'Flat' : 'Base'})</span>
-                                                <span>{formatCurrency(activeLicense?.plan.price || 0, activeLicense?.plan.currency)}</span>
+                                            {activeLicense?.customPrice !== null && activeLicense?.customPrice !== undefined ? (
+                                                <>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-indigo-400">Standard Plan Price</span>
+                                                        <span className="line-through text-indigo-500">
+                                                            {formatCurrency(
+                                                                activeLicense?.plan.pricingModel === 'flat_rate' 
+                                                                    ? activeLicense?.plan.price 
+                                                                    : (activeLicense?.plan.price || 0) + (activeLicense?.plan.pricePerUser || 0) * stats.userCount,
+                                                                activeLicense?.plan.currency
+                                                            )}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex justify-between text-sm text-amber-400 font-semibold">
+                                                        <span>Custom Price Per User ({stats.userCount} × {formatCurrency(activeLicense.customPrice, activeLicense?.plan.currency)})</span>
+                                                        <span>{formatCurrency(activeLicense.customPrice * stats.userCount, activeLicense?.plan.currency)}</span>
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span className="text-indigo-400">Base Price ({activeLicense?.plan.pricingModel === 'flat_rate' ? 'Flat' : 'Base'})</span>
+                                                        <span>{formatCurrency(activeLicense?.plan.price || 0, activeLicense?.plan.currency)}</span>
+                                                    </div>
+                                                    {activeLicense?.plan.pricingModel === 'per_user' && (
+                                                        <div className="flex justify-between text-sm">
+                                                            <span className="text-indigo-400">User Usage ({stats.userCount} x {formatCurrency(activeLicense?.plan.pricePerUser || 0, activeLicense?.plan.currency)})</span>
+                                                            <span>{formatCurrency((activeLicense?.plan.pricePerUser || 0) * stats.userCount, activeLicense?.plan.currency)}</span>
+                                                        </div>
+                                                    )}
+                                                    {(activeLicense?.plan.discount ?? 0) > 0 && (
+                                                        <div className="flex justify-between text-sm text-green-400">
+                                                            <span>Discount ({activeLicense?.plan.discount}%)</span>
+                                                            <span>-{formatCurrency(
+                                                                Math.round(((activeLicense?.plan.pricingModel === 'flat_rate' ? activeLicense?.plan.price : (activeLicense?.plan.price || 0) + (activeLicense?.plan.pricePerUser || 0) * stats.userCount) || 0) * ((activeLicense?.plan.discount || 0) / 100)),
+                                                                activeLicense?.plan.currency
+                                                            )}</span>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                            <div className="flex justify-between text-sm pt-2 border-t border-indigo-800">
+                                                <span className="text-indigo-400">Subtotal</span>
+                                                <span>{formatCurrency(billAmounts.subtotal, activeLicense?.plan.currency || 'INR')}</span>
                                             </div>
-                                            {activeLicense?.plan.pricingModel === 'per_user' && (
-                                                <div className="flex justify-between text-sm">
-                                                    <span className="text-indigo-400">User Usage ({stats.userCount} x {formatCurrency(activeLicense?.plan.pricePerUser || 0, activeLicense?.plan.currency)})</span>
-                                                    <span>{formatCurrency((activeLicense?.plan.pricePerUser || 0) * stats.userCount, activeLicense?.plan.currency)}</span>
-                                                </div>
-                                            )}
-                                            {(activeLicense?.plan.discount ?? 0) > 0 && (
-                                                <div className="flex justify-between text-sm text-green-400">
-                                                    <span>Discount ({activeLicense?.plan.discount}%)</span>
-                                                    <span>-{formatCurrency(
-                                                        Math.round(((activeLicense?.plan.pricingModel === 'flat_rate' ? activeLicense?.plan.price : (activeLicense?.plan.price || 0) + (activeLicense?.plan.pricePerUser || 0) * stats.userCount) || 0) * ((activeLicense?.plan.discount || 0) / 100)),
-                                                        activeLicense?.plan.currency
-                                                    )}</span>
-                                                </div>
-                                            )}
+                                            <div className="flex justify-between text-sm">
+                                                <span className="text-indigo-400">GST (18%)</span>
+                                                <span>{formatCurrency(billAmounts.gst, activeLicense?.plan.currency || 'INR')}</span>
+                                            </div>
                                             <div className="flex justify-between pt-2 border-t border-indigo-800 font-bold text-lg mt-2">
                                                 <span>Total Amount Due</span>
-                                                <span className="text-indigo-400">{formatCurrency(calculateBill(), activeLicense?.plan.currency || 'INR')}</span>
+                                                <span className="text-indigo-400">{formatCurrency(billAmounts.total, activeLicense?.plan.currency || 'INR')}</span>
                                             </div>
                                         </div>
 
@@ -278,6 +330,12 @@ export default function OrganisationDetailPage() {
                                 <span className="text-indigo-500">Base Price:</span>
                                 <span className="text-indigo-300">{formatCurrency(activeLicense?.plan.price || 0, activeLicense?.plan.currency)}</span>
                             </div>
+                            {activeLicense?.customPrice !== null && activeLicense?.customPrice !== undefined && (
+                                <div className="flex justify-between">
+                                    <span className="text-amber-500">Custom Price:</span>
+                                    <span className="text-amber-400 font-bold">{formatCurrency(activeLicense.customPrice, activeLicense?.plan.currency)}</span>
+                                </div>
+                            )}
                             {(activeLicense?.plan.discount ?? 0) > 0 && (
                                 <div className="flex justify-between">
                                     <span className="text-green-500">Discount:</span>
@@ -290,6 +348,16 @@ export default function OrganisationDetailPage() {
                                     <span className="text-indigo-300">{formatCurrency(activeLicense?.plan.pricePerUser || 0, activeLicense?.plan.currency)}</span>
                                 </div>
                             )}
+                            <div className="pt-2">
+                                <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => setIsCustomPriceOpen(true)}
+                                    className="w-full h-7 text-[10px] border-amber-700 text-amber-300 hover:bg-amber-900/40"
+                                >
+                                    Set Custom Price
+                                </Button>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -516,6 +584,18 @@ export default function OrganisationDetailPage() {
                 onOpenChange={setIsEditOrgOpen}
                 organisation={org}
             />
+
+            {activeLicense && (
+                <SetCustomPriceDialog
+                    open={isCustomPriceOpen}
+                    onOpenChange={setIsCustomPriceOpen}
+                    licenseId={activeLicense.id}
+                    organisationName={org.name}
+                    currentPrice={activeLicense.plan.price}
+                    customPrice={activeLicense.customPrice}
+                    currency={activeLicense.plan.currency}
+                />
+            )}
         </div>
     )
 }

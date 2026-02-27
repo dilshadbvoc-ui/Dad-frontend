@@ -42,8 +42,7 @@ export default function CommissionsPage() {
         amount: "",
         type: "commission",
         description: "",
-        status: "pending",
-        userEmail: "" // Just for display if we can't select users easily yet
+        status: "pending"
     });
 
     const { data: commissions = [], isLoading } = useQuery({
@@ -96,8 +95,7 @@ export default function CommissionsPage() {
             amount: "",
             type: "commission",
             description: "",
-            status: "pending",
-            userEmail: ""
+            status: "pending"
         });
         setEditingId(null);
     };
@@ -131,8 +129,7 @@ export default function CommissionsPage() {
             amount: item.amount.toString(),
             type: item.type,
             description: item.description || "",
-            status: item.status,
-            userEmail: ""
+            status: item.status
         });
         setEditingId(item.id);
         setIsDialogOpen(true);

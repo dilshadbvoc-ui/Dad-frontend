@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation } from "@tanstack/react-query"
 import { getCheckIns, type CheckIn } from "@/services/checkInService"
 import { getUsers } from "@/services/settingsService"
 import MapComponent from "@/components/common/MapComponent"
@@ -14,32 +14,93 @@ import { format } from "date-fns"
 import { toast } from "sonner"
 import { createCheckIn } from "@/services/checkInService"
 import { useQueryClient } from "@tanstack/react-query"
+import { getUserInfo } from "@/lib/utils"
 
 export default function FieldForcePage() {
     const [selectedDate] = useState(new Date())
-    const [checkingIn, setCheckingIn] = useState(false)
     const queryClient = useQueryClient()
 
-    const handleCheckIn = () => {
-        setCheckingIn(true)
+    // Mutation for check-in with optimistic updates
+    const checkInMutation = useMutation({
+        mutationFn: (data: { type: 'CHECK_IN', latitude?: number, longitude?: number, address?: string }) => 
+            createCheckIn(data),
+        onMutate: async (newCheckIn) => {
+            // Cancel outgoing refetches
+            await queryClient.cancelQueries({ queryKey: ['checkins', selectedDate.toISOString()] })
+            await queryClient.cancelQueries({ queryKey: ['checkins-recent'] })
 
-        // Helper to perform check-in
-        const submitCheckIn = async (lat?: number, lng?: number, addr?: string) => {
-            try {
-                await createCheckIn({
-                    type: 'CHECK_IN',
-                    latitude: lat,
-                    longitude: lng,
-                    address: addr || 'Unknown Location'
-                })
-                toast.success("Checked in successfully!")
-                queryClient.invalidateQueries({ queryKey: ['checkins'] })
-            } catch (error) {
-                console.error(error)
-                toast.error("Failed to check in")
-            } finally {
-                setCheckingIn(false)
+            // Snapshot previous values
+            const previousCheckIns = queryClient.getQueryData(['checkins', selectedDate.toISOString()])
+            const previousRecent = queryClient.getQueryData(['checkins-recent'])
+
+            // Get current user data for optimistic update
+            const currentUser = getUserInfo()
+
+            // Create optimistic check-in
+            const optimisticCheckIn: CheckIn = {
+                id: `temp-${Date.now()}`,
+                type: newCheckIn.type,
+                latitude: newCheckIn.latitude,
+                longitude: newCheckIn.longitude,
+                address: newCheckIn.address || 'Unknown Location',
+                userId: currentUser?.id || 'temp-user',
+                organisationId: currentUser?.organisationId || 'temp-org',
+                createdAt: new Date().toISOString(),
+                user: currentUser ? {
+                    firstName: currentUser.firstName,
+                    lastName: currentUser.lastName
+                } : undefined
             }
+
+            // Optimistically update cache
+            queryClient.setQueryData(['checkins', selectedDate.toISOString()], (old: any) => {
+                if (!old) return { checkIns: [optimisticCheckIn] }
+                return {
+                    ...old,
+                    checkIns: [optimisticCheckIn, ...(old.checkIns || [])]
+                }
+            })
+
+            queryClient.setQueryData(['checkins-recent'], (old: any) => {
+                if (!old) return { checkIns: [optimisticCheckIn] }
+                if (Array.isArray(old)) return [optimisticCheckIn, ...old]
+                return {
+                    ...old,
+                    checkIns: [optimisticCheckIn, ...(old.checkIns || [])]
+                }
+            })
+
+            toast.success("Checked in successfully!")
+
+            return { previousCheckIns, previousRecent }
+        },
+        onError: (err, newCheckIn, context) => {
+            // Rollback on error
+            if (context?.previousCheckIns) {
+                queryClient.setQueryData(['checkins', selectedDate.toISOString()], context.previousCheckIns)
+            }
+            if (context?.previousRecent) {
+                queryClient.setQueryData(['checkins-recent'], context.previousRecent)
+            }
+            console.error(err)
+            toast.error("Failed to check in")
+        },
+        onSuccess: () => {
+            // Refetch to get real data from server
+            queryClient.invalidateQueries({ queryKey: ['checkins', selectedDate.toISOString()] })
+            queryClient.invalidateQueries({ queryKey: ['checkins-recent'] })
+        }
+    })
+
+    const handleCheckIn = () => {
+        // Helper to perform check-in
+        const submitCheckIn = (lat?: number, lng?: number, addr?: string) => {
+            checkInMutation.mutate({
+                type: 'CHECK_IN',
+                latitude: lat,
+                longitude: lng,
+                address: addr || 'Unknown Location'
+            })
         }
 
         // Check if environment supports geolocation (HTTPS or localhost)
@@ -160,10 +221,10 @@ export default function FieldForcePage() {
                             <div className="flex gap-2">
                                 <Button
                                     onClick={handleCheckIn}
-                                    disabled={checkingIn}
+                                    disabled={checkInMutation.isPending}
                                     className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
                                 >
-                                    {checkingIn ? <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
+                                    {checkInMutation.isPending ? <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin mr-2" /> : <MapPin className="h-4 w-4 mr-2" />}
                                     Check In Now
                                 </Button>
                                 <Button variant="outline"><Clock className="h-4 w-4 mr-2" />History</Button>
