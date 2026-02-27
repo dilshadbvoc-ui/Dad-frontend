@@ -123,7 +123,7 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
 
     // No EMI schedule exists
     if (!emiSchedule) {
-        if (paymentStatus !== 'partial') return null
+        if (!opportunityAmount || opportunityAmount <= 0) return null
 
         return (
             <Card className="border-dashed border-2 border-blue-200 dark:border-blue-800">

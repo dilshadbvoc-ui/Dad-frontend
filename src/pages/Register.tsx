@@ -125,7 +125,7 @@ const Register = () => {
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="lastName">Last Name</Label>
+                                    <Label htmlFor="lastName">Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
                                     <div className="relative">
                                         <User className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                                         <Input
@@ -134,7 +134,6 @@ const Register = () => {
                                             value={lastName}
                                             onChange={(e) => setLastName(e.target.value)}
                                             className="pl-9 bg-white dark:bg-background"
-                                            required
                                         />
                                     </div>
                                 </div>

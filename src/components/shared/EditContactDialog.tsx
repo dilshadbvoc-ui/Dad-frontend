@@ -110,8 +110,8 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
                             <Input id="firstName" value={formData.firstName} onChange={(e) => handleChange('firstName', e.target.value)} required />
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="lastName">Last Name</Label>
-                            <Input id="lastName" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} required />
+                            <Label htmlFor="lastName">Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></Label>
+                            <Input id="lastName" value={formData.lastName} onChange={(e) => handleChange('lastName', e.target.value)} />
                         </div>
                     </div>
 
