@@ -34,7 +34,8 @@ import {
     Smartphone,
     Percent,
     LifeBuoy,
-    UsersRound
+    UsersRound,
+    Upload
 } from "lucide-react";
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
@@ -52,6 +53,7 @@ const menuGroups = [
         title: "Sales Engine",
         items: [
             { title: "Leads", href: "/leads", icon: User },
+            { title: "Bulk Import", href: "/leads/import", icon: Upload },
             { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
             { title: "Duplicates", href: "/duplicates", icon: AlertTriangle, role: "admin" },
             { title: "Contacts", href: "/contacts", icon: Users },

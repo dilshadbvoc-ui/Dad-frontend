@@ -24,6 +24,7 @@ import { ThemeProvider } from './contexts/ThemeContext';
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
+const BulkImportLeadsPage = lazy(() => import('./pages/leads/import'));
 const ReEnquiriesPage = lazy(() => import('./pages/re-enquiries'));
 const DuplicatesPage = lazy(() => import('./pages/duplicates'));
 const UserProfilePage = lazy(() => import('./pages/users/[id]'));
@@ -181,6 +182,7 @@ function AppContent() {
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/leads" element={<LeadsPage />} />
+              <Route path="/leads/import" element={<BulkImportLeadsPage />} />
               <Route path="/leads/new" element={<CreateLeadPage />} />
               <Route path="/leads/:id" element={<LeadDetailPage />} />
               <Route path="/re-enquiries" element={<ReEnquiriesPage />} />
