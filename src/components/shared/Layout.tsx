@@ -11,6 +11,7 @@ import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 
 export default function Layout() {
     const location = useLocation();
@@ -26,6 +27,9 @@ export default function Layout() {
         return saved === 'true';
     });
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Enable real-time product view notifications
+    useProductViewNotifications();
 
     useEffect(() => {
         localStorage.setItem('sidebar-collapsed', String(collapsed));
