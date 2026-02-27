@@ -16,7 +16,7 @@ export default function BulkImportLeadsPage() {
     const [file, setFile] = useState<File | null>(null)
     const [isImporting, setIsImporting] = useState(false)
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([])
-    const [selectedBranch, setSelectedBranch] = useState<string>("")
+    const [selectedBranch, setSelectedBranch] = useState<string>("none")
     const [applyAssignmentRules, setApplyAssignmentRules] = useState(false)
 
     const [user] = useState(() => {
@@ -94,7 +94,7 @@ export default function BulkImportLeadsPage() {
         formData.append("mapping", JSON.stringify(mapping))
         formData.append("defaultStatus", "new")
         
-        if (selectedBranch) {
+        if (selectedBranch && selectedBranch !== "none") {
             formData.append("branchId", selectedBranch)
         }
         if (applyAssignmentRules) {
@@ -225,12 +225,12 @@ export default function BulkImportLeadsPage() {
                             <CardContent className="space-y-4">
                                 <div className="space-y-2">
                                     <Label>Target Branch (Optional)</Label>
-                                    <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                                    <Select value={selectedBranch || "none"} onValueChange={(val) => setSelectedBranch(val === "none" ? "" : val)}>
                                         <SelectTrigger>
                                             <SelectValue placeholder="Select Branch (Default: All/Head Office)" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value="">No Branch (Head Office)</SelectItem>
+                                            <SelectItem value="none">No Branch (Head Office)</SelectItem>
                                             {branches.map((branch: any) => (
                                                 <SelectItem key={branch.id} value={branch.id}>
                                                     {branch.name}
