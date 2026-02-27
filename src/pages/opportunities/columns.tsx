@@ -1,4 +1,4 @@
-import type { ColumnDef } from "@tantml:function_calls>
+import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
