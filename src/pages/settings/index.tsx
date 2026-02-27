@@ -29,7 +29,8 @@ const ALL_SETTINGS_SECTIONS = [
         description: "Update your personal information and preferences",
         href: "/settings/profile",
         icon: User,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
     },
     {
         title: "Organisation Details",
