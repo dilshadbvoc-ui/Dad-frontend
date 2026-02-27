@@ -32,12 +32,11 @@ import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 // interface for Form Data
 interface QuickLeadFormData {
     firstName: string
-    lastName: string
-    email: string
+    lastName?: string
+    email?: string
     phone: string
-    company: string
+    company?: string
     source: string
-
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
     customFields?: Record<string, unknown>
@@ -94,16 +93,32 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
     })
 
     function onSubmit(values: QuickLeadFormData) {
-        // Sanitize payload: Remove empty strings
-        const payload = {
-            ...values,
-            customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
+        // Sanitize payload: Remove empty strings and convert to undefined for optional fields
+        const payload: CreateLeadData = {
+            firstName: values.firstName,
+            phone: values.phone,
+            source: values.source,
+            status: values.status,
         };
-        if (!payload.assignedTo || payload.assignedTo === "unassigned") {
-            delete payload.assignedTo;
+
+        // Only add optional fields if they have values
+        if (values.lastName && values.lastName.trim()) {
+            payload.lastName = values.lastName.trim();
+        }
+        if (values.email && values.email.trim()) {
+            payload.email = values.email.trim();
+        }
+        if (values.company && values.company.trim()) {
+            payload.company = values.company.trim();
+        }
+        if (values.assignedTo && values.assignedTo !== "unassigned") {
+            payload.assignedTo = values.assignedTo;
+        }
+        if (Object.keys(customFieldValues).length > 0) {
+            (payload as any).customFields = customFieldValues;
         }
 
-        mutation.mutate(payload as unknown as CreateLeadData)
+        mutation.mutate(payload)
     }
 
     const handleCustomFieldChange = (name: string, value: unknown) => {
