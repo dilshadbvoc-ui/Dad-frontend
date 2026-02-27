@@ -117,15 +117,12 @@ export function BulkImportLeads() {
                     const result: CreateLeadData[] = []
                     
                     for (const row of jsonData) {
-                        const obj: Partial<CreateLeadData> = {}
+                        const obj: any = {}
                         
                         // Map Excel columns to lead fields (case-insensitive)
-                        const entries = Object.entries(row as Record<string, unknown>)
-                        for (let i = 0; i < entries.length; i++) {
-                            const [key, value] = entries[i]
-                            const keyStr = `${key}`
-                            const normalizedKey = keyStr.trim().toLowerCase()
-                            let mappedKey = keyStr.trim()
+                        for (const [key, value] of Object.entries(row as any)) {
+                            const normalizedKey = key.trim().toLowerCase()
+                            let mappedKey = key.trim()
                             
                             // Map common variations
                             if (normalizedKey === 'first name' || normalizedKey === 'firstname') mappedKey = 'firstName'
@@ -134,7 +131,7 @@ export function BulkImportLeads() {
                             else if (normalizedKey === 'lead score' || normalizedKey === 'leadscore') mappedKey = 'leadScore'
                             else if (normalizedKey === 'owner email' || normalizedKey === 'owneremail') mappedKey = 'ownerEmail'
                             
-                            (obj as Record<string, unknown>)[mappedKey] = value
+                            obj[mappedKey] = value
                         }
                         
                         // Basic validation
