@@ -84,7 +84,8 @@ const ALL_SETTINGS_SECTIONS = [
         description: "Configure automatic lead and opportunity assignment",
         href: "/settings/assignment-rules",
         icon: GitBranch,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin', 'branch_manager']
     },
     {
         title: "Lead Scoring",
@@ -114,7 +115,8 @@ const ALL_SETTINGS_SECTIONS = [
         description: "Upload a CSV or Excel file to import leads in bulk",
         href: "/settings/import",
         icon: Upload,
-        gradient: "from-indigo-600 to-violet-600"
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin', 'branch_manager']
     },
     {
         title: "Call Recording",
@@ -176,11 +178,19 @@ export default function SettingsPage() {
     const filteredSections = useMemo(() => {
         if (!user) return [];
         const userIsAdmin = isAdmin(user);
+        const userIsBranchManager = isBranchManager(user);
 
         return ALL_SETTINGS_SECTIONS.filter(section => {
-            // If section explicitly requires admin role and user isn't admin, hide it
-            if (section.roles?.includes('admin') && !userIsAdmin) {
-                return false;
+            // If section has role requirements
+            if (section.roles && section.roles.length > 0) {
+                // Check if user has any of the required roles
+                const hasRequiredRole = section.roles.some((role: string) => {
+                    if (role === 'admin') return userIsAdmin;
+                    if (role === 'branch_manager') return userIsBranchManager;
+                    return false;
+                });
+                
+                if (!hasRequiredRole) return false;
             }
             return true;
         });
