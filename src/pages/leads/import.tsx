@@ -26,22 +26,33 @@ export default function BulkImportLeadsPage() {
     const isAdminUser = isAdmin(user)
     const [managedBranchIds, setManagedBranchIds] = useState<string[]>([])
     
-    // Check if user is a branch manager
-    const isBranchManager = managedBranchIds.length > 0
-    const canConfigureImport = isAdminUser || isBranchManager
+    // Check if user is a branch manager - only show config if admin OR has managed branches
+    const canConfigureImport = isAdminUser || managedBranchIds.length > 0
 
     useEffect(() => {
-        fetchBranches()
+        // Only fetch branches for admins or potential branch managers
+        if (isAdminUser) {
+            fetchBranches()
+        } else {
+            // Check if user is a branch manager
+            checkBranchManager()
+        }
     }, [])
 
     const fetchBranches = async () => {
         try {
-            if (isAdminUser) {
-                const response = await api.get("/branches")
-                setBranches(response.data || [])
-            } else {
-                const response = await api.get('/users/my-team')
-                const managed = response.data?.managedBranches || []
+            const response = await api.get("/branches")
+            setBranches(response.data || [])
+        } catch (error) {
+            console.error("Failed to fetch branches", error)
+        }
+    }
+
+    const checkBranchManager = async () => {
+        try {
+            const response = await api.get('/users/my-team')
+            const managed = response.data?.managedBranches || []
+            if (managed.length > 0) {
                 setBranches(managed)
                 setManagedBranchIds(managed.map((b: any) => b.id))
                 if (managed.length === 1) {
@@ -50,7 +61,7 @@ export default function BulkImportLeadsPage() {
                 }
             }
         } catch (error) {
-            console.error("Failed to fetch branches", error)
+            console.error("Failed to check branch manager status", error)
         }
     }
 
