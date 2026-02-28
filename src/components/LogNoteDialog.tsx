@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { api } from '@/services/api';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface LogNoteDialogProps {
     open: boolean;
@@ -18,20 +19,7 @@ interface LogNoteDialogProps {
 export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialContent = '' }: LogNoteDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [note, setNote] = useState(initialContent);
-
-    // Better: use useEffect to set note when open changes to true. 
-    // But since we can't easily add imports here without multi replace, 
-    // and I want to keep it simple, I'll stick to 'useState(initialContent)'. 
-    // IMPORTANT: If initialContent changes while component is mounted, useState won't update.
-    // I should add a check. But simplest is just replace the whole file or block carefully.
-
-    // Actually, let's just use `defaultValue` concept or a `useEffect`.
-    // Since I can't add useEffect easily without importing it (it is imported actually: line 1), 
-    // I can do it.
-
-    // Wait, line 1 has `import { useState } from 'react';`
-    // I should probably add `useEffect` to imports too if I use it.
-    // But let's check if I can just swap lines 1-20.
+    const queryClient = useQueryClient();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,6 +35,10 @@ export function LogNoteDialog({ open, onOpenChange, leadId, onSuccess, initialCo
             });
 
             toast.success('Note added successfully');
+            
+            // Invalidate timeline query to refresh the timeline
+            queryClient.invalidateQueries({ queryKey: ['timeline', 'lead', leadId] });
+            
             onSuccess();
             onOpenChange(false);
             setNote('');
