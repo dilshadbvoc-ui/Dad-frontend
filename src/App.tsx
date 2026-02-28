@@ -39,6 +39,7 @@ const AdsManager = lazy(() => import('./pages/marketing/AdsManager'));
 const CreateCampaignPage = lazy(() => import('./pages/marketing/new-campaign'));
 const CommunicationsPage = lazy(() => import('./pages/communications'));
 const CalendarPage = lazy(() => import('./pages/calendar'));
+const FollowUpsPage = lazy(() => import('./pages/follow-ups'));
 const TasksPage = lazy(() => import('./pages/tasks'));
 const CallsPage = lazy(() => import('./pages/calls'));
 const SettingsPage = lazy(() => import('./pages/settings'));
@@ -205,6 +206,7 @@ function AppContent() {
               <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
 
               <Route path="/calendar" element={<CalendarPage />} />
+              <Route path="/follow-ups" element={<FollowUpsPage />} />
               <Route path="/tasks" element={<TasksPage />} />
               <Route path="/calls" element={<CallsPage />} />
               <Route path="/settings" element={<SettingsPage />} />

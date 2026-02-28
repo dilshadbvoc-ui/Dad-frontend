@@ -92,6 +92,7 @@ const menuGroups = [
     {
         title: "Productivity",
         items: [
+            { title: "Follow-ups", href: "/follow-ups", icon: Calendar },
             { title: "Tasks", href: "/tasks", icon: CheckSquare },
             { title: "Calendar", href: "/calendar", icon: Calendar },
             { title: "Goals", href: "/goals", icon: Trophy },
