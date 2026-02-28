@@ -72,16 +72,17 @@ export default function LeadDetailPage() {
         enabled: id !== 'new'
     })
 
-    const updateStageMutation = useMutation({
-        mutationFn: async (newStage: string) => {
-            await api.put(`/leads/${id}`, { stage: newStage })
+    const updateStatusMutation = useMutation({
+        mutationFn: async (newStatus: string) => {
+            await api.put(`/leads/${id}`, { status: newStatus })
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['lead', id] })
-            toast.success("Lead stage updated")
+            queryClient.invalidateQueries({ queryKey: ['leads'] })
+            toast.success("Lead status updated")
         },
         onError: () => {
-            toast.error("Failed to update lead stage")
+            toast.error("Failed to update lead status")
         }
     })
 
@@ -208,27 +209,33 @@ export default function LeadDetailPage() {
                 {/* Mobile Dashboard Actions / Desktop Full Actions */}
                 <div className="flex flex-wrap items-center gap-2 px-2 sm:px-0">
                     <div className="flex-1 min-w-[140px] sm:hidden">
-                        <Select value={lead.stage || "New"} onValueChange={(val) => updateStageMutation.mutate(val)}>
+                        <Select value={lead.status || "new"} onValueChange={(val) => updateStatusMutation.mutate(val)}>
                             <SelectTrigger className="w-full h-9 text-xs">
-                                <SelectValue placeholder="Stage" />
+                                <SelectValue placeholder="Status" />
                             </SelectTrigger>
                             <SelectContent>
-                                {["New", "Contacted", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map(s => (
-                                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                                ))}
+                                <SelectItem value="new">New</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="qualified">Qualified</SelectItem>
+                                <SelectItem value="nurturing">Nurturing</SelectItem>
+                                <SelectItem value="converted">Converted</SelectItem>
+                                <SelectItem value="lost">Lost</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
 
                     <div className="hidden sm:block">
-                        <Select value={lead.stage || "New"} onValueChange={(val) => updateStageMutation.mutate(val)}>
+                        <Select value={lead.status || "new"} onValueChange={(val) => updateStatusMutation.mutate(val)}>
                             <SelectTrigger className="w-[160px] h-9 text-xs">
-                                <SelectValue placeholder="Select Stage" />
+                                <SelectValue placeholder="Select Status" />
                             </SelectTrigger>
                             <SelectContent>
-                                {["New", "Contacted", "Qualified", "Proposal", "Negotiation", "Won", "Lost"].map(s => (
-                                    <SelectItem key={s} value={s}>{s}</SelectItem>
-                                ))}
+                                <SelectItem value="new">New</SelectItem>
+                                <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="qualified">Qualified</SelectItem>
+                                <SelectItem value="nurturing">Nurturing</SelectItem>
+                                <SelectItem value="converted">Converted</SelectItem>
+                                <SelectItem value="lost">Lost</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
