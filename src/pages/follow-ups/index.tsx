@@ -116,7 +116,6 @@ export default function FollowUpsPage() {
                     columns={columns} 
                     data={followUps} 
                     searchKey="subject"
-                    onSearchChange={setSearchQuery}
                 />
             )}
         </div>
