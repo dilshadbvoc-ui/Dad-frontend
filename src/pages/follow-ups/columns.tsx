@@ -1,11 +1,22 @@
 import { type ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Clock } from "lucide-react"
+import { ArrowUpDown, Clock, MoreHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type FollowUpTask } from "@/services/followUpService"
 import { format, isPast, isToday } from "date-fns"
 import { Link } from "react-router-dom"
 import { cn } from "@/lib/utils"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { api } from "@/services/api"
+import { toast } from "sonner"
+import { useQueryClient } from "@tanstack/react-query"
 
 export const columns: ColumnDef<FollowUpTask>[] = [
     {
@@ -135,6 +146,51 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                     <span className="text-xs text-muted-foreground mr-1">{model}:</span>
                     <span className="font-medium">{name}</span>
                 </div>
+            )
+        }
+    },
+    {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => {
+            const task = row.original
+            const queryClient = useQueryClient()
+
+            const updateStatus = async (newStatus: string) => {
+                try {
+                    await api.put(`/follow-ups/${task.id}`, { status: newStatus })
+                    toast.success('Status updated successfully')
+                    queryClient.invalidateQueries({ queryKey: ['follow-ups'] })
+                } catch (error: any) {
+                    toast.error(error.response?.data?.message || 'Failed to update status')
+                }
+            }
+
+            return (
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Change Status</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => updateStatus('not_started')}>
+                            Not Started
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus('in_progress')}>
+                            In Progress
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus('completed')}>
+                            Completed
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => updateStatus('deferred')}>
+                            Deferred
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             )
         }
     },

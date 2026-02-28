@@ -16,6 +16,7 @@ interface SetFollowUpDialogProps {
 
 export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onSuccess }: SetFollowUpDialogProps) {
     const [date, setDate] = useState<string>(currentDate ? new Date(currentDate).toISOString().split('T')[0] : '');
+    const [time, setTime] = useState<string>(currentDate ? new Date(currentDate).toTimeString().slice(0, 5) : '09:00');
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -23,8 +24,11 @@ export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onS
         setIsLoading(true);
 
         try {
+            // Combine date and time
+            const dateTime = date && time ? new Date(`${date}T${time}:00`).toISOString() : null;
+            
             await api.put(`/leads/${leadId}`, {
-                nextFollowUp: date ? new Date(date).toISOString() : null
+                nextFollowUp: dateTime
             });
             toast.success('Next follow-up updated');
             onSuccess?.();
@@ -53,6 +57,15 @@ export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onS
                             value={date}
                             onChange={(e) => setDate(e.target.value)}
                             min={new Date().toISOString().split('T')[0]}
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="followUpTime">Time</Label>
+                        <Input
+                            id="followUpTime"
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
                         />
                         <p className="text-xs text-muted-foreground">
                             Scheduled follow-ups will appear in your daily briefing and the lead timeline.
