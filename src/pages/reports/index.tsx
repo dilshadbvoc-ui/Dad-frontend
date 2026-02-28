@@ -36,10 +36,10 @@ export default function ReportsPage() {
                         <h2 className="text-xl font-semibold">Follow Ups</h2>
                     </div>
                     <div className="space-y-2">
-                        <ReportLink to="/leads?view=overdue-followups" label="Overdue Follow Ups" />
-                        <ReportLink to="/leads?view=today-followups" label="Today's Follow Ups" />
-                        <ReportLink to="/leads?view=upcoming-followups" label="Upcoming Follow Ups" />
-                        <ReportLink to="/leads?view=all-followups" label="All Follow Ups" />
+                        <ReportLink to="/follow-ups?filter=overdue" label="Overdue Follow Ups" />
+                        <ReportLink to="/follow-ups?filter=today" label="Today's Follow Ups" />
+                        <ReportLink to="/follow-ups?filter=upcoming" label="Upcoming Follow Ups" />
+                        <ReportLink to="/follow-ups" label="All Follow Ups" />
                     </div>
                 </div>
             </div>

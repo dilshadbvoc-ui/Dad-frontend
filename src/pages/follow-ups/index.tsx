@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useSearchParams } from "react-router-dom"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
@@ -7,6 +8,9 @@ import { Calendar, Clock } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function FollowUpsPage() {
+    const [searchParams] = useSearchParams()
+    const filterParam = searchParams.get('filter') // overdue, today, upcoming
+    
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
 
@@ -21,9 +25,29 @@ export default function FollowUpsPage() {
     const followUps = data?.tasks || []
     const totalCount = data?.totalTasks || 0
 
-    // Calculate stats
+    // Calculate stats and filter data based on URL parameter
     const today = new Date()
     today.setHours(0, 0, 0, 0)
+    
+    const filteredFollowUps = useMemo(() => {
+        if (!filterParam) return followUps
+
+        return followUps.filter((task: any) => {
+            const dueDate = new Date(task.dueDate)
+            dueDate.setHours(0, 0, 0, 0)
+            
+            switch (filterParam) {
+                case 'overdue':
+                    return dueDate < today && task.status !== 'completed'
+                case 'today':
+                    return dueDate.getTime() === today.getTime() && task.status !== 'completed'
+                case 'upcoming':
+                    return dueDate > today && task.status !== 'completed'
+                default:
+                    return true
+            }
+        })
+    }, [followUps, filterParam, today])
     
     const overdueCount = followUps.filter((task: any) => {
         const dueDate = new Date(task.dueDate)
@@ -114,7 +138,7 @@ export default function FollowUpsPage() {
             ) : (
                 <DataTable 
                     columns={columns} 
-                    data={followUps} 
+                    data={filteredFollowUps} 
                     searchKey="subject"
                 />
             )}
