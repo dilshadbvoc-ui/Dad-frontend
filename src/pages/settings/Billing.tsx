@@ -105,7 +105,14 @@ export default function BillingSettingsPage() {
         queryFn: getSubscriptionPlans
     });
 
-    const plans = useMemo(() => data?.plans || [], [data]);
+    // Filter out Trail plan - only show Enterprise plan
+    const plans = useMemo(() => {
+        const allPlans = data?.plans || [];
+        return allPlans.filter((plan: SubscriptionPlan) => 
+            !plan.name.toLowerCase().includes('trail') && 
+            !plan.name.toLowerCase().includes('trial')
+        );
+    }, [data]);
 
     const daysRemaining = activeLicense ? Math.ceil((new Date(activeLicense.endDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
 

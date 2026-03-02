@@ -37,7 +37,13 @@ export default function PricingTable() {
     // Assuming backend 'price' is monthly flat rate.
     // If backend doesn't have yearlyPrice, we can calculate it (e.g. x10 or x12 with discount).
 
-    const displayPlans = serverPlans?.length ? serverPlans.map((p: { price: number, name: string, features?: string[], maxUsers: number, durationDays: number, id: string, discount?: number }) => {
+    // Filter out Trail/Trial plans - only show Enterprise and other paid plans
+    const filteredPlans = serverPlans?.length ? serverPlans.filter((p: { name: string }) => 
+        !p.name.toLowerCase().includes('trail') && 
+        !p.name.toLowerCase().includes('trial')
+    ) : [];
+
+    const displayPlans = filteredPlans.length ? filteredPlans.map((p: { price: number, name: string, features?: string[], maxUsers: number, durationDays: number, id: string, discount?: number }) => {
         const discount = p.discount || 0;
         const discountedPrice = discount > 0 ? Math.round(p.price * (1 - discount / 100)) : p.price;
         return {
