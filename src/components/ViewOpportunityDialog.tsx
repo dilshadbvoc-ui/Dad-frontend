@@ -49,6 +49,18 @@ export interface Opportunity {
         email?: string
         profileImage?: string
     }
+    lead?: {
+        id: string
+        firstName: string
+        lastName: string
+        assignedTo?: {
+            id: string
+            firstName: string
+            lastName: string
+            email?: string
+            profileImage?: string
+        }
+    }
     paymentStatus?: string
 }
 
@@ -184,6 +196,39 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                         {displayOpportunity.owner.email && (
                                             <div className="text-xs text-gray-600 dark:text-gray-400">
                                                 {displayOpportunity.owner.email}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Lead Owner Information */}
+                        {displayOpportunity.lead?.assignedTo && (
+                            <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <User className="w-4 h-4 text-green-600" />
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Lead Owner</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
+                                        <AvatarImage
+                                            src={getAssetUrl(displayOpportunity.lead.assignedTo.profileImage)}
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                        <AvatarFallback className="bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold">
+                                            {displayOpportunity.lead.assignedTo.firstName?.[0]}{displayOpportunity.lead.assignedTo.lastName?.[0]}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                            {displayOpportunity.lead.assignedTo.firstName} {displayOpportunity.lead.assignedTo.lastName}
+                                        </div>
+                                        {displayOpportunity.lead.assignedTo.email && (
+                                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                {displayOpportunity.lead.assignedTo.email}
                                             </div>
                                         )}
                                     </div>
