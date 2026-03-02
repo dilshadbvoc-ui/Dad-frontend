@@ -59,6 +59,7 @@ const menuGroups = [
             { title: "Opportunities", href: "/opportunities", icon: Target },
             { title: "Quotes", href: "/quotes", icon: FileText },
             { title: "Products", href: "/products", icon: Package },
+            { title: "EMI Schedules", href: "/emi-schedules", icon: CreditCard },
             { title: "Commissions", href: "/sales/commissions", icon: Percent, role: "admin" },
             { title: "Sales Targets", href: "/sales-targets", icon: Trophy },
         ]
