@@ -484,7 +484,7 @@ export default function LeadsPage() {
                                     <DataTable
                                         columns={columns}
                                         data={sortedDisplayData as Lead[]}
-                                        searchKey="email"
+                                        searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
                                     />
                                 </div>

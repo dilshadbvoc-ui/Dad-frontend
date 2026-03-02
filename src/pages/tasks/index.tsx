@@ -131,7 +131,7 @@ export default function TasksPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
                 </div>
             ) : (
-                <DataTable columns={columns} data={tasks} searchKey="subject" />
+                <DataTable columns={columns} data={tasks} searchKeys={["subject", "description", "status", "priority"]} />
             )}
         </div>
     )

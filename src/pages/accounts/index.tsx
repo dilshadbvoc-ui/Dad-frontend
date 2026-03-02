@@ -66,7 +66,7 @@ export default function AccountsPage() {
                 </div>
             ) : (
                 <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <DataTable columns={columns} data={accounts} searchKey="name" />
+                    <DataTable columns={columns} data={accounts} searchKeys={["name", "industry", "website", "phone"]} />
                 </div>
             )}
         </div>

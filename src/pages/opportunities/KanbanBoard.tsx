@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { type Opportunity, updateOpportunity } from "@/services/opportunityService";
 import { CloseWonDialog } from "@/components/CloseWonDialog";
+import { ViewOpportunityDialog } from "@/components/ViewOpportunityDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAssetUrl } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2, CreditCard, Clock } from "lucide-react";
+import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2, CreditCard, Clock, Eye } from "lucide-react";
 import { toast } from "sonner";
 import {
     DropdownMenu,
@@ -40,6 +41,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
     const { formatCurrency } = useCurrency();
     const [opportunities, setOpportunities] = useState<Opportunity[]>(initialOpportunities);
     const [closeWonOpp, setCloseWonOpp] = useState<Opportunity | null>(null);
+    const [viewDetailsOpp, setViewDetailsOpp] = useState<Opportunity | null>(null);
 
     // Group opportunities by stage
     const columns = useMemo(() => {
@@ -180,6 +182,10 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                                                                 </Button>
                                                             </DropdownMenuTrigger>
                                                             <DropdownMenuContent align="end">
+                                                                <DropdownMenuItem onClick={() => setViewDetailsOpp(opp)}>
+                                                                    <Eye className="mr-2 h-4 w-4" />
+                                                                    View Details
+                                                                </DropdownMenuItem>
                                                                 <DropdownMenuItem>Edit</DropdownMenuItem>
 
                                                                 <DropdownMenuSub>
@@ -304,6 +310,14 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                             o.id === closeWonOpp.id ? { ...o, stage: 'closed_won' } : o
                         ));
                     }}
+                />
+            )}
+
+            {viewDetailsOpp && (
+                <ViewOpportunityDialog
+                    open={!!viewDetailsOpp}
+                    onOpenChange={(open) => !open && setViewDetailsOpp(null)}
+                    opportunity={viewDetailsOpp}
                 />
             )}
         </div >

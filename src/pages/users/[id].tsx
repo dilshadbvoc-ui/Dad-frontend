@@ -178,7 +178,7 @@ export default function UserProfilePage() {
                 </h2>
                 <Card>
                     <CardContent className="p-0">
-                        <DataTable columns={columns} data={leads} searchKey="email" />
+                        <DataTable columns={columns} data={leads} searchKeys={["firstName", "lastName", "email", "phone", "company"]} />
                     </CardContent>
                 </Card>
             </div>

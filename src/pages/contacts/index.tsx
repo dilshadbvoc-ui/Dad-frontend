@@ -61,7 +61,7 @@ export default function ContactsPage() {
                 <LoadingCard text="Loading contacts..." className="m-6" />
             ) : (
                 <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-                    <DataTable columns={columns} data={contacts} searchKey="firstName" />
+                    <DataTable columns={columns} data={contacts} searchKeys={["firstName", "lastName", "email", "phone", "title"]} />
                 </div>
             )}
         </div>

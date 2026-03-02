@@ -29,6 +29,7 @@ interface DataTableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[]
     data: TData[]
     searchKey?: string
+    searchKeys?: string[] // Multiple search keys for hierarchical search
     onRowDrop?: (e: React.DragEvent, row: TData) => void
     mobileCardRender?: (row: TData) => React.ReactNode
 }
@@ -37,6 +38,7 @@ export function DataTable<TData, TValue>({
     columns,
     data,
     searchKey,
+    searchKeys,
     onRowDrop,
     mobileCardRender
 }: DataTableProps<TData, TValue>) {
@@ -44,6 +46,7 @@ export function DataTable<TData, TValue>({
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
     const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
+    const [globalFilter, setGlobalFilter] = useState("")
 
     const table = useReactTable({
         data,
@@ -55,10 +58,23 @@ export function DataTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange: setRowSelection,
+        onGlobalFilterChange: setGlobalFilter,
+        globalFilterFn: (row, columnId, filterValue) => {
+            // Custom global filter for hierarchical search
+            const searchValue = String(filterValue).toLowerCase()
+            const keysToSearch = searchKeys || (searchKey ? [searchKey] : [])
+            
+            return keysToSearch.some(key => {
+                const value = row.getValue(key)
+                if (value == null) return false
+                return String(value).toLowerCase().includes(searchValue)
+            })
+        },
         state: {
             sorting,
             columnFilters,
             rowSelection,
+            globalFilter,
         },
     })
 
@@ -82,14 +98,12 @@ export function DataTable<TData, TValue>({
 
     return (
         <div className="space-y-4">
-            {searchKey && (
+            {(searchKey || searchKeys) && (
                 <div className="flex items-center px-4 sm:px-0">
                     <Input
                         placeholder="Search..."
-                        value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
-                        onChange={(event) =>
-                            table.getColumn(searchKey)?.setFilterValue(event.target.value)
-                        }
+                        value={globalFilter ?? ""}
+                        onChange={(event) => setGlobalFilter(event.target.value)}
                         className="max-w-sm h-10 shadow-sm"
                     />
                 </div>

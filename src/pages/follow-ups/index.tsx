@@ -139,7 +139,7 @@ export default function FollowUpsPage() {
                 <DataTable 
                     columns={columns} 
                     data={filteredFollowUps} 
-                    searchKey="subject"
+                    searchKeys={["subject", "description", "status", "priority"]}
                 />
             )}
         </div>

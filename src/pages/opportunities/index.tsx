@@ -131,7 +131,7 @@ export default function OpportunitiesPage() {
                 <div className={`flex-1 min-h-0 p-6 pt-2 ${viewMode === 'list' ? 'overflow-auto' : 'overflow-hidden'}`}>
                     <div className={viewMode === 'list' ? "rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden" : "h-full"}>
                         {viewMode === 'list' ? (
-                            <DataTable columns={columns} data={filteredOpportunities} searchKey="name" />
+                            <DataTable columns={columns} data={filteredOpportunities} searchKeys={["name", "stage", "description"]} />
                         ) : (
                             <KanbanBoard opportunities={filteredOpportunities} />
                         )}
