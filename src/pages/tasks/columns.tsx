@@ -2,10 +2,13 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { type Task } from "@/services/taskService"
+import { type Task, updateTask } from "@/services/taskService"
 import { format } from "date-fns"
 import { Link } from "react-router-dom"
 import { TaskActions } from "./TaskActions"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { toast } from "sonner"
 
 export const columns: ColumnDef<Task>[] = [
     {
@@ -96,6 +99,42 @@ export const columns: ColumnDef<Task>[] = [
     },
     {
         id: "actions",
-        cell: ({ row }) => <TaskActions task={row.original} />
+        header: "Actions",
+        cell: ({ row }) => {
+            const queryClient = useQueryClient()
+            const task = row.original
+
+            const updateStatusMutation = useMutation({
+                mutationFn: (newStatus: string) => updateTask(task.id, { status: newStatus }),
+                onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: ['tasks'] })
+                    toast.success('Task status updated')
+                },
+                onError: (error: Error) => {
+                    toast.error(error.message || 'Failed to update task status')
+                }
+            })
+
+            return (
+                <div className="flex items-center gap-2">
+                    <Select
+                        value={task.status}
+                        onValueChange={(value) => updateStatusMutation.mutate(value)}
+                        disabled={updateStatusMutation.isPending}
+                    >
+                        <SelectTrigger className="w-[140px] h-8">
+                            <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="not_started">Not Started</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="deferred">Deferred</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <TaskActions task={task} />
+                </div>
+            )
+        }
     },
 ]
