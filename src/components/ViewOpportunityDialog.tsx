@@ -7,12 +7,14 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Target, Package, Loader2 } from "lucide-react"
+import { Calendar, DollarSign, Target, Package, Loader2, User } from "lucide-react"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { EMISchedulePanel } from "@/components/EMISchedulePanel"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getAssetUrl } from "@/lib/utils"
 
 export interface Opportunity {
     id: string
@@ -22,6 +24,7 @@ export interface Opportunity {
     probability: number
     closeDate?: string
     priority?: string
+    createdAt?: string
     account?: {
         name: string
         accountProducts?: Array<{
@@ -37,6 +40,14 @@ export interface Opportunity {
                 currency?: string
             }
         }>
+    }
+    owner?: {
+        id?: string
+        _id?: string
+        firstName: string
+        lastName: string
+        email?: string
+        profileImage?: string
     }
     paymentStatus?: string
 }
@@ -76,6 +87,19 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
 
     // Use full opportunity data if available, otherwise use the passed opportunity
     const displayOpportunity = fullOpportunity || opportunity
+
+    // Generate a human-readable ID from the opportunity
+    const getReadableId = () => {
+        if (!displayOpportunity.createdAt) return displayOpportunity.id.slice(0, 8).toUpperCase()
+        
+        const date = new Date(displayOpportunity.createdAt)
+        const year = date.getFullYear().toString().slice(-2)
+        const month = (date.getMonth() + 1).toString().padStart(2, '0')
+        const day = date.getDate().toString().padStart(2, '0')
+        const shortId = displayOpportunity.id.slice(0, 6).toUpperCase()
+        
+        return `OPP-${year}${month}${day}-${shortId}`
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -134,11 +158,47 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                             </div>
                         </div>
 
+                        {/* Owner Information */}
+                        {displayOpportunity.owner && (
+                            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <User className="w-4 h-4 text-blue-600" />
+                                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Opportunity Owner</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
+                                        <AvatarImage
+                                            src={getAssetUrl(displayOpportunity.owner.profileImage)}
+                                            onError={(e) => {
+                                                e.currentTarget.style.display = 'none';
+                                            }}
+                                        />
+                                        <AvatarFallback className="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold">
+                                            {displayOpportunity.owner.firstName?.[0]}{displayOpportunity.owner.lastName?.[0]}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1">
+                                        <div className="font-semibold text-gray-900 dark:text-gray-100">
+                                            {displayOpportunity.owner.firstName} {displayOpportunity.owner.lastName}
+                                        </div>
+                                        {displayOpportunity.owner.email && (
+                                            <div className="text-xs text-gray-600 dark:text-gray-400">
+                                                {displayOpportunity.owner.email}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Opportunity ID */}
                         <div>
-                            <span className="text-sm font-medium text-gray-500 mb-2 block">ID</span>
-                            <code className="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded block select-all">
-                                {displayOpportunity.id}
-                            </code>
+                            <span className="text-sm font-medium text-gray-500 mb-2 block">Opportunity ID</span>
+                            <div className="flex items-center gap-2">
+                                <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-semibold text-blue-600 dark:text-blue-400 select-all">
+                                    {getReadableId()}
+                                </code>
+                            </div>
                         </div>
 
                         {displayOpportunity.account?.accountProducts && displayOpportunity.account.accountProducts.length > 0 && (
