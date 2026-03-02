@@ -407,7 +407,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
                                         />
                                     </div>
                                     <div className="text-right text-sm font-medium">
-                                        Total: ${calculateLineTotal(item).toFixed(2)}
+                                        Total: ₹{calculateLineTotal(item).toFixed(2)}
                                     </div>
                                 </div>
                             ))}
@@ -445,19 +445,19 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
                             <div className="space-y-2">
                                 <div className="flex justify-between text-sm">
                                     <span>Subtotal:</span>
-                                    <span>${totals.subtotal.toFixed(2)}</span>
+                                    <span>₹{totals.subtotal.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Discount:</span>
-                                    <span className="text-red-600">-${totals.totalDiscount.toFixed(2)}</span>
+                                    <span className="text-red-600">-₹{totals.totalDiscount.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-sm">
                                     <span>Tax:</span>
-                                    <span>${totals.totalTax.toFixed(2)}</span>
+                                    <span>₹{totals.totalTax.toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between text-lg font-bold border-t pt-2">
                                     <span>Grand Total:</span>
-                                    <span className="text-green-600">${totals.grandTotal.toFixed(2)}</span>
+                                    <span className="text-green-600">₹{totals.grandTotal.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>

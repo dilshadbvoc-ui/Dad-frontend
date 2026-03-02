@@ -87,7 +87,7 @@ export default function AdsDashboard() {
                             <Card>
                                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                                     <CardTitle className="text-sm font-medium">Total Spend (30d)</CardTitle>
-                                    <span className="text-muted-foreground">$</span>
+                                    <span className="text-muted-foreground">₹</span>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
@@ -127,7 +127,7 @@ export default function AdsDashboard() {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="text-2xl font-bold">
-                                        {insightsLoading ? '...' : accountInsights ? `$${parseFloat(accountInsights.cpc).toFixed(2)}` : '$0.00'}
+                                        {insightsLoading ? '...' : accountInsights ? `₹${parseFloat(accountInsights.cpc).toFixed(2)}` : '₹0.00'}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -176,7 +176,7 @@ export default function AdsDashboard() {
                                                                 </TableCell>
                                                                 <TableCell>{campaign.objective}</TableCell>
                                                                 <TableCell>
-                                                                    {campaign.daily_budget ? `$${(parseInt(campaign.daily_budget) / 100).toFixed(2)} / day` : campaign.lifetime_budget ? `$${(parseInt(campaign.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
+                                                                    {campaign.daily_budget ? `₹${(parseInt(campaign.daily_budget) / 100).toFixed(2)} / day` : campaign.lifetime_budget ? `₹${(parseInt(campaign.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
                                                                 </TableCell>
                                                                 <TableCell className="text-right">
                                                                     <Button variant="ghost" size="sm">Details</Button>
@@ -230,7 +230,7 @@ export default function AdsDashboard() {
                                                                     <div className="text-xs text-muted-foreground">ID: {adSet.id}</div>
                                                                 </TableCell>
                                                                 <TableCell>
-                                                                    {adSet.daily_budget ? `$${(parseInt(adSet.daily_budget) / 100).toFixed(2)} / day` : adSet.lifetime_budget ? `$${(parseInt(adSet.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
+                                                                    {adSet.daily_budget ? `₹${(parseInt(adSet.daily_budget) / 100).toFixed(2)} / day` : adSet.lifetime_budget ? `₹${(parseInt(adSet.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
                                                                 </TableCell>
                                                                 <TableCell>
                                                                     {adSet.start_time ? new Date(adSet.start_time).toLocaleDateString() : '-'}
