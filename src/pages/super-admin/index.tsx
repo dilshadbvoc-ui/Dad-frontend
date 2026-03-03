@@ -176,6 +176,26 @@ export default function SuperAdminDashboard() {
         org.contactEmail?.toLowerCase().includes(search.toLowerCase())
     );
 
+    const handleBackup = async (org: Organisation) => {
+        try {
+            toast.loading('Generating backup...', { id: 'backup' });
+            const response = await api.get(`/backup/${org.id}`, { responseType: 'blob' });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `backup-${org.slug}-${new Date().toISOString().split('T')[0]}.zip`);
+            document.body.appendChild(link);
+            link.click();
+            link.parentNode?.removeChild(link);
+
+            toast.success('Backup downloaded successfully', { id: 'backup' });
+        } catch (error) {
+            console.error('Backup error:', error);
+            toast.error('Failed to generate backup', { id: 'backup' });
+        }
+    };
+
     return (
         <div className="p-8 space-y-8 bg-[#0f172a] min-h-screen">
             <div className="flex items-center justify-between">
@@ -397,6 +417,13 @@ export default function SuperAdminDashboard() {
                                                                         Restore Organisation
                                                                     </DropdownMenuItem>
                                                                 )}
+                                                                <DropdownMenuSeparator className="bg-indigo-800" />
+                                                                <DropdownMenuItem
+                                                                    onClick={() => handleBackup(org)}
+                                                                    className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer text-blue-300"
+                                                                >
+                                                                    📥 Download Backup
+                                                                </DropdownMenuItem>
                                                                 <DropdownMenuSeparator className="bg-indigo-800" />
                                                                 <DropdownMenuItem
                                                                     onClick={() => handlePermanentDelete(org)}

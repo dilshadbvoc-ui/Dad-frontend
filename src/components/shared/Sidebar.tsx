@@ -302,6 +302,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                                 <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=roles') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                                 {!isCollapsed && <span>System Roles</span>}
                             </Link>
+                            <Link to="/super-admin/restore" className={cn(
+                                "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                                pathname.startsWith('/super-admin/restore') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+                            )}>
+                                <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
+                                {!isCollapsed && <span className="text-red-400 group-hover:text-red-500">Restore Data</span>}
+                            </Link>
                             <Link to="/settings" className={cn(
                                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
                                 pathname.startsWith('/settings') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",

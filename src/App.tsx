@@ -70,6 +70,7 @@ const TerritoriesSettingsPage = lazy(() => import('./pages/settings/territories'
 const SuperAdminDashboard = lazy(() => import('./pages/super-admin'));
 const OrganisationDetailPage = lazy(() => import('./pages/super-admin/organisation/[id]'));
 const SeoSettingsPage = lazy(() => import('./pages/super-admin/seo'));
+const SuperAdminRestorePage = lazy(() => import('./pages/super-admin/restore'));
 const OrganisationSettingsPage = lazy(() => import('./pages/settings/organisation'));
 
 const LeadScoringSettingsPage = lazy(() => import('./pages/settings/lead-scoring'));
@@ -177,7 +178,7 @@ function AppContent() {
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
-            
+
             {/* Public landing pages */}
             <Route path="/pages/:slug" element={<LandingPageView />} />
 
@@ -254,6 +255,7 @@ function AppContent() {
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
               <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
               <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
+              <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
 
               <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
               <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />

@@ -48,12 +48,6 @@ export default function AccountsPage() {
                         <Download className="h-4 w-4 mr-2" />
                         Export
                     </Button>
-                    <Link to="/accounts/new">
-                        <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 rounded-xl">
-                            <Plus className="mr-2 h-4 w-4" />
-                            Create Account
-                        </Button>
-                    </Link>
                 </div>
             </div>
 
