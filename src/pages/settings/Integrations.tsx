@@ -226,13 +226,27 @@ export default function IntegrationsPage() {
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-                                        <integration.icon className={`h-5 w-5 ${integration.iconColor}`} />
+                                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${integration.id === 'facebook' ? 'bg-gradient-to-br from-blue-600 to-blue-800' :
+                                            integration.id === 'webform' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700' :
+                                                integration.id === 'whatsapp' ? 'bg-gradient-to-br from-green-500 to-green-700' :
+                                                    integration.id === 'happilee' ? 'bg-gradient-to-br from-sky-400 to-sky-600' :
+                                                        integration.id === 'wabis' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700' :
+                                                            integration.id === 'doubletick' ? 'bg-gradient-to-br from-teal-500 to-teal-700' :
+                                                                integration.id === 'googleads' ? 'bg-gradient-to-br from-yellow-400 via-red-400 to-blue-500' :
+                                                                    integration.id === 'wati' ? 'bg-gradient-to-br from-green-600 to-green-800' :
+                                                                        integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
+                                                                            'bg-gradient-to-br from-gray-500 to-gray-700'
+                                        }`}>
+                                        <integration.icon className="h-5 w-5 text-white" />
                                     </div>
                                     <div>
                                         <CardTitle className="text-base">{integration.name}</CardTitle>
                                         <CardDescription className="text-xs">
-                                            {integration.description}
+                                            {integration.id === 'facebook' ? 'Auto-sync leads from Facebook' :
+                                                integration.id === 'webform' ? 'Capture leads from your website' :
+                                                    integration.id === 'whatsapp' ? 'Sync leads from WhatsApp' :
+                                                        integration.id === 'googleads' ? 'Import leads from Google Ads' :
+                                                            `Connect with ${integration.name}`}
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -241,7 +255,11 @@ export default function IntegrationsPage() {
                                         <CheckCircle2 className="w-3 h-3" />
                                         Connected
                                     </Badge>
-                                ) : null}
+                                ) : (
+                                    <Badge variant="outline" className="text-muted-foreground">
+                                        Not Connected
+                                    </Badge>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -298,8 +316,8 @@ export default function IntegrationsPage() {
                                 </div>
                             ) : integration.connected ? (
                                 <div className="space-y-3">
-                                    <p className="text-xs text-muted-foreground">
-                                        This integration is active and syncing data to your CRM.
+                                    <p className="text-sm text-muted-foreground">
+                                        {integration.description}
                                     </p>
                                     <div className="flex gap-2">
                                         {integration.hasSettings && (
@@ -326,11 +344,14 @@ export default function IntegrationsPage() {
                                 </div>
                             ) : (
                                 <div className="space-y-3">
+                                    <p className="text-sm text-muted-foreground">
+                                        {integration.description}
+                                    </p>
                                     {integration.link ? (
                                         <Button
                                             size="sm"
                                             onClick={() => window.location.href = integration.link!}
-                                            className="gap-2"
+                                            className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                                         >
                                             Enable
                                         </Button>
@@ -344,7 +365,7 @@ export default function IntegrationsPage() {
                                                 }
                                                 integration.onEnable?.();
                                             }}
-                                            className="gap-2"
+                                            className="gap-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800"
                                         >
                                             Enable
                                         </Button>
