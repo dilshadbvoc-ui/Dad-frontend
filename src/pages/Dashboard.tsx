@@ -10,7 +10,7 @@ import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
 import { Calendar, ArrowRight } from "lucide-react";
-import { TrendingUp, Check, Trophy, AlertCircle, RefreshCw, Building2 } from "lucide-react";
+import { TrendingUp, Check, Trophy, AlertCircle, Building2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Link } from 'react-router-dom';
@@ -48,6 +48,7 @@ interface DashboardStats {
         lost: number;
     };
     winRate: number;
+    revenueThisMonth: number;
     // Add other stats properties as needed
 }
 
@@ -236,11 +237,11 @@ export default function Dashboard() {
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-                            <RefreshCw className="h-5 w-5 sm:h-6 sm:w-6" />
+                            <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
                         </div>
-                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Conversion Ratio</h3>
-                        <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
-                            {stats?.winRate || 0}%
+                        <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Revenue This Month</h3>
+                        <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
+                            {formatCurrencyCompact(stats?.revenueThisMonth || 0)}
                         </div>
                     </div>
                 </div>
