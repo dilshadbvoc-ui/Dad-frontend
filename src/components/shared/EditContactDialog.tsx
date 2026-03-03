@@ -42,7 +42,7 @@ export function EditContactDialog({ open, onOpenChange, contact, onSuccess }: Ed
                 lastName: contact.lastName || '',
                 email: contact.email || '',
                 jobTitle: contact.jobTitle || '',
-                phones: contact.phones || [{ type: 'mobile', number: '' }]
+                phones: Array.isArray(contact.phones) ? contact.phones : (contact.phones ? [{ type: 'mobile', number: (contact.phones as any).mobile || '' }] : [{ type: 'mobile', number: '' }])
             });
             // Load existing custom field values if any
             setCustomFieldValues((contact as { customFields?: Record<string, unknown> }).customFields || {});

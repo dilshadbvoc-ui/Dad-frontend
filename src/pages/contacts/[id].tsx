@@ -56,7 +56,7 @@ export default function ContactDetailPage() {
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <a href={`mailto:${contact.email}`} className="text-blue-600 hover:underline">{contact.email}</a>
                         </div>
-                        {contact.phones?.map((phone: { number: string; type: string }, idx: number) => (
+                        {Array.isArray(contact.phones) && contact.phones.map((phone: { number: string; type: string }, idx: number) => (
                             <div key={idx} className="flex items-center gap-3">
                                 <Phone className="h-4 w-4 text-muted-foreground" />
                                 <span>{phone.number} <span className="text-xs text-muted-foreground">({phone.type})</span></span>
