@@ -265,7 +265,7 @@ export default function LeadDetailPage() {
                             disabled={lead.status === 'converted'}
                         >
                             <CheckCircle2 className="h-4 w-4 sm:mr-2" />
-                            <span>{lead.status === 'converted' ? 'Converted' : 'Convert'}</span>
+                            <span>{lead.status === 'converted' ? 'Converted' : 'Move to Pipeline'}</span>
                         </Button>
                     </div>
                 </div>

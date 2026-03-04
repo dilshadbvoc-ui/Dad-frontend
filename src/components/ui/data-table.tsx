@@ -10,8 +10,10 @@ import {
     getSortedRowModel,
     type ColumnFiltersState,
     getFilteredRowModel,
+    getExpandedRowModel,
+    type ExpandedState,
 } from "@tanstack/react-table"
-import { useState } from "react"
+import { useState, Fragment } from "react"
 
 import {
     Table,
@@ -32,6 +34,7 @@ interface DataTableProps<TData, TValue> {
     searchKeys?: string[] // Multiple search keys for hierarchical search
     onRowDrop?: (e: React.DragEvent, row: TData) => void
     mobileCardRender?: (row: TData) => React.ReactNode
+    renderSubComponent?: (props: { row: any }) => React.ReactElement
 }
 
 export function DataTable<TData, TValue>({
@@ -40,11 +43,13 @@ export function DataTable<TData, TValue>({
     searchKey,
     searchKeys,
     onRowDrop,
-    mobileCardRender
+    mobileCardRender,
+    renderSubComponent
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [rowSelection, setRowSelection] = useState({})
+    const [expanded, setExpanded] = useState<ExpandedState>({})
     const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
     const [globalFilter, setGlobalFilter] = useState("")
 
@@ -58,23 +63,27 @@ export function DataTable<TData, TValue>({
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
         onRowSelectionChange: setRowSelection,
+        onExpandedChange: setExpanded,
+        getExpandedRowModel: getExpandedRowModel(),
         onGlobalFilterChange: setGlobalFilter,
         globalFilterFn: (row, columnId, filterValue) => {
             // Custom global filter for hierarchical search
             const searchValue = String(filterValue).toLowerCase()
             const keysToSearch = searchKeys || (searchKey ? [searchKey] : [])
-            
+
             return keysToSearch.some(key => {
                 const value = row.getValue(key)
                 if (value == null) return false
                 return String(value).toLowerCase().includes(searchValue)
             })
         },
+        getRowCanExpand: () => true,
         state: {
             sorting,
             columnFilters,
             rowSelection,
             globalFilter,
+            expanded,
         },
     })
 
@@ -153,26 +162,34 @@ export function DataTable<TData, TValue>({
                     <TableBody>
                         {table.getRowModel().rows?.length ? (
                             table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                    onDragOver={(e) => handleDragOver(e, row.id)}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={(e) => handleDrop(e, row)}
-                                    className={cn(
-                                        "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
-                                        dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
+                                <Fragment key={row.id}>
+                                    <TableRow
+                                        data-state={row.getIsSelected() && "selected"}
+                                        onDragOver={(e) => handleDragOver(e, row.id)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, row)}
+                                        className={cn(
+                                            "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
+                                            dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
+                                        )}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id} className="py-3 font-medium text-sm">
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                    {row.getIsExpanded() && renderSubComponent && (
+                                        <TableRow className="bg-muted/10 hover:bg-muted/10">
+                                            <TableCell colSpan={row.getVisibleCells().length}>
+                                                {renderSubComponent({ row })}
+                                            </TableCell>
+                                        </TableRow>
                                     )}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id} className="py-3 font-medium text-sm">
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
+                                </Fragment>
                             ))
                         ) : (
                             <TableRow>

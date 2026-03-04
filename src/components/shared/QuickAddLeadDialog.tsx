@@ -36,6 +36,7 @@ interface QuickLeadFormData {
     email?: string
     phone: string
     company?: string
+    enquiryAbout?: string
     source: string
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
@@ -65,6 +66,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             email: "",
             phone: "",
             company: "",
+            enquiryAbout: "",
             source: "manual",
 
             status: "new",
@@ -110,6 +112,9 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
         }
         if (values.company && values.company.trim()) {
             payload.company = values.company.trim();
+        }
+        if (values.enquiryAbout && values.enquiryAbout.trim()) {
+            payload.enquiryAbout = values.enquiryAbout.trim();
         }
         if (values.assignedTo && values.assignedTo !== "unassigned") {
             payload.assignedTo = values.assignedTo;
@@ -237,6 +242,19 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                         <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="Acme Inc" className="h-10" {...field} />
+                                        </FormControl>
+                                        <FormMessage className="text-[10px]" />
+                                    </FormItem>
+                                )}
+                            />
+                            <FormField
+                                control={form.control}
+                                name="enquiryAbout"
+                                render={({ field }) => (
+                                    <FormItem className="space-y-1">
+                                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Enquiry About <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                                        <FormControl>
+                                            <Input placeholder="Course, service..." className="h-10" {...field} />
                                         </FormControl>
                                         <FormMessage className="text-[10px]" />
                                     </FormItem>

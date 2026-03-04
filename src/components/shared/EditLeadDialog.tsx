@@ -32,6 +32,7 @@ interface EditLeadFormData {
     email: string
     phone: string
     company: string
+    enquiryAbout: string
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
 }
 
@@ -58,6 +59,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
             email: lead.email || "",
             phone: lead.phone || "",
             company: lead.company || "",
+            enquiryAbout: lead.enquiryAbout || "",
             status: lead.status || "new",
         },
     })
@@ -71,6 +73,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                 email: lead.email || "",
                 phone: lead.phone || "",
                 company: lead.company || "",
+                enquiryAbout: lead.enquiryAbout || "",
                 status: lead.status || "new",
             })
         }
@@ -201,6 +204,19 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                                     <FormLabel>Company</FormLabel>
                                     <FormControl>
                                         <Input placeholder="Acme Inc" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="enquiryAbout"
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Enquiry About <span className="text-muted-foreground text-xs font-normal">(optional)</span></FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Course, Integration..." {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

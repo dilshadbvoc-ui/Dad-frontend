@@ -7,6 +7,7 @@ export interface Lead {
     email: string;
     phone?: string;
     company?: string;
+    enquiryAbout?: string;
     jobTitle?: string;
     leadScore: number;
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry';
@@ -71,6 +72,7 @@ export interface CreateLeadData {
         zip?: string;
     };
     branchId?: string;
+    enquiryAbout?: string;
 }
 
 export type UpdateLeadData = Partial<CreateLeadData>;

@@ -278,7 +278,7 @@ export default function LeadsPage() {
     // Excel download function
     const handleExcelDownload = () => {
         const dataToExport = sortedDisplayData as Lead[];
-        
+
         const excelData = dataToExport.map((lead: Lead) => ({
             'First Name': lead.firstName || '',
             'Last Name': lead.lastName || '',
@@ -297,14 +297,14 @@ export default function LeadsPage() {
         const worksheet = XLSX.utils.json_to_sheet(excelData);
         const workbook = XLSX.utils.book_new();
         XLSX.utils.book_append_sheet(workbook, worksheet, 'Leads');
-        
+
         // Auto-size columns
         const maxWidth = 50;
         const colWidths = Object.keys(excelData[0] || {}).map(key => ({
             wch: Math.min(Math.max(key.length, 10), maxWidth)
         }));
         worksheet['!cols'] = colWidths;
-        
+
         const fileName = `leads_${currentView}_${currentSort}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
         XLSX.writeFile(workbook, fileName);
     };
@@ -486,6 +486,17 @@ export default function LeadsPage() {
                                         data={sortedDisplayData as Lead[]}
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
+                                        renderSubComponent={({ row }) => {
+                                            const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
+                                            return (
+                                                <div className="p-4 bg-muted/30 rounded-md border border-border/50 shadow-inner my-2 ml-10">
+                                                    <h4 className="text-sm font-semibold mb-2 text-foreground/80 flex items-center gap-2">
+                                                        <CalendarCheck className="h-4 w-4" /> Follow Ups
+                                                    </h4>
+                                                    <TaskTable tasks={leadTasks} />
+                                                </div>
+                                            );
+                                        }}
                                     />
                                 </div>
                             )}

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Phone, MessageCircle } from "lucide-react"
+import { ArrowUpDown, Phone, MessageCircle, ChevronDown, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type Lead } from "@/services/leadService"
@@ -9,6 +9,21 @@ import { ActionsCell } from "./ActionsCell"
 import { NameCell } from "./NameCell"
 
 export const columns: ColumnDef<Lead>[] = [
+    {
+        id: "expander",
+        header: () => null,
+        cell: ({ row }) => {
+            return row.getCanExpand() ? (
+                <Button
+                    variant="ghost"
+                    onClick={row.getToggleExpandedHandler()}
+                    className="p-0 h-6 w-6"
+                >
+                    {row.getIsExpanded() ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                </Button>
+            ) : null
+        },
+    },
     {
         accessorKey: "firstName",
         header: ({ column }) => {

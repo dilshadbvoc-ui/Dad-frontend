@@ -11,6 +11,7 @@ export interface Task {
     assignedTo?: { _id: string; firstName: string; lastName: string; email: string };
     relatedTo?: { _id: string; firstName?: string; lastName?: string; name?: string };
     onModel?: 'Lead' | 'Contact' | 'Account' | 'Opportunity';
+    leadId?: string;
 
     createdAt: string;
 }
