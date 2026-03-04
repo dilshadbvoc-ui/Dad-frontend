@@ -111,9 +111,17 @@ const ALL_SETTINGS_SECTIONS = [
         gradient: "from-indigo-600 to-violet-600"
     },
     {
-        title: "Bulk Import Leads",
-        description: "Upload a CSV or Excel file to import leads in bulk",
+        title: "Data Migration",
+        description: "Data migration from other CRMs.",
         href: "/settings/import",
+        icon: Upload,
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin', 'branch_manager']
+    },
+    {
+        title: "Bulk Import Leads",
+        description: "Upload a CSV or Excel file to import leads in bulk in settings to data migration from other crms.",
+        href: "/settings/bulk-import",
         icon: Upload,
         gradient: "from-indigo-600 to-violet-600",
         roles: ['admin', 'branch_manager']
@@ -189,7 +197,7 @@ export default function SettingsPage() {
                     if (role === 'branch_manager') return userIsBranchManager;
                     return false;
                 });
-                
+
                 if (!hasRequiredRole) return false;
             }
             return true;

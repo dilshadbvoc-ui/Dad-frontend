@@ -13,6 +13,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { api } from "@/services/api";
+import { toast } from "sonner";
+import { format } from "date-fns";
 
 export default function UserSalesPage() {
     const { formatCurrency } = useCurrency();
@@ -51,12 +54,29 @@ export default function UserSalesPage() {
                 title="User-wise Sales Report"
                 description="Performance analysis of sales representatives."
                 actions={
-                    <Button variant="outline" onClick={() => {
-                        const params = new URLSearchParams();
-                        if (startDate) params.append('startDate', startDate);
-                        if (endDate) params.append('endDate', endDate);
-                        if (selectedBranchId) params.append('branchId', selectedBranchId);
-                        window.open(`${import.meta.env.VITE_API_URL}/reports/export/user-sales?${params.toString()}`, '_blank');
+                    <Button variant="outline" onClick={async () => {
+                        try {
+                            const params = new URLSearchParams();
+                            if (startDate) params.append('startDate', startDate);
+                            if (endDate) params.append('endDate', endDate);
+                            if (selectedBranchId) params.append('branchId', selectedBranchId);
+
+                            const response = await api.get(`/reports/export/user-sales?${params.toString()}`, {
+                                responseType: 'blob'
+                            });
+
+                            const url = window.URL.createObjectURL(new Blob([response.data]));
+                            const link = document.createElement('a');
+                            link.href = url;
+                            link.setAttribute('download', `user_sales_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                            document.body.appendChild(link);
+                            link.click();
+                            link.remove();
+                            window.URL.revokeObjectURL(url);
+                        } catch (error) {
+                            toast.error("Failed to download report");
+                            console.error("Download error:", error);
+                        }
                     }}>
                         Download Excel
                     </Button>

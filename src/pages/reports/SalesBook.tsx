@@ -12,6 +12,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { getBranches } from "@/services/settingsService";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { api } from "@/services/api";
+import { toast } from "sonner";
 
 export default function SalesBookPage() {
     const { formatCurrency } = useCurrency();
@@ -76,12 +78,29 @@ export default function SalesBookPage() {
                 actions={
                     <Button
                         variant="outline"
-                        onClick={() => {
-                            const params = new URLSearchParams();
-                            if (startDate) params.append('startDate', startDate);
-                            if (endDate) params.append('endDate', endDate);
-                            if (selectedBranchId) params.append('branchId', selectedBranchId);
-                            window.open(`${import.meta.env.VITE_API_URL}/reports/export/sales?${params.toString()}`, '_blank');
+                        onClick={async () => {
+                            try {
+                                const params = new URLSearchParams();
+                                if (startDate) params.append('startDate', startDate);
+                                if (endDate) params.append('endDate', endDate);
+                                if (selectedBranchId) params.append('branchId', selectedBranchId);
+
+                                const response = await api.get(`/reports/export/sales?${params.toString()}`, {
+                                    responseType: 'blob'
+                                });
+
+                                const url = window.URL.createObjectURL(new Blob([response.data]));
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', `sales_book_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                                window.URL.revokeObjectURL(url);
+                            } catch (error) {
+                                toast.error("Failed to download report");
+                                console.error("Download error:", error);
+                            }
                         }}
                         disabled={!sales || sales.length === 0}
                     >

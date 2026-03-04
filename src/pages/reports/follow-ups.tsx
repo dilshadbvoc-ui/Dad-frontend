@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format, isToday, isPast, isFuture, isSameDay } from "date-fns";
 import { ArrowLeft, Loader2 } from "lucide-react";
+import { api } from "@/services/api";
+import { toast } from "sonner";
 
 // Helper
 const formatDate = (dateString?: string) => {
@@ -66,7 +68,25 @@ export default function FollowUpReportsPage() {
                     </Button>
                     <h1 className="text-3xl font-bold tracking-tight">Follow Up Reports</h1>
                 </div>
-                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/tasks`, '_blank')}>
+                <Button variant="outline" onClick={async () => {
+                    try {
+                        const response = await api.get(`/reports/export/tasks`, {
+                            responseType: 'blob'
+                        });
+
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `tasks_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                        toast.error("Failed to download report");
+                        console.error("Download error:", error);
+                    }
+                }}>
                     Download Excel
                 </Button>
             </div>

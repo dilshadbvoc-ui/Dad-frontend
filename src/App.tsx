@@ -95,6 +95,7 @@ const NotificationsSettingsPage = lazy(() => import('./pages/settings/notificati
 const NotificationsPage = lazy(() => import('./pages/notifications'));
 const CallRecordingSettingsPage = lazy(() => import('./pages/settings/call-recording'));
 const ImportSettingsPage = lazy(() => import('./pages/settings/import'));
+const BulkImportSettingsPage = lazy(() => import('./pages/settings/bulk-import'));
 const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
@@ -226,6 +227,7 @@ function AppContent() {
               <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
               <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
               <Route path="/settings/import" element={<ImportSettingsPage />} />
+              <Route path="/settings/bulk-import" element={<BulkImportSettingsPage />} />
               <Route path="/settings/billing" element={<BillingSettingsPage />} />
               <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
               <Route path="/settings/developer" element={<DeveloperSettingsPage />} />

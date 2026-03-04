@@ -8,6 +8,8 @@ import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { api } from "@/services/api";
+import { toast } from "sonner";
 
 export default function FieldForceReportsPage() {
     const { data: checkIns, isLoading, isError } = useQuery<CheckIn[]>({
@@ -43,7 +45,25 @@ export default function FieldForceReportsPage() {
                     <h1 className="text-3xl font-bold tracking-tight">Field Force Activity</h1>
                     <p className="text-muted-foreground mt-2">Track agent visits, check-ins, and field operations.</p>
                 </div>
-                <Button variant="outline" onClick={() => window.open(`${import.meta.env.VITE_API_URL}/reports/export/check-ins`, '_blank')}>
+                <Button variant="outline" onClick={async () => {
+                    try {
+                        const response = await api.get(`/reports/export/check-ins`, {
+                            responseType: 'blob'
+                        });
+
+                        const url = window.URL.createObjectURL(new Blob([response.data]));
+                        const link = document.createElement('a');
+                        link.href = url;
+                        link.setAttribute('download', `field_force_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                        document.body.appendChild(link);
+                        link.click();
+                        link.remove();
+                        window.URL.revokeObjectURL(url);
+                    } catch (error) {
+                        toast.error("Failed to download report");
+                        console.error("Download error:", error);
+                    }
+                }}>
                     Download Excel
                 </Button>
             </div>
