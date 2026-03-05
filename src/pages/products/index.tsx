@@ -48,7 +48,7 @@ export default function ProductsPage() {
 
     const { data, isLoading } = useQuery({
         queryKey: ['products', searchQuery],
-        queryFn: () => getProducts({ search: searchQuery }),
+        queryFn: () => getProducts({ search: searchQuery, limit: 200 }),
     })
 
     const products = data?.products || []

@@ -35,6 +35,7 @@ export interface ProductSearchParams {
     search?: string;
     category?: string;
     isActive?: boolean;
+    limit?: number;
 }
 
 export const getProducts = async (params?: ProductSearchParams) => {
@@ -62,7 +63,7 @@ export const uploadBrochure = async (file: File) => {
 
     const formData = new FormData();
     formData.append('document', file);
-    
+
     try {
         const response = await api.post('/upload/document', formData, {
             headers: {
