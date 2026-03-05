@@ -6,7 +6,7 @@ const getSocketUrl = () => {
     // Hard fallback for production if env var is missing/empty but we know we are in prod
     if (import.meta.env.PROD && (!url || url === '/')) {
         console.warn('VITE_API_URL missing or relative in production, defaulting to EC2 instance');
-        url = 'http://13.53.145.83';
+        url = 'http://13.233.83.130';
     }
 
     return url.replace(/\/$/, '').replace(/\/api$/, '');
