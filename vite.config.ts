@@ -39,7 +39,8 @@ export default defineConfig({
         ]
       },
       workbox: {
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024 // 3 MB limit
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024, // 3 MB limit
+        navigateFallbackDenylist: [/^\/api\//]  // Don't intercept /api/ routes - let them go to the backend
       }
     })
   ],
