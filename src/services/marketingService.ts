@@ -69,3 +69,31 @@ export const deleteEmailList = async (id: string) => {
     const response = await api.delete(`/marketing/lists/${id}`);
     return response.data;
 };
+
+// --- Ads Analytics ---
+export interface AdInsight {
+    impressions: string;
+    clicks: string;
+    spend: string;
+    cpc: string;
+    cpm: string;
+    cpp: string;
+    ctr: string;
+    unique_clicks: string;
+    reach: string;
+    actions?: { action_type: string; value: string }[];
+    date_start?: string;
+    date_stop?: string;
+    campaign_name?: string;
+    campaign_id?: string;
+}
+
+export const getAccountInsights = async () => {
+    const response = await api.get('/ads/meta/account/insights');
+    return response.data;
+};
+
+export const getCampaignInsights = async () => {
+    const response = await api.get('/ads/meta/insights', { params: { level: 'campaign' } });
+    return response.data;
+};
