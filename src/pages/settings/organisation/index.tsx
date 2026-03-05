@@ -208,7 +208,7 @@ export default function OrganisationSettingsPage() {
                         }} className="space-y-4">
                             <div className="space-y-2">
                                 <Label>Default Currency</Label>
-                                <Select name="currency" defaultValue={org?.currency || 'USD'}>
+                                <Select name="currency" defaultValue={org?.currency || 'INR'}>
                                     <SelectTrigger className="w-[280px]">
                                         <SelectValue placeholder="Select currency" />
                                     </SelectTrigger>

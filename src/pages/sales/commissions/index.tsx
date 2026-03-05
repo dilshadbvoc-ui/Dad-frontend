@@ -277,7 +277,7 @@ export default function CommissionsPage() {
                                             </TableCell>
                                             <TableCell className="capitalize">{item.type}</TableCell>
                                             <TableCell className="font-bold">
-                                                {new Intl.NumberFormat('en-US', { style: 'currency', currency: item.currency || 'USD' }).format(item.amount)}
+                                                {new Intl.NumberFormat('en-IN', { style: 'currency', currency: item.currency || 'INR' }).format(item.amount)}
                                             </TableCell>
                                             <TableCell>
                                                 <Badge

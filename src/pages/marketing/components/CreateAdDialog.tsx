@@ -159,7 +159,7 @@ export function CreateAdDialog({ open, onOpenChange, organisation }: CreateAdDia
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="budget">Daily Budget (USD)</Label>
+                                <Label htmlFor="budget">Daily Budget (₹)</Label>
                                 <Input
                                     id="budget"
                                     type="number"

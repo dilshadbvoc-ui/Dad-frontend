@@ -82,7 +82,7 @@ const CURRENCY_LOCALES: Record<string, string> = {
 };
 
 // Global currency store (simple module-level variable)
-let currentCurrency = 'USD';
+let currentCurrency = 'INR';
 
 export function setGlobalCurrency(currency: string) {
     currentCurrency = currency.toUpperCase();
@@ -133,7 +133,7 @@ export function getAssetUrl(path?: string): string {
 
     // Ensure path starts with /
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
-    
+
     // In development, use localhost backend
     if (import.meta.env.DEV) {
         return `http://localhost:5001${normalizedPath}`;
