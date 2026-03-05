@@ -9,7 +9,7 @@ import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { isAdmin, getUserInfo } from "@/lib/utils"
+import { isAdmin, isBranchManager, getUserInfo } from "@/lib/utils"
 import * as XLSX from 'xlsx'
 
 export function BulkImportLeads() {
@@ -23,8 +23,8 @@ export function BulkImportLeads() {
     const user = getUserInfo();
     const userBranchId = user?.branchId;
 
-    // Allow branch selection if user is admin/super_admin
-    const canSelectBranch = isAdmin(user);
+    // Allow branch selection if user is admin/super_admin OR a branch manager
+    const canSelectBranch = isAdmin(user) || isBranchManager(user);
 
     const { data: branchesData } = useQuery({
         queryKey: ['branches'],
@@ -47,7 +47,7 @@ export function BulkImportLeads() {
         },
         onSuccess: (data) => {
             const total = (data.created || 0) + (data.reEnquiries || 0)
-            const message = data.reEnquiries > 0 
+            const message = data.reEnquiries > 0
                 ? `Successfully imported ${data.created} new leads and ${data.reEnquiries} re-enquiries`
                 : `Successfully imported ${data.created} leads`
             toast.success(message)
@@ -83,7 +83,7 @@ export function BulkImportLeads() {
 
         try {
             let data: CreateLeadData[]
-            
+
             if (isCSV) {
                 const text = await selectedFile.text()
                 data = parseCSV(text)
@@ -107,52 +107,52 @@ export function BulkImportLeads() {
     const parseExcel = async (file: File): Promise<CreateLeadData[]> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader()
-            
+
             reader.onload = (e) => {
                 try {
                     const data = e.target?.result
                     const workbook = XLSX.read(data, { type: 'binary' })
-                    
+
                     // Get first sheet
                     const firstSheetName = workbook.SheetNames[0]
                     const worksheet = workbook.Sheets[firstSheetName]
-                    
+
                     // Convert to JSON
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
-                    
+
                     const result: CreateLeadData[] = []
-                    
+
                     for (const row of jsonData) {
                         const obj: any = {}
-                        
+
                         // Map Excel columns to lead fields (case-insensitive)
                         for (const [key, value] of Object.entries(row as any)) {
                             const normalizedKey = key.trim().toLowerCase()
                             let mappedKey = key.trim()
-                            
+
                             // Map common variations
                             if (normalizedKey === 'first name' || normalizedKey === 'firstname') mappedKey = 'firstName'
                             else if (normalizedKey === 'last name' || normalizedKey === 'lastname') mappedKey = 'lastName'
                             else if (normalizedKey === 'job title' || normalizedKey === 'jobtitle') mappedKey = 'jobTitle'
                             else if (normalizedKey === 'lead score' || normalizedKey === 'leadscore') mappedKey = 'leadScore'
                             else if (normalizedKey === 'owner email' || normalizedKey === 'owneremail') mappedKey = 'ownerEmail'
-                            
+
                             obj[mappedKey] = value
                         }
-                        
+
                         // Basic validation
                         if (obj.firstName || obj.lastName || obj.email) {
                             if (!obj.source) obj.source = 'import'
                             result.push(obj as CreateLeadData)
                         }
                     }
-                    
+
                     resolve(result)
                 } catch (error) {
                     reject(error)
                 }
             }
-            
+
             reader.onerror = () => reject(new Error('Failed to read file'))
             reader.readAsBinaryString(file)
         })
