@@ -107,10 +107,11 @@ import SSOCallback from './pages/SSOCallback';
 
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
+// Configure query client with aggressive defaults for live updates
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 30, // 30 seconds (reduced from 5 minutes)
+      staleTime: 1000 * 60 * 5, // 5 minutes (data considered fresh for 5 minutes)
       gcTime: 1000 * 60 * 30, // 30 minutes
       refetchOnWindowFocus: true, // Refetch when window regains focus
       refetchOnMount: true, // Refetch when component mounts
@@ -127,8 +128,12 @@ function AppContent() {
     if (userInfo) {
       try {
         const parsed = JSON.parse(userInfo);
-        if (parsed.token) {
-          syncToken(parsed.token);
+        const token = parsed.token;
+
+        // If we are in the Android WebView, tell the native app to sync local DB for caller ID
+        if (token) {
+          import('./utils/mobileBridge').then(({ syncToken }) => syncToken(token));
+          import('./utils/androidBridge').then(({ triggerAndroidLeadSync }) => triggerAndroidLeadSync(token));
         }
         // Initialize global currency if available
         if (parsed.organisation?.currency) {
