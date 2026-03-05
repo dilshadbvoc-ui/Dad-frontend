@@ -4,6 +4,7 @@
 interface AndroidInterface {
     syncLeads: (token: string) => void;
     getRecordingStatus: () => string;
+    showNotification: (title: string, message: string) => void;
 }
 
 declare global {
@@ -45,4 +46,17 @@ export const getAndroidRecordingStatus = () => {
         }
     }
     return null;
+};
+
+/**
+ * Triggers a native Android Push Notification from the CRM backend websocket.
+ */
+export const triggerAndroidNotification = (title: string, message: string) => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.showNotification) {
+        try {
+            window.AndroidBridge.showNotification(title, message);
+        } catch (e) {
+            console.error("Failed to trigger Android notification", e);
+        }
+    }
 };

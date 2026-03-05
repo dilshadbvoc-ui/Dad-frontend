@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
+import { triggerAndroidNotification } from '@/utils/androidBridge';
 
 export default function Layout() {
     const location = useLocation();
@@ -91,7 +92,8 @@ export default function Layout() {
                 duration: 5000,
             });
 
-            // Optional: Play a sound?
+            // Native Android App push notification mirror
+            triggerAndroidNotification(data.title, data.message);
         };
 
         socketService.on('call_status_update', handleCallUpdate);
