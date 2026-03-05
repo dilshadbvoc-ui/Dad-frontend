@@ -56,17 +56,31 @@ function TaskTable({ tasks }: { tasks: Task[] }) {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {tasks.map((task) => (
-                    <TableRow key={task.id}>
-                        <TableCell className="font-medium">{task.subject}</TableCell>
-                        <TableCell>
-                            {task.relatedTo ? `${task.onModel}: ${task.relatedTo.firstName || task.relatedTo.name}` : '-'}
-                        </TableCell>
-                        <TableCell><Badge variant={task.status === 'completed' ? 'default' : 'outline'}>{task.status}</Badge></TableCell>
-                        <TableCell>{task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : '-'}</TableCell>
-                        <TableCell>{task.assignedTo?.firstName} {task.assignedTo?.lastName}</TableCell>
-                    </TableRow>
-                ))}
+                {tasks.map((task) => {
+                    let statusClassName = "capitalize ";
+                    switch (task.status) {
+                        case 'completed': statusClassName += "bg-success/10 text-success border-success/20"; break;
+                        case 'in_progress': statusClassName += "bg-warning/10 text-warning border-warning/20"; break;
+                        case 'deferred': statusClassName += "bg-muted text-muted-foreground border-border"; break;
+                        case 'not_started': default: statusClassName += "bg-blue-500/10 text-blue-500 border-blue-500/20"; break;
+                    }
+
+                    return (
+                        <TableRow key={task.id}>
+                            <TableCell className="font-medium">{task.subject}</TableCell>
+                            <TableCell>
+                                {task.relatedTo ? `${task.onModel}: ${task.relatedTo.firstName || task.relatedTo.name || ''} ${task.relatedTo.lastName || ''}`.trim() : '-'}
+                            </TableCell>
+                            <TableCell>
+                                <Badge variant="outline" className={statusClassName}>
+                                    {task.status.replace('_', ' ')}
+                                </Badge>
+                            </TableCell>
+                            <TableCell>{task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : '-'}</TableCell>
+                            <TableCell>{task.assignedTo?.firstName || 'Unknown'} {task.assignedTo?.lastName || ''}</TableCell>
+                        </TableRow>
+                    );
+                })}
             </TableBody>
         </Table>
     );
@@ -182,7 +196,7 @@ export default function LeadsPage() {
     // 2. Tasks (Follow Ups)
     const { data: taskData, isLoading: tasksLoading } = useQuery({
         queryKey: ['tasks', 'all'],
-        queryFn: () => getTasks({ status: 'all' }),
+        queryFn: () => getTasks({ status: 'all', limit: 1000 }),
     });
 
     const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
@@ -236,9 +250,9 @@ export default function LeadsPage() {
             case 'overdue-followups':
                 return tasks.filter((t: Task) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
             case 'today-followups':
-                return tasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()));
+                return tasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()) && t.status !== 'completed');
             case 'upcoming-followups':
-                return tasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)));
+                return tasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
 
             default:
                 return leads;

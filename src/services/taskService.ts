@@ -31,6 +31,7 @@ export interface TaskSearchParams {
     status?: string;
     priority?: string;
     assignedTo?: string;
+    limit?: number;
 }
 
 export const getTasks = async (params?: TaskSearchParams) => {
