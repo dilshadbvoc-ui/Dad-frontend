@@ -66,7 +66,7 @@ const AdsManager: React.FC = () => {
         setLoading(true);
         try {
             const res = await getMetaCampaigns(accountId);
-            setCampaigns(res.data.data || []);
+            setCampaigns(res.data || res || []);
         } catch (error) {
             console.error('Failed to fetch campaigns', error);
             toast.error('Failed to load campaigns');
