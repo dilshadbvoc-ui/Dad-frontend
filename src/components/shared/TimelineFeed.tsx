@@ -50,6 +50,8 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                 return <Calendar className="h-4 w-4" />;
             case 'audit':
                 return <Shield className="h-4 w-4" />;
+            case 'recording':
+                return <PhoneCall className="h-4 w-4" />;
             default:
                 return <Activity className="h-4 w-4" />;
         }
@@ -61,6 +63,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             case 'task': return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
             case 'event': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20';
             case 'audit': return 'bg-muted text-muted-foreground ring-border';
+            case 'recording': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20';
             default: return 'bg-muted text-muted-foreground ring-border';
         }
     };
@@ -75,7 +78,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             </CardHeader>
             <CardContent>
                 <div className="relative pl-6 border-l-2 border-border space-y-8">
-                    {timeline.map((item: { id: string, type: string, title: string, description?: string, meta?: { direction?: string }, date: string, actor?: { firstName: string } }) => (
+                    {timeline.map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, fileUrl?: string }, date: string, actor?: { firstName: string } }) => (
                         <div key={item.id} className="relative">
                             <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
                                 {getIcon(item)}
@@ -94,6 +97,30 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                         <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block">
                                             {item.meta.direction}
                                         </span>
+                                    )}
+
+                                    {item.type === 'recording' && (
+                                        <div className="mt-2 space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">
+                                                    {item.subType}
+                                                </span>
+                                                {item.meta?.duration && (
+                                                    <span className="text-xs text-muted-foreground italic">
+                                                        ({item.meta.duration}s)
+                                                    </span>
+                                                )}
+                                            </div>
+                                            {(item.meta as any)?.fileUrl && (item.meta as any).fileUrl !== '' && (
+                                                <audio
+                                                    controls
+                                                    className="h-8 w-full max-w-sm mt-1"
+                                                    src={(item.meta as any).fileUrl.startsWith('/') ? (item.meta as any).fileUrl : `/${(item.meta as any).fileUrl}`}
+                                                >
+                                                    Your browser does not support the audio element.
+                                                </audio>
+                                            )}
+                                        </div>
                                     )}
                                 </div>
                                 <div className="mt-2 sm:mt-0 text-xs text-muted-foreground whitespace-nowrap text-right">
