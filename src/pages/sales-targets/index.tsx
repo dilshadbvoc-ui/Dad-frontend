@@ -204,7 +204,7 @@ export default function SalesTargetsPage() {
             // but index.tsx doesn't import 'api'.
             // I'll assume 'api' can be imported from @/services/api
             const { api } = await import('@/services/api')
-            return (await api.get('/products')).data
+            return (await api.get('/products?limit=1000')).data
         }
     })
     const products = Array.isArray(productsData) ? productsData : []

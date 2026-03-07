@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { getProducts, type Product as BaseProduct } from "@/services/productService"
 import { api } from "@/services/api"
 import { Button } from "@/components/ui/button"
 import {
@@ -64,7 +65,7 @@ export function AddProductToLeadDialog({
 
     const { data: availableProducts } = useQuery({
         queryKey: ['products'],
-        queryFn: async () => (await api.get('/products')).data
+        queryFn: () => getProducts({ limit: 1000 })
     })
 
     const handleAddProduct = (product: Product) => {
