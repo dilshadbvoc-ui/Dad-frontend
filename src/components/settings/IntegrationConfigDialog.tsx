@@ -2,9 +2,12 @@
 import { useState, useEffect } from "react"
 import { useForm, useWatch } from "react-hook-form"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { Loader2, Plus, Trash2 } from "lucide-react"
 import { toast } from "sonner"
 import type { AxiosError } from "axios"
+import { useQuery } from "@tanstack/react-query"
+import { getAssignmentRules } from "@/services/assignmentRuleService"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -27,6 +30,7 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 import { updateOrganisation } from "@/services/settingsService"
 import type { IntegrationSettings } from "@/services/settingsService"
 
@@ -59,6 +63,19 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
         control: form.control,
         name: 'connected'
     })
+
+    const { data: rulesData } = useQuery({
+        queryKey: ['assignment-rules', 'Lead'],
+        queryFn: () => getAssignmentRules('Lead'),
+        enabled: integrationType === 'meta' && isConnected
+    })
+
+    const rules = Array.isArray(rulesData) ? rulesData : [];
+
+    const formRules = useWatch({
+        control: form.control,
+        name: 'formRules' as any
+    }) || {};
 
     useEffect(() => {
         if (initialValues) {
@@ -476,171 +493,288 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         </FormItem>
                                     )}
                                 />
+
+                                <div className="space-y-4 pt-4 border-t">
+                                    <h4 className="text-sm font-medium">Assignment Logic</h4>
+
+                                    <FormField
+                                        control={form.control}
+                                        name="defaultRuleId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Default Assignment Rule</FormLabel>
+                                                <Select value={field.value} onValueChange={field.onChange}>
+                                                    <FormControl>
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Manual (No auto-assignment)" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="none">Manual (Assign to Org Creator)</SelectItem>
+                                                        {rules.map((rule: any) => (
+                                                            <SelectItem key={rule.id} value={rule.id}>
+                                                                {rule.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormDescription className="text-xs">
+                                                    Rule used if no form-specific rule is found.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+
+                                    <div className="space-y-2">
+                                        <div className="flex items-center justify-between">
+                                            <Label className="text-sm">Form-Specific Rules</Label>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-7 text-xs"
+                                                onClick={() => {
+                                                    const current = form.getValues('formRules' as any) || {};
+                                                    form.setValue('formRules' as any, { ...current, '': '' });
+                                                }}
+                                            >
+                                                <Plus className="h-3 w-3 mr-1" /> Add Mapping
+                                            </Button>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            {Object.entries(formRules).map(([formId, ruleId], index) => (
+                                                <div key={index} className="flex gap-2 items-start">
+                                                    <div className="flex-1">
+                                                        <Input
+                                                            placeholder="Meta Form ID (e.g. 123456789)"
+                                                            className="text-xs h-8"
+                                                            value={formId}
+                                                            onChange={(e) => {
+                                                                const newFormId = e.target.value;
+                                                                const current = { ...form.getValues('formRules' as any) };
+                                                                const val = current[formId];
+                                                                delete current[formId];
+                                                                current[newFormId] = val;
+                                                                form.setValue('formRules' as any, current);
+                                                            }}
+                                                        />
+                                                    </div>
+                                                    <div className="flex-1">
+                                                        <Select
+                                                            value={(ruleId as string) || "none"}
+                                                            onValueChange={(val) => {
+                                                                const current = { ...form.getValues('formRules' as any) };
+                                                                current[formId] = val;
+                                                                form.setValue('formRules' as any, current);
+                                                            }}
+                                                        >
+                                                            <SelectTrigger className="text-xs h-8">
+                                                                <SelectValue placeholder="Select Rule" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="none">Default Rule</SelectItem>
+                                                                {rules.map((rule: any) => (
+                                                                    <SelectItem key={rule.id} value={rule.id}>
+                                                                        {rule.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        className="h-8 w-8 p-0 text-red-500"
+                                                        onClick={() => {
+                                                            const current = { ...form.getValues('formRules' as any) };
+                                                            delete current[formId];
+                                                            form.setValue('formRules' as any, current);
+                                                        }}
+                                                    >
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
                             </>
-                        )}
+                        )
+                        }
 
                         {/* Fields for Slack */}
-                        {integrationType === 'slack' && isConnected && (
-                            <>
-                                <FormField
-                                    control={form.control}
-                                    name="channelId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Channel ID</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="e.g. C12345678" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="accessToken"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Bot Token</FormLabel>
-                                            <FormControl>
-                                                <Input type="password" placeholder="xoxb-..." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </>
-                        )}
+                        {
+                            integrationType === 'slack' && isConnected && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="channelId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Channel ID</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="e.g. C12345678" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="accessToken"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Bot Token</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="xoxb-..." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )
+                        }
 
                         {/* Fields for Twilio */}
-                        {integrationType === 'twilio' && isConnected && (
-                            <>
-                                <FormField
-                                    control={form.control}
-                                    name="accountSid"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Account SID</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="AC..." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="authToken"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Auth Token</FormLabel>
-                                            <FormControl>
-                                                <Input type="password" placeholder="Key..." {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="phoneNumber"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Twilio Phone Number</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="+1234567890" {...field} />
-                                            </FormControl>
-                                            <FormDescription className="text-xs">
-                                                Number to make calls from.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="forwardTo"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Inbound Forwarding (Optional)</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="+1987654321" {...field} />
-                                            </FormControl>
-                                            <FormDescription className="text-xs">
-                                                Redirect incoming calls to this real number.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </>
-                        )}
+                        {
+                            integrationType === 'twilio' && isConnected && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="accountSid"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Account SID</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="AC..." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="authToken"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Auth Token</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="Key..." {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="phoneNumber"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Twilio Phone Number</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="+1234567890" {...field} />
+                                                </FormControl>
+                                                <FormDescription className="text-xs">
+                                                    Number to make calls from.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="forwardTo"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Inbound Forwarding (Optional)</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="+1987654321" {...field} />
+                                                </FormControl>
+                                                <FormDescription className="text-xs">
+                                                    Redirect incoming calls to this real number.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )
+                        }
 
                         {/* Fields for Happilee, Wabis, DoubleTick, Wati, HAL API */}
-                        {['happilee', 'wabis', 'doubletick', 'wati', 'halapi'].includes(integrationType) && isConnected && (
-                            <>
-                                <FormField
-                                    control={form.control}
-                                    name="apiKey"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>API Key</FormLabel>
-                                            <FormControl>
-                                                <Input type="password" placeholder="Provider API Key" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="endpoint"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Endpoint URL (Optional)</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="https://api.provider.com/v1" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </>
-                        )}
+                        {
+                            ['happilee', 'wabis', 'doubletick', 'wati', 'halapi'].includes(integrationType) && isConnected && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="apiKey"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>API Key</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="Provider API Key" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="endpoint"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="https://api.provider.com/v1" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )
+                        }
 
                         {/* Specific Fields for Google Ads */}
-                        {integrationType === 'googleads' && isConnected && (
-                            <>
-                                <FormField
-                                    control={form.control}
-                                    name="customerId"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Customer ID</FormLabel>
-                                            <FormControl>
-                                                <Input placeholder="123-456-7890" {...field} />
-                                            </FormControl>
-                                            <FormDescription className="text-xs">
-                                                Your Google Ads Customer ID.
-                                            </FormDescription>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                                <FormField
-                                    control={form.control}
-                                    name="apiKey"
-                                    render={({ field }) => (
-                                        <FormItem>
-                                            <FormLabel>Developer Token</FormLabel>
-                                            <FormControl>
-                                                <Input type="password" placeholder="Developer Token" {...field} />
-                                            </FormControl>
-                                            <FormMessage />
-                                        </FormItem>
-                                    )}
-                                />
-                            </>
-                        )}
+                        {
+                            integrationType === 'googleads' && isConnected && (
+                                <>
+                                    <FormField
+                                        control={form.control}
+                                        name="customerId"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Customer ID</FormLabel>
+                                                <FormControl>
+                                                    <Input placeholder="123-456-7890" {...field} />
+                                                </FormControl>
+                                                <FormDescription className="text-xs">
+                                                    Your Google Ads Customer ID.
+                                                </FormDescription>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name="apiKey"
+                                        render={({ field }) => (
+                                            <FormItem>
+                                                <FormLabel>Developer Token</FormLabel>
+                                                <FormControl>
+                                                    <Input type="password" placeholder="Developer Token" {...field} />
+                                                </FormControl>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}
+                                    />
+                                </>
+                            )
+                        }
 
                         <DialogFooter className="flex justify-between sm:justify-between">
                             {((integrationType === 'meta' && isConnected) || (integrationType === 'whatsapp' && isConnected)) && (
@@ -676,9 +810,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                 Save Changes
                             </Button>
                         </DialogFooter>
-                    </form>
-                </Form>
-            </DialogContent>
+                    </form >
+                </Form >
+            </DialogContent >
         </Dialog >
     )
 }

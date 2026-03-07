@@ -8,9 +8,11 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Upload, FileText, AlertCircle, CheckCircle2 } from "lucide-react"
 import { toast } from "sonner"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { isAdmin, isBranchManager, getUserInfo } from "@/lib/utils"
 import * as XLSX from 'xlsx'
+import { getAssignmentRules } from "@/services/assignmentRuleService"
 
 export function BulkImportLeads() {
     const [file, setFile] = useState<File | null>(null)
@@ -18,6 +20,8 @@ export function BulkImportLeads() {
     const [parsedData, setParsedData] = useState<CreateLeadData[]>([])
     const [error, setError] = useState<string | null>(null)
     const [selectedBranchId, setSelectedBranchId] = useState<string>("")
+    const [selectedRuleId, setSelectedRuleId] = useState<string>("default")
+    const [applyRules, setApplyRules] = useState<boolean>(true)
 
     const queryClient = useQueryClient()
     const user = getUserInfo();
@@ -32,18 +36,31 @@ export function BulkImportLeads() {
         enabled: canSelectBranch
     })
 
+    const { data: rulesData } = useQuery({
+        queryKey: ['assignment-rules', 'Lead', selectedBranchId],
+        queryFn: () => getAssignmentRules('Lead', selectedBranchId === 'all_branches_placeholder' ? undefined : selectedBranchId),
+    })
+
     const branches = Array.isArray(branchesData)
         ? branchesData
         : (branchesData as any)?.branches || [];
+
+    const rules = Array.isArray(rulesData) ? rulesData : [];
 
     const importMutation = useMutation({
         mutationFn: (data: CreateLeadData[]) => {
             // Attach branchId if selected or user has one
             const finalData = data.map(lead => ({
                 ...lead,
-                branchId: selectedBranchId || userBranchId || undefined
+                branchId: (selectedBranchId && selectedBranchId !== 'all_branches_placeholder')
+                    ? selectedBranchId
+                    : (userBranchId || undefined)
             }));
-            return importLeads(finalData)
+
+            return importLeads(finalData, {
+                assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
+                applyAssignmentRules: applyRules
+            })
         },
         onSuccess: (data) => {
             const total = (data.created || 0) + (data.reEnquiries || 0)
@@ -55,6 +72,8 @@ export function BulkImportLeads() {
             setParsedData([])
             setPreviewCount(0)
             setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
+            setSelectedRuleId("default")
+            setApplyRules(true)
             // Invalidate all leads queries
             queryClient.invalidateQueries({ queryKey: ['leads'] })
             queryClient.invalidateQueries({ queryKey: ['leads', 'all'] })
@@ -235,9 +254,52 @@ export function BulkImportLeads() {
                                 ))}
                             </SelectContent>
                         </Select>
-                        <p className="text-xs text-muted-foreground">Leads will be assigned to this branch.</p>
+                        <p className="text-xs text-muted-foreground">Leads will be logically grouped under this branch.</p>
                     </div>
                 )}
+
+                <div className="space-y-4 py-2 border-y border-gray-100 dark:border-gray-800">
+                    <div className="flex items-center space-x-2">
+                        <Checkbox
+                            id="applyRules"
+                            checked={applyRules}
+                            onCheckedChange={(checked) => setApplyRules(!!checked)}
+                        />
+                        <div className="grid gap-1.5 leading-none">
+                            <label
+                                htmlFor="applyRules"
+                                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                            >
+                                Apply Assignment Rules
+                            </label>
+                            <p className="text-xs text-muted-foreground">
+                                Automatically distribute leads based on active rules.
+                            </p>
+                        </div>
+                    </div>
+
+                    {applyRules && (
+                        <div className="space-y-2 pl-6">
+                            <Label className="text-xs">Specific Assignment Rule (Optional)</Label>
+                            <Select value={selectedRuleId} onValueChange={setSelectedRuleId}>
+                                <SelectTrigger className="h-9 text-xs">
+                                    <SelectValue placeholder="Automatic (First matching rule)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="default">Automatic (First matching rule)</SelectItem>
+                                    {rules.map((rule: any) => (
+                                        <SelectItem key={rule.id} value={rule.id}>
+                                            {rule.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-[10px] text-muted-foreground italic">
+                                If selected, only this rule will be used. Leads that don't match will default to you.
+                            </p>
+                        </div>
+                    )}
+                </div>
 
                 <div className="border-2 border-dashed rounded-lg p-6 flex flex-col items-center justify-center text-center hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors cursor-pointer relative">
                     <input

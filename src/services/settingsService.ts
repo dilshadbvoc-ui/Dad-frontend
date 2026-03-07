@@ -67,6 +67,9 @@ export interface IntegrationSettings {
     businessId?: string;
     clientEmail?: string;
     customerId?: string;
+    // Assignment Rule Fields
+    defaultRuleId?: string;
+    formRules?: Record<string, string>;
 }
 
 export interface LeadScoringConfig {
