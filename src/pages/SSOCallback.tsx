@@ -22,6 +22,7 @@ const SSOCallback = () => {
 
                     // Sync token
                     syncToken(userInfo.token);
+                    window.dispatchEvent(new CustomEvent('auth-refresh', { detail: userInfo }));
 
                     toast.success('Successfully logged in via SSO');
 

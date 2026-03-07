@@ -43,6 +43,7 @@ const Register = () => {
                 role: 'admin' // First user is Admin of their Org
             });
             localStorage.setItem('userInfo', JSON.stringify(data));
+            window.dispatchEvent(new CustomEvent('auth-refresh', { detail: data }));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (error: unknown) {

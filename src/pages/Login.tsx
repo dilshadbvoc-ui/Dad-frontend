@@ -32,6 +32,7 @@ const Login = () => {
                 sanitizedData.avatar = null;
             }
             localStorage.setItem('userInfo', JSON.stringify(sanitizedData));
+            window.dispatchEvent(new CustomEvent('auth-refresh', { detail: sanitizedData }));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
         } catch (err: unknown) {
