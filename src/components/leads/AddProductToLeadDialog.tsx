@@ -101,13 +101,13 @@ export function AddProductToLeadDialog({
             }
 
             await api.put(`/leads/${leadId}`, payload)
-            
+
             if (selectedProducts.length === 0) {
                 toast.success("All products removed successfully")
             } else {
                 toast.success("Products updated successfully")
             }
-            
+
             onOpenChange(false)
             onSuccess()
         } catch (error) {
@@ -143,14 +143,14 @@ export function AddProductToLeadDialog({
                         <ScrollArea className="flex-1">
                             <div className="p-1">
                                 {availableProducts?.products?.filter((p: Product) =>
-                                    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+                                    (p.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                                    (p.sku?.toLowerCase() || "").includes(searchQuery.toLowerCase())
                                 ).length === 0 ? (
                                     <div className="py-6 text-center text-sm text-muted-foreground">No products found.</div>
                                 ) : (
                                     availableProducts?.products?.filter((p: Product) =>
-                                        p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                                        p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+                                        (p.name?.toLowerCase() || "").includes(searchQuery.toLowerCase()) ||
+                                        (p.sku?.toLowerCase() || "").includes(searchQuery.toLowerCase())
                                     ).map((product: Product) => {
                                         const isSelected = selectedProducts.some(p => p.productId === product.id)
                                         return (

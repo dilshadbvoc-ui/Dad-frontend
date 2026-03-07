@@ -171,9 +171,9 @@ export default function SuperAdminDashboard() {
     };
 
     const filteredOrgs = organisations?.filter((org: Organisation) =>
-        org.name.toLowerCase().includes(search.toLowerCase()) ||
-        org.slug.toLowerCase().includes(search.toLowerCase()) ||
-        org.contactEmail?.toLowerCase().includes(search.toLowerCase())
+        (org.name?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (org.slug?.toLowerCase() || "").includes(search.toLowerCase()) ||
+        (org.contactEmail?.toLowerCase() || "").includes(search.toLowerCase())
     );
 
     const handleBackup = async (org: Organisation) => {

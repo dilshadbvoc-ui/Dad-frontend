@@ -53,11 +53,11 @@ export default function ReEnquiriesPage() {
     const filteredLeads = leads.filter(lead => {
         const searchLower = searchTerm.toLowerCase()
         return (
-            lead.firstName.toLowerCase().includes(searchLower) ||
-            lead.lastName?.toLowerCase().includes(searchLower) ||
-            lead.email?.toLowerCase().includes(searchLower) ||
-            lead.phone?.includes(searchLower) ||
-            lead.company?.toLowerCase().includes(searchLower)
+            (lead.firstName?.toLowerCase() || "").includes(searchLower) ||
+            (lead.lastName?.toLowerCase() || "").includes(searchLower) ||
+            (lead.email?.toLowerCase() || "").includes(searchLower) ||
+            (lead.phone || "").includes(searchLower) ||
+            (lead.company?.toLowerCase() || "").includes(searchLower)
         )
     })
 
