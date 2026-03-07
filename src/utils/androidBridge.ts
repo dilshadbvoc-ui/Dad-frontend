@@ -3,6 +3,8 @@
 // Define the shape of the interface we injected from Android
 interface AndroidInterface {
     syncLeads: (token: string) => void;
+    saveToken: (token: string) => void;
+    getToken: () => string | null;
     getRecordingStatus: () => string;
     showNotification: (title: string, message: string) => void;
 }
@@ -43,6 +45,33 @@ export const getAndroidRecordingStatus = () => {
             return JSON.parse(statusString);
         } catch (e) {
             console.error("Failed to parse Android recording status", e);
+        }
+    }
+    return null;
+};
+
+/**
+ * Saves the token to Android SharedPreferences for background persistence.
+ */
+export const saveAndroidToken = (token: string) => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.saveToken) {
+        try {
+            window.AndroidBridge.saveToken(token);
+        } catch (e) {
+            console.error("Failed to save token to Android", e);
+        }
+    }
+};
+
+/**
+ * Retrieves the token previously saved to Android SharedPreferences.
+ */
+export const getAndroidToken = (): string | null => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.getToken) {
+        try {
+            return window.AndroidBridge.getToken();
+        } catch (e) {
+            console.error("Failed to get token from Android", e);
         }
     }
     return null;

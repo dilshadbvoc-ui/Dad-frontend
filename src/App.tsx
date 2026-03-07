@@ -122,39 +122,76 @@ const queryClient = new QueryClient({
 
 function AppContent() {
   useEffect(() => {
-    // Sync token to mobile app on mount and when it might change (e.g. login)
-    // For simplicity, we check localStorage here. Ideally use an AuthContext.
-    const userInfo = localStorage.getItem('userInfo');
-    if (userInfo) {
-      try {
-        const parsed = JSON.parse(userInfo);
-        const token = parsed.token;
+    const syncWithAndroid = (token: string) => {
+      import('./utils/mobileBridge').then(({ syncToken }) => syncToken(token));
+      import('./utils/androidBridge').then(({ triggerAndroidLeadSync, saveAndroidToken }) => {
+        saveAndroidToken(token);
+        triggerAndroidLeadSync(token);
+      });
+    };
 
-        // If we are in the Android WebView, tell the native app to sync local DB for caller ID
-        if (token) {
-          import('./utils/mobileBridge').then(({ syncToken }) => syncToken(token));
-          import('./utils/androidBridge').then(({ triggerAndroidLeadSync }) => triggerAndroidLeadSync(token));
+    const initializeAuth = async () => {
+      let userInfo = localStorage.getItem('userInfo');
+
+      // If no session in localStorage, try to recover from Android Native storage
+      if (!userInfo) {
+        const { getAndroidToken } = await import('./utils/androidBridge');
+        const nativeToken = getAndroidToken();
+        if (nativeToken) {
+          console.log("Recovered session from Android Native storage");
+          // Create minimum userInfo to trigger the /auth/me refresh
+          const placeholderInfo = { token: nativeToken, fromNative: true };
+          localStorage.setItem('userInfo', JSON.stringify(placeholderInfo));
+          userInfo = JSON.stringify(placeholderInfo);
         }
-        // Initialize global currency if available
-        if (parsed.organisation?.currency) {
-          // Lazy import to avoid circular dependency if any, though utils is safe
-          import('./lib/utils').then(({ setGlobalCurrency }) => {
-            setGlobalCurrency(parsed.organisation.currency);
-          });
-        }
-      } catch (e) {
-        console.error('Failed to parse user info', e);
       }
-    }
 
-    // Log environment info and warn if local
+      if (userInfo) {
+        try {
+          const parsed = JSON.parse(userInfo);
+          const token = parsed.token;
+          if (token) {
+            syncWithAndroid(token);
+          }
+          if (parsed.organisation?.currency) {
+            import('./lib/utils').then(({ setGlobalCurrency }) => {
+              setGlobalCurrency(parsed.organisation.currency);
+            });
+          }
+        } catch (e) {
+          console.error('Failed to parse user info', e);
+        }
+      }
+    };
+
+    initializeAuth();
+
+    // Listen for login/refresh events to sync token to Android
+    const handleAuthRefresh = (e: any) => {
+      if (e.detail?.token) {
+        syncWithAndroid(e.detail.token);
+      }
+    };
+    window.addEventListener('auth-refresh' as any, handleAuthRefresh);
+
+    // Also handle storage events if user logs in in another tab (less likely in WebView but good for robustness)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'userInfo' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          if (parsed.token) syncWithAndroid(parsed.token);
+        } catch { }
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+
     import('./utils/environmentChecker').then(({ logEnvironmentInfo, warnIfLocalEnvironment }) => {
       logEnvironmentInfo();
       warnIfLocalEnvironment();
     });
 
-    // Silent Session Refresh
     const refreshUserSession = async () => {
+      const userInfo = localStorage.getItem('userInfo');
       if (!userInfo) return;
       try {
         const { api } = await import('./services/api');
@@ -162,7 +199,6 @@ function AppContent() {
         if (res.data) {
           const updatedUser = { ...JSON.parse(userInfo), ...res.data };
           localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-          // Dispatch custom event for reactive components
           window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updatedUser }));
         }
       } catch (err) {
@@ -170,6 +206,11 @@ function AppContent() {
       }
     };
     refreshUserSession();
+
+    return () => {
+      window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
+      window.removeEventListener('storage', handleStorageChange);
+    };
   }, []);
 
   return (
