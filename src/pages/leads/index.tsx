@@ -500,6 +500,7 @@ export default function LeadsPage() {
                                         data={sortedDisplayData as Lead[]}
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
+                                        initialPageSize={1000}
                                         renderSubComponent={({ row }) => {
                                             const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
                                             return (

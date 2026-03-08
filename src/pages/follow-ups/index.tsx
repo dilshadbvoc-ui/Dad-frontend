@@ -10,15 +10,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 export default function FollowUpsPage() {
     const [searchParams] = useSearchParams()
     const filterParam = searchParams.get('filter') // overdue, today, upcoming
-    
+
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['follow-ups', searchQuery, statusFilter],
-        queryFn: () => getFollowUps({ 
+        queryFn: () => getFollowUps({
             search: searchQuery || undefined,
-            status: statusFilter !== 'all' ? statusFilter : undefined
+            status: statusFilter !== 'all' ? statusFilter : undefined,
+            limit: 1000
         }),
     })
 
@@ -28,14 +29,14 @@ export default function FollowUpsPage() {
     // Calculate stats and filter data based on URL parameter
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    
+
     const filteredFollowUps = useMemo(() => {
         if (!filterParam) return followUps
 
         return followUps.filter((task: any) => {
             const dueDate = new Date(task.dueDate)
             dueDate.setHours(0, 0, 0, 0)
-            
+
             switch (filterParam) {
                 case 'overdue':
                     return dueDate < today && task.status !== 'completed'
@@ -48,7 +49,7 @@ export default function FollowUpsPage() {
             }
         })
     }, [followUps, filterParam, today])
-    
+
     const overdueCount = followUps.filter((task: any) => {
         const dueDate = new Date(task.dueDate)
         dueDate.setHours(0, 0, 0, 0)
@@ -136,10 +137,11 @@ export default function FollowUpsPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
                 </div>
             ) : (
-                <DataTable 
-                    columns={columns} 
-                    data={filteredFollowUps} 
+                <DataTable
+                    columns={columns}
+                    data={filteredFollowUps}
                     searchKeys={["subject", "description", "status", "priority"]}
+                    initialPageSize={1000}
                 />
             )}
         </div>

@@ -35,6 +35,7 @@ interface DataTableProps<TData, TValue> {
     onRowDrop?: (e: React.DragEvent, row: TData) => void
     mobileCardRender?: (row: TData) => React.ReactNode
     renderSubComponent?: (props: { row: any }) => React.ReactElement
+    initialPageSize?: number
 }
 
 export function DataTable<TData, TValue>({
@@ -44,7 +45,8 @@ export function DataTable<TData, TValue>({
     searchKeys,
     onRowDrop,
     mobileCardRender,
-    renderSubComponent
+    renderSubComponent,
+    initialPageSize
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -78,6 +80,11 @@ export function DataTable<TData, TValue>({
             })
         },
         getRowCanExpand: () => true,
+        initialState: {
+            pagination: {
+                pageSize: initialPageSize || 100,
+            },
+        },
         state: {
             sorting,
             columnFilters,
