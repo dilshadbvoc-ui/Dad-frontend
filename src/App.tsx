@@ -137,7 +137,9 @@ function AppContent() {
       if (!userInfo) {
         const { getAndroidToken } = await import('./utils/androidBridge');
         const nativeToken = getAndroidToken();
-        if (nativeToken) {
+        const autoLogin = localStorage.getItem('autoLogin') === 'true';
+
+        if (nativeToken && autoLogin) {
           console.log("Recovered session from Android Native storage");
           // Create minimum userInfo to trigger the /auth/me refresh
           const placeholderInfo = { token: nativeToken, fromNative: true };

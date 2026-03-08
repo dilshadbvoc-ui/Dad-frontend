@@ -5,6 +5,8 @@ interface AndroidInterface {
     syncLeads: (token: string) => void;
     saveToken: (token: string) => void;
     getToken: () => string | null;
+    clearToken: () => void;
+    requestLocationPermission: () => void;
     getRecordingStatus: () => string;
     showNotification: (title: string, message: string) => void;
 }
@@ -63,9 +65,6 @@ export const saveAndroidToken = (token: string) => {
     }
 };
 
-/**
- * Retrieves the token previously saved to Android SharedPreferences.
- */
 export const getAndroidToken = (): string | null => {
     if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.getToken) {
         try {
@@ -75,6 +74,32 @@ export const getAndroidToken = (): string | null => {
         }
     }
     return null;
+};
+
+/**
+ * Clears the token from Android SharedPreferences on logout.
+ */
+export const clearAndroidToken = () => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.clearToken) {
+        try {
+            window.AndroidBridge.clearToken();
+        } catch (e) {
+            console.error("Failed to clear token from Android", e);
+        }
+    }
+};
+
+/**
+ * Native request for device location permissions.
+ */
+export const requestAndroidLocationPermission = () => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.requestLocationPermission) {
+        try {
+            window.AndroidBridge.requestLocationPermission();
+        } catch (e) {
+            console.error("Failed to request Android location permission", e);
+        }
+    }
 };
 
 /**

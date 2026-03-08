@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { User, LogOut } from "lucide-react"
+import { clearAndroidToken } from "@/utils/androidBridge"
 
 export function Header({ className }: { className?: string }) {
     const navigate = useNavigate()
@@ -36,6 +37,8 @@ export function Header({ className }: { className?: string }) {
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('autoLogin');
+        clearAndroidToken();
         navigate('/login');
     };
 

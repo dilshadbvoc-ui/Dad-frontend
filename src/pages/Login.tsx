@@ -7,12 +7,14 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
-import { Sparkles } from 'lucide-react';
-// import { Loader2 } from 'lucide-react';
+import { Sparkles, Check } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { saveAndroidToken } from '@/utils/androidBridge';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [autoLogin, setAutoLogin] = useState(true);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
@@ -32,6 +34,14 @@ const Login = () => {
                 sanitizedData.avatar = null;
             }
             localStorage.setItem('userInfo', JSON.stringify(sanitizedData));
+
+            if (autoLogin) {
+                localStorage.setItem('autoLogin', 'true');
+                saveAndroidToken(sanitizedData.token);
+            } else {
+                localStorage.removeItem('autoLogin');
+            }
+
             window.dispatchEvent(new CustomEvent('auth-refresh', { detail: sanitizedData }));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
@@ -171,6 +181,20 @@ const Login = () => {
                                     {error}
                                 </div>
                             )}
+
+                            <div className="flex items-center space-x-2 py-2">
+                                <Checkbox
+                                    id="autoLogin"
+                                    checked={autoLogin}
+                                    onCheckedChange={(checked) => setAutoLogin(checked as boolean)}
+                                />
+                                <Label
+                                    htmlFor="autoLogin"
+                                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                >
+                                    Remember me for 30 days
+                                </Label>
+                            </div>
 
                             <Button
                                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"

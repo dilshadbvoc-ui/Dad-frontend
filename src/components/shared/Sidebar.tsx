@@ -39,6 +39,7 @@ import {
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
 import { api } from "@/services/api";
+import { clearAndroidToken } from "@/utils/androidBridge";
 
 const menuGroups = [
     {
@@ -218,6 +219,8 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
     const handleLogout = () => {
         localStorage.removeItem('userInfo');
+        localStorage.removeItem('autoLogin');
+        clearAndroidToken();
         navigate('/login');
     };
 
