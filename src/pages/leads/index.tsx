@@ -13,6 +13,7 @@ import { Link, useSearchParams } from "react-router-dom"
 import {
     Plus,
     Phone,
+    MessageCircle,
     CalendarCheck,
     RefreshCw,
     Download,
@@ -114,64 +115,106 @@ const VerticalBarChart = ({ data }: { data: { name: string; value: number }[] })
 
 
 // --- Mobile Lead Card ---
-const LeadCard = ({ lead }: { lead: Lead }) => (
-    <Card className="shadow-sm border-l-4 border-l-primary overflow-hidden">
-        <CardContent className="p-4 space-y-3">
-            <div className="flex items-start justify-between">
-                <div className="min-w-0">
-                    <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
-                    <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
-                </div>
-                <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter">
-                    {lead.status}
-                </Badge>
-            </div>
+const LeadCard = ({ lead }: { lead: Lead }) => {
+    const phone = lead.phone?.replace(/\D/g, '');
 
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                <div className="flex items-center gap-1">
-                    <RefreshCw className="h-3 w-3" />
-                    <span>Score: {lead.leadScore}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                    <Plus className="h-3 w-3" />
-                    <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
-                </div>
-            </div>
+    const handleWhatsApp = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!phone) return;
 
-            <div className="pt-2 flex items-center justify-between border-t border-border">
-                <div className="flex gap-2">
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-9 w-9 p-0 text-success hover:bg-success/10 rounded-full"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(`https://wa.me/${lead.phone?.replace(/\D/g, '') || ''}`, '_blank');
-                        }}
-                    >
-                        <Phone className="h-4 w-4" />
-                    </Button>
-                    <Button
-                        size="sm"
-                        variant="ghost"
-                        className="h-9 w-9 p-0 text-info hover:bg-info/10 rounded-full"
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            window.location.href = `tel:${lead.phone?.replace(/\D/g, '') || ''}`;
-                        }}
-                    >
-                        <CalendarCheck className="h-4 w-4" />
-                    </Button>
+        try {
+            const userInfo = localStorage.getItem('userInfo');
+            const token = userInfo ? JSON.parse(userInfo).token : null;
+            await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+            });
+        } catch (err) {
+            console.warn('Failed to log WhatsApp interaction:', err);
+        }
+        window.open(`https://wa.me/${phone}`, '_blank');
+    };
+
+    const handleCall = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (!phone) return;
+
+        try {
+            const userInfo = localStorage.getItem('userInfo');
+            const token = userInfo ? JSON.parse(userInfo).token : null;
+            await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ type: 'call', phoneNumber: phone })
+            });
+        } catch (err) {
+            console.warn('Failed to log Call interaction:', err);
+        }
+        window.location.href = `tel:${phone}`;
+    };
+
+    return (
+        <Card className="shadow-sm border-l-4 border-l-primary overflow-hidden">
+            <CardContent className="p-4 space-y-3">
+                <div className="flex items-start justify-between">
+                    <div className="min-w-0">
+                        <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
+                        <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+                    </div>
+                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter">
+                        {lead.status}
+                    </Badge>
                 </div>
-                <Link to={`/leads/${lead.id}`}>
-                    <Button size="sm" variant="outline" className="text-xs h-8 px-3 rounded-full">
-                        View Details
-                    </Button>
-                </Link>
-            </div>
-        </CardContent>
-    </Card>
-);
+
+                <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <div className="flex items-center gap-1">
+                        <RefreshCw className="h-3 w-3" />
+                        <span>Score: {lead.leadScore}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Plus className="h-3 w-3" />
+                        <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
+                    </div>
+                </div>
+
+                <div className="pt-2 flex items-center justify-between border-t border-border">
+                    <div className="flex gap-2">
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-9 w-9 p-0 text-success hover:bg-success/10 rounded-full"
+                            onClick={handleWhatsApp}
+                            title="WhatsApp"
+                        >
+                            <MessageCircle className="h-4 w-4" />
+                        </Button>
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-9 w-9 p-0 text-info hover:bg-info/10 rounded-full"
+                            onClick={handleCall}
+                            title="Call"
+                        >
+                            <Phone className="h-4 w-4" />
+                        </Button>
+                    </div>
+                    <Link to={`/leads/${lead.id}`}>
+                        <Button size="sm" variant="outline" className="text-xs h-8 px-3 rounded-full">
+                            View Details
+                        </Button>
+                    </Link>
+                </div>
+            </CardContent>
+        </Card>
+    );
+};
 
 export default function LeadsPage() {
     const [searchParams, setSearchParams] = useSearchParams();
