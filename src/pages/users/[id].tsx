@@ -75,7 +75,7 @@ export default function UserProfilePage() {
 
     const { data: leadsData, isLoading: leadsLoading } = useQuery({
         queryKey: ['user-leads', id],
-        queryFn: () => getLeads({ assignedTo: id }),
+        queryFn: () => getLeads({ assignedTo: id, pageSize: 1000 }),
         enabled: !!id
     })
 
@@ -178,7 +178,12 @@ export default function UserProfilePage() {
                 </h2>
                 <Card>
                     <CardContent className="p-0">
-                        <DataTable columns={columns} data={leads} searchKeys={["firstName", "lastName", "email", "phone", "company"]} />
+                        <DataTable
+                            columns={columns}
+                            data={leads}
+                            searchKeys={["firstName", "lastName", "email", "phone", "company"]}
+                            initialPageSize={1000}
+                        />
                     </CardContent>
                 </Card>
             </div>
