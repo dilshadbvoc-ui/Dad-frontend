@@ -15,8 +15,23 @@ interface SetFollowUpDialogProps {
 }
 
 export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onSuccess }: SetFollowUpDialogProps) {
-    const [date, setDate] = useState<string>(currentDate ? new Date(currentDate).toISOString().split('T')[0] : '');
-    const [time, setTime] = useState<string>(currentDate ? new Date(currentDate).toTimeString().slice(0, 5) : '09:00');
+    const getInitialValues = () => {
+        if (!currentDate) return { date: '', time: '09:00' };
+        const d = new Date(currentDate);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        return {
+            date: `${year}-${month}-${day}`,
+            time: `${hours}:${minutes}`
+        };
+    };
+
+    const initialValues = getInitialValues();
+    const [date, setDate] = useState<string>(initialValues.date);
+    const [time, setTime] = useState<string>(initialValues.time);
     const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -24,9 +39,14 @@ export function SetFollowUpDialog({ open, onOpenChange, leadId, currentDate, onS
         setIsLoading(true);
 
         try {
-            // Combine date and time
-            const dateTime = date && time ? new Date(`${date}T${time}:00`).toISOString() : null;
-            
+            // Combine date and time, treat as local
+            let dateTime = null;
+            if (date && time) {
+                const [year, month, day] = date.split('-').map(Number);
+                const [hours, mins] = time.split(':').map(Number);
+                dateTime = new Date(year, month - 1, day, hours, mins).toISOString();
+            }
+
             await api.put(`/leads/${leadId}`, {
                 nextFollowUp: dateTime
             });

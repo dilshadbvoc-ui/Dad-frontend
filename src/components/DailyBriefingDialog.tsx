@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { getDailyAchievement, acknowledgeDailyNotification } from '@/services/salesTargetService';
 import {
@@ -116,15 +117,30 @@ export function DailyBriefingDialog() {
 
                     {/* Pending Follow-ups Feature */}
                     {pendingStats && pendingStats.count > 0 && (
-                        <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center gap-4">
-                            <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 dark:bg-orange-900/20 dark:text-orange-400">
-                                <Flag className="h-5 w-5" />
+                        <div className="space-y-3">
+                            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                                <Flag className="h-4 w-4 text-orange-500" />
+                                <span>Pending Follow-ups ({pendingStats.count})</span>
                             </div>
-                            <div>
-                                <p className="text-lg font-bold text-foreground">{pendingStats.count} Leads</p>
-                                <p className="text-sm text-muted-foreground">require follow-up today</p>
+                            <div className="space-y-2 max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
+                                {pendingStats.leads?.map((lead: any) => (
+                                    <div key={lead.id} className="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 flex items-center justify-between group hover:border-orange-200 dark:hover:border-orange-900/50 transition-colors cursor-pointer" onClick={() => {
+                                        setIsOpen(false);
+                                        window.location.href = `/leads/${lead.id}`;
+                                    }}>
+                                        <div className="min-w-0">
+                                            <p className="text-sm font-bold text-foreground truncate">{lead.firstName} {lead.lastName || ''}</p>
+                                            <p className="text-xs text-muted-foreground truncate">{lead.company}</p>
+                                        </div>
+                                        <div className="flex flex-col items-end gap-1">
+                                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
+                                                {lead.nextFollowUp ? format(new Date(lead.nextFollowUp), 'h:mm a') : 'TBD'}
+                                            </span>
+                                            <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">View Detail →</span>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            {/* Optional: Add link to filtered view if available */}
                         </div>
                     )}
 

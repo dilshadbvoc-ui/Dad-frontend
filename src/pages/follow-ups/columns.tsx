@@ -52,11 +52,11 @@ export const columns: ColumnDef<FollowUpTask>[] = [
         cell: ({ row }) => {
             const date = row.getValue("dueDate") as string
             if (!date) return <div>-</div>
-            
+
             const dueDate = new Date(date)
             const isOverdue = isPast(dueDate) && !isToday(dueDate) && row.original.status !== 'completed'
             const isDueToday = isToday(dueDate) && row.original.status !== 'completed'
-            
+
             return (
                 <div className={cn(
                     "flex items-center gap-2",
@@ -64,7 +64,7 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                     isDueToday && "text-orange-600 font-semibold"
                 )}>
                     {(isOverdue || isDueToday) && <Clock className="h-3 w-3" />}
-                    {format(dueDate, "MMM d, yyyy")}
+                    {format(dueDate, "MMM d, yyyy, h:mm a")}
                     {isOverdue && <Badge variant="destructive" className="text-xs">Overdue</Badge>}
                     {isDueToday && <Badge className="text-xs bg-orange-500">Today</Badge>}
                 </div>

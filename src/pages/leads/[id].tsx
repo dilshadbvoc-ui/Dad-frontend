@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LogCallDialog } from "@/components/LogCallDialog"
@@ -24,6 +24,7 @@ import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
+import { format } from "date-fns"
 
 
 
@@ -298,6 +299,12 @@ export default function LeadDetailPage() {
 
                             <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName || ''}</Link> : 'Unassigned'}</span></div>
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+                            {lead.nextFollowUp && (
+                                <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 font-semibold">
+                                    <Clock className="h-4 w-4" />
+                                    <span>Next Follow-up: {format(new Date(lead.nextFollowUp), "MMM d, yyyy, h:mm a")}</span>
+                                </div>
+                            )}
 
                             <div className="pt-2 border-t">
                                 <div className="flex justify-between items-center mb-2">

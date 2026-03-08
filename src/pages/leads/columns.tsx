@@ -76,6 +76,20 @@ export const columns: ColumnDef<Lead>[] = [
         }
     },
     {
+        accessorKey: "nextFollowUp",
+        header: "Next Follow-up",
+        cell: ({ row }) => {
+            const date = row.getValue("nextFollowUp") as string
+            if (!date) return <div className="text-muted-foreground/30 text-xs italic">-</div>
+            const followUpDate = new Date(date)
+            return (
+                <div className="text-indigo-400 font-medium text-sm">
+                    {format(followUpDate, "MMM d, h:mm a")}
+                </div>
+            )
+        }
+    },
+    {
         accessorKey: "status",
         header: "Status",
         cell: ({ row }) => {
