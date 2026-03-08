@@ -21,6 +21,7 @@ const SSOCallback = () => {
                     localStorage.setItem('userInfo', JSON.stringify(userInfo));
 
                     // Sync token
+                    localStorage.setItem('autoLogin', 'true');
                     syncToken(userInfo.token);
                     window.dispatchEvent(new CustomEvent('auth-refresh', { detail: userInfo }));
 

@@ -1,6 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { Suspense, lazy, useEffect } from 'react';
-import { syncToken } from './utils/mobileBridge';
+import { Suspense, lazy, useEffect, useState } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
@@ -13,14 +12,14 @@ import Terms from './pages/Terms';
 import SharedProductPage from './pages/public/SharedProductPage';
 import LandingPageView from './pages/public/LandingPageView';
 import { PageLoader } from './components/ui/page-loader';
-
-
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
+import { CurrencyProvider } from './contexts/CurrencyContext';
+import SSOCallback from './pages/SSOCallback';
 
-// Lazy load secondary pages to improve performance
+// Lazy load secondary pages
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
@@ -72,7 +71,6 @@ const OrganisationDetailPage = lazy(() => import('./pages/super-admin/organisati
 const SeoSettingsPage = lazy(() => import('./pages/super-admin/seo'));
 const SuperAdminRestorePage = lazy(() => import('./pages/super-admin/restore'));
 const OrganisationSettingsPage = lazy(() => import('./pages/settings/organisation'));
-
 const LeadScoringSettingsPage = lazy(() => import('./pages/settings/lead-scoring'));
 const AssignmentRulesPage = lazy(() => import('./pages/settings/assignment-rules'));
 const HierarchyPage = lazy(() => import('./pages/organisation/hierarchy'));
@@ -88,7 +86,6 @@ const FieldForceReportsPage = lazy(() => import('./pages/reports/field-force'));
 const LeadReportsPage = lazy(() => import('./pages/reports/leads'));
 const FollowUpReportsPage = lazy(() => import('./pages/reports/follow-ups'));
 const AuditLogsReportPage = lazy(() => import('./pages/reports/audit-logs'));
-
 const IntegrationsSettingsPage = lazy(() => import('./pages/settings/Integrations'));
 const PipelinesSettingsPage = lazy(() => import('./pages/settings/pipelines'));
 const NotificationsSettingsPage = lazy(() => import('./pages/settings/notifications'));
@@ -100,22 +97,15 @@ const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
-
-
-
-import SSOCallback from './pages/SSOCallback';
-import { useState } from 'react';
-
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
-// Configure query client with aggressive defaults for live updates
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes (data considered fresh for 5 minutes)
-      gcTime: 1000 * 60 * 30, // 30 minutes
-      refetchOnWindowFocus: true, // Refetch when window regains focus
-      refetchOnMount: true, // Refetch when component mounts
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 30,
+      refetchOnWindowFocus: true,
+      refetchOnMount: true,
       retry: 1
     },
   },
@@ -125,62 +115,77 @@ function AppContent() {
   const [isAuthInitialized, setIsAuthInitialized] = useState(false);
 
   useEffect(() => {
-    const syncWithAndroid = (token: string) => {
-      import('./utils/mobileBridge').then(({ syncToken }) => syncToken(token));
-      import('./utils/androidBridge').then(({ triggerAndroidLeadSync, saveAndroidToken }) => {
+    const syncWithAndroid = async (token: string) => {
+      try {
+        const { syncToken } = await import('./utils/mobileBridge');
+        const { triggerAndroidLeadSync, saveAndroidToken } = await import('./utils/androidBridge');
+        syncToken(token);
         saveAndroidToken(token);
         triggerAndroidLeadSync(token);
-      });
+      } catch (e) {
+        console.error("Android sync failed", e);
+      }
     };
 
     const initializeAuth = async () => {
+      console.log("Initializing Authentication...");
       let userInfo = localStorage.getItem('userInfo');
 
-      // If no session in localStorage, try to recover from Android Native storage
+      // 1. Try Android Native Recovery
       if (!userInfo) {
-        const { getAndroidToken } = await import('./utils/androidBridge');
-        const nativeToken = getAndroidToken();
-        const autoLogin = localStorage.getItem('autoLogin') === 'true';
+        try {
+          const { getAndroidToken } = await import('./utils/androidBridge');
+          const nativeToken = getAndroidToken();
+          const autoLogin = localStorage.getItem('autoLogin') === 'true';
 
-        if (nativeToken && autoLogin) {
-          console.log("Recovered session from Android Native storage");
-          // Create minimum userInfo to trigger the /auth/me refresh
-          const placeholderInfo = { token: nativeToken, fromNative: true };
-          localStorage.setItem('userInfo', JSON.stringify(placeholderInfo));
-          userInfo = JSON.stringify(placeholderInfo);
+          if (nativeToken && autoLogin) {
+            console.log("Recovered session from Android Native storage");
+            const placeholderInfo = { token: nativeToken, fromNative: true };
+            localStorage.setItem('userInfo', JSON.stringify(placeholderInfo));
+            userInfo = JSON.stringify(placeholderInfo);
+          }
+        } catch (e) {
+          console.error("Android recovery failed", e);
         }
       }
 
+      // 2. Validate and Sync Session
       if (userInfo) {
         try {
           const parsed = JSON.parse(userInfo);
-          const token = parsed.token;
-          if (token) {
-            syncWithAndroid(token);
+          if (parsed.token) {
+            await syncWithAndroid(parsed.token);
+
+            // 3. Fresh verification from API
+            const { api } = await import('./services/api');
+            const res = await api.get('/auth/me');
+            if (res.data) {
+              const updatedUser = { ...parsed, ...res.data };
+              localStorage.setItem('userInfo', JSON.stringify(updatedUser));
+              window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updatedUser }));
+              console.log("Auth verified successfully");
+            }
           }
-          if (parsed.organisation?.currency) {
-            import('./lib/utils').then(({ setGlobalCurrency }) => {
-              setGlobalCurrency(parsed.organisation.currency);
-            });
+        } catch (err) {
+          console.error('Session validation failed:', err);
+          // Only clear if it's a 401 (Not Authorized)
+          if ((err as any).response?.status === 401) {
+            localStorage.removeItem('userInfo');
+            localStorage.removeItem('autoLogin');
           }
-        } catch (e) {
-          console.error('Failed to parse user info', e);
         }
       }
+
       setIsAuthInitialized(true);
     };
 
     initializeAuth();
 
-    // Listen for login/refresh events to sync token to Android
     const handleAuthRefresh = (e: any) => {
-      if (e.detail?.token) {
-        syncWithAndroid(e.detail.token);
-      }
+      if (e.detail?.token) syncWithAndroid(e.detail.token);
     };
     window.addEventListener('auth-refresh' as any, handleAuthRefresh);
 
-    // Also handle storage events if user logs in in another tab (less likely in WebView but good for robustness)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'userInfo' && e.newValue) {
         try {
@@ -196,30 +201,12 @@ function AppContent() {
       warnIfLocalEnvironment();
     });
 
-    const refreshUserSession = async () => {
-      const userInfo = localStorage.getItem('userInfo');
-      if (!userInfo) return;
-      try {
-        const { api } = await import('./services/api');
-        const res = await api.get('/auth/me');
-        if (res.data) {
-          const updatedUser = { ...JSON.parse(userInfo), ...res.data };
-          localStorage.setItem('userInfo', JSON.stringify(updatedUser));
-          window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updatedUser }));
-        }
-      } catch (err) {
-        console.error('Session refresh failed:', err);
-      }
-    };
-    refreshUserSession();
-
     return () => {
       window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
 
-  // Wrapper for routes that should only be accessible when NOT logged in
   const PublicRoute = ({ children }: { children: React.ReactNode }) => {
     const userInfo = localStorage.getItem('userInfo');
     if (userInfo) {
@@ -228,31 +215,26 @@ function AppContent() {
         if (parsed.token) {
           return <Navigate to="/dashboard" replace />;
         }
-      } catch (e) {
-        return children;
-      }
+      } catch { }
     }
     return children;
   };
 
   if (!isAuthInitialized) {
-    return <PageLoader text="Authenticating..." />;
+    return <PageLoader text="Verifying session..." />;
   }
 
   return (
     <SocketProvider>
       <Router>
-        <Suspense fallback={<PageLoader text="Loading PYPE..." />}>
+        <Suspense fallback={<PageLoader text="Loading..." />}>
           <Routes>
-            {/* ... public routes with redirection if already logged in ... */}
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/sso-login" element={<Suspense fallback={<PageLoader text="Loading SSO" />}><PublicRoute><SSOLogin /></PublicRoute></Suspense>} />
             <Route path="/sso-callback" element={<SSOCallback />} />
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
             <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
             <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
-
-            {/* Public landing pages */}
             <Route path="/pages/:slug" element={<LandingPageView />} />
 
             <Route element={<Layout />}>
@@ -280,7 +262,6 @@ function AppContent() {
               <Route path="/marketing/whatsapp" element={<WhatsAppCampaignsPage />} />
               <Route path="/communications" element={<CommunicationsPage />} />
               <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
-
               <Route path="/calendar" element={<CalendarPage />} />
               <Route path="/follow-ups" element={<FollowUpsPage />} />
               <Route path="/tasks" element={<TasksPage />} />
@@ -324,21 +305,16 @@ function AppContent() {
               <Route path="/reports/leads" element={<LeadReportsPage />} />
               <Route path="/reports/follow-ups" element={<FollowUpReportsPage />} />
               <Route path="/reports/audit-logs" element={<AuditLogsReportPage />} />
-
-              {/* Super Admin & Organisation Settings */}
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
               <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
               <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
               <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
-
               <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
               <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
-              <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
               <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
-
             </Route>
 
             <Route path="/privacy" element={<PrivacyPolicy />} />
@@ -351,8 +327,6 @@ function AppContent() {
     </SocketProvider>
   );
 }
-
-import { CurrencyProvider } from './contexts/CurrencyContext';
 
 function App() {
   return (
@@ -367,9 +341,7 @@ function App() {
             closeButton
             duration={4000}
             toastOptions={{
-              style: {
-                borderRadius: '12px',
-              },
+              style: { borderRadius: '12px' },
             }}
           />
         </QueryClientProvider>
