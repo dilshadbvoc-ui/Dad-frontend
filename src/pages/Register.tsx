@@ -20,6 +20,7 @@ const Register = () => {
     const [acceptedTerms, setAcceptedTerms] = useState(false);
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [autoLogin, setAutoLogin] = useState(true);
     const navigate = useNavigate();
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -43,6 +44,15 @@ const Register = () => {
                 role: 'admin' // First user is Admin of their Org
             });
             localStorage.setItem('userInfo', JSON.stringify(data));
+
+            if (autoLogin) {
+                localStorage.setItem('autoLogin', 'true');
+                const { saveAndroidToken } = await import('@/utils/androidBridge');
+                saveAndroidToken(data.token);
+            } else {
+                localStorage.removeItem('autoLogin');
+            }
+
             window.dispatchEvent(new CustomEvent('auth-refresh', { detail: data }));
             // Small delay for animation
             setTimeout(() => navigate('/dashboard'), 500);
@@ -170,15 +180,30 @@ const Register = () => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2">
-                                <Checkbox
-                                    id="terms"
-                                    checked={acceptedTerms}
-                                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
-                                />
-                                <Label htmlFor="terms" className="text-sm font-normal">
-                                    I agree to the <a href="/terms" target="_blank" className="text-primary hover:underline">Terms and Conditions</a>
-                                </Label>
+                            <div className="flex flex-col space-y-3">
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="terms"
+                                        checked={acceptedTerms}
+                                        onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                                    />
+                                    <Label htmlFor="terms" className="text-sm font-normal">
+                                        I agree to the <a href="/terms" target="_blank" className="text-primary hover:underline">Terms and Conditions</a>
+                                    </Label>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <Checkbox
+                                        id="autoLogin"
+                                        checked={autoLogin}
+                                        onCheckedChange={(checked) => setAutoLogin(checked as boolean)}
+                                    />
+                                    <Label
+                                        htmlFor="autoLogin"
+                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                                    >
+                                        Remember me for 30 days
+                                    </Label>
+                                </div>
                             </div>
 
                             {error && (

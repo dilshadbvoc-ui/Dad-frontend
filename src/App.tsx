@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect } from 'react';
 import { syncToken } from './utils/mobileBridge';
 import Login from './pages/Login';
@@ -104,6 +104,7 @@ const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 
 
 import SSOCallback from './pages/SSOCallback';
+import { useState } from 'react';
 
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
@@ -121,6 +122,8 @@ const queryClient = new QueryClient({
 });
 
 function AppContent() {
+  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
+
   useEffect(() => {
     const syncWithAndroid = (token: string) => {
       import('./utils/mobileBridge').then(({ syncToken }) => syncToken(token));
@@ -164,6 +167,7 @@ function AppContent() {
           console.error('Failed to parse user info', e);
         }
       }
+      setIsAuthInitialized(true);
     };
 
     initializeAuth();
@@ -215,17 +219,37 @@ function AppContent() {
     };
   }, []);
 
+  // Wrapper for routes that should only be accessible when NOT logged in
+  const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        if (parsed.token) {
+          return <Navigate to="/dashboard" replace />;
+        }
+      } catch (e) {
+        return children;
+      }
+    }
+    return children;
+  };
+
+  if (!isAuthInitialized) {
+    return <PageLoader text="Authenticating..." />;
+  }
+
   return (
     <SocketProvider>
       <Router>
         <Suspense fallback={<PageLoader text="Loading PYPE..." />}>
           <Routes>
-            {/* ... public routes ... */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/sso-login" element={<Suspense fallback={<PageLoader text="Loading SSO" />}><SSOLogin /></Suspense>} />
+            {/* ... public routes with redirection if already logged in ... */}
+            <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+            <Route path="/sso-login" element={<Suspense fallback={<PageLoader text="Loading SSO" />}><PublicRoute><SSOLogin /></PublicRoute></Suspense>} />
             <Route path="/sso-callback" element={<SSOCallback />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+            <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
             <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
 
             {/* Public landing pages */}
@@ -320,7 +344,7 @@ function AppContent() {
             <Route path="/privacy" element={<PrivacyPolicy />} />
             <Route path="/terms" element={<Terms />} />
             <Route path="/shared-product/:slug" element={<SharedProductPage />} />
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
           </Routes>
         </Suspense>
       </Router>
