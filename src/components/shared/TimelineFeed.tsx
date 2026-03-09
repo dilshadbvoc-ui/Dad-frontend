@@ -93,7 +93,22 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                     </p>
 
                                     {/* Detailed Metadata rendering could go here */}
-                                    {item.type === 'interaction' && item.meta?.direction && (
+                                    {item.type === 'interaction' && item.subType === 'call' && (
+                                        <div className="flex items-center gap-2 mt-2">
+                                            {item.meta?.direction && (
+                                                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider font-bold">
+                                                    {item.meta.direction}
+                                                </span>
+                                            )}
+                                            {(item as any).duration && (
+                                                <span className="text-xs text-muted-foreground italic">
+                                                    ({Math.floor((item as any).duration / 60)}m {(item as any).duration % 60}s)
+                                                </span>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    {item.type === 'interaction' && item.subType !== 'call' && item.meta?.direction && (
                                         <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block">
                                             {item.meta.direction}
                                         </span>
