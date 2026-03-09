@@ -4,6 +4,7 @@
 interface AndroidInterface {
     syncLeads: (token: string) => void;
     saveToken: (token: string) => void;
+    saveApiUrl: (url: string) => void;
     getToken: () => string | null;
     clearToken: () => void;
     requestLocationPermission: () => void;
@@ -61,6 +62,19 @@ export const saveAndroidToken = (token: string) => {
             window.AndroidBridge.saveToken(token);
         } catch (e) {
             console.error("Failed to save token to Android", e);
+        }
+    }
+};
+
+/**
+ * Saves the API URL to Android SharedPreferences for background services.
+ */
+export const saveAndroidApiUrl = (url: string) => {
+    if (isAndroidWebView() && window.AndroidBridge && window.AndroidBridge.saveApiUrl) {
+        try {
+            window.AndroidBridge.saveApiUrl(url);
+        } catch (e) {
+            console.error("Failed to save API URL to Android", e);
         }
     }
 };

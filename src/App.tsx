@@ -118,9 +118,12 @@ function AppContent() {
     const syncWithAndroid = async (token: string) => {
       try {
         const { syncToken } = await import('./utils/mobileBridge');
-        const { triggerAndroidLeadSync, saveAndroidToken } = await import('./utils/androidBridge');
+        const { triggerAndroidLeadSync, saveAndroidToken, saveAndroidApiUrl } = await import('./utils/androidBridge');
+        const { API_URL } = await import('./config');
+
         syncToken(token);
         saveAndroidToken(token);
+        saveAndroidApiUrl(API_URL);
         triggerAndroidLeadSync(token);
       } catch (e) {
         console.error("Android sync failed", e);

@@ -100,11 +100,15 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                                     {item.meta.direction}
                                                 </span>
                                             )}
-                                            {(item as any).duration && (
+                                            {item.meta?.recordingDuration ? (
                                                 <span className="text-xs text-muted-foreground italic">
-                                                    ({Math.floor((item as any).duration / 60)}m {(item as any).duration % 60}s)
+                                                    ({Math.floor(item.meta.recordingDuration / 60)}m {item.meta.recordingDuration % 60}s)
                                                 </span>
-                                            )}
+                                            ) : item.meta?.duration ? (
+                                                <span className="text-xs text-muted-foreground italic">
+                                                    ({Math.floor(item.meta.duration)}m {Math.round((item.meta.duration % 1) * 60)}s)
+                                                </span>
+                                            ) : null}
                                         </div>
                                     )}
 
