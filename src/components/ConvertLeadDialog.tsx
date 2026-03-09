@@ -61,17 +61,18 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
             const { data } = await api.post(`/leads/${lead.id}/convert`, {
                 accountName,
                 contactName,
-                opportunityName
+                dealName: opportunityName,
+                amount: opportunityAmount
             });
 
             toast.success('Lead converted successfully!');
-            
+
             // Invalidate queries to refresh data
             queryClient.invalidateQueries({ queryKey: ['leads'] });
             queryClient.invalidateQueries({ queryKey: ['opportunities'] });
             queryClient.invalidateQueries({ queryKey: ['accounts'] });
             queryClient.invalidateQueries({ queryKey: ['contacts'] });
-            
+
             onOpenChange(false);
 
             // Redirect to the new Opportunity (if returned) or Leads list

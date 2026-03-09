@@ -6,11 +6,13 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Calendar, DollarSign, Target, Package, Loader2, User } from "lucide-react"
+import { toast } from "sonner"
+import { Calendar, DollarSign, Target, Package, Loader2, User, RefreshCw } from "lucide-react"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { EMISchedulePanel } from "@/components/EMISchedulePanel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -87,6 +89,8 @@ interface ViewOpportunityDialogProps {
 
 export function ViewOpportunityDialog({ children, open, onOpenChange, opportunity }: ViewOpportunityDialogProps) {
     const { formatCurrency } = useCurrency()
+    const queryClient = useQueryClient()
+
     // Fetch full opportunity details when dialog opens
     const { data: fullOpportunity, isLoading } = useQuery({
         queryKey: ['opportunity', opportunity.id],
@@ -100,6 +104,29 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
     // Use full opportunity data if available, otherwise use the passed opportunity
     const displayOpportunity = fullOpportunity || opportunity
 
+    const productTotal = displayOpportunity.account?.accountProducts?.reduce(
+        (sum: number, ap: AccountProduct) => sum + (ap.product.basePrice * ap.quantity),
+        0
+    ) || 0
+
+    const isAmountDifferent = Math.abs(productTotal - displayOpportunity.amount) > 0.01
+
+    const syncMutation = useMutation({
+        mutationFn: async () => {
+            await api.put(`/opportunities/${displayOpportunity.id}`, {
+                amount: productTotal
+            })
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['opportunity', displayOpportunity.id] })
+            queryClient.invalidateQueries({ queryKey: ['opportunities'] })
+            toast.success("Opportunity amount synced with products")
+        },
+        onError: () => {
+            toast.error("Failed to sync amount")
+        }
+    })
+
     // Debug: Log the opportunity data
     console.log('Opportunity data:', displayOpportunity)
     console.log('Has lead?:', !!displayOpportunity.lead)
@@ -108,13 +135,13 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
     // Generate a human-readable ID from the opportunity
     const getReadableId = () => {
         if (!displayOpportunity.createdAt) return displayOpportunity.id.slice(0, 8).toUpperCase()
-        
+
         const date = new Date(displayOpportunity.createdAt)
         const year = date.getFullYear().toString().slice(-2)
         const month = (date.getMonth() + 1).toString().padStart(2, '0')
         const day = date.getDate().toString().padStart(2, '0')
         const shortId = displayOpportunity.id.slice(0, 6).toUpperCase()
-        
+
         return `OPP-${year}${month}${day}-${shortId}`
     }
 
@@ -291,15 +318,35 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                                         </div>
                                     ))}
                                     <div className="pt-2 border-t flex justify-between items-center">
-                                        <span className="text-sm font-medium">Total Product Value:</span>
-                                        <span className="text-lg font-bold text-green-600">
-                                            {formatCurrency(
-                                                displayOpportunity.account.accountProducts.reduce(
-                                                    (sum: number, ap: AccountProduct) => sum + (ap.product.basePrice * ap.quantity),
-                                                    0
-                                                )
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-medium">Total Product Value:</span>
+                                            {isAmountDifferent && (
+                                                <span className="text-[10px] text-amber-600 font-semibold animate-pulse">
+                                                    Differs from Opportunity Amount
+                                                </span>
                                             )}
-                                        </span>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-lg font-bold text-green-600">
+                                                {formatCurrency(productTotal)}
+                                            </span>
+                                            {isAmountDifferent && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 px-2 gap-1.5 text-xs bg-amber-50 border-amber-200 text-amber-700 hover:bg-amber-100 hover:text-amber-800"
+                                                    disabled={syncMutation.isPending}
+                                                    onClick={() => syncMutation.mutate()}
+                                                >
+                                                    {syncMutation.isPending ? (
+                                                        <Loader2 className="h-3 w-3 animate-spin" />
+                                                    ) : (
+                                                        <RefreshCw className="h-3 w-3" />
+                                                    )}
+                                                    Sync
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
