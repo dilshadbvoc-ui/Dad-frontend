@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock, History } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { LogCallDialog } from "@/components/LogCallDialog"
@@ -190,6 +190,11 @@ export default function LeadDetailPage() {
                                 <Badge variant="outline" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5">
                                     {lead.status}
                                 </Badge>
+                                {lead.reEnquiryCount > 0 && (
+                                    <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5 bg-orange-100 text-orange-700 hover:bg-orange-100">
+                                        Re-Enquiry ({lead.reEnquiryCount})
+                                    </Badge>
+                                )}
                             </div>
                         </div>
                         <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
@@ -297,8 +302,30 @@ export default function LeadDetailPage() {
                                 </div>
                             )}
 
-                            <div className="flex items-center gap-3"><User className="h-4 w-4 text-muted-foreground" /> <span>Owner: {lead.assignedTo ? <Link to={`/users/${lead.assignedTo.id}`} className="hover:underline text-blue-600">{lead.assignedTo.firstName} {lead.assignedTo.lastName || ''}</Link> : 'Unassigned'}</span></div>
+                            {lead.secondaryPhone && (
+                                <div className="flex items-center gap-3">
+                                    <Phone className="h-4 w-4 text-muted-foreground" />
+                                    <span className="flex items-center gap-2">
+                                        <a href={`tel:${lead.secondaryPhone}`} className="hover:underline text-muted-foreground">{lead.secondaryPhone}</a>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="h-6 w-6 p-0 rounded-full text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                            onClick={() => initiateCall(lead.secondaryPhone)}
+                                            title="Call Alt via CRM"
+                                        >
+                                            <Phone className="h-3 w-3" />
+                                        </Button>
+                                    </span>
+                                </div>
+                            )}
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+                            {lead.lastEnquiryDate && lead.reEnquiryCount > 0 && (
+                                <div className="flex items-center gap-3 text-orange-600 font-medium">
+                                    <History className="h-4 w-4" />
+                                    <span>Last Re-enquiry: {new Date(lead.lastEnquiryDate).toLocaleDateString()}</span>
+                                </div>
+                            )}
                             {lead.nextFollowUp && (
                                 <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 font-semibold">
                                     <Clock className="h-4 w-4" />
@@ -396,63 +423,65 @@ export default function LeadDetailPage() {
                 </div>
             </div>
 
-            {lead && (
-                <>
-                    <SetFollowUpDialog
-                        open={followUpDialogOpen}
-                        onOpenChange={setFollowUpDialogOpen}
-                        leadId={lead.id}
-                        currentDate={lead.nextFollowUp}
-                        onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['lead', id] })
-                            queryClient.invalidateQueries({ queryKey: ['interactions', id] }) // logs appear in existing unified timeline if we fetch interactions
-                        }}
-                    />
-                    <ConvertLeadDialog
-                        open={isConvertOpen}
-                        onOpenChange={setIsConvertOpen}
-                        lead={lead}
-                    />
-                    <LogCallDialog
-                        open={isLogCallOpen}
-                        onOpenChange={setIsLogCallOpen}
-                        leadId={lead.id}
-                        leadName={`${lead.firstName} ${lead.lastName || ''}`}
-                        leadPhone={lead.phone}
-                        onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['calls', id] })
-                            queryClient.invalidateQueries({ queryKey: ['lead', id] })
-                        }}
-                    />
-                    <CreateTaskDialog
-                        open={isCreateTaskOpen}
-                        onOpenChange={setIsCreateTaskOpen}
-                        leadId={lead.id}
-                        onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['tasks', id] })
-                        }}
-                    />
-                    <LogNoteDialog
-                        open={isLogNoteOpen}
-                        onOpenChange={setIsLogNoteOpen}
-                        leadId={lead.id}
-                        initialContent={noteInitialContent}
-                        onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['interactions', id] })
-                        }}
-                    />
-                    <ScheduleMeetingDialog
-                        open={isScheduleMeetingOpen}
-                        onOpenChange={setIsScheduleMeetingOpen}
-                        leadId={lead.id}
-                        leadName={`${lead.firstName} ${lead.lastName || ''}`}
-                        onSuccess={() => {
-                            queryClient.invalidateQueries({ queryKey: ['lead', id] })
-                            toast.success('Meeting added to calendar!')
-                        }}
-                    />
-                </>
-            )}
+            {
+                lead && (
+                    <>
+                        <SetFollowUpDialog
+                            open={followUpDialogOpen}
+                            onOpenChange={setFollowUpDialogOpen}
+                            leadId={lead.id}
+                            currentDate={lead.nextFollowUp}
+                            onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['lead', id] })
+                                queryClient.invalidateQueries({ queryKey: ['interactions', id] }) // logs appear in existing unified timeline if we fetch interactions
+                            }}
+                        />
+                        <ConvertLeadDialog
+                            open={isConvertOpen}
+                            onOpenChange={setIsConvertOpen}
+                            lead={lead}
+                        />
+                        <LogCallDialog
+                            open={isLogCallOpen}
+                            onOpenChange={setIsLogCallOpen}
+                            leadId={lead.id}
+                            leadName={`${lead.firstName} ${lead.lastName || ''}`}
+                            leadPhone={lead.phone}
+                            onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['calls', id] })
+                                queryClient.invalidateQueries({ queryKey: ['lead', id] })
+                            }}
+                        />
+                        <CreateTaskDialog
+                            open={isCreateTaskOpen}
+                            onOpenChange={setIsCreateTaskOpen}
+                            leadId={lead.id}
+                            onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['tasks', id] })
+                            }}
+                        />
+                        <LogNoteDialog
+                            open={isLogNoteOpen}
+                            onOpenChange={setIsLogNoteOpen}
+                            leadId={lead.id}
+                            initialContent={noteInitialContent}
+                            onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['interactions', id] })
+                            }}
+                        />
+                        <ScheduleMeetingDialog
+                            open={isScheduleMeetingOpen}
+                            onOpenChange={setIsScheduleMeetingOpen}
+                            leadId={lead.id}
+                            leadName={`${lead.firstName} ${lead.lastName || ''}`}
+                            onSuccess={() => {
+                                queryClient.invalidateQueries({ queryKey: ['lead', id] })
+                                toast.success('Meeting added to calendar!')
+                            }}
+                        />
+                    </>
+                )
+            }
 
             {lead && <EditLeadDialog open={isEditOpen} onOpenChange={setIsEditOpen} lead={lead} />}
             {lead && <ConvertLeadDialog open={isConvertOpen} onOpenChange={setIsConvertOpen} lead={lead} />}
@@ -466,16 +495,18 @@ export default function LeadDetailPage() {
                     queryClient.invalidateQueries({ queryKey: ['lead-timeline', lead.id] })
                 }}
             />
-            {lead && (
-                <AddProductToLeadDialog
-                    open={productDialogOpen}
-                    onOpenChange={setProductDialogOpen}
-                    leadId={lead.id}
-                    currentProducts={lead.products}
-                    onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
-                />
-            )}
+            {
+                lead && (
+                    <AddProductToLeadDialog
+                        open={productDialogOpen}
+                        onOpenChange={setProductDialogOpen}
+                        leadId={lead.id}
+                        currentProducts={lead.products}
+                        onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
+                    />
+                )
+            }
 
-        </div>
+        </div >
     )
 }

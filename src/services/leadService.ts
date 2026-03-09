@@ -6,6 +6,7 @@ export interface Lead {
     lastName?: string;
     email: string;
     phone?: string;
+    secondaryPhone?: string;
     company?: string;
     enquiryAbout?: string;
     jobTitle?: string;
@@ -58,6 +59,7 @@ export interface CreateLeadData {
     lastName?: string;
     email?: string;
     phone?: string;
+    secondaryPhone?: string;
     company?: string;
     jobTitle?: string;
     leadScore?: number;

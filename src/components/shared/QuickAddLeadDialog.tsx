@@ -35,6 +35,7 @@ interface QuickLeadFormData {
     lastName?: string
     email?: string
     phone: string
+    secondaryPhone?: string
     company?: string
     enquiryAbout?: string
     source: string
@@ -65,6 +66,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             lastName: "",
             email: "",
             phone: "",
+            secondaryPhone: "",
             company: "",
             enquiryAbout: "",
             source: "manual",
@@ -109,6 +111,9 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
         }
         if (values.email && values.email.trim()) {
             payload.email = values.email.trim();
+        }
+        if (values.secondaryPhone && values.secondaryPhone.trim()) {
+            payload.secondaryPhone = values.secondaryPhone.trim();
         }
         if (values.company && values.company.trim()) {
             payload.company = values.company.trim();
@@ -215,6 +220,34 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                             <FormControl>
                                                 <Input
                                                     placeholder="9876543210"
+                                                    {...field}
+                                                    maxLength={10}
+                                                    className="h-10"
+                                                    onChange={(e) => {
+                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        field.onChange(value);
+                                                    }}
+                                                />
+                                            </FormControl>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="secondaryPhone"
+                                    rules={{
+                                        pattern: {
+                                            value: /^\d{10}$/,
+                                            message: "Phone number must be exactly 10 digits"
+                                        }
+                                    }}
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alt Phone <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    placeholder="9876543211"
                                                     {...field}
                                                     maxLength={10}
                                                     className="h-10"

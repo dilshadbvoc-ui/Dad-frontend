@@ -31,6 +31,7 @@ interface EditLeadFormData {
     lastName?: string
     email: string
     phone: string
+    secondaryPhone?: string
     company: string
     enquiryAbout: string
     status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
@@ -58,6 +59,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
             lastName: lead.lastName || "",
             email: lead.email || "",
             phone: lead.phone || "",
+            secondaryPhone: lead.secondaryPhone || "",
             company: lead.company || "",
             enquiryAbout: lead.enquiryAbout || "",
             status: lead.status || "new",
@@ -72,6 +74,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                 lastName: lead.lastName || "",
                 email: lead.email || "",
                 phone: lead.phone || "",
+                secondaryPhone: lead.secondaryPhone || "",
                 company: lead.company || "",
                 enquiryAbout: lead.enquiryAbout || "",
                 status: lead.status || "new",
@@ -188,6 +191,37 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                                                 // Limit to 10 digits
                                                 if (value.length > 10) value = value.slice(0, 10);
 
+                                                field.onChange(value);
+                                            }}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={form.control}
+                            name="secondaryPhone"
+                            rules={{
+                                pattern: {
+                                    value: /^\d{10}$/,
+                                    message: "Phone number must be exactly 10 digits"
+                                }
+                            }}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Secondary Phone <span className="text-muted-foreground text-xs font-normal">(optional)</span></FormLabel>
+                                    <FormControl>
+                                        <Input
+                                            placeholder="9876543211"
+                                            {...field}
+                                            maxLength={10}
+                                            onChange={(e) => {
+                                                let value = e.target.value.replace(/\D/g, '');
+                                                if (value.startsWith('91') && value.length > 10) {
+                                                    value = value.substring(2);
+                                                }
+                                                if (value.length > 10) value = value.slice(0, 10);
                                                 field.onChange(value);
                                             }}
                                         />
