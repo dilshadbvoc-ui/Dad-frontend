@@ -320,6 +320,19 @@ export default function LeadDetailPage() {
                                 </div>
                             )}
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+                            
+                            {lead.assignedTo && (
+                                <div className="flex items-center gap-3">
+                                    <User className="h-4 w-4 text-muted-foreground" />
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-medium">Lead Owner</span>
+                                        <span className="text-xs text-muted-foreground">
+                                            {lead.assignedTo.firstName} {lead.assignedTo.lastName || ''} ({lead.assignedTo.email})
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
+
                             {lead.lastEnquiryDate && lead.reEnquiryCount > 0 && (
                                 <div className="flex items-center gap-3 text-orange-600 font-medium">
                                     <History className="h-4 w-4" />
