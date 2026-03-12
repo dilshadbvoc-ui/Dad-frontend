@@ -49,6 +49,15 @@ export const columns: ColumnDef<Lead>[] = [
         header: "Company",
     },
     {
+        accessorKey: "assignedTo",
+        header: "Owner",
+        cell: ({ row }) => {
+            const assignedTo = row.original.assignedTo as any;
+            if (!assignedTo) return <span className="text-muted-foreground/30 text-xs italic">Unassigned</span>;
+            return <div className="text-sm font-medium">{assignedTo.firstName} {assignedTo.lastName || ''}</div>;
+        }
+    },
+    {
         accessorKey: "source",
         header: "Source",
         cell: ({ row }) => {

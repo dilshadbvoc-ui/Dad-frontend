@@ -18,7 +18,8 @@ export interface FollowUpTask {
         email: string;
     };
     relatedTo?: any;
-    onModel?: string;
+    leadId?: string;
+    onModel?: 'Lead' | 'Contact' | 'Account' | 'Opportunity';
     createdAt: string;
     updatedAt: string;
 }

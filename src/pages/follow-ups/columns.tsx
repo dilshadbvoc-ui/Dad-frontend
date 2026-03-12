@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Clock, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type FollowUpTask } from "@/services/followUpService"
@@ -17,6 +17,10 @@ import {
 import { api } from "@/services/api"
 import { toast } from "sonner"
 import { useQueryClient } from "@tanstack/react-query"
+import { Phone, Edit, MoreHorizontal } from "lucide-react"
+import { LogCallDialog } from "@/components/LogCallDialog"
+import { UpdateFollowUpDialog } from "@/components/UpdateFollowUpDialog"
+import { useState } from "react"
 
 export const columns: ColumnDef<FollowUpTask>[] = [
     {
@@ -155,6 +159,8 @@ export const columns: ColumnDef<FollowUpTask>[] = [
         cell: ({ row }) => {
             const task = row.original
             const queryClient = useQueryClient()
+            const [showCallDialog, setShowCallDialog] = useState(false)
+            const [showUpdateDialog, setShowUpdateDialog] = useState(false)
 
             const updateStatus = async (newStatus: string) => {
                 try {
@@ -166,31 +172,79 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                 }
             }
 
+            const related = task.relatedTo as any
+            const leadName = related?.name || `${related?.firstName || ''} ${related?.lastName || ''}`.trim() || 'Lead'
+            const leadPhone = related?.phone || ''
+
             return (
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                            <span className="sr-only">Open menu</span>
-                            <MoreHorizontal className="h-4 w-4" />
+                <div className="flex items-center gap-2">
+                    {task.onModel === 'Lead' && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            onClick={() => setShowCallDialog(true)}
+                            title="Call Lead"
+                        >
+                            <Phone className="h-4 w-4" />
                         </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => updateStatus('not_started')}>
-                            Not Started
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus('in_progress')}>
-                            In Progress
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus('completed')}>
-                            Completed
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => updateStatus('deferred')}>
-                            Deferred
-                        </DropdownMenuItem>
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                    )}
+                    
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        onClick={() => setShowUpdateDialog(true)}
+                        title="Update Follow-up"
+                    >
+                        <Edit className="h-4 w-4" />
+                    </Button>
+
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                                <span className="sr-only">Open menu</span>
+                                <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Quick Status</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => updateStatus('not_started')}>
+                                Not Started
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus('in_progress')}>
+                                In Progress
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus('completed')}>
+                                Completed
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus('deferred')}>
+                                Deferred
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {showCallDialog && (
+                        <LogCallDialog
+                            open={showCallDialog}
+                            onOpenChange={setShowCallDialog}
+                            leadId={task.leadId || (task.relatedTo as any)?.id}
+                            leadName={leadName}
+                            leadPhone={leadPhone}
+                            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['follow-ups'] })}
+                        />
+                    )}
+
+                    {showUpdateDialog && (
+                        <UpdateFollowUpDialog
+                            open={showUpdateDialog}
+                            onOpenChange={setShowUpdateDialog}
+                            task={task as any}
+                            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['follow-ups'] })}
+                        />
+                    )}
+                </div>
             )
         }
     },
