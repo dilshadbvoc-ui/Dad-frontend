@@ -3,7 +3,7 @@ import Papa from "papaparse"
 import * as XLSX from "xlsx"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
-import { Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle } from "lucide-react"
+import { Upload, Download, FileSpreadsheet, CheckCircle, AlertCircle, Users } from "lucide-react"
 import { toast } from "sonner"
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
@@ -18,6 +18,8 @@ export default function BulkImportLeadsPage() {
     const [branches, setBranches] = useState<{ id: string, name: string }[]>([])
     const [selectedBranch, setSelectedBranch] = useState<string>("none")
     const [applyAssignmentRules, setApplyAssignmentRules] = useState(false)
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
+    const [availableUsers, setAvailableUsers] = useState<any[]>([])
 
     const [user] = useState(() => {
         const str = localStorage.getItem('userInfo')
@@ -37,6 +39,7 @@ export default function BulkImportLeadsPage() {
             // Check if user is a branch manager
             checkBranchManager()
         }
+        fetchUsers()
     }, [])
 
     const fetchBranches = async () => {
@@ -62,6 +65,17 @@ export default function BulkImportLeadsPage() {
             }
         } catch (error) {
             console.error("Failed to check branch manager status", error)
+        }
+    }
+
+    const fetchUsers = async () => {
+        try {
+            const response = await api.get('/users')
+            const users = response.data?.users || []
+            // Filter out self
+            setAvailableUsers(users.filter((u: any) => u.id !== user?.id))
+        } catch (error) {
+            console.error("Failed to fetch users", error)
         }
     }
 
@@ -116,6 +130,9 @@ export default function BulkImportLeadsPage() {
         }
         if (applyAssignmentRules) {
             formData.append("applyAssignmentRules", "true")
+        }
+        if (selectedUserIds.length > 0) {
+            formData.append("splitUserIds", JSON.stringify(selectedUserIds))
         }
 
         try {
@@ -279,6 +296,43 @@ export default function BulkImportLeadsPage() {
                                             }
                                         </p>
                                     </div>
+
+                                    {!applyAssignmentRules && availableUsers.length > 0 && (
+                                        <div className="space-y-3 pl-7 mt-4">
+                                            <div className="flex items-center gap-2">
+                                                <Users className="h-4 w-4 text-blue-600" />
+                                                <Label className="text-sm font-semibold">Split Leads Between Users (Round Robin)</Label>
+                                            </div>
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto p-3 border rounded-md bg-gray-50/50 dark:bg-gray-900/50">
+                                                {availableUsers.map((u: any) => (
+                                                    <div key={u.id} className="flex items-center gap-2">
+                                                        <input
+                                                            type="checkbox"
+                                                            id={`user-${u.id}`}
+                                                            checked={selectedUserIds.includes(u.id)}
+                                                            onChange={(e) => {
+                                                                if (e.target.checked) {
+                                                                    setSelectedUserIds([...selectedUserIds, u.id])
+                                                                } else {
+                                                                    setSelectedUserIds(selectedUserIds.filter(id => id !== u.id))
+                                                                }
+                                                            }}
+                                                            className="h-3.5 w-3.5 rounded border-gray-300"
+                                                        />
+                                                        <label
+                                                            htmlFor={`user-${u.id}`}
+                                                            className="text-xs cursor-pointer truncate font-medium"
+                                                        >
+                                                            {u.firstName} {u.lastName}
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <p className="text-[10px] text-muted-foreground italic">
+                                                If users are selected, leads will be split equally among them. If none selected, they'll default to you.
+                                            </p>
+                                        </div>
+                                    )}
                                 </CardContent>
                             </Card>
                         )}
