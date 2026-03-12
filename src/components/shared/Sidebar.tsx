@@ -205,7 +205,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
     // My Team data for sidebar hierarchy
     const [teamData, setTeamData] = useState<{ team: any[]; managedBranches: any[] }>({ team: [], managedBranches: [] });
-    const [teamExpanded, setTeamExpanded] = useState(true);
+    const [teamExpanded, setTeamExpanded] = useState(false);
 
     useEffect(() => {
         if (user && !userIsSuperAdmin) {
