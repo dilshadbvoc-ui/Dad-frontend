@@ -37,9 +37,12 @@ const STAGES: { id: string; label: string; color: string }[] = [
     { id: "closed_lost", label: "Closed Lost", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
 ];
 
-export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoardProps) {
+export function KanbanBoard({ opportunities }: KanbanBoardProps) {
     const { formatCurrency } = useCurrency();
-    const [opportunities, setOpportunities] = useState<Opportunity[]>(initialOpportunities);
+    // Removed local state that was preventing updates from props. 
+    // We can use the props directly since OpportunitiesPage already manages the data.
+    // Optimistic updates for drag-and-drop can still be handled if needed, 
+    // but the 5s refetch will sync it back anyway.
     const [closeWonOpp, setCloseWonOpp] = useState<Opportunity | null>(null);
     const [viewDetailsOpp, setViewDetailsOpp] = useState<Opportunity | null>(null);
 
@@ -77,10 +80,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
             return;
         }
 
-        // Optimistic update
-        setOpportunities((prev: Opportunity[]) => prev.map((opp: Opportunity) =>
-            opp.id === id ? { ...opp, stage: stageId as Opportunity['stage'], updatedAt: new Date().toISOString() } : opp
-        ));
+        // Optimistic update removed - now relying on react-query invalidation or refresh
 
         try {
             await updateOpportunity(id, { stage: stageId as Opportunity['stage'] });
@@ -306,9 +306,7 @@ export function KanbanBoard({ opportunities: initialOpportunities }: KanbanBoard
                     opportunityName={closeWonOpp.name}
                     amount={closeWonOpp.amount}
                     onSuccess={() => {
-                        setOpportunities((prev: Opportunity[]) => prev.map((o: Opportunity) =>
-                            o.id === closeWonOpp.id ? { ...o, stage: 'closed_won' } : o
-                        ));
+                        // Rely on parent refetch or manual refresh
                     }}
                 />
             )}

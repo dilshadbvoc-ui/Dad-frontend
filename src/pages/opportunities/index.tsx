@@ -37,10 +37,19 @@ export default function OpportunitiesPage() {
     })
 
     const allOpportunities = data?.opportunities || []
+    
+    console.log('[OpportunitiesPage] currentUser:', currentUser?.id || currentUser?._id, 'Role:', currentUser?.role);
+    console.log('[OpportunitiesPage] allOpportunities count:', allOpportunities.length);
 
     const filteredOpportunities = filterMode === 'mine' && currentUser
-        ? allOpportunities.filter((opp: { owner?: { id: string }, ownerId?: string }) => opp.owner?.id === currentUser.id || opp.ownerId === currentUser.id)
+        ? allOpportunities.filter((opp: any) => {
+            const ownerId = opp.owner?.id || opp.owner?._id || opp.ownerId;
+            const currentId = currentUser.id || currentUser._id;
+            return ownerId === currentId;
+        })
         : allOpportunities;
+    
+    console.log('[OpportunitiesPage] filteredOpportunities count:', filteredOpportunities.length, 'filterMode:', filterMode);
 
     if (isError) {
         return (
