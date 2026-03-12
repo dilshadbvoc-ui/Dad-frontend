@@ -71,7 +71,7 @@ export function BulkImportLeads() {
             return importLeads(finalData, {
                 assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
                 applyAssignmentRules: applyRules,
-                splitUserIds: applyRules ? undefined : selectedUserIds
+                splitUserIds: selectedUserIds.length > 0 ? selectedUserIds : undefined
             })
         },
         onSuccess: (data) => {
@@ -313,38 +313,43 @@ export function BulkImportLeads() {
                         </div>
                     )}
 
-                    {!applyRules && (
-                        <div className="space-y-3 pl-6 mt-4">
-                            <Label className="text-xs font-semibold">Split Leads Between Users (Round Robin)</Label>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
-                                {availableUsers.length > 0 ? (
-                                    availableUsers.map((u: any) => (
-                                        <div key={u.id} className="flex items-center space-x-2">
-                                            <Checkbox
-                                                id={`user-${u.id}`}
-                                                checked={selectedUserIds.includes(u.id)}
-                                                onCheckedChange={(checked) => {
-                                                    if (checked) {
-                                                        setSelectedUserIds([...selectedUserIds, u.id])
-                                                    } else {
-                                                        setSelectedUserIds(selectedUserIds.filter(id => id !== u.id))
-                                                    }
-                                                }}
-                                            />
-                                            <label
-                                                htmlFor={`user-${u.id}`}
-                                                className="text-xs cursor-pointer truncate"
-                                            >
-                                                {u.firstName} {u.lastName}
-                                            </label>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <p className="text-[10px] text-muted-foreground p-2">No subordinates found to split leads.</p>
+                    {availableUsers.length > 0 && (
+                        <div className="space-y-3 pl-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <Label className="text-xs font-semibold flex items-center gap-2">
+                                <span>Split Leads Between Users (Round Robin)</span>
+                                {selectedUserIds.length > 0 && (
+                                    <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">
+                                        Overrides Rules
+                                    </span>
                                 )}
+                            </Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
+                                {availableUsers.map((u: any) => (
+                                    <div key={u.id} className="flex items-center space-x-2">
+                                        <Checkbox
+                                            id={`user-${u.id}`}
+                                            checked={selectedUserIds.includes(u.id)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setSelectedUserIds([...selectedUserIds, u.id])
+                                                } else {
+                                                    setSelectedUserIds(selectedUserIds.filter(id => id !== u.id))
+                                                }
+                                            }}
+                                        />
+                                        <label
+                                            htmlFor={`user-${u.id}`}
+                                            className="text-xs cursor-pointer truncate"
+                                        >
+                                            {u.firstName} {u.lastName}
+                                        </label>
+                                    </div>
+                                ))}
                             </div>
                             <p className="text-[10px] text-muted-foreground italic">
-                                If no users are selected, leads will be assigned to you.
+                                {selectedUserIds.length > 0 
+                                    ? "Leads will be split among selected users (automated rules will be skipped)." 
+                                    : "Select users to split leads among them equally."}
                             </p>
                         </div>
                     )}

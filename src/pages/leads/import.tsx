@@ -297,11 +297,16 @@ export default function BulkImportLeadsPage() {
                                         </p>
                                     </div>
 
-                                    {!applyAssignmentRules && availableUsers.length > 0 && (
-                                        <div className="space-y-3 pl-7 mt-4">
+                                    {availableUsers.length > 0 && (
+                                        <div className="space-y-3 pl-7 mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
                                             <div className="flex items-center gap-2">
                                                 <Users className="h-4 w-4 text-blue-600" />
                                                 <Label className="text-sm font-semibold">Split Leads Between Users (Round Robin)</Label>
+                                                {selectedUserIds.length > 0 && (
+                                                    <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded-full font-bold">
+                                                        Overrides Rules
+                                                    </span>
+                                                )}
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-48 overflow-y-auto p-3 border rounded-md bg-gray-50/50 dark:bg-gray-900/50">
                                                 {availableUsers.map((u: any) => (
@@ -329,7 +334,9 @@ export default function BulkImportLeadsPage() {
                                                 ))}
                                             </div>
                                             <p className="text-[10px] text-muted-foreground italic">
-                                                If users are selected, leads will be split equally among them. If none selected, they'll default to you.
+                                                {selectedUserIds.length > 0 
+                                                    ? "Leads will be split among selected users (automated rules will be skipped)." 
+                                                    : "Select users to split leads among them equally."}
                                             </p>
                                         </div>
                                     )}
