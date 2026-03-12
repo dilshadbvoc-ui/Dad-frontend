@@ -133,9 +133,11 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
 
     const mutation = useMutation({
         mutationFn: (values: CreateAssignmentRuleData) => {
-            // If branchId is empty string, make it undefined
+            // If branchId is empty string or placeholder, make it null for a global rule
             const payload = { ...values };
-            if (payload.branchId === "") delete payload.branchId;
+            if (payload.branchId === "" || payload.branchId === "all_branches_placeholder") {
+                payload.branchId = null as any;
+            }
 
             if (rule) {
                 return updateAssignmentRule(rule.id, payload)
