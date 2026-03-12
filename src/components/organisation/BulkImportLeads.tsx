@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { importLeads, type CreateLeadData } from "@/services/leadService"
-import { getBranches } from "@/services/settingsService"
+import { getBranches, getUsers } from "@/services/settingsService"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
@@ -22,6 +22,7 @@ export function BulkImportLeads() {
     const [selectedBranchId, setSelectedBranchId] = useState<string>("")
     const [selectedRuleId, setSelectedRuleId] = useState<string>("default")
     const [applyRules, setApplyRules] = useState<boolean>(true)
+    const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
 
     const queryClient = useQueryClient()
     const user = getUserInfo();
@@ -41,11 +42,21 @@ export function BulkImportLeads() {
         queryFn: () => getAssignmentRules('Lead', selectedBranchId === 'all_branches_placeholder' ? undefined : selectedBranchId),
     })
 
+    const { data: usersData } = useQuery({
+        queryKey: ['users-for-import'],
+        queryFn: getUsers,
+    })
+
     const branches = Array.isArray(branchesData)
         ? branchesData
         : (branchesData as any)?.branches || [];
 
     const rules = Array.isArray(rulesData) ? rulesData : [];
+    const allUsers = Array.isArray(usersData?.users) ? usersData.users : [];
+
+    // Filter users to only show subordinates/reachable users
+    // (getUsers already filters by hierarchy on backend)
+    const availableUsers = allUsers.filter((u: any) => u.id !== user?.id);
 
     const importMutation = useMutation({
         mutationFn: (data: CreateLeadData[]) => {
@@ -59,7 +70,8 @@ export function BulkImportLeads() {
 
             return importLeads(finalData, {
                 assignmentRuleId: selectedRuleId === 'default' ? undefined : selectedRuleId,
-                applyAssignmentRules: applyRules
+                applyAssignmentRules: applyRules,
+                splitUserIds: applyRules ? undefined : selectedUserIds
             })
         },
         onSuccess: (data) => {
@@ -74,6 +86,7 @@ export function BulkImportLeads() {
             setSelectedBranchId(userBranchId || "") // Reset to user's branch after successful import
             setSelectedRuleId("default")
             setApplyRules(true)
+            setSelectedUserIds([])
             // Invalidate all leads queries
             queryClient.invalidateQueries({ queryKey: ['leads'] })
             queryClient.invalidateQueries({ queryKey: ['leads', 'all'] })
@@ -296,6 +309,42 @@ export function BulkImportLeads() {
                             </Select>
                             <p className="text-[10px] text-muted-foreground italic">
                                 If selected, only this rule will be used. Leads that don't match will default to you.
+                            </p>
+                        </div>
+                    )}
+
+                    {!applyRules && (
+                        <div className="space-y-3 pl-6 mt-4">
+                            <Label className="text-xs font-semibold">Split Leads Between Users (Round Robin)</Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-48 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-900">
+                                {availableUsers.length > 0 ? (
+                                    availableUsers.map((u: any) => (
+                                        <div key={u.id} className="flex items-center space-x-2">
+                                            <Checkbox
+                                                id={`user-${u.id}`}
+                                                checked={selectedUserIds.includes(u.id)}
+                                                onCheckedChange={(checked) => {
+                                                    if (checked) {
+                                                        setSelectedUserIds([...selectedUserIds, u.id])
+                                                    } else {
+                                                        setSelectedUserIds(selectedUserIds.filter(id => id !== u.id))
+                                                    }
+                                                }}
+                                            />
+                                            <label
+                                                htmlFor={`user-${u.id}`}
+                                                className="text-xs cursor-pointer truncate"
+                                            >
+                                                {u.firstName} {u.lastName}
+                                            </label>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <p className="text-[10px] text-muted-foreground p-2">No subordinates found to split leads.</p>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-muted-foreground italic">
+                                If no users are selected, leads will be assigned to you.
                             </p>
                         </div>
                     )}
