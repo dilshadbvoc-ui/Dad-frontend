@@ -134,10 +134,15 @@ export const columns: ColumnDef<Lead>[] = [
 
             const logAndOpenWhatsApp = async (e: React.MouseEvent) => {
                 e.stopPropagation()
+                if (!phone) {
+                    toast.error('No phone number available')
+                    return
+                }
+
                 try {
                     const userInfo = localStorage.getItem('userInfo')
                     const token = userInfo ? JSON.parse(userInfo).token : null
-                    await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+                    await fetch(`/api/interactions/leads/${row.original.id}/quick-log`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
