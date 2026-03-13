@@ -57,30 +57,10 @@ export default function Layout() {
         return () => document.removeEventListener('keydown', handleEscape);
     }, []);
 
+    const queryClient = useQueryClient();
+
     useEffect(() => {
         interface CallUpdateData {
-            status: 'connected' | 'ended';
-            phoneNumber: string;
-            duration?: string;
-        }
-
-        const handleCallUpdate = (data: CallUpdateData) => {
-            // Call Update Received
-            if (data.status === 'connected') {
-                toast.info(`Call Connected: ${data.phoneNumber}`, {
-                    description: 'Call timer started...',
-                    duration: Infinity, // Keep open until ended
-                    id: 'active-call-toast'
-                });
-            } else if (data.status === 'ended') {
-                toast.dismiss('active-call-toast');
-                toast.success(`Call Ended`, {
-                    description: `Duration: ${data.duration || 'Unknown'}`,
-                });
-            }
-        };
-
-        const queryClient = useQueryClient();
 
         const handleRealtimeSync = (event: string) => {
             console.log(`[Socket] Real-time event received: ${event}`);

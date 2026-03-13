@@ -11,32 +11,43 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const [connected, setConnected] = useState(false);
 
     useEffect(() => {
-        const userInfoStr = localStorage.getItem('userInfo');
-
-        if (userInfoStr) {
-            try {
-                const userInfo = JSON.parse(userInfoStr);
-                if (userInfo.token) {
-                    // Use the singleton service to connect
-                    socketService.connect(userInfo.id || userInfo._id);
-
-                    // Sync state from service
-                    const socketInstance = socketService.getSocket();
-                    if (socketInstance) {
-                        // eslint-disable-next-line react-hooks/set-state-in-effect
-                        setSocket(socketInstance);
-                        setConnected(socketInstance.connected);
-                    }
-
-                    socketService.on('connect', () => setConnected(true));
-                    socketService.on('disconnect', () => setConnected(false));
+        const connectSocket = () => {
+            const userInfoStr = localStorage.getItem('userInfo');
+            if (userInfoStr) {
+                try {
+                   const userInfo = JSON.parse(userInfoStr);
+                   if (userInfo.token) {
+                       socketService.connect(userInfo.id || userInfo._id);
+                       const socketInstance = socketService.getSocket();
+                       if (socketInstance) {
+                           setSocket(socketInstance);
+                           setConnected(socketInstance.connected);
+                           
+                           socketInstance.on('connect', () => setConnected(true));
+                           socketInstance.on('disconnect', () => setConnected(false));
+                       }
+                   }
+                } catch (e) {
+                   console.error('Error parsing userInfo for socket:', e);
                 }
-            } catch (e) {
-                console.error('Error parsing userInfo for socket:', e);
             }
-        }
+        };
+
+        connectSocket();
+
+        const handleAuthRefresh = () => {
+            console.log('[SocketContext] Auth refresh detected, reconnecting socket...');
+            socketService.disconnect();
+            connectSocket();
+        };
+
+        window.addEventListener('auth-refresh' as any, handleAuthRefresh);
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'userInfo') handleAuthRefresh();
+        });
 
         return () => {
+            window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
             socketService.disconnect();
             setConnected(false);
         };
