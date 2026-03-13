@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { type Lead } from "@/services/leadService"
 import { format } from "date-fns"
 import { ActionsCell } from "./ActionsCell"
+import { toast } from "sonner"
 
 import { NameCell } from "./NameCell"
 
