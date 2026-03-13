@@ -199,14 +199,18 @@ function AppContent() {
     };
     window.addEventListener('storage', handleStorageChange);
 
-    import('./utils/environmentChecker').then(({ logEnvironmentInfo, warnIfLocalEnvironment }) => {
-      logEnvironmentInfo();
-      warnIfLocalEnvironment();
-    });
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[App] App became visible, refreshing data...');
+        queryClient.invalidateQueries();
+      }
+    };
+    window.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
       window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 

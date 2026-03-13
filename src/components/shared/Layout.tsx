@@ -13,6 +13,7 @@ import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 import { triggerAndroidNotification } from '@/utils/androidBridge';
+import { useQueryClient } from '@tanstack/react-query';
 
 export default function Layout() {
     const location = useLocation();
@@ -79,6 +80,17 @@ export default function Layout() {
             }
         };
 
+        const queryClient = useQueryClient();
+
+        const handleRealtimeSync = (event: string) => {
+            console.log(`[Socket] Real-time event received: ${event}`);
+            if (event.startsWith('lead_')) {
+                queryClient.invalidateQueries({ queryKey: ['leads'] });
+                queryClient.invalidateQueries({ queryKey: ['lead'] });
+                queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+            }
+        };
+
         const handleNotification = (data: { title: string; message: string; type?: string }) => {
             if (!data) return; // Safeguard against null data
 
@@ -89,7 +101,7 @@ export default function Layout() {
 
             toast[type](data.title, {
                 description: data.message,
-                duration: 5000,
+                duration: 4000,
             });
 
             // Native Android App push notification mirror
@@ -99,9 +111,17 @@ export default function Layout() {
         socketService.on('call_status_update', handleCallUpdate);
         socketService.on('notification', handleNotification);
 
+        // Real-time Data Sync Listeners
+        socketService.on('lead_created', () => handleRealtimeSync('lead_created'));
+        socketService.on('lead_updated', () => handleRealtimeSync('lead_updated'));
+        socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
+
         return () => {
             socketService.off('call_status_update');
             socketService.off('notification');
+            socketService.off('lead_created');
+            socketService.off('lead_updated');
+            socketService.off('lead_deleted');
         };
     }, []);
 
