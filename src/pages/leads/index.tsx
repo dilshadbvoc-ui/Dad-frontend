@@ -7,7 +7,7 @@ import { getTasks, type Task } from "@/services/taskService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
-
+import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
 import {
@@ -122,28 +122,24 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         e.stopPropagation();
         if (!phone) {
             toast.error('No phone number available for this lead');
-            if (!phone) {
-                toast.error('No phone number available')
-                return
-            }
-
-            try {
-                const userInfo = localStorage.getItem('userInfo')
-                const token = userInfo ? JSON.parse(userInfo).token : null
-                await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        ...(token ? { Authorization: `Bearer ${token}` } : {})
-                    },
-                    body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
-                })
-            } catch (err) {
-                console.warn('Failed to log WhatsApp interaction:', err)
-            }
-            window.location.href = `https://wa.me/${phone}`
+            return;
         }
-        ;
+
+        try {
+            const userInfo = localStorage.getItem('userInfo');
+            const token = userInfo ? JSON.parse(userInfo).token : null;
+            await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { Authorization: `Bearer ${token}` } : {})
+                },
+                body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+            });
+        } catch (err) {
+            console.warn('Failed to log WhatsApp interaction:', err);
+        }
+        window.location.href = `https://wa.me/${phone}`;
     };
 
     const handleCall = async (e: React.MouseEvent) => {
