@@ -124,10 +124,27 @@ export default function LeadDetailPage() {
         else if (type === 'whatsapp') {
             const phone = lead?.phone?.replace(/[^0-9]/g, '')
             if (phone) {
-                window.open(`https://wa.me/${phone}`, '_blank')
-                // Smart Log: Prompt to log this interaction
-                setNoteInitialContent(`Started WhatsApp conversation with ${lead.firstName}. Noted: `)
-                setIsLogNoteOpen(true)
+                // Background log
+                const logWhatsApp = async () => {
+                    try {
+                        const userInfo = localStorage.getItem('userInfo')
+                        const token = userInfo ? JSON.parse(userInfo).token : null
+                        await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                ...(token ? { Authorization: `Bearer ${token}` } : {})
+                            },
+                            body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+                        })
+                    } catch (err) {
+                        console.warn('Failed to log WhatsApp interaction:', err)
+                    }
+                }
+                logWhatsApp()
+
+                // Intent redirection
+                window.location.href = `https://wa.me/${phone}`
             }
             else toast.error('No phone number available')
         }

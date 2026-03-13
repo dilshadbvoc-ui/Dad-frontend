@@ -148,7 +148,7 @@ export const columns: ColumnDef<Lead>[] = [
                 } catch (err) {
                     console.warn('Failed to log WhatsApp interaction:', err)
                 }
-                window.open(`https://wa.me/${phone}`, '_blank')
+                window.location.href = `https://wa.me/${phone}`
             }
 
             const logAndCall = async (e: React.MouseEvent) => {
