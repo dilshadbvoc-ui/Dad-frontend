@@ -61,7 +61,25 @@ export default function Layout() {
 
     useEffect(() => {
         interface CallUpdateData {
+            status: 'connected' | 'ended';
+            phoneNumber: string;
+            duration?: string;
+        }
 
+        const handleCallUpdate = (data: CallUpdateData) => {
+            if (data.status === 'connected') {
+                toast.info(`Call Connected: ${data.phoneNumber}`, {
+                    description: 'Call timer started...',
+                    duration: Infinity,
+                    id: 'active-call-toast'
+                });
+            } else if (data.status === 'ended') {
+                toast.dismiss('active-call-toast');
+                toast.success(`Call Ended`, {
+                    description: `Duration: ${data.duration || 'Unknown'}`,
+                });
+            }
+        };
         const handleRealtimeSync = (event: string) => {
             console.log(`[Socket] Real-time event received: ${event}`);
             if (event.startsWith('lead_')) {
