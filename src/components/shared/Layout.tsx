@@ -14,7 +14,6 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function Layout() {
     const location = useLocation();
