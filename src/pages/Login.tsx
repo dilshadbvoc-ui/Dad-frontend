@@ -9,7 +9,8 @@ import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
 import { Sparkles, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-import { saveAndroidToken } from '@/utils/androidBridge';
+import { saveAndroidToken, saveAndroidApiUrl } from '@/utils/androidBridge';
+import { API_URL } from '@/config';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -38,6 +39,7 @@ const Login = () => {
             if (autoLogin) {
                 localStorage.setItem('autoLogin', 'true');
                 saveAndroidToken(sanitizedData.token);
+                saveAndroidApiUrl(API_URL);
             } else {
                 localStorage.removeItem('autoLogin');
             }
