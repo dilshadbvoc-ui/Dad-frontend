@@ -12,8 +12,9 @@ import { toast } from 'sonner';
 import { useEffect, useState } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
-import { triggerAndroidNotification } from '@/utils/androidBridge';
+import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Layout() {
     const location = useLocation();
@@ -110,9 +111,30 @@ export default function Layout() {
         socketService.on('notification', handleNotification);
 
         // Real-time Data Sync Listeners
-        socketService.on('lead_created', () => handleRealtimeSync('lead_created'));
-        socketService.on('lead_updated', () => handleRealtimeSync('lead_updated'));
+        socketService.on('lead_created', () => {
+            handleRealtimeSync('lead_created');
+            const userInfo = localStorage.getItem('userInfo');
+            if (userInfo) {
+                const { token } = JSON.parse(userInfo);
+                if (token) triggerAndroidLeadSync(token);
+            }
+        });
+        socketService.on('lead_updated', () => {
+            handleRealtimeSync('lead_updated');
+            const userInfo = localStorage.getItem('userInfo');
+            if (userInfo) {
+                const { token } = JSON.parse(userInfo);
+                if (token) triggerAndroidLeadSync(token);
+            }
+        });
         socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
+
+        // Initial sync on mount if on Android
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+            const { token } = JSON.parse(userInfo);
+            if (token) triggerAndroidLeadSync(token);
+        }
 
         return () => {
             socketService.off('call_status_update');
