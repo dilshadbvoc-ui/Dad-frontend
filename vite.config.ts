@@ -47,8 +47,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "cookie": path.resolve(__dirname, "node_modules/cookie"),
-      "semver": path.resolve(__dirname, "node_modules/semver"),
+      "cookie": path.resolve(__dirname, "node_modules/cookie/dist/index.js"),
+      "semver": path.resolve(__dirname, "node_modules/semver/index.js"),
     },
     dedupe: ['react', 'react-dom', 'cookie', 'semver'],
   },
