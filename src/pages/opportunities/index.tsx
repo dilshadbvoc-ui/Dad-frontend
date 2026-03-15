@@ -16,14 +16,21 @@ import {
     User
 } from "lucide-react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useSearchParams } from "react-router-dom"
 import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
 
 export default function OpportunitiesPage() {
     const { formatCurrency } = useCurrency()
     const columns = createOpportunityColumns(formatCurrency)
+    const [searchParams] = useSearchParams()
+    
+    // Parse query params
+    const initialStage = searchParams.get('stage') as any
+    const initialView = searchParams.get('view') as 'list' | 'board'
+    
     const [isCreateOpen, setIsCreateOpen] = useState(false)
-    const [viewMode, setViewMode] = useState<'list' | 'board'>('board') // Default to board for better UX
+    const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'board') 
     const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')
 
     // Get current user (simple implementation)
@@ -41,13 +48,17 @@ export default function OpportunitiesPage() {
     console.log('[OpportunitiesPage] currentUser:', currentUser?.id || currentUser?._id, 'Role:', currentUser?.role);
     console.log('[OpportunitiesPage] allOpportunities count:', allOpportunities.length);
 
-    const filteredOpportunities = filterMode === 'mine' && currentUser
+    const opportunitiesBeforeStageFilter = filterMode === 'mine' && currentUser
         ? allOpportunities.filter((opp: any) => {
             const ownerId = opp.owner?.id || opp.owner?._id || opp.ownerId;
             const currentId = currentUser.id || currentUser._id;
             return ownerId === currentId;
         })
         : allOpportunities;
+
+    const filteredOpportunities = initialStage
+        ? opportunitiesBeforeStageFilter.filter((opp: any) => opp.stage === initialStage)
+        : opportunitiesBeforeStageFilter;
     
     console.log('[OpportunitiesPage] filteredOpportunities count:', filteredOpportunities.length, 'filterMode:', filterMode);
 

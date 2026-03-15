@@ -181,7 +181,7 @@ export default function Dashboard() {
 
             {/* Quick Stats Row */}
             <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <Link to="/opportunities" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
@@ -192,9 +192,9 @@ export default function Dashboard() {
                             {formatCurrencyCompact(forecast?.weightedForecast || 0)}
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <Link to="/opportunities" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
@@ -205,9 +205,9 @@ export default function Dashboard() {
                             {stats?.activeOpportunities || 0}
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <Link to="/opportunities?stage=closed_won" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
@@ -218,9 +218,9 @@ export default function Dashboard() {
                             {stats?.opportunities?.won || 0}
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <Link to="/opportunities?stage=closed_lost" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 group-hover:scale-110 transition-transform">
@@ -231,9 +231,9 @@ export default function Dashboard() {
                             {stats?.opportunities?.lost || 0}
                         </div>
                     </div>
-                </div>
+                </Link>
 
-                <div className="relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+                <Link to="/reports/sales-book" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
                     <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
                         <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
@@ -244,7 +244,7 @@ export default function Dashboard() {
                             {formatCurrencyCompact(stats?.revenueThisMonth || 0)}
                         </div>
                     </div>
-                </div>
+                </Link>
 
                 {/* License Widget */}
                 {isAdminUser && (
