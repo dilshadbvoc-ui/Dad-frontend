@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Clock } from "lucide-react"
+import { ArrowUpDown, Clock, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type FollowUpTask } from "@/services/followUpService"
@@ -20,6 +20,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Phone, Edit, MoreHorizontal } from "lucide-react"
 import { LogCallDialog } from "@/components/LogCallDialog"
 import { UpdateFollowUpDialog } from "@/components/UpdateFollowUpDialog"
+import { createInteraction } from "@/services/interactionService"
 import { useState } from "react"
 
 export const columns: ColumnDef<FollowUpTask>[] = [
@@ -185,6 +186,25 @@ export const columns: ColumnDef<FollowUpTask>[] = [
             const updateStatus = async (newStatus: string) => {
                 try {
                     await api.put(`/follow-ups/${task.id}`, { status: newStatus })
+                    
+                    // If related to a Lead, log an interaction for the timeline
+                    const leadId = task.leadId || (task.onModel === 'Lead' ? (task.relatedTo as any)?.id : null)
+                    if (leadId) {
+                        await createInteraction({
+                            type: 'note',
+                            direction: 'outbound',
+                            status: 'completed',
+                            subject: `Task Status: ${newStatus.replace('_', ' ')}`,
+                            description: `Follow-up status changed to ${newStatus.replace('_', ' ')} for task: ${task.subject}`,
+                            date: new Date().toISOString(),
+                            relatedTo: leadId,
+                            onModel: 'Lead'
+                        })
+                        
+                        // Invalidate lead timeline
+                        queryClient.invalidateQueries({ queryKey: ['timeline', 'lead', leadId] })
+                    }
+
                     toast.success('Status updated successfully')
                     queryClient.invalidateQueries({ queryKey: ['follow-ups'] })
                 } catch (error: any) {
@@ -207,6 +227,18 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                             title="Call Lead"
                         >
                             <Phone className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    {task.status !== 'completed' && (
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                            onClick={() => updateStatus('completed')}
+                            title="Mark as Completed"
+                        >
+                            <CheckCircle2 className="h-4 w-4" />
                         </Button>
                     )}
                     
