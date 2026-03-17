@@ -81,6 +81,9 @@ export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: Up
             toast.success('Follow-up updated successfully');
             queryClient.invalidateQueries({ queryKey: ['follow-ups'] });
             queryClient.invalidateQueries({ queryKey: ['tasks'] });
+            if (leadId) {
+                queryClient.invalidateQueries({ queryKey: ['timeline', 'lead', leadId] });
+            }
             onSuccess?.();
             onOpenChange(false);
             setRemark('');
