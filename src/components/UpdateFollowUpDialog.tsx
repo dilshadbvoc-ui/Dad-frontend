@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { updateTask } from '@/services/taskService';
 import { createInteraction } from '@/services/interactionService';
+import { api } from '@/services/api';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -55,10 +56,15 @@ export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: Up
                 dueDate: newDueDate
             });
 
-            // 3. Create Interaction (Remark) if provided
-            if (remark.trim()) {
-                const leadId = task.leadId || task.lead?.id;
-                if (leadId) {
+            // 3. Update Lead nextFollowUp if applicable
+            const leadId = task.leadId || task.lead?.id;
+            if (leadId) {
+                await api.put(`/leads/${leadId}`, {
+                    nextFollowUp: newDueDate
+                });
+
+                // 4. Create Interaction (Remark) if provided
+                if (remark.trim()) {
                     await createInteraction({
                         type: 'note',
                         direction: 'outbound',

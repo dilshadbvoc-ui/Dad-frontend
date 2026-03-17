@@ -4,8 +4,9 @@ import { useSearchParams } from "react-router-dom"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
-import { Calendar, Clock } from "lucide-react"
+import { Calendar, Clock, ListFilter, ArrowUpDown } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function FollowUpsPage() {
     const [searchParams] = useSearchParams()
@@ -13,6 +14,7 @@ export default function FollowUpsPage() {
 
     const [searchQuery, setSearchQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState("all")
+    const [sortBy, setSortBy] = useState<string>("dueDate-asc")
 
     const { data, isLoading, isError } = useQuery({
         queryKey: ['follow-ups', searchQuery, statusFilter],
@@ -31,9 +33,7 @@ export default function FollowUpsPage() {
     today.setHours(0, 0, 0, 0)
 
     const filteredFollowUps = useMemo(() => {
-        if (!filterParam) return followUps
-
-        return followUps.filter((task: any) => {
+        let result = filterParam ? followUps.filter((task: any) => {
             const dueDate = new Date(task.dueDate)
             dueDate.setHours(0, 0, 0, 0)
 
@@ -47,8 +47,27 @@ export default function FollowUpsPage() {
                 default:
                     return true
             }
+        }) : [...followUps]
+
+        // Apply Sorting
+        const [field, direction] = sortBy.split('-')
+        result.sort((a: any, b: any) => {
+            let valA = a[field]
+            let valB = b[field]
+
+            // Handle date objects
+            if (field === 'dueDate') {
+                valA = new Date(valA).getTime()
+                valB = new Date(valB).getTime()
+            }
+
+            if (valA < valB) return direction === 'asc' ? -1 : 1
+            if (valA > valB) return direction === 'asc' ? 1 : -1
+            return 0
         })
-    }, [followUps, filterParam, today])
+
+        return result
+    }, [followUps, filterParam, today, sortBy])
 
     const overdueCount = followUps.filter((task: any) => {
         const dueDate = new Date(task.dueDate)
@@ -132,6 +151,43 @@ export default function FollowUpsPage() {
                 </Card>
             </div>
 
+            {/* Filters and Sorting */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                    <ListFilter className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm font-medium">Sort & Filter</span>
+                </div>
+                
+                <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <Select value={sortBy} onValueChange={setSortBy}>
+                        <SelectTrigger className="w-full sm:w-[180px] h-9 shadow-sm">
+                            <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
+                            <SelectValue placeholder="Sort By" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="dueDate-asc">Due Date (Earliest)</SelectItem>
+                            <SelectItem value="dueDate-desc">Due Date (Latest)</SelectItem>
+                            <SelectItem value="priority-desc">Priority (High to Low)</SelectItem>
+                            <SelectItem value="status-asc">Status (A-Z)</SelectItem>
+                            <SelectItem value="subject-asc">Subject (A-Z)</SelectItem>
+                        </SelectContent>
+                    </Select>
+
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
+                            <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="not_started">Not Started</SelectItem>
+                            <SelectItem value="in_progress">In Progress</SelectItem>
+                            <SelectItem value="completed">Completed</SelectItem>
+                            <SelectItem value="deferred">Deferred</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+            </div>
+
             {isLoading ? (
                 <div className="flex items-center justify-center p-8">
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
@@ -141,7 +197,7 @@ export default function FollowUpsPage() {
                     columns={columns}
                     data={filteredFollowUps}
                     searchKeys={["subject", "description", "status", "priority"]}
-                    initialPageSize={1000}
+                    initialPageSize={100}
                 />
             )}
         </div>

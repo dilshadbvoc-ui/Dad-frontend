@@ -77,7 +77,17 @@ export const columns: ColumnDef<FollowUpTask>[] = [
     },
     {
         accessorKey: "status",
-        header: "Status",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Status
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
         cell: ({ row }) => {
             const status = row.getValue("status") as string
             let variant: "default" | "secondary" | "destructive" | "outline" = "outline"
@@ -94,7 +104,17 @@ export const columns: ColumnDef<FollowUpTask>[] = [
     },
     {
         accessorKey: "priority",
-        header: "Priority",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Priority
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
         cell: ({ row }) => {
             const priority = row.getValue("priority") as string
             let colorClass = "";
