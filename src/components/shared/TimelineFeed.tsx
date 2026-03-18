@@ -8,7 +8,8 @@ import {
     Calendar,
     CheckSquare,
     Shield,
-    Clock
+    Clock,
+    MessageCircle
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
@@ -43,7 +44,9 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
     const getIcon = (item: { type: string, subType?: string }) => {
         switch (item.type) {
             case 'interaction':
-                return item.subType === 'call' ? <PhoneCall className="h-4 w-4" /> : <Mail className="h-4 w-4" />;
+                if (item.subType === 'call') return <PhoneCall className="h-4 w-4" />;
+                if (item.subType === 'whatsapp') return <MessageCircle className="h-4 w-4" />;
+                return <Mail className="h-4 w-4" />;
             case 'task':
                 return <CheckSquare className="h-4 w-4" />;
             case 'event':
@@ -57,9 +60,11 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
         }
     };
 
-    const getColor = (item: { type: string }) => {
+    const getColor = (item: { type: string, subType?: string }) => {
         switch (item.type) {
-            case 'interaction': return 'bg-primary/10 text-primary ring-primary/20';
+            case 'interaction': 
+                if (item.subType === 'whatsapp') return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
+                return 'bg-primary/10 text-primary ring-primary/20';
             case 'task': return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
             case 'event': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20';
             case 'audit': return 'bg-muted text-muted-foreground ring-border';
