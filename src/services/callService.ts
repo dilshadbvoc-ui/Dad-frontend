@@ -12,6 +12,7 @@ export interface CallLead {
     firstName: string;
     lastName: string;
     phone: string;
+    company?: string;
 }
 
 export interface CallContact {

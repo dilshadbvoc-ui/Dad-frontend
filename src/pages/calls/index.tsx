@@ -121,13 +121,17 @@ export default function CallsPage() {
     };
 
     const getContactName = (call: Call) => {
+        let name = 'Unknown';
+        let company = '';
+
         if (call.lead) {
-            return `${call.lead.firstName} ${call.lead.lastName}`;
+            name = `${call.lead.firstName} ${call.lead.lastName || ''}`.trim();
+            company = call.lead.company || '';
+        } else if (call.contact) {
+            name = `${call.contact.firstName} ${call.contact.lastName || ''}`.trim();
         }
-        if (call.contact) {
-            return `${call.contact.firstName} ${call.contact.lastName}`;
-        }
-        return 'Unknown';
+
+        return { name, company };
     };
 
     return (
@@ -326,9 +330,21 @@ export default function CallsPage() {
                                                             </TableCell>
                                                             <TableCell>
                                                                 <div>
-                                                                    <p className="font-medium text-foreground">{getContactName(call)}</p>
+                                                                    {(() => {
+                                                                        const { name, company } = getContactName(call);
+                                                                        return (
+                                                                            <>
+                                                                                <p className="font-medium text-foreground">{name}</p>
+                                                                                {company && (
+                                                                                    <p className="text-xs text-muted-foreground/80 italic">
+                                                                                        {company}
+                                                                                    </p>
+                                                                                )}
+                                                                            </>
+                                                                        );
+                                                                    })()}
                                                                     {call.createdBy && (
-                                                                        <p className="text-xs text-muted-foreground">
+                                                                        <p className="text-xs text-muted-foreground mt-0.5">
                                                                             by {call.createdBy.firstName} {call.createdBy.lastName}
                                                                         </p>
                                                                     )}
