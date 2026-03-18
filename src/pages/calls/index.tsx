@@ -113,8 +113,16 @@ export default function CallsPage() {
         }
     };
 
-    const formatDuration = (minutes?: number) => {
-        if (!minutes) return '-';
+    const formatDuration = (minutes?: number, seconds?: number) => {
+        // Prefer high-precision seconds (recordingDuration)
+        if (seconds !== undefined && seconds !== null && seconds > 0) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        // Fallback to minutes (might be truncated to Int in DB)
+        if (!minutes || minutes <= 0) return '-';
         const mins = Math.floor(minutes);
         const secs = Math.round((minutes - mins) * 60);
         return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -354,7 +362,7 @@ export default function CallsPage() {
                                                                 {call.phoneNumber || '-'}
                                                             </TableCell>
                                                             <TableCell className="text-foreground">
-                                                                {formatDuration(call.duration)}
+                                                                {formatDuration(call.duration, call.recordingDuration)}
                                                             </TableCell>
                                                             <TableCell>
                                                                 {getStatusBadge(call.callStatus)}
