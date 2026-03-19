@@ -56,7 +56,7 @@ export function BulkImportLeads() {
 
     // Filter users to only show subordinates/reachable users
     // (getUsers already filters by hierarchy on backend)
-    const availableUsers = allUsers.filter((u: any) => u.id !== user?.id);
+    const availableUsers = allUsers; // Include self to allow assignment to uploader as well
 
     const importMutation = useMutation({
         mutationFn: (data: CreateLeadData[]) => {
