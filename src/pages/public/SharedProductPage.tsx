@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
+import { format } from "date-fns"
 import { useParams, useSearchParams } from "react-router-dom"
 import { api } from "@/services/api"
 import { getAssetUrl } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Download, FileText, Share2, Phone, Mail } from "lucide-react"
+import { Download, FileText, Share2, Phone, Mail, Clock } from "lucide-react"
 
 interface SharedProductData {
     product: {
@@ -30,6 +31,7 @@ interface SharedProductData {
         youtubeUrl?: string
         customTitle?: string
         customDescription?: string
+        createdAt?: string
     }
     lead?: {
         phone?: string
@@ -170,7 +172,15 @@ export default function SharedProductPage() {
                                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
                                     <div>
                                         <h2 className="text-2xl font-bold text-foreground">{displayTitle}</h2>
-                                        <p className="text-muted-foreground text-sm mt-1">Offered by {seller.firstName} {seller.lastName}</p>
+                                        <div className="flex flex-col gap-1 mt-1">
+                                            <p className="text-muted-foreground text-sm">Offered by {seller.firstName} {seller.lastName}</p>
+                                            {shareConfig?.createdAt && (
+                                                <p className="text-xs text-muted-foreground/60 flex items-center gap-1">
+                                                    <Clock className="h-3 w-3" />
+                                                    Shared on {format(new Date(shareConfig.createdAt), 'MMM d, yyyy h:mm a')}
+                                                </p>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="text-3xl font-bold text-primary">
                                         {new Intl.NumberFormat('en-IN', { style: 'currency', currency: product.currency }).format(product.basePrice)}

@@ -318,8 +318,9 @@ export default function TeamSettings() {
             dailyLeadQuota: formData.get('dailyLeadQuota') ? parseInt(formData.get('dailyLeadQuota') as string) : null,
         }
 
-        if (!editingMember) {
-            data.email = formData.get('email');
+        const email = formData.get('email')
+        if (email) {
+            data.email = email
         }
 
         if (editingMember) {

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useSocket } from '@/contexts/useSocket';
 import { toast } from 'sonner';
 import { Bell } from 'lucide-react';
+import { triggerAndroidNotification } from '@/utils/androidBridge';
 
 interface ProductViewNotification {
     type: 'product_view';
@@ -58,6 +59,9 @@ export const useProductViewNotifications = () => {
             window.dispatchEvent(new CustomEvent('new-notification', { 
                 detail: notification 
             }));
+
+            // Trigger native Android notification
+            triggerAndroidNotification(notification.title, notification.message);
         };
 
         // Listen for product view notifications
