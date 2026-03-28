@@ -360,6 +360,7 @@ export default function FieldForcePage() {
                                                 <tr>
                                                     <th className="px-6 py-3 rounded-l-lg">Team Member</th>
                                                     <th className="px-6 py-3">Type</th>
+                                                    <th className="px-6 py-3 text-center">Coordinates</th>
                                                     <th className="px-6 py-3">Location</th>
                                                     <th className="px-6 py-3 rounded-r-lg">Time</th>
                                                 </tr>
@@ -382,6 +383,27 @@ export default function FieldForcePage() {
                                                                 <Badge variant="outline" className="border-green-200 bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">Check In</Badge> :
                                                                 <Badge variant="outline" className="text-muted-foreground">Check Out</Badge>
                                                             }
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            {checkIn.latitude && checkIn.longitude ? (
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <div className="flex gap-2 text-[10px] tabular-nums font-mono text-muted-foreground whitespace-nowrap">
+                                                                        <span>Lat: {checkIn.latitude.toFixed(4)}</span>
+                                                                        <span>Lng: {checkIn.longitude.toFixed(4)}</span>
+                                                                    </div>
+                                                                    <a 
+                                                                        href={`https://www.google.com/maps/search/?api=1&query=${checkIn.latitude},${checkIn.longitude}`}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex items-center gap-1 text-[10px] font-bold text-primary hover:underline hover:text-primary/80 transition-all bg-primary/5 px-2 py-0.5 rounded-full"
+                                                                    >
+                                                                        <Navigation className="h-2 w-2" />
+                                                                        View on Map
+                                                                    </a>
+                                                                </div>
+                                                            ) : (
+                                                                <span className="text-xs text-muted-foreground opacity-50 italic">No GPS Data</span>
+                                                            )}
                                                         </td>
                                                         <td className="px-6 py-4 text-muted-foreground">{checkIn.address || 'Unknown'}</td>
                                                         <td className="px-6 py-4 text-muted-foreground">{format(new Date(checkIn.createdAt), 'MMM d, h:mm a')}</td>

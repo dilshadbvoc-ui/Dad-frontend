@@ -1,5 +1,5 @@
 import { type ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Clock, CheckCircle2 } from "lucide-react"
+import { ArrowUpDown, Clock, CheckCircle2, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type FollowUpTask } from "@/services/followUpService"
@@ -39,6 +39,31 @@ export const columns: ColumnDef<FollowUpTask>[] = [
         },
         cell: ({ row }) => {
             return <div className="font-medium">{row.getValue("subject")}</div>
+        }
+    },
+    {
+        id: "leadName",
+        header: "Lead Name",
+        cell: ({ row }) => {
+            const task = row.original
+            const related = task.relatedTo as any
+            const leadId = task.leadId || (task.onModel === 'Lead' ? related?.id : null)
+
+            if (!related || task.onModel !== 'Lead') {
+                return <span className="text-muted-foreground">-</span>
+            }
+
+            const name = `${related.firstName || ''} ${related.lastName || ''}`.trim() || related.company || 'Unknown'
+
+            return (
+                <Link
+                    to={`/leads/${leadId}`}
+                    className="group flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+                >
+                    {name}
+                    <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </Link>
+            )
         }
     },
     {

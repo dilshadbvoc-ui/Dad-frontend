@@ -83,7 +83,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             </CardHeader>
             <CardContent>
                 <div className="relative pl-6 border-l-2 border-border space-y-8">
-                    {timeline.map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, recordingDuration?: number, fileUrl?: string }, date: string, actor?: { firstName: string } }) => (
+                    {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, recordingDuration?: number, fileUrl?: string }, date: string, actor?: { firstName: string } }) => (
                         <div key={item.id} className="relative">
                             <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
                                 {getIcon(item)}

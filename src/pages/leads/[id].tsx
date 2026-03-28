@@ -93,7 +93,11 @@ export default function LeadDetailPage() {
         enabled: id !== 'new'
     })
 
-
+    const { data: whatsappMessages, isLoading: wsLoading } = useQuery({
+        queryKey: ['whatsapp-messages', id],
+        queryFn: async () => (await api.get(`/whatsapp/lead/${id}`)).data,
+        enabled: id !== 'new'
+    })
 
     if (leadLoading) return <div className="p-8 space-y-4"><Skeleton className="h-12 w-1/3" /><Skeleton className="h-64 w-full" /></div>
     if (!lead) return <div className="p-8">Lead not found</div>
@@ -412,46 +416,114 @@ export default function LeadDetailPage() {
                     <Tabs defaultValue="timeline">
                         <TabsList>
                             <TabsTrigger value="timeline">Timeline</TabsTrigger>
+                            <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
                             <TabsTrigger value="calls">Call History</TabsTrigger>
                             <TabsTrigger value="history">Ownership History</TabsTrigger>
                         </TabsList>
 
                         <TabsContent value="timeline" className="space-y-4">
-                            <Card
-                                className={`transition-all border-dashed ${dragOver ? 'border-primary ring-2 ring-primary/20 bg-primary/5' : 'border-border'}`}
+                            {/* Drag & Drop Zone - Integrated */}
+                            <div
+                                className={`transition-all border-2 border-dashed rounded-lg p-4 ${dragOver ? 'border-primary ring-2 ring-primary/20 bg-primary/5 h-24' : 'border-transparent h-0 overflow-hidden py-0'}`}
                                 onDragOver={handleDragOver}
                                 onDragLeave={handleDragLeave}
                                 onDrop={handleDrop}
                             >
-                                <CardHeader><CardTitle>Activity Timeline</CardTitle></CardHeader>
-                                <CardContent className="min-h-[100px] flex flex-col justify-center items-center">
-                                    {dragOver ? (
-                                        <div className="text-center animate-pulse"><p className="text-lg font-semibold text-primary">Drop to Create Activity</p></div>
-                                    ) : (
-                                        <div className="text-center text-muted-foreground py-2"><p>Drag actions from the left sidebar here to log new activities.</p></div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                <div className="text-center animate-pulse">
+                                    <p className="text-sm font-semibold text-primary">Drop here to log activity</p>
+                                </div>
+                            </div>
 
                             <div className="space-y-4">
                                 {id && <TimelineFeed type="lead" id={id} />}
                             </div>
                         </TabsContent>
 
+                        <TabsContent value="whatsapp" className="space-y-4">
+                            {wsLoading ? (
+                                <Skeleton className="h-32 w-full" />
+                            ) : whatsappMessages && whatsappMessages.length > 0 ? (
+                                whatsappMessages.map((msg: any) => (
+                                    <Card key={msg.id} className="overflow-hidden border-teal-100 dark:border-teal-900 shadow-sm transition-all hover:shadow-md">
+                                        <CardContent className="p-4">
+                                            <div className="flex items-start gap-4">
+                                                <div className={`p-2 rounded-full ${msg.direction === 'inbound' ? 'bg-orange-100 text-orange-600' : 'bg-teal-100 text-teal-600'}`}>
+                                                    <MessageSquare className="h-4 w-4" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{msg.direction === 'inbound' ? 'From Lead' : 'To Lead'}</span>
+                                                        <span className="text-xs text-muted-foreground">{format(new Date(msg.date), "MMM d, h:mm a")}</span>
+                                                    </div>
+                                                    <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                                    {msg.actor && <span className="text-[10px] text-muted-foreground mt-2 block">Logged by {msg.actor}</span>}
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))
+                            ) : (
+                                <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
+                                    <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-20" />
+                                    <p>No WhatsApp activity recorded.</p>
+                                </div>
+                            )}
+                        </TabsContent>
+
                         <TabsContent value="calls" className="space-y-4">
-                            {/* Calls Tab Content (Keep existing separate view if desired, or reuse loop) */}
-                            {calls?.map((call: { id: string; subject: string; date: string; description?: string }) => (
-                                <Card key={call.id}>
+                            {calls && calls.length > 0 ? calls.map((call: any) => (
+                                <Card key={call.id} className="overflow-hidden shadow-sm transition-all hover:shadow-md">
                                     <CardContent className="p-4">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <Phone className="h-4 w-4 text-blue-500" />
-                                            <span className="font-medium">{call.subject}</span>
-                                            <span className="text-xs text-muted-foreground ml-auto">{new Date(call.date).toLocaleString()}</span>
+                                        <div className="flex items-start gap-4">
+                                            <div className={`p-2 rounded-full ${call.direction === 'inbound' ? 'bg-orange-100 text-orange-600' : 'bg-blue-100 text-blue-600'}`}>
+                                                <Phone className="h-4 w-4" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <div className="flex items-center justify-between mb-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                                            {call.direction === 'inbound' ? 'Incoming' : 'Outgoing'}
+                                                        </span>
+                                                        <span className="font-semibold text-sm">{call.subject}</span>
+                                                    </div>
+                                                    <span className="text-xs text-muted-foreground">{format(new Date(call.date), "MMM d, h:mm a")}</span>
+                                                </div>
+                                                
+                                                {call.description && <p className="text-sm text-muted-foreground mb-3">{call.description}</p>}
+                                                
+                                                <div className="flex flex-wrap items-center gap-4 text-xs">
+                                                    {call.duration && (
+                                                        <span className="flex items-center gap-1 text-muted-foreground">
+                                                            <Clock className="h-3 w-3" />
+                                                            {Math.floor(call.duration)}m {Math.round((call.duration % 1) * 60)}s
+                                                        </span>
+                                                    )}
+                                                    {call.callStatus && (
+                                                        <Badge variant="outline" className="text-[10px] h-5 px-2 bg-muted/50">
+                                                            {call.callStatus}
+                                                        </Badge>
+                                                    )}
+                                                </div>
+
+                                                {call.recordingUrl && (
+                                                    <div className="mt-3 p-2 bg-muted/30 rounded-lg">
+                                                        <audio 
+                                                            controls 
+                                                            src={call.recordingUrl.startsWith('/') ? call.recordingUrl : `/${call.recordingUrl}`} 
+                                                            className="h-8 w-full max-w-sm"
+                                                        />
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        {call.description && <p className="text-sm text-gray-600">{call.description}</p>}
                                     </CardContent>
                                 </Card>
-                            ))}
+                            )) : (
+                                <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
+                                    <Phone className="mx-auto h-8 w-8 mb-2 opacity-20" />
+                                    <p>No call history recorded.</p>
+                                </div>
+                            )}
                         </TabsContent>
 
                         <TabsContent value="history" className="space-y-4">
