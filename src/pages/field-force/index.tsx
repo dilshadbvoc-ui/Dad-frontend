@@ -107,29 +107,57 @@ export default function FieldForcePage() {
         const isSecure = window.isSecureContext;
 
         if (!navigator.geolocation || !isSecure) {
-            console.warn("Geolocation requires a secure context (HTTPS). Proceeding without location.")
-            toast.warning("Location unavailable (HTTP). Checking in without coordinates.")
-            submitCheckIn(undefined, undefined, 'Location unavailable (Insecure Context)')
+            console.warn("Geolocation requires a secure context (HTTPS) or is not supported. Proceeding without location.")
+            toast.warning("Location unavailable. Checking in without coordinates.")
+            submitCheckIn(undefined, undefined, 'Location unavailable (Insecure Context/Unsupported)')
             return
         }
 
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                const { latitude, longitude } = position.coords
-                submitCheckIn(latitude, longitude, 'Fetching address...')
-            },
-            (error) => {
-                console.error("Geolocation error:", error)
-                let errorMsg = "Unable to retrieve location."
-                if (error.code === 1) errorMsg = "Location permission denied."
-                else if (error.code === 2) errorMsg = "Position unavailable."
-                else if (error.code === 3) errorMsg = "Location request timed out."
+        // --- Robust Geolocation Flow ---
+        // 1. Initial attempt: High accuracy, 15s timeout
+        // 2. Fallback: Low accuracy, 10s timeout (faster indoors/weak signal)
+        
+        const optionsHigh: PositionOptions = { 
+            timeout: 15000, 
+            enableHighAccuracy: true, 
+            maximumAge: 0 
+        };
+        
+        const optionsLow: PositionOptions = { 
+            timeout: 10000, 
+            enableHighAccuracy: false, 
+            maximumAge: 60000 // Allow 1-minute old cached location for reliability
+        };
 
-                toast.warning(`${errorMsg} Checking in without coordinates.`)
-                submitCheckIn(undefined, undefined, `Location error: ${errorMsg}`)
-            },
-            { timeout: 10000, enableHighAccuracy: true, maximumAge: 0 }
-        )
+        const fetchLocation = (options: PositionOptions, isRetry = false) => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords
+                    submitCheckIn(latitude, longitude, 'Location acquired')
+                },
+                (error) => {
+                    console.error(`Geolocation ${isRetry ? 'fallback' : 'primary'} error:`, error)
+                    
+                    // Fallback to low accuracy if primary fails for reasons other than permission
+                    if (!isRetry && (error.code === error.POSITION_UNAVAILABLE || error.code === error.TIMEOUT)) {
+                        console.log("Primary location fetch failed/timed out. Retrying with lower accuracy...");
+                        fetchLocation(optionsLow, true);
+                        return;
+                    }
+
+                    let errorMsg = "Unable to retrieve location."
+                    if (error.code === error.PERMISSION_DENIED) errorMsg = "Location permission denied."
+                    else if (error.code === error.POSITION_UNAVAILABLE) errorMsg = "Position unavailable."
+                    else if (error.code === error.TIMEOUT) errorMsg = "Location request timed out."
+
+                    toast.warning(`${errorMsg} Checking in without coordinates.`)
+                    submitCheckIn(undefined, undefined, `Location error: ${errorMsg}`)
+                },
+                options
+            )
+        }
+
+        fetchLocation(optionsHigh);
     }
 
     const { data: checkInsData, isLoading } = useQuery({

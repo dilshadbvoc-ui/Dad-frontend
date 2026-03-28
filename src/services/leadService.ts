@@ -120,6 +120,11 @@ export const bulkAssignLeads = async (leadIds: string[], assignedTo: string) => 
     return response.data;
 };
 
+export const bulkLeadAction = async (action: string, leadIds: string[], data?: any) => {
+    const response = await api.post('/bulk/leads', { action, leadIds, data });
+    return response.data;
+};
+
 export const getLeadHistory = async (id: string) => {
     const response = await api.get(`/leads/${id}/history`);
     return response.data;

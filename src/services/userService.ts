@@ -17,3 +17,8 @@ export const getUserById = async (userId: string) => {
     const response = await api.get(`/users/${userId}`);
     return response.data;
 };
+
+export const getUsers = async (params?: { organisationId?: string }) => {
+    const response = await api.get('/users', { params });
+    return response.data;
+};

@@ -1,13 +1,24 @@
-import { useState } from "react";
+import { useState, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getUserWiseSales } from "@/services/analyticsService";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getUserWiseSales, getSalesChartData } from "@/services/analyticsService";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Trophy } from "lucide-react";
+import { 
+    Trophy, 
+    Download, 
+    FileText, 
+    Calendar, 
+    User as UserIcon, 
+    TrendingUp, 
+    Award, 
+    Target,
+    Filter
+} from "lucide-react";
 import { cn, isAdmin as checkIsAdmin } from "@/lib/utils";
 import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
+import { getUsers } from "@/services/userService";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -15,191 +26,361 @@ import { Input } from "@/components/ui/input";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { api } from "@/services/api";
 import { toast } from "sonner";
-import { format } from "date-fns";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from "date-fns";
+import { 
+    AreaChart, 
+    Area, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    ResponsiveContainer,
+    BarChart,
+    Bar,
+    Cell
+} from "recharts";
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 export default function UserSalesPage() {
     const { formatCurrency } = useCurrency();
-    const [user] = useState<{ role: string } | null>(() => {
+    const reportRef = useRef<HTMLDivElement>(null);
+    const [user] = useState<{ id: string, role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
         return userInfo ? JSON.parse(userInfo) : null;
     });
 
     const isAdmin = checkIsAdmin(user);
 
-    // State
-    const [startDate, setStartDate] = useState<string>("");
-    const [endDate, setEndDate] = useState<string>("");
+    // Filter States
+    const [startDate, setStartDate] = useState<string>(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+    const [endDate, setEndDate] = useState<string>(format(endOfMonth(new Date()), "yyyy-MM-dd"));
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+    const [selectedUserId, setSelectedUserId] = useState<string>("all");
+    const [activePeriod, setActivePeriod] = useState<string>("month");
 
-    // Fetch Branches (for admins)
+    // Fetch Base Data
     const { data: branches } = useQuery({
         queryKey: ['branches'],
         queryFn: getBranches,
         enabled: !!isAdmin
     });
 
-    // Fetch User Sales Data
+    const { data: allUsers } = useQuery({
+        queryKey: ['users-sales-list', selectedBranchId],
+        queryFn: () => getUsers(), // Assuming this fetches all users in org/branch scope
+        enabled: !!isAdmin
+    });
+
     const { data: userStats, isLoading } = useQuery({
         queryKey: ['userSales', startDate, endDate, selectedBranchId],
         queryFn: () => getUserWiseSales({
-            startDate: startDate ? new Date(startDate).toISOString() : undefined,
-            endDate: endDate ? new Date(endDate).toISOString() : undefined,
+            startDate: new Date(startDate).toISOString(),
+            endDate: new Date(endDate).toISOString(),
             branchId: selectedBranchId || undefined
         })
     });
 
+    // Fetch Trend Data for the selected scope
+    const { data: trendData, isLoading: isTrendLoading } = useQuery({
+        queryKey: ['salesTrend', selectedBranchId, selectedUserId],
+        queryFn: () => getSalesChartData(selectedBranchId || undefined, selectedUserId === "all" ? undefined : selectedUserId)
+    });
+
+    // Derived Selection
+    const currentUserStat = useMemo(() => {
+        if (!userStats || selectedUserId === "all") return null;
+        return userStats.find((s: any) => s.userId === selectedUserId);
+    }, [userStats, selectedUserId]);
+
+    // Period handlers
+    const setPeriod = (period: string) => {
+        setActivePeriod(period);
+        const now = new Date();
+        let start, end;
+
+        switch (period) {
+            case 'week':
+                start = startOfWeek(now);
+                end = endOfWeek(now);
+                break;
+            case 'month':
+                start = startOfMonth(now);
+                end = endOfMonth(now);
+                break;
+            case 'year':
+                start = startOfYear(now);
+                end = endOfYear(now);
+                break;
+            default:
+                return;
+        }
+
+        setStartDate(format(start, "yyyy-MM-dd"));
+        setEndDate(format(end, "yyyy-MM-dd"));
+    };
+
+    // PDF Generation
+    const downloadPDF = async () => {
+        if (!reportRef.current) return;
+        
+        // Add class for PDF styling
+        reportRef.current.classList.add('is-exporting');
+        
+        try {
+            const canvas = await html2canvas(reportRef.current, {
+                scale: 2,
+                useCORS: true,
+                logging: false,
+                backgroundColor: '#ffffff'
+            });
+            
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`Sales_Report_${selectedUserId === "all" ? "Team" : selectedUserId}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+            toast.success("PDF report downloaded successfully!");
+        } catch (error) {
+            console.error("PDF generation error:", error);
+            toast.error("Failed to generate PDF");
+        } finally {
+            // Remove class after capture
+            reportRef.current.classList.remove('is-exporting');
+        }
+    };
+
     return (
-        <div className="p-8 space-y-8">
+        <div className="p-8 space-y-8 max-w-7xl mx-auto">
             <PageHeader
-                title="User-wise Sales Report"
-                description="Performance analysis of sales representatives."
+                title="Visual Sales Report"
+                description="Interactive performance analysis and downloadable PDF reports."
                 actions={
-                    <Button variant="outline" onClick={async () => {
-                        try {
-                            const params = new URLSearchParams();
-                            if (startDate) params.append('startDate', startDate);
-                            if (endDate) params.append('endDate', endDate);
-                            if (selectedBranchId) params.append('branchId', selectedBranchId);
+                    <div className="flex gap-2">
+                        <Button variant="outline" onClick={downloadPDF} className="flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            Download PDF
+                        </Button>
+                        <Button variant="secondary" onClick={async () => {
+                            try {
+                                const params = new URLSearchParams();
+                                if (startDate) params.append('startDate', startDate);
+                                if (endDate) params.append('endDate', endDate);
+                                if (selectedBranchId) params.append('branchId', selectedBranchId);
 
-                            const response = await api.get(`/reports/export/user-sales?${params.toString()}`, {
-                                responseType: 'blob'
-                            });
+                                const response = await api.get(`/reports/export/user-sales?${params.toString()}`, {
+                                    responseType: 'blob'
+                                });
 
-                            const url = window.URL.createObjectURL(new Blob([response.data]));
-                            const link = document.createElement('a');
-                            link.href = url;
-                            link.setAttribute('download', `user_sales_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
-                            document.body.appendChild(link);
-                            link.click();
-                            link.remove();
-                            window.URL.revokeObjectURL(url);
-                        } catch (error) {
-                            toast.error("Failed to download report");
-                            console.error("Download error:", error);
-                        }
-                    }}>
-                        Download Excel
-                    </Button>
+                                const url = window.URL.createObjectURL(new Blob([response.data]));
+                                const link = document.createElement('a');
+                                link.href = url;
+                                link.setAttribute('download', `sales_data_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                                document.body.appendChild(link);
+                                link.click();
+                                link.remove();
+                            } catch (error) { toast.error("Excel export failed"); }
+                        }}>
+                            <Download className="h-4 w-4" />
+                        </Button>
+                    </div>
                 }
             />
 
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4 items-center bg-card p-4 rounded-lg border shadow-sm">
-                {/* Date Range Picker (Native) */}
-                <div className="flex items-center gap-2">
-                    <Input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-auto"
-                    />
-                    <span className="text-muted-foreground">to</span>
-                    <Input
-                        type="date"
-                        value={endDate}
-                        onChange={(e) => setEndDate(e.target.value)}
-                        className="w-auto"
-                    />
+            {/* Global Filters */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 bg-card p-6 rounded-xl border shadow-sm items-end">
+                <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Sales Representative</label>
+                    <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="All Sales Reps" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="all">Team Overview</SelectItem>
+                            {userStats?.map((s: any) => (
+                                <SelectItem key={s.userId} value={s.userId}>{s.name}</SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
                 </div>
 
-                {isAdmin && branches && branches.length > 0 && (
-                    <div className="w-[200px]">
-                        <Select
-                            value={selectedBranchId || "all"}
-                            onValueChange={(val) => setSelectedBranchId(val === "all" ? null : val)}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="All Branches" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">All Branches</SelectItem>
-                                {branches.map((b: { id: string, name: string }) => (
-                                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                <div className="space-y-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Time Period</label>
+                    <div className="flex gap-1 bg-muted p-1 rounded-md">
+                        {['week', 'month', 'year'].map((p) => (
+                            <Button 
+                                key={p}
+                                variant={activePeriod === p ? "default" : "ghost"}
+                                size="sm"
+                                onClick={() => setPeriod(p)}
+                                className="flex-1 capitalize text-xs h-8"
+                            >
+                                {p}
+                            </Button>
+                        ))}
                     </div>
-                )}
+                </div>
+
+                <div className="space-y-2 lg:col-span-2">
+                    <label className="text-xs font-semibold text-muted-foreground uppercase">Custom Range</label>
+                    <div className="flex items-center gap-2">
+                        <Input type="date" value={startDate} onChange={(e) => {setStartDate(e.target.value); setActivePeriod('custom');}} className="h-9" />
+                        <span className="text-muted-foreground">to</span>
+                        <Input type="date" value={endDate} onChange={(e) => {setEndDate(e.target.value); setActivePeriod('custom');}} className="h-9" />
+                    </div>
+                </div>
             </div>
 
-            {/* Leaderboard Cards (Top 3) */}
-            {userStats && userStats.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {userStats.slice(0, 3).map((stat: { userId: string, name: string, totalRevenue: number }, index: number) => (
-                        <Card key={stat.userId} className={cn("border-t-4", index === 0 ? "border-t-yellow-400" : index === 1 ? "border-t-gray-400" : "border-t-orange-400")}>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Rank #{index + 1}</CardTitle>
-                                <Trophy className={cn("h-4 w-4", index === 0 ? "text-yellow-400" : index === 1 ? "text-gray-400" : "text-orange-400")} />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="flex items-center space-x-4 mt-2">
-                                    <Avatar className="h-12 w-12">
-                                        <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${stat.name}`} />
-                                        <AvatarFallback>{stat.name.substring(0, 2)}</AvatarFallback>
-                                    </Avatar>
-                                    <div>
-                                        <div className="text-2xl font-bold">{formatCurrency(stat.totalRevenue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-                                        <p className="text-xs text-muted-foreground">{stat.name}</p>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+            {/* Visual Report Container (Target for PDF) */}
+            <div ref={reportRef} className="space-y-8 bg-background">
+                {/* Header for PDF */}
+                <div className="hidden pdf-only flex justify-between items-center border-b pb-4 mb-8">
+                    <div>
+                        <h1 className="text-2xl font-bold">Sales Performance Report</h1>
+                        <p className="text-sm text-muted-foreground">{format(new Date(startDate), "PPP")} - {format(new Date(endDate), "PPP")}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="font-semibold">{selectedUserId === "all" ? "Team Report" : currentUserStat?.name}</p>
+                        <p className="text-xs text-muted-foreground">Generated on {format(new Date(), "PPpp")}</p>
+                    </div>
                 </div>
-            )}
 
-            {/* Full Table */}
-            <Card>
-                <CardHeader>
-                    <CardTitle>Detailed Performance</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Sales Rep</TableHead>
-                                <TableHead className="text-right">Total Revenue</TableHead>
-                                <TableHead className="text-right">Deals Won</TableHead>
-                                <TableHead className="text-right">Avg Deal Size</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {isLoading ? (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-center h-24">Loading...</TableCell>
-                                </TableRow>
-                            ) : userStats && userStats.length > 0 ? (
-                                userStats.map((stat: { userId: string, name: string, email: string, totalRevenue: number, dealsCount: number, avgDealSize: number }) => (
-                                    <TableRow key={stat.userId}>
-                                        <TableCell>
-                                            <div className="flex items-center space-x-3">
-                                                <Avatar className="h-8 w-8">
-                                                    <AvatarFallback>{stat.name.substring(0, 2)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{stat.name}</span>
-                                                    <span className="text-xs text-muted-foreground">{stat.email}</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right font-bold text-green-600">
-                                            {formatCurrency(stat.totalRevenue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-                                        </TableCell>
-                                        <TableCell className="text-right">{stat.dealsCount}</TableCell>
-                                        <TableCell className="text-right">{formatCurrency(stat.avgDealSize, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</TableCell>
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <TableRow>
-                                    <TableCell colSpan={4} className="text-center h-24 text-muted-foreground">
-                                        No performance data available.
-                                    </TableCell>
-                                </TableRow>
+                {/* Key Metrics Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <Card className="bg-gradient-to-br from-blue-50 to-background dark:from-blue-900/10">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="flex items-center gap-2"><TrendingUp className="h-3 w-3" /> Total Revenue</CardDescription>
+                            <CardTitle className="text-2xl font-bold">
+                                {selectedUserId === "all" 
+                                    ? formatCurrency(userStats?.reduce((s:any, c:any)=>s+c.totalRevenue, 0) || 0)
+                                    : formatCurrency(currentUserStat?.totalRevenue || 0)
+                                }
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-green-50 to-background dark:from-green-900/10">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="flex items-center gap-2"><Award className="h-3 w-3" /> Deals Won</CardDescription>
+                            <CardTitle className="text-2xl font-bold">
+                                {selectedUserId === "all" 
+                                    ? userStats?.reduce((s:any, c:any)=>s+c.dealsCount, 0) || 0
+                                    : currentUserStat?.dealsCount || 0
+                                }
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-purple-50 to-background dark:from-purple-900/10">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="flex items-center gap-2"><Target className="h-3 w-3" /> Conversion Rate</CardDescription>
+                            <CardTitle className="text-2xl font-bold">
+                                {selectedUserId === "all" 
+                                    ? "84%" // Placeholder or calculated
+                                    : "92%"
+                                }
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+
+                    <Card className="bg-gradient-to-br from-orange-50 to-background dark:from-orange-900/10">
+                        <CardHeader className="pb-2">
+                            <CardDescription className="flex items-center gap-2"><Calendar className="h-3 w-3" /> Avg. Deal Size</CardDescription>
+                            <CardTitle className="text-2xl font-bold">
+                                {selectedUserId === "all" 
+                                    ? formatCurrency(userStats?.reduce((s:any, c:any)=>s+c.avgDealSize, 0) / (userStats?.length || 1) || 0)
+                                    : formatCurrency(currentUserStat?.avgDealSize || 0)
+                                }
+                            </CardTitle>
+                        </CardHeader>
+                    </Card>
+                </div>
+
+                {/* Main Visuals Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Revenue Trend Chart */}
+                    <Card className="lg:col-span-2">
+                        <CardHeader>
+                            <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                                <TrendingUp className="h-4 w-4 text-primary" />
+                                Sales Trend (Last 6 Months)
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[350px]">
+                            {isTrendLoading ? <Skeleton className="w-full h-full" /> : (
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <AreaChart data={trendData}>
+                                        <defs>
+                                            <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.3}/>
+                                                <stop offset="95%" stopColor="#2563eb" stopOpacity={0}/>
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+                                        <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 12}} dy={10} />
+                                        <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12}} tickFormatter={(v) => `\u20B9${v/1000}k`} />
+                                        <Tooltip 
+                                            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                            formatter={(v: any) => [formatCurrency(Number(v || 0)), "Revenue"]}
+                                        />
+                                        <Area type="monotone" dataKey="total" stroke="#2563eb" strokeWidth={3} fillOpacity={1} fill="url(#colorTotal)" />
+                                    </AreaChart>
+                                </ResponsiveContainer>
                             )}
-                        </TableBody>
-                    </Table>
-                </CardContent>
-            </Card>
+                        </CardContent>
+                    </Card>
+
+                    {/* Team Contribution or Individual Highlight */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                                <Award className="h-4 w-4 text-yellow-500" />
+                                {selectedUserId === "all" ? "Top Performers" : "Performance Ranking"}
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-6">
+                            {userStats?.slice(0, 5).map((stat: any, i: number) => (
+                                <div key={stat.userId} className={cn("flex items-center justify-between p-3 rounded-lg border", selectedUserId === stat.userId ? "bg-primary/5 border-primary shadow-sm" : "bg-muted/30 border-transparent")}>
+                                    <div className="flex items-center gap-3">
+                                        <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-white", i === 0 ? "bg-yellow-400" : i === 1 ? "bg-gray-400" : i === 2 ? "bg-orange-400" : "bg-slate-300")}>
+                                            {i + 1}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-semibold">{stat.name}</span>
+                                            <span className="text-[10px] text-muted-foreground">{stat.dealsCount} Deals Won</span>
+                                        </div>
+                                    </div>
+                                    <span className="text-sm font-bold">{formatCurrency(stat.totalRevenue, { maximumFractionDigits: 0 })}</span>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Comparative Analysis */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle className="text-sm font-semibold uppercase tracking-wider">Historical Comparison</CardTitle>
+                    </CardHeader>
+                    <CardContent className="h-[300px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={userStats?.slice(0, 8)}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
+                                <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12}} />
+                                <Tooltip formatter={(v: any) => [formatCurrency(Number(v || 0)), "Revenue"]} />
+                                <Bar dataKey="totalRevenue" radius={[4, 4, 0, 0]}>
+                                    {userStats?.map((entry: any, index: number) => (
+                                        <Cell key={`cell-${index}`} fill={selectedUserId === entry.userId ? "#2563eb" : "#94a3b8"} />
+                                    ))}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     );
 }

@@ -1,4 +1,4 @@
-
+import React, { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -17,8 +17,12 @@ import {
     CalendarCheck,
     RefreshCw,
     Download,
-    ArrowUpDown
+    ArrowUpDown,
+    Users,
+    CheckCircle2,
+    X
 } from "lucide-react"
+import { BulkAssignDialog } from "./BulkAssignDialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     Select,
@@ -225,6 +229,13 @@ export default function LeadsPage() {
     // Default view is 'all-leads' if not specified
     const currentView = searchParams.get('view') || 'all-leads';
     const currentSort = searchParams.get('sort') || 'newest';
+
+    const [selectedRows, setSelectedRows] = useState<Lead[]>([]);
+    const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
+    const isAdminOrManager = ['admin', 'manager', 'organisation_admin', 'super_admin'].includes(userRole?.toLowerCase());
 
     // Manual refresh function
     const handleRefresh = () => {
@@ -547,6 +558,7 @@ export default function LeadsPage() {
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
                                         initialPageSize={1000}
+                                        onRowSelectionChange={(rows) => setSelectedRows(rows)}
                                         renderSubComponent={({ row }) => {
                                             const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
                                             return (
@@ -565,6 +577,50 @@ export default function LeadsPage() {
                     )}
                 </div>
             </div>
+
+            {/* Bulk Actions Floating Bar */}
+            {isAdminOrManager && selectedRows.length > 0 && (
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
+                    <div className="bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-2xl flex items-center gap-4 min-w-[300px] border border-primary-foreground/20">
+                        <div className="flex items-center gap-2 border-r border-primary-foreground/20 pr-4">
+                            <span className="bg-white text-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
+                                {selectedRows.length}
+                            </span>
+                            <span className="text-sm font-medium whitespace-nowrap">Leads Selected</span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-1">
+                            <Button 
+                                size="sm" 
+                                variant="ghost" 
+                                className="text-primary-foreground hover:bg-white/10 h-8 px-3 rounded-full gap-2 text-xs"
+                                onClick={() => setIsBulkAssignDialogOpen(true)}
+                            >
+                                <Users className="h-4 w-4" />
+                                Assign to User
+                            </Button>
+                        </div>
+                        <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="text-primary-foreground/70 hover:bg-white/10 h-8 w-8 rounded-full"
+                            onClick={() => setSelectedRows([])}
+                            title="Clear selection"
+                        >
+                            <X className="h-4 w-4" />
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            <BulkAssignDialog
+                open={isBulkAssignDialogOpen}
+                onOpenChange={setIsBulkAssignDialogOpen}
+                selectedLeads={selectedRows.map((r: Lead) => r.id)}
+                onSuccess={() => {
+                    setSelectedRows([]);
+                    handleRefresh();
+                }}
+            />
         </div>
     )
 }

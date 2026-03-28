@@ -11,9 +11,12 @@ export const getDashboardStats = async (branchId?: string) => {
     }
 };
 
-export const getSalesChartData = async (branchId?: string) => {
+export const getSalesChartData = async (branchId?: string, userId?: string) => {
     try {
-        const params = branchId ? { branchId } : {};
+        const params: any = {};
+        if (branchId) params.branchId = branchId;
+        if (userId) params.userId = userId;
+        
         const response = await api.get('/analytics/sales-chart', { params });
         // Ensure it's always an array
         return Array.isArray(response.data) ? response.data : [];

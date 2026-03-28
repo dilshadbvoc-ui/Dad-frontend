@@ -13,7 +13,7 @@ import {
     getExpandedRowModel,
     type ExpandedState,
 } from "@tanstack/react-table"
-import { useState, Fragment } from "react"
+import { useState, Fragment, useEffect } from "react"
 
 import {
     Table,
@@ -36,6 +36,7 @@ interface DataTableProps<TData, TValue> {
     mobileCardRender?: (row: TData) => React.ReactNode
     renderSubComponent?: (props: { row: any }) => React.ReactElement
     initialPageSize?: number
+    onRowSelectionChange?: (selectedRows: TData[]) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -46,7 +47,8 @@ export function DataTable<TData, TValue>({
     onRowDrop,
     mobileCardRender,
     renderSubComponent,
-    initialPageSize
+    initialPageSize,
+    onRowSelectionChange
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -93,6 +95,13 @@ export function DataTable<TData, TValue>({
             expanded,
         },
     })
+
+    // Expose row selection changes to parent
+    useEffect(() => {
+        if (onRowSelectionChange) {
+            onRowSelectionChange(table.getSelectedRowModel().rows.map(row => row.original))
+        }
+    }, [rowSelection, onRowSelectionChange, table])
 
     const handleDragOver = (e: React.DragEvent, rowId: string) => {
         if (!onRowDrop) return
