@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -232,6 +232,10 @@ export default function LeadsPage() {
 
     const [selectedRows, setSelectedRows] = useState<Lead[]>([]);
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+
+    const handleRowSelectionChange = useCallback((rows: Lead[]) => {
+        setSelectedRows(rows);
+    }, []);
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
@@ -561,7 +565,7 @@ export default function LeadsPage() {
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
                                         initialPageSize={1000}
-                                        onRowSelectionChange={(rows) => setSelectedRows(rows)}
+                                        onRowSelectionChange={handleRowSelectionChange}
                                         renderSubComponent={({ row }) => {
                                             const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
                                             return (
