@@ -131,9 +131,27 @@ export default function FieldForcePage() {
 
         const fetchLocation = (options: PositionOptions, isRetry = false) => {
             navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords
-                    submitCheckIn(latitude, longitude, 'Location acquired')
+                async (position) => {
+                    const { latitude, longitude } = position.coords;
+                    let locationName = 'Location acquired';
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`, {
+                            headers: {
+                                'Accept-Language': 'en-US,en'
+                            }
+                        });
+                        if (response.ok) {
+                            const data = await response.json();
+                            if (data && data.display_name) {
+                                // Extract the first 3 parts of the address for a concise name
+                                const parts = data.display_name.split(',');
+                                locationName = parts.slice(0, 3).join(',').trim();
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Reverse geocoding failed:', err);
+                    }
+                    submitCheckIn(latitude, longitude, locationName);
                 },
                 (error) => {
                     console.error(`Geolocation ${isRetry ? 'fallback' : 'primary'} error:`, error)
