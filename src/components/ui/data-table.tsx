@@ -13,7 +13,7 @@ import {
     getExpandedRowModel,
     type ExpandedState,
 } from "@tanstack/react-table"
-import { useState, Fragment, useEffect } from "react"
+import { useState, Fragment, useEffect, useMemo } from "react"
 
 import {
     Table,
@@ -99,9 +99,10 @@ export function DataTable<TData, TValue>({
     // Expose row selection changes to parent
     useEffect(() => {
         if (onRowSelectionChange) {
+            // Only map when rowSelection actually changed to avoid redundant calls
             onRowSelectionChange(table.getSelectedRowModel().rows.map(row => row.original))
         }
-    }, [rowSelection, onRowSelectionChange, table])
+    }, [rowSelection, onRowSelectionChange])
 
     const handleDragOver = (e: React.DragEvent, rowId: string) => {
         if (!onRowDrop) return

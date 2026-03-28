@@ -1,4 +1,4 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -316,10 +316,13 @@ export default function LeadsPage() {
         }
     };
 
-    const displayData = getDisplayData();
+    const displayData = useMemo(() => getDisplayData(), [leads, tasks, currentView]);
     const isTaskView = currentView.includes('followup');
     const isChartView = ['leads-by-status', 'leads-by-source', 'leads-by-ownership'].includes(currentView);
-    const sortedDisplayData = isTaskView ? displayData : sortLeads(displayData as Lead[]);
+    
+    const sortedDisplayData = useMemo(() => {
+        return isTaskView ? displayData : sortLeads(displayData as Lead[]);
+    }, [displayData, isTaskView, currentSort]);
 
     // --- Chart Data Helpers ---
     const getChartData = () => {
