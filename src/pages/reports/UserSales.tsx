@@ -37,10 +37,15 @@ import {
     ResponsiveContainer,
     BarChart,
     Bar,
-    Cell
+    Cell,
+    PieChart,
+    Pie,
+    Legend
 } from "recharts";
 import { jsPDF } from "jspdf";
-import html2canvas from "html2canvas";
+import { toPng } from "html-to-image";
+
+const COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626', '#9333ea', '#4f46e5', '#db2777', '#ca8a04', '#059669', '#65a30d'];
 
 export default function UserSalesPage() {
     const { formatCurrency } = useCurrency();
@@ -128,19 +133,22 @@ export default function UserSalesPage() {
         reportRef.current.classList.add('is-exporting');
         
         try {
-            const canvas = await html2canvas(reportRef.current, {
-                scale: 2,
-                useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff'
+            const dataUrl = await toPng(reportRef.current, {
+                cacheBust: true,
+                backgroundColor: '#ffffff',
+                pixelRatio: 2
             });
             
-            const imgData = canvas.toDataURL("image/png");
             const pdf = new jsPDF("p", "mm", "a4");
             const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
             
-            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            // Get image height dynamically
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise((resolve) => { img.onload = resolve; });
+            const pdfHeight = (img.height * pdfWidth) / img.width;
+            
+            pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
             pdf.save(`Sales_Report_${selectedUserId === "all" ? "Team" : selectedUserId}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
             toast.success("PDF report downloaded successfully!");
         } catch (error) {
@@ -278,8 +286,8 @@ export default function UserSalesPage() {
                             <CardDescription className="flex items-center gap-2"><Target className="h-3 w-3" /> Conversion Rate</CardDescription>
                             <CardTitle className="text-2xl font-bold">
                                 {selectedUserId === "all" 
-                                    ? "84%" // Placeholder or calculated
-                                    : "92%"
+                                    ? `${Math.round(userStats?.reduce((s:any, c:any)=>s+c.winRate, 0) / (userStats?.length || 1) || 0)}%`
+                                    : `${Math.round(currentUserStat?.winRate || 0)}%`
                                 }
                             </CardTitle>
                         </CardHeader>
@@ -310,7 +318,7 @@ export default function UserSalesPage() {
                         </CardHeader>
                         <CardContent className="h-[350px]">
                             {isTrendLoading ? <Skeleton className="w-full h-full" /> : (
-                                <ResponsiveContainer width="100%" height="100%">
+                                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                                     <AreaChart data={trendData}>
                                         <defs>
                                             <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -359,13 +367,67 @@ export default function UserSalesPage() {
                     </Card>
                 </div>
 
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Revenue Distribution */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                                <FileText className="h-4 w-4 text-primary" /> Revenue Share
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                                <PieChart>
+                                    <Pie
+                                        data={userStats || []}
+                                        dataKey="totalRevenue"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        outerRadius={90}
+                                        innerRadius={60}
+                                        paddingAngle={2}
+                                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                                    >
+                                        {(userStats || []).map((entry: any, index: number) => (
+                                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip formatter={(v: any) => [formatCurrency(Number(v || 0)), "Revenue"]} />
+                                    <Legend />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+
+                    {/* Win Rate Tracker */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-sm font-semibold uppercase tracking-wider flex items-center gap-2">
+                                <Target className="h-4 w-4 text-purple-600" /> Win Rate Comparison
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="h-[300px]">
+                            <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                                <BarChart data={userStats?.slice(0, 8)}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
+                                    <YAxis axisLine={false} tickLine={false} tick={{fontSize: 12}} domain={[0, 100]} />
+                                    <Tooltip formatter={(v: any) => [`${Number(v || 0)}%`, "Win Rate"]} />
+                                    <Bar dataKey="winRate" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                                </BarChart>
+                            </ResponsiveContainer>
+                        </CardContent>
+                    </Card>
+                </div>
+
                 {/* Comparative Analysis */}
                 <Card>
                     <CardHeader>
                         <CardTitle className="text-sm font-semibold uppercase tracking-wider">Historical Comparison</CardTitle>
                     </CardHeader>
                     <CardContent className="h-[300px]">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height="100%" minHeight={300}>
                             <BarChart data={userStats?.slice(0, 8)}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
