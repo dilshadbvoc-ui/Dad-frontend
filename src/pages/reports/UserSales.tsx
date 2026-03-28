@@ -387,7 +387,7 @@ export default function UserSalesPage() {
                                         outerRadius={90}
                                         innerRadius={60}
                                         paddingAngle={2}
-                                        label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                                        label={({ percent }) => `${((percent || 0) * 100).toFixed(0)}%`}
                                     >
                                         {(userStats || []).map((entry: any, index: number) => (
                                             <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
