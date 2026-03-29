@@ -9,6 +9,7 @@ import { SocketContext } from './SocketContextObject';
 export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [connected, setConnected] = useState(false);
+    const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
 
     useEffect(() => {
         const connectSocket = () => {
@@ -23,8 +24,18 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                            setSocket(socketInstance);
                            setConnected(socketInstance.connected);
                            
-                           socketInstance.on('connect', () => setConnected(true));
-                           socketInstance.on('disconnect', () => setConnected(false));
+                           socketInstance.on('connect', () => {
+                               setConnected(true);
+                           });
+                           
+                           socketInstance.on('disconnect', () => {
+                               setConnected(false);
+                           });
+
+                           socketInstance.on('online_users_update', (data: { onlineUsers: string[] }) => {
+                               console.log('[SocketContext] Online users updated:', data.onlineUsers);
+                               setOnlineUsers(data.onlineUsers || []);
+                           });
                        }
                    }
                 } catch (e) {
@@ -38,6 +49,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const handleAuthRefresh = () => {
             console.log('[SocketContext] Auth refresh detected, reconnecting socket...');
             socketService.disconnect();
+            setOnlineUsers([]);
             connectSocket();
         };
 
@@ -50,11 +62,12 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
             socketService.disconnect();
             setConnected(false);
+            setOnlineUsers([]);
         };
     }, []);
 
     return (
-        <SocketContext.Provider value={{ socket, connected }}>
+        <SocketContext.Provider value={{ socket, connected, onlineUsers }}>
             {children}
         </SocketContext.Provider>
     );

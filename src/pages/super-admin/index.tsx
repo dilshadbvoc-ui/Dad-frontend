@@ -8,7 +8,16 @@ import {
     CreditCard,
     Shield,
     Search,
-    MoreHorizontal
+    MoreHorizontal,
+    Database,
+    Download,
+    Upload,
+    AlertTriangle,
+    CheckCircle2,
+    Loader2,
+    FileJson,
+    Trash2,
+    ChevronRight
 } from 'lucide-react';
 import {
     Card,
@@ -452,46 +461,186 @@ export default function SuperAdminDashboard() {
                     <GlobalRolesManagement />
                 </TabsContent>
 
-                <TabsContent value="database">
-                    <Card className="bg-[#1e1b4b] border-indigo-900/50">
-                        <CardHeader>
-                            <CardTitle className="text-white">Database Viewer</CardTitle>
-                            <CardDescription className="text-slate-400">
-                                View and manage database tables (Prisma Studio)
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="space-y-4">
-                                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-lg p-6">
-                                    <p className="text-slate-300 mb-4">
-                                        Access Prisma Studio to view and edit database records directly.
-                                    </p>
-                                    <div className="flex gap-4">
-                                        <Button
-                                            onClick={() => window.open('http://localhost:5555', '_blank')}
-                                            className="bg-indigo-600 hover:bg-indigo-700"
-                                        >
-                                            Open Prisma Studio (Local)
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            onClick={() => {
-                                                toast.info('Prisma Studio must be started manually on the server');
-                                            }}
-                                            className="border-indigo-700 text-indigo-300 hover:bg-indigo-900/30"
-                                        >
-                                            Instructions
-                                        </Button>
+                <TabsContent value="database" className="space-y-6">
+                    <div className="grid gap-6 md:grid-cols-2">
+                        {/* ─── Platform Backup ─────────────────────────── */}
+                        <Card className="bg-[#1e1b4b] border-indigo-900/50 flex flex-col">
+                            <CardHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                        <Download className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-white">Platform Export</CardTitle>
+                                        <CardDescription className="text-slate-400">
+                                            Download a complete backup of the entire platform.
+                                        </CardDescription>
                                     </div>
                                 </div>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                <p className="text-sm text-slate-300 mb-6">
+                                    This will generate a comprehensive <strong>.json</strong> file containing all organisations, users, leads, accounts, and configuration data.
+                                </p>
+                                <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4 mb-6">
+                                    <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2">Backup Scope</h4>
+                                    <ul className="text-xs text-slate-400 space-y-1">
+                                        <li>• 50+ Database Tables</li>
+                                        <li>• Global Roles & System Settings</li>
+                                        <li>• Organisation Hierarchy & Data</li>
+                                        <li>• Full Audit Logs & Statistics</li>
+                                    </ul>
+                                </div>
+                            </CardContent>
+                            <CardContent className="pt-0">
+                                <Button 
+                                    className="w-full bg-indigo-600 hover:bg-indigo-700 h-11 font-bold"
+                                    onClick={async () => {
+                                        try {
+                                            toast.loading('Generating platform backup...', { id: 'platform-backup' });
+                                            const response = await api.get('/super-admin/platform/export', { responseType: 'blob' });
+                                            
+                                            const url = window.URL.createObjectURL(new Blob([response.data]));
+                                            const link = document.createElement('a');
+                                            link.href = url;
+                                            link.setAttribute('download', `platform-full-backup-${new Date().toISOString().split('T')[0]}.json`);
+                                            document.body.appendChild(link);
+                                            link.click();
+                                            link.parentNode?.removeChild(link);
+                                            
+                                            toast.success('Platform backup downloaded', { id: 'platform-backup' });
+                                        } catch (error) {
+                                            toast.error('Export failed', { id: 'platform-backup' });
+                                        }
+                                    }}
+                                >
+                                    <FileJson className="mr-2 h-4 w-4" />
+                                    Generate Full Backup
+                                </Button>
+                            </CardContent>
+                        </Card>
 
-                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
-                                    <h4 className="text-amber-300 font-semibold mb-2">⚠️ Important Notes:</h4>
-                                    <ul className="text-amber-200/80 text-sm space-y-1 list-disc list-inside">
-                                        <li>Prisma Studio runs on port 5555 by default</li>
-                                        <li>For local development: Run <code className="bg-amber-900/30 px-1 rounded">npx prisma studio</code> in the server directory</li>
-                                        <li>For production: Prisma Studio should be run securely with authentication</li>
-                                        <li>Be careful when editing data directly - changes are immediate</li>
+                        {/* ─── Platform Restore (Danger Zone) ──────────── */}
+                        <Card className="bg-[#1e1b4b] border-red-900/30 flex flex-col relative overflow-hidden">
+                            <div className="absolute top-0 right-0 p-1">
+                                <div className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-widest border-l border-b border-red-900/20">
+                                    Danger Zone
+                                </div>
+                            </div>
+                            <CardHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="p-2 rounded-lg bg-red-500/10 text-red-500">
+                                        <Upload className="h-5 w-5" />
+                                    </div>
+                                    <div>
+                                        <CardTitle className="text-white">Platform Restore</CardTitle>
+                                        <CardDescription className="text-slate-400">
+                                            Restore the entire system from a backup file.
+                                        </CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="flex-1">
+                                <div className="bg-red-900/10 border border-red-500/20 rounded-xl p-4 mb-4">
+                                    <div className="flex gap-3">
+                                        <AlertTriangle className="h-5 w-5 text-red-500 shrink-0" />
+                                        <p className="text-xs text-red-200/70 leading-relaxed">
+                                            <strong>CRITICAL WARNING:</strong> This process will <strong>WIPE ALL CURRENT DATA</strong> from the database before importing the backup. This cannot be undone.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="block">
+                                        <div className="border-2 border-dashed border-slate-700 hover:border-indigo-500/50 rounded-xl p-8 transition-all cursor-pointer bg-[#0f172a]/50 text-center">
+                                            <Upload className="h-8 w-8 text-slate-500 mx-auto mb-3" />
+                                            <p className="text-sm font-medium text-slate-300">
+                                                Click to upload or drag & drop backup file
+                                            </p>
+                                            <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">
+                                                Support for .json platform backups
+                                            </p>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            className="hidden" 
+                                            accept=".json"
+                                            onChange={async (e) => {
+                                                const file = e.target.files?.[0];
+                                                if (!file) return;
+
+                                                const reader = new FileReader();
+                                                reader.onload = async (event) => {
+                                                    try {
+                                                        const backupData = JSON.parse(event.target?.result as string);
+                                                        
+                                                        // Safety checks
+                                                        if (!backupData.tables || !backupData.version) {
+                                                            toast.error('Invalid backup file format');
+                                                            return;
+                                                        }
+
+                                                        const confirmText = prompt(`⚠️ FULL SYSTEM WIPE WARNING ⚠️\n\nThis will delete all current data and restore from the backup file.\n\nTo proceed, type exactly:\nPERMANENTLY_DELETE_ALL_DATA`);
+
+                                                        if (confirmText === 'PERMANENTLY_DELETE_ALL_DATA') {
+                                                            toast.loading('Performing system restoration... this may take a minute.', { id: 'restore' });
+                                                            await api.post('/super-admin/platform/restore', { 
+                                                                backupData, 
+                                                                confirmDelete: confirmText 
+                                                            });
+                                                            toast.success('System restored successfully! Reloading...', { id: 'restore' });
+                                                            setTimeout(() => window.location.reload(), 2000);
+                                                        } else {
+                                                            toast.error('Restoration cancelled. Confirmation string did not match.');
+                                                        }
+                                                    } catch (err) {
+                                                        toast.error('Failed to parse backup file');
+                                                    }
+                                                };
+                                                reader.readAsText(file);
+                                            }}
+                                        />
+                                    </label>
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    <Card className="bg-[#1e1b4b] border-indigo-900/50">
+                        <CardHeader>
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
+                                    <Database className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <CardTitle className="text-white">Database Viewer</CardTitle>
+                                    <CardDescription className="text-slate-400">
+                                        External tools for direct database management.
+                                    </CardDescription>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid gap-4 md:grid-cols-2">
+                                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-xl p-5 group hover:border-indigo-500/30 transition-all">
+                                    <h4 className="text-white font-bold mb-1">Prisma Studio</h4>
+                                    <p className="text-xs text-slate-400 mb-4">Visual spreadsheet-like interface for your database tables.</p>
+                                    <Button
+                                        onClick={() => window.open('http://localhost:5555', '_blank')}
+                                        className="w-full bg-slate-800 hover:bg-slate-700 text-xs h-9 justify-between pr-3"
+                                    >
+                                        <span>Open Prisma Studio (Local)</span>
+                                        <ChevronRight className="h-3 w-3" />
+                                    </Button>
+                                </div>
+                                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-xl p-5">
+                                    <div className="flex gap-2 items-center mb-3">
+                                        <AlertTriangle className="h-4 w-4 text-amber-400" />
+                                        <h4 className="text-amber-400 font-bold text-sm">Security Note</h4>
+                                    </div>
+                                    <ul className="text-[10px] text-slate-500 space-y-1 mt-1 leading-relaxed">
+                                        <li>• Direct database access bypasses application logic.</li>
+                                        <li>• Use restoration tools for major environment syncs.</li>
+                                        <li>• Export daily to ensure data integrity during development.</li>
                                     </ul>
                                 </div>
                             </div>

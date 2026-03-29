@@ -13,8 +13,8 @@ import { Link } from 'react-router-dom';
 import { getCallSettings, updateCallSettings, type CallSettings } from '@/services/callSettingsService';
 
 const defaultSettings: Partial<CallSettings> = {
-    autoRecordOutbound: true,
-    autoRecordInbound: true,
+    autoRecordOutbound: false,
+    autoRecordInbound: false,
     recordingQuality: 'high',
     storageType: 'local',
     retentionDays: 90,

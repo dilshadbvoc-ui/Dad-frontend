@@ -135,6 +135,14 @@ const ALL_SETTINGS_SECTIONS = [
         roles: ['admin']
     },
     {
+        title: "WhatsApp Scraper",
+        description: "Control automatic WhatsApp message synchronization from Android devices",
+        href: "/settings/whatsapp-scraper",
+        icon: Webhook,
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
+    },
+    {
         title: "Billing & Subscription",
         description: "Manage plans, invoices, and payment methods",
         href: "/settings/billing",

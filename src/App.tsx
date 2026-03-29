@@ -96,6 +96,7 @@ const BulkImportSettingsPage = lazy(() => import('./pages/settings/bulk-import')
 const BillingSettingsPage = lazy(() => import('./pages/settings/Billing'));
 const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
+const WhatsAppScraperSettingsPage = lazy(() => import('./pages/settings/whatsapp-scraper'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
@@ -286,6 +287,7 @@ function AppContent() {
               <Route path="/settings/custom-fields" element={<CustomFieldsSettingsPage />} />
               <Route path="/settings/territories" element={<TerritoriesSettingsPage />} />
               <Route path="/settings/call-recording" element={<CallRecordingSettingsPage />} />
+              <Route path="/settings/whatsapp-scraper" element={<WhatsAppScraperSettingsPage />} />
               <Route path="/settings/import" element={<ImportSettingsPage />} />
               <Route path="/settings/bulk-import" element={<BulkImportSettingsPage />} />
               <Route path="/settings/billing" element={<BillingSettingsPage />} />

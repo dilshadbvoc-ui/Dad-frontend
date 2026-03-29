@@ -40,6 +40,7 @@ import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
 import { api } from "@/services/api";
 import { clearAndroidToken } from "@/utils/androidBridge";
+import { useSocket } from "@/contexts/useSocket";
 
 const menuGroups = [
     {
@@ -125,6 +126,8 @@ const TeamMemberItem = ({ member, level = 0 }: { member: any, level?: number }) 
     const [subordinates, setSubordinates] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const { onlineUsers } = useSocket();
+    const isOnline = onlineUsers.includes(member.id);
 
     const handleToggle = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -147,8 +150,13 @@ const TeamMemberItem = ({ member, level = 0 }: { member: any, level?: number }) 
                 )}
                 onClick={() => navigate(`/users/${member.id}`)}
             >
-                <div className="h-6 w-6 rounded-full bg-sidebar-active/20 flex items-center justify-center text-[10px] font-bold text-sidebar-active shrink-0">
-                    {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                <div className="relative shrink-0">
+                    <div className="h-6 w-6 rounded-full bg-sidebar-active/20 flex items-center justify-center text-[10px] font-bold text-sidebar-active">
+                        {member.firstName?.charAt(0)}{member.lastName?.charAt(0)}
+                    </div>
+                    {isOnline && (
+                        <span className="absolute -bottom-0.5 -right-0.5 h-2 w-2 rounded-full bg-green-500 border border-sidebar-bg ring-1 ring-green-500/20 shadow-[0_0_8px_rgba(34,197,94,0.6)] animate-pulse" />
+                    )}
                 </div>
                 <div className="flex-1 min-w-0">
                     <p className="text-xs font-semibold text-sidebar-text truncate group-hover:text-sidebar-active transition-colors">
@@ -383,8 +391,11 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             {/* Footer - Fixed Height Section */}
             <div className="p-4 border-t border-sidebar-border bg-sidebar-bg mt-auto shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="h-9 w-9 rounded-lg bg-sidebar-active flex items-center justify-center text-sm font-bold text-sidebar-bg shadow-sm shrink-0">
-                        {user?.firstName?.charAt(0) || 'U'}
+                    <div className="relative shrink-0">
+                        <div className="h-9 w-9 rounded-lg bg-sidebar-active flex items-center justify-center text-sm font-bold text-sidebar-bg shadow-sm">
+                            {user?.firstName?.charAt(0) || 'U'}
+                        </div>
+                        <span className="absolute -bottom-1 -right-1 h-3 w-3 rounded-full bg-green-500 border-2 border-sidebar-bg shadow-[0_0_8px_rgba(34,197,94,0.4)]" />
                     </div>
                     {!isCollapsed && (
                         <>

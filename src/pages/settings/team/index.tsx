@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { api } from "@/services/api"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Switch } from "@/components/ui/switch"
 import {
     Table,
     TableBody,
@@ -98,8 +99,8 @@ function HierarchyNode({
     node: TreeNode
     depth: number
     onEdit: (m: TeamMember) => void
-    onSuspend: (userId: string) => void
-    onActivate: (userId: string) => void
+    onSuspend: (m: TeamMember) => void
+    onActivate: (m: TeamMember) => void
 }) {
     const [expanded, setExpanded] = useState(true)
     const m = node.user
@@ -120,7 +121,7 @@ function HierarchyNode({
                 </button>
 
                 {/* Avatar */}
-                <Avatar className="h-8 w-8">
+                <Avatar className={`h-8 w-8 ${!m.isActive ? 'grayscale' : ''}`}>
                     <AvatarImage src={m.avatar} />
                     <AvatarFallback className="text-xs">{m.firstName[0]}{m.lastName[0]}</AvatarFallback>
                 </Avatar>
@@ -139,7 +140,9 @@ function HierarchyNode({
                             </Badge>
                         )}
                         {!m.isActive && (
-                            <Badge variant="secondary" className="text-[10px]">Inactive</Badge>
+                            <Badge variant="destructive" className="h-[18px] px-1 text-[9px] uppercase font-bold tracking-tighter">
+                                Suspended
+                            </Badge>
                         )}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
@@ -166,7 +169,7 @@ function HierarchyNode({
                         <DropdownMenuSeparator />
                         {m.isActive ? (
                             <DropdownMenuItem 
-                                onClick={() => onSuspend(m.id)}
+                                onClick={() => onSuspend(m)}
                                 className="text-destructive focus:text-destructive"
                             >
                                 <UserX className="h-4 w-4 mr-2" />
@@ -174,7 +177,7 @@ function HierarchyNode({
                             </DropdownMenuItem>
                         ) : (
                             <DropdownMenuItem 
-                                onClick={() => onActivate(m.id)}
+                                onClick={() => onActivate(m)}
                                 className="text-green-600 focus:text-green-600"
                             >
                                 <UserCheck className="h-4 w-4 mr-2" />
@@ -208,6 +211,9 @@ export default function TeamSettings() {
     const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
     const [viewMode, setViewMode] = useState<'table' | 'tree'>('tree')
+    const [suspendingUser, setSuspendingUser] = useState<TeamMember | null>(null)
+    const [activatingUser, setActivatingUser] = useState<TeamMember | null>(null)
+    const [moveBack, setMoveBack] = useState(true)
     const queryClient = useQueryClient()
 
     const { data: userData, isLoading } = useQuery({
@@ -283,6 +289,7 @@ export default function TeamSettings() {
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] })
             toast.success("User suspended successfully")
+            setSuspendingUser(null)
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || "Failed to suspend user")
@@ -290,13 +297,14 @@ export default function TeamSettings() {
     })
 
     const activateMutation = useMutation({
-        mutationFn: async (userId: string) => {
-            const res = await api.post(`/users/${userId}/activate`)
+        mutationFn: async ({ userId, moveBack }: { userId: string, moveBack: boolean }) => {
+            const res = await api.post(`/users/${userId}/activate`, { moveBack })
             return res.data
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['users'] })
             toast.success("User activated successfully")
+            setActivatingUser(null)
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || "Failed to activate user")
@@ -414,18 +422,21 @@ export default function TeamSettings() {
                                 </TableRow>
                             ) : (
                                 filteredMembers.map((member: TeamMember) => (
-                                    <TableRow key={member.id}>
+                                    <TableRow key={member.id} className={!member.isActive ? 'bg-muted/30 opacity-80' : ''}>
                                         <TableCell>
                                             <div className="flex items-center gap-3">
-                                                <Avatar>
+                                                <Avatar className={`h-8 w-8 ${!member.isActive ? 'grayscale' : ''}`}>
                                                     <AvatarImage src={member.avatar} />
-                                                    <AvatarFallback>
-                                                        {member.firstName[0]}{member.lastName[0]}
-                                                    </AvatarFallback>
+                                                    <AvatarFallback>{member.firstName[0]}{member.lastName[0]}</AvatarFallback>
                                                 </Avatar>
                                                 <div>
-                                                    <div className="font-medium text-foreground">
+                                                    <div className="flex items-center gap-2 font-medium text-foreground">
                                                         {member.firstName} {member.lastName}
+                                                        {!member.isActive && (
+                                                            <Badge variant="destructive" className="h-5 px-1.5 text-[10px] uppercase">
+                                                                Suspended
+                                                            </Badge>
+                                                        )}
                                                     </div>
                                                     <div className="text-xs text-muted-foreground flex items-center gap-1">
                                                         <Mail className="h-3 w-3" />
@@ -475,8 +486,14 @@ export default function TeamSettings() {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            <Badge variant={member.isActive ? "default" : "secondary"} className={member.isActive ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-0" : ""}>
-                                                {member.isActive ? "Active" : "Inactive"}
+                                            <Badge 
+                                                variant={member.isActive ? "default" : "secondary"} 
+                                                className={member.isActive 
+                                                    ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/25 border-0" 
+                                                    : "bg-red-500/15 text-red-600 dark:text-red-400 border-0"
+                                                }
+                                            >
+                                                {member.isActive ? "Active" : "Suspended"}
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -495,7 +512,7 @@ export default function TeamSettings() {
                                                         <DropdownMenuSeparator />
                                                         {member.isActive ? (
                                                             <DropdownMenuItem 
-                                                                onClick={() => suspendMutation.mutate(member.id)}
+                                                                onClick={() => setSuspendingUser(member)}
                                                                 className="text-destructive focus:text-destructive"
                                                             >
                                                                 <UserX className="h-4 w-4 mr-2" />
@@ -503,7 +520,7 @@ export default function TeamSettings() {
                                                             </DropdownMenuItem>
                                                         ) : (
                                                             <DropdownMenuItem 
-                                                                onClick={() => activateMutation.mutate(member.id)}
+                                                                onClick={() => setActivatingUser(member)}
                                                                 className="text-green-600 focus:text-green-600"
                                                             >
                                                                 <UserCheck className="h-4 w-4 mr-2" />
@@ -537,8 +554,8 @@ export default function TeamSettings() {
                                     node={node} 
                                     depth={0} 
                                     onEdit={openEdit} 
-                                    onSuspend={(userId) => suspendMutation.mutate(userId)}
-                                    onActivate={(userId) => activateMutation.mutate(userId)}
+                                    onSuspend={(m) => setSuspendingUser(m)}
+                                    onActivate={(m) => setActivatingUser(m)}
                                 />
                             ))}
                         </div>
@@ -702,6 +719,97 @@ export default function TeamSettings() {
                             </Button>
                         </DialogFooter>
                     </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* ─── Suspend Confirmation Dialog ────────────────── */}
+            <Dialog open={!!suspendingUser} onOpenChange={() => setSuspendingUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Suspend User?</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to suspend <strong>{suspendingUser?.firstName} {suspendingUser?.lastName}</strong>?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4 text-sm">
+                        <p className="text-muted-foreground p-3 bg-muted rounded-lg border border-border">
+                            {suspendingUser?.reportsTo ? (
+                                <>All active leads and tasks will be transferred to their manager, <strong>{suspendingUser.reportsTo.firstName} {suspendingUser.reportsTo.lastName}</strong>.</>
+                            ) : (
+                                <>This user has no manager assigned. All active leads and tasks will be transferred to the <strong>Organization Admin</strong>.</>
+                            )}
+                        </p>
+                        <p className="text-xs text-destructive">
+                            The user will no longer be able to access the CRM until reactivated.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setSuspendingUser(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            onClick={() => suspendingUser && suspendMutation.mutate(suspendingUser.id)}
+                            disabled={suspendMutation.isPending}
+                        >
+                            {suspendMutation.isPending ? "Configuring..." : "Confirm Suspension"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* ─── Activate Confirmation Dialog ───────────────── */}
+            <Dialog open={!!activatingUser} onOpenChange={() => setActivatingUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Activate User?</DialogTitle>
+                        <DialogDescription>
+                            Reactivate <strong>{activatingUser?.firstName} {activatingUser?.lastName}</strong>'s account access.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-6 space-y-6">
+                        <div className="flex items-center gap-4 p-4 rounded-xl border bg-muted/30">
+                            <Avatar className="h-12 w-12 grayscale opacity-70">
+                                <AvatarImage src={activatingUser?.avatar} />
+                                <AvatarFallback>{activatingUser?.firstName[0]}{activatingUser?.lastName[0]}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <div className="flex items-center gap-2 font-bold text-lg leading-none mb-1">
+                                    {activatingUser?.firstName} {activatingUser?.lastName}
+                                    <Badge variant="destructive" className="text-[10px] uppercase font-bold px-1.5 h-5 bg-red-500/10 text-red-600 border-red-200">
+                                        Suspended
+                                    </Badge>
+                                </div>
+                                <div className="text-sm text-muted-foreground">{activatingUser?.email}</div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between p-5 rounded-xl border-2 border-primary/20 bg-primary/5 shadow-sm">
+                            <div className="space-y-1">
+                                <Label className="text-base font-bold text-primary">Restore assigned items</Label>
+                                <p className="text-xs text-muted-foreground max-w-[280px]">
+                                    Automatically pull all transferred leads, accounts, and tasks back to this user's ownership.
+                                </p>
+                            </div>
+                            <Switch 
+                                checked={moveBack} 
+                                onCheckedChange={setMoveBack}
+                                className="scale-110"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setActivatingUser(null)}>
+                            Cancel
+                        </Button>
+                        <Button 
+                            className="bg-green-600 hover:bg-green-700" 
+                            onClick={() => activatingUser && activateMutation.mutate({ userId: activatingUser.id, moveBack })}
+                            disabled={activateMutation.isPending}
+                        >
+                            {activateMutation.isPending ? "Activating..." : "Confirm Activation"}
+                        </Button>
+                    </DialogFooter>
                 </DialogContent>
             </Dialog>
         </div >
