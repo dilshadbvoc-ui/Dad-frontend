@@ -83,7 +83,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             </CardHeader>
             <CardContent>
                 <div className="relative pl-6 border-l-2 border-border space-y-8">
-                    {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, recordingDuration?: number, fileUrl?: string }, date: string, actor?: { firstName: string } }) => (
+                    {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, recordingDuration?: number, fileUrl?: string, recordingUrl?: string }, date: string, actor?: { firstName: string } }) => (
                         <div key={item.id} className="relative">
                             <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
                                 {getIcon(item)}
@@ -99,21 +99,32 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
 
                                     {/* Detailed Metadata rendering could go here */}
                                     {item.type === 'interaction' && item.subType === 'call' && (
-                                        <div className="flex items-center gap-2 mt-2">
-                                            {item.meta?.direction && (
-                                                <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider font-bold">
-                                                    {item.meta.direction}
-                                                </span>
+                                        <div className="flex flex-col gap-2 mt-2">
+                                            <div className="flex items-center gap-2">
+                                                {item.meta?.direction && (
+                                                    <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider font-bold">
+                                                        {item.meta.direction}
+                                                    </span>
+                                                )}
+                                                {item.meta?.recordingDuration ? (
+                                                    <span className="text-xs text-muted-foreground italic">
+                                                        ({Math.floor(item.meta.recordingDuration / 60)}m {item.meta.recordingDuration % 60}s)
+                                                    </span>
+                                                ) : item.meta?.duration ? (
+                                                    <span className="text-xs text-muted-foreground italic">
+                                                        ({Math.floor(item.meta.duration)}m {Math.round((item.meta.duration % 1) * 60)}s)
+                                                    </span>
+                                                ) : null}
+                                            </div>
+                                            {item.meta?.recordingUrl && item.meta.recordingUrl !== '' && (
+                                                <audio
+                                                    controls
+                                                    className="h-8 w-full max-w-sm mt-1"
+                                                    src={item.meta.recordingUrl.startsWith('/') ? item.meta.recordingUrl : `/${item.meta.recordingUrl}`}
+                                                >
+                                                    Your browser does not support the audio element.
+                                                </audio>
                                             )}
-                                            {item.meta?.recordingDuration ? (
-                                                <span className="text-xs text-muted-foreground italic">
-                                                    ({Math.floor(item.meta.recordingDuration / 60)}m {item.meta.recordingDuration % 60}s)
-                                                </span>
-                                            ) : item.meta?.duration ? (
-                                                <span className="text-xs text-muted-foreground italic">
-                                                    ({Math.floor(item.meta.duration)}m {Math.round((item.meta.duration % 1) * 60)}s)
-                                                </span>
-                                            ) : null}
                                         </div>
                                     )}
 
