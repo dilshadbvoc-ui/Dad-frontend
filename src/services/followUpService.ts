@@ -35,3 +35,13 @@ export const getFollowUps = async (params?: FollowUpSearchParams) => {
     const response = await api.get('/follow-ups', { params });
     return response.data;
 };
+
+export const createFollowUp = async (data: Partial<FollowUpTask>) => {
+    const response = await api.post('/follow-ups', data);
+    return response.data;
+};
+
+export const updateFollowUp = async (id: string, data: Partial<FollowUpTask>) => {
+    const response = await api.put(`/follow-ups/${id}`, data);
+    return response.data;
+};

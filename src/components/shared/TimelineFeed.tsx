@@ -50,6 +50,8 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                 return <Mail className="h-4 w-4" />;
             case 'task':
                 return <CheckSquare className="h-4 w-4" />;
+            case 'followUp':
+                return <Clock className="h-4 w-4" />;
             case 'event':
                 return <Calendar className="h-4 w-4" />;
             case 'audit':
@@ -66,7 +68,8 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
             case 'interaction': 
                 if (item.subType === 'whatsapp') return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
                 return 'bg-primary/10 text-primary ring-primary/20';
-            case 'task': return 'bg-green-500/10 text-green-600 dark:text-green-400 ring-green-500/20';
+            case 'task': return 'bg-orange-500/10 text-orange-600 dark:text-orange-400 ring-orange-500/20';
+            case 'followUp': return 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-indigo-500/20';
             case 'event': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20';
             case 'audit': return 'bg-muted text-muted-foreground ring-border';
             case 'recording': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20';

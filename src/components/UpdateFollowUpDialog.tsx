@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { updateTask } from '@/services/taskService';
+import { updateFollowUp } from '@/services/followUpService';
 import { createInteraction } from '@/services/interactionService';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
@@ -30,7 +30,7 @@ interface UpdateFollowUpDialogProps {
 }
 
 export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: UpdateFollowUpDialogProps) {
-    const [status, setStatus] = useState(task.status);
+    const [status, setStatus] = useState<"not_started" | "in_progress" | "completed" | "deferred">(task.status as any);
     const [remark, setRemark] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const queryClient = useQueryClient();
@@ -50,19 +50,14 @@ export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: Up
             const [hours, mins] = time.split(':').map(Number);
             const newDueDate = new Date(year, month - 1, day, hours, mins).toISOString();
 
-            // 2. Update Task
-            await updateTask(task.id, {
+            // 2. Update Follow-up
+            await updateFollowUp(task.id, {
                 status,
                 dueDate: newDueDate
             });
 
-            // 3. Update Lead nextFollowUp if applicable
             const leadId = task.leadId || task.lead?.id;
             if (leadId) {
-                await api.put(`/leads/${leadId}`, {
-                    nextFollowUp: newDueDate
-                });
-
                 // 4. Create Interaction (Remark) if provided
                 if (remark.trim()) {
                     await createInteraction({
@@ -107,7 +102,7 @@ export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: Up
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="space-y-2">
                         <Label htmlFor="status">Status</Label>
-                        <Select value={status} onValueChange={setStatus}>
+                        <Select value={status} onValueChange={(val: any) => setStatus(val)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="Select Status" />
                             </SelectTrigger>

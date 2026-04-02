@@ -13,10 +13,10 @@ import { LogCallDialog } from "@/components/LogCallDialog"
 import { ConvertLeadDialog } from "@/components/ConvertLeadDialog"
 import { EditLeadDialog } from "@/components/shared/EditLeadDialog"
 import { CreateTaskDialog } from "@/components/CreateTaskDialog"
+import { CreateFollowUpDialog } from "@/components/CreateFollowUpDialog"
 import { LogNoteDialog } from "@/components/LogNoteDialog"
 import { ScheduleMeetingDialog } from "@/components/ScheduleMeetingDialog"
 import { AssignLeadDialog } from "@/components/AssignLeadDialog"
-import { SetFollowUpDialog } from "@/components/SetFollowUpDialog"
 import { useState } from "react"
 import { toast } from "sonner"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
@@ -569,14 +569,13 @@ export default function LeadDetailPage() {
             {
                 lead && (
                     <>
-                        <SetFollowUpDialog
+                        <CreateFollowUpDialog
                             open={followUpDialogOpen}
                             onOpenChange={setFollowUpDialogOpen}
                             leadId={lead.id}
-                            currentDate={lead.nextFollowUp}
                             onSuccess={() => {
                                 queryClient.invalidateQueries({ queryKey: ['lead', id] })
-                                queryClient.invalidateQueries({ queryKey: ['interactions', id] }) // logs appear in existing unified timeline if we fetch interactions
+                                queryClient.invalidateQueries({ queryKey: ['follow-ups'] })
                             }}
                         />
                         <ConvertLeadDialog
