@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useCallback } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { type RowSelectionState } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
+import { getUsers } from "@/services/userService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
@@ -229,8 +231,10 @@ export default function LeadsPage() {
     // Default view is 'all-leads' if not specified
     const currentView = searchParams.get('view') || 'all-leads';
     const currentSort = searchParams.get('sort') || 'newest';
+    const currentOwner = searchParams.get('owner') || 'all';
 
     const [selectedRows, setSelectedRows] = useState<Lead[]>([]);
+    const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
 
     const handleRowSelectionChange = useCallback((rows: Lead[]) => {
@@ -250,8 +254,11 @@ export default function LeadsPage() {
     // --- Data Fetching ---
     // 1. Leads
     const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-        queryKey: ['leads', 'all'], // Fetch all for sorting/filtering client side for report views
-        queryFn: () => getLeads({ pageSize: 1000 }),
+        queryKey: ['leads', 'all', currentOwner],
+        queryFn: () => getLeads({ 
+            pageSize: 1000,
+            assignedTo: currentOwner === 'all' ? undefined : currentOwner 
+        }),
     });
 
     // 2. Tasks (Follow Ups)
@@ -260,8 +267,15 @@ export default function LeadsPage() {
         queryFn: () => getTasks({ status: 'all', limit: 1000 }),
     });
 
+    // 3. Users for Owner Filter
+    const { data: userData } = useQuery({
+        queryKey: ['users', 'list'],
+        queryFn: () => getUsers(),
+    });
+
     const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
     const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
+    const users = userData?.users || (Array.isArray(userData) ? userData : []);
 
     // Sort function
     const sortLeads = (leadsToSort: Lead[]) => {
@@ -275,10 +289,20 @@ export default function LeadsPage() {
                 return sorted.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
             case 'name-desc':
                 return sorted.sort((a, b) => (b.firstName || '').localeCompare(a.firstName || ''));
-            case 'score-high':
-                return sorted.sort((a, b) => (b.leadScore || 0) - (a.leadScore || 0));
             case 'score-low':
                 return sorted.sort((a, b) => (a.leadScore || 0) - (b.leadScore || 0));
+            case 'owner-asc':
+                return sorted.sort((a, b) => {
+                    const nameA = a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName || ''}`.trim() : '';
+                    const nameB = b.assignedTo ? `${b.assignedTo.firstName} ${b.assignedTo.lastName || ''}`.trim() : '';
+                    return nameA.localeCompare(nameB);
+                });
+            case 'owner-desc':
+                return sorted.sort((a, b) => {
+                    const nameA = a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName || ''}`.trim() : '';
+                    const nameB = b.assignedTo ? `${b.assignedTo.firstName} ${b.assignedTo.lastName || ''}`.trim() : '';
+                    return nameB.localeCompare(nameA);
+                });
             default:
                 return sorted;
         }
@@ -296,6 +320,12 @@ export default function LeadsPage() {
                     isSameDay(new Date(l.createdAt), new Date()) ||
                     (l.lastEnquiryDate && isSameDay(new Date(l.lastEnquiryDate), new Date()))
                 );
+            case 'interested-leads':
+                return leads.filter((l: Lead) => l.status === 'interested');
+            case 'not-interested-leads':
+                return leads.filter((l: Lead) => l.status === 'not_interested');
+            case 'call-not-connected-leads':
+                return leads.filter((l: Lead) => l.status === 'call_not_connected');
             case 'converted-leads':
                 return leads.filter((l: Lead) => l.status === 'converted');
             case 'lost-leads':
@@ -350,7 +380,11 @@ export default function LeadsPage() {
     };
 
     const handleSortChange = (sort: string) => {
-        setSearchParams({ view: currentView, sort });
+        setSearchParams({ view: currentView, sort, owner: currentOwner });
+    };
+
+    const handleOwnerChange = (owner: string) => {
+        setSearchParams({ view: currentView, sort: currentSort, owner });
     };
 
     // Excel download function
@@ -422,8 +456,11 @@ export default function LeadsPage() {
                                     <SelectGroup>
                                         <SelectLabel>Leads</SelectLabel>
                                         <SelectItem value="all-leads">All Leads</SelectItem>
-                                        <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
                                         <SelectItem value="today-leads">Today's Leads</SelectItem>
+                                        <SelectItem value="interested-leads">Interested Leads</SelectItem>
+                                        <SelectItem value="not-interested-leads">Not Interested Leads</SelectItem>
+                                        <SelectItem value="call-not-connected-leads">Not Connected Leads</SelectItem>
+                                        <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
                                         <SelectItem value="converted-leads">Converted Leads</SelectItem>
                                         <SelectItem value="lost-leads">Lost Leads</SelectItem>
                                     </SelectGroup>
@@ -487,6 +524,39 @@ export default function LeadsPage() {
                                                 Score (Low-High)
                                             </div>
                                         </SelectItem>
+                                        <SelectItem value="owner-asc">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Owner (A-Z)
+                                            </div>
+                                        </SelectItem>
+                                        <SelectItem value="owner-desc">
+                                            <div className="flex items-center gap-2">
+                                                <ArrowUpDown className="h-3 w-3" />
+                                                Owner (Z-A)
+                                            </div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
+                        {!isTaskView && !isChartView && (
+                            <div className="min-w-[140px] sm:min-w-[160px]">
+                                <Select value={currentOwner} onValueChange={handleOwnerChange}>
+                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                        <SelectValue placeholder="All Owners" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Owners</SelectItem>
+                                        <SelectGroup>
+                                            <SelectLabel>Users</SelectLabel>
+                                            {users.map((user: any) => (
+                                                <SelectItem key={user.id} value={user.id}>
+                                                    {user.firstName} {user.lastName || ''}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -565,6 +635,8 @@ export default function LeadsPage() {
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
                                         initialPageSize={1000}
+                                        rowSelection={rowSelection}
+                                        onRowSelectionChangeState={setRowSelection}
                                         onRowSelectionChange={handleRowSelectionChange}
                                         renderSubComponent={({ row }) => {
                                             const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
@@ -610,7 +682,10 @@ export default function LeadsPage() {
                             size="icon" 
                             variant="ghost" 
                             className="text-primary-foreground/70 hover:bg-white/10 h-8 w-8 rounded-full"
-                            onClick={() => setSelectedRows([])}
+                            onClick={() => {
+                                setSelectedRows([]);
+                                setRowSelection({});
+                            }}
                             title="Clear selection"
                         >
                             <X className="h-4 w-4" />
@@ -625,6 +700,7 @@ export default function LeadsPage() {
                 selectedLeads={selectedRows.map((r: Lead) => r.id)}
                 onSuccess={() => {
                     setSelectedRows([]);
+                    setRowSelection({});
                     handleRefresh();
                 }}
             />

@@ -104,3 +104,20 @@ export const downloadRecording = async (filename: string): Promise<Blob> => {
     });
     return response.data;
 };
+
+export interface UserCallAnalyticsResponse {
+    reportData: {
+        userId: string;
+        agentName: string;
+        totalCalls: number;
+        connectedCalls: number;
+        totalDurationSeconds: number;
+    }[];
+    period: string;
+    direction: string;
+}
+
+export const getUserCallAnalytics = async (period: string = 'today', direction: string = 'all'): Promise<UserCallAnalyticsResponse> => {
+    const response = await api.get(`/calls/reports/user-analytics?period=${period}&direction=${direction}`);
+    return response.data;
+};

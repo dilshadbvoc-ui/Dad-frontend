@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDashboardStats, getSalesForecast } from '@/services/analyticsService';
 import { getBranches } from '@/services/settingsService';
@@ -9,10 +9,12 @@ import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget'
 import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
-import { Calendar, ArrowRight } from "lucide-react";
-import { TrendingUp, Check, Trophy, AlertCircle, Building2 } from "lucide-react";
+import { Building2, Calendar, ArrowRight, FileText, Download, Loader2, TrendingUp, Check, Trophy, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import * as htmlToImage from "html-to-image";
 import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
@@ -65,6 +67,8 @@ export default function Dashboard() {
     });
     const [branches, setBranches] = useState<Branch[]>([]);
     const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+    const [isExporting, setIsExporting] = useState(false);
+    const dashboardRef = useRef<HTMLDivElement>(null);
 
     const isAdminUser = checkIsAdmin(user);
 
@@ -100,6 +104,47 @@ export default function Dashboard() {
         queryFn: () => getSalesForecast(selectedBranchId || undefined)
     });
 
+    const handleExportPDF = async () => {
+        if (!dashboardRef.current) return;
+
+        try {
+            setIsExporting(true);
+            toast.loading("Preparing your dashboard export...", { id: "export-pdf" });
+
+            // Wait a moment for any micro-animations to settle
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const dataUrl = await htmlToImage.toPng(dashboardRef.current, {
+                quality: 1.0,
+                pixelRatio: 2,
+                backgroundColor: 'hsl(var(--background))',
+                style: {
+                    borderRadius: '0'
+                }
+            });
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [dashboardRef.current.offsetWidth + 80, dashboardRef.current.offsetHeight + 80]
+            });
+
+            const imgProps = pdf.getImageProperties(dataUrl);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(dataUrl, 'PNG', 40, 40, pdfWidth - 80, pdfHeight - 80);
+            pdf.save(`dashboard-analytics-${new Date().toISOString().split('T')[0]}.pdf`);
+
+            toast.success("Dashboard exported successfully!", { id: "export-pdf" });
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error("Failed to export dashboard. Please try again.", { id: "export-pdf" });
+        } finally {
+            setIsExporting(false);
+        }
+    };
+
     if (statsLoading || forecastLoading) {
         return (
             <div className="p-8 space-y-8 animate-in fade-in duration-500">
@@ -123,7 +168,7 @@ export default function Dashboard() {
     }
 
     return (
-        <div className="space-y-6 sm:space-y-8 p-4 sm:p-8 animate-in fade-in duration-500">
+        <div ref={dashboardRef} className="space-y-6 sm:space-y-8 p-4 sm:p-8 animate-in fade-in duration-500">
             {/* Header */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
@@ -160,6 +205,17 @@ export default function Dashboard() {
                     <ErrorBoundary name="DailyBriefingDialog">
                         <DailyBriefingDialog />
                     </ErrorBoundary>
+
+                    <Button 
+                        variant="outline" 
+                        className="gap-2" 
+                        onClick={handleExportPDF}
+                        disabled={isExporting}
+                    >
+                        {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                        <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
+                    </Button>
+
                     <Link to="/calendar">
                         <Button variant="outline" className="gap-2 hidden sm:flex">
                             <Calendar className="h-4 w-4" />

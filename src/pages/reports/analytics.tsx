@@ -1,9 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
+import { useState, useRef } from 'react';
 import { getSalesChartData, getLeadSourceAnalytics, getTopLeads } from '@/services/analyticsService';
 import { getLeads, type Lead } from '@/services/leadService';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, BarChart, Bar } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Download, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { jsPDF } from "jspdf";
+import * as htmlToImage from "html-to-image";
 import { ensureArray } from "@/hooks/useArrayData";
 
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
@@ -12,6 +18,50 @@ export default function AnalyticsPage() {
     const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ queryKey: ['salesChart'], queryFn: () => getSalesChartData() });
     const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: () => getLeadSourceAnalytics() });
     const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: () => getTopLeads() });
+    
+    const [isExporting, setIsExporting] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    const handleExportPDF = async () => {
+        if (!containerRef.current) return;
+
+        try {
+            setIsExporting(true);
+            toast.loading("Preparing your analytics export...", { id: "export-analytics-pdf" });
+
+            // Wait a moment for any micro-animations to settle
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            const dataUrl = await htmlToImage.toPng(containerRef.current, {
+                quality: 1.0,
+                pixelRatio: 2,
+                backgroundColor: 'hsl(var(--background))',
+                style: {
+                    borderRadius: '0'
+                }
+            });
+
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [containerRef.current.offsetWidth + 80, containerRef.current.offsetHeight + 80]
+            });
+
+            const imgProps = pdf.getImageProperties(dataUrl);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+            pdf.addImage(dataUrl, 'PNG', 40, 40, pdfWidth - 80, pdfHeight - 80);
+            pdf.save(`analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
+
+            toast.success("Analytics report exported successfully!", { id: "export-analytics-pdf" });
+        } catch (error) {
+            console.error("Export failed:", error);
+            toast.error("Failed to export analytics report. Please try again.", { id: "export-analytics-pdf" });
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     const salesData = ensureArray<{ name: string; total: number }>(salesDataRaw).filter(item => item && typeof item === 'object');
     const leadSources = ensureArray<{ source: string; count: number }>(leadSourcesRaw).filter(item => item && typeof item === 'object');
@@ -60,10 +110,21 @@ export default function AnalyticsPage() {
     })();
 
     return (
-        <div className="p-8 space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
-                <p className="text-muted-foreground mt-2">Deep dive into your sales and marketing performance.</p>
+        <div ref={containerRef} className="p-8 space-y-8">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+                    <p className="text-muted-foreground mt-2">Deep dive into your sales and marketing performance.</p>
+                </div>
+                <Button 
+                    variant="outline" 
+                    className="gap-2" 
+                    onClick={handleExportPDF}
+                    disabled={isExporting}
+                >
+                    {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                    <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
+                </Button>
             </div>
 
             {/* Sales Trend Chart */}

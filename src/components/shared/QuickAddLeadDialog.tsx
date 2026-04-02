@@ -39,7 +39,7 @@ interface QuickLeadFormData {
     company?: string
     enquiryAbout?: string
     source: string
-    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
+    status: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
     assignedTo?: string
     customFields?: Record<string, unknown>
 }
@@ -317,6 +317,34 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                                     <SelectItem value="google_ads">Google Ads</SelectItem>
                                                     <SelectItem value="import">Bulk Import</SelectItem>
                                                     <SelectItem value="other">Other</SelectItem>
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="status"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="h-10">
+                                                        <SelectValue placeholder="Select status" />
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent>
+                                                    <SelectItem value="new">New</SelectItem>
+                                                    <SelectItem value="contacted">Contacted</SelectItem>
+                                                    <SelectItem value="interested">Interested</SelectItem>
+                                                    <SelectItem value="not_interested">Not Interested</SelectItem>
+                                                    <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
+                                                    <SelectItem value="qualified">Qualified</SelectItem>
+                                                    <SelectItem value="nurturing">Nurturing</SelectItem>
+                                                    <SelectItem value="converted">Converted</SelectItem>
+                                                    <SelectItem value="lost">Lost</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />

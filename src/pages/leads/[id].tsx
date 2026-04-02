@@ -25,6 +25,7 @@ import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
 import { format } from "date-fns"
+import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 
 
 
@@ -208,8 +209,21 @@ export default function LeadDetailPage() {
                             </h1>
                             <div className="flex items-center gap-2">
                                 {id && <CollaborationBadge resourceId={`leads/${id}`} />}
-                                <Badge variant="outline" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5">
-                                    {lead.status}
+                                <Badge 
+                                    variant="outline" 
+                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5 ${
+                                        lead.status === 'new' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
+                                        lead.status === 'contacted' ? 'bg-warning/10 text-warning border-warning/20' :
+                                        lead.status === 'interested' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                                        lead.status === 'not_interested' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
+                                        lead.status === 'call_not_connected' ? 'bg-slate-500/10 text-slate-500 border-slate-500/20' :
+                                        lead.status === 'qualified' ? 'bg-success/10 text-success border-success/20' :
+                                        lead.status === 'converted' ? 'bg-primary/10 text-primary border-primary/20' :
+                                        lead.status === 'lost' ? 'bg-destructive/10 text-destructive border-destructive/20' :
+                                        ''
+                                    }`}
+                                >
+                                    {lead.status.replace(/_/g, ' ')}
                                 </Badge>
                                 {lead.reEnquiryCount > 0 && (
                                     <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5 bg-orange-100 text-orange-700 hover:bg-orange-100">
@@ -243,6 +257,9 @@ export default function LeadDetailPage() {
                             <SelectContent>
                                 <SelectItem value="new">New</SelectItem>
                                 <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="interested">Interested</SelectItem>
+                                <SelectItem value="not_interested">Not Interested</SelectItem>
+                                <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
                                 <SelectItem value="qualified">Qualified</SelectItem>
                                 <SelectItem value="nurturing">Nurturing</SelectItem>
                                 <SelectItem value="converted">Converted</SelectItem>
@@ -259,6 +276,9 @@ export default function LeadDetailPage() {
                             <SelectContent>
                                 <SelectItem value="new">New</SelectItem>
                                 <SelectItem value="contacted">Contacted</SelectItem>
+                                <SelectItem value="interested">Interested</SelectItem>
+                                <SelectItem value="not_interested">Not Interested</SelectItem>
+                                <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
                                 <SelectItem value="qualified">Qualified</SelectItem>
                                 <SelectItem value="nurturing">Nurturing</SelectItem>
                                 <SelectItem value="converted">Converted</SelectItem>
@@ -521,10 +541,9 @@ export default function LeadDetailPage() {
 
                                                 {call.recordingUrl && (
                                                     <div className="mt-3 p-2 bg-muted/30 rounded-lg">
-                                                        <audio 
-                                                            controls 
-                                                            src={call.recordingUrl.startsWith('/') ? call.recordingUrl : `/${call.recordingUrl}`} 
-                                                            className="h-8 w-full max-w-sm"
+                                                        <CallRecordingPlayer 
+                                                            recordingUrl={call.recordingUrl} 
+                                                            duration={call.recordingDuration}
                                                         />
                                                     </div>
                                                 )}

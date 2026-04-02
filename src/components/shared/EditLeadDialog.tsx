@@ -34,7 +34,7 @@ interface EditLeadFormData {
     secondaryPhone?: string
     company: string
     enquiryAbout: string
-    status: 'new' | 'contacted' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
+    status: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
 }
 
 interface EditLeadDialogProps {
@@ -271,6 +271,9 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                                         <SelectContent>
                                             <SelectItem value="new">New</SelectItem>
                                             <SelectItem value="contacted">Contacted</SelectItem>
+                                            <SelectItem value="interested">Interested</SelectItem>
+                                            <SelectItem value="not_interested">Not Interested</SelectItem>
+                                            <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
                                             <SelectItem value="qualified">Qualified</SelectItem>
                                             <SelectItem value="nurturing">Nurturing</SelectItem>
                                             <SelectItem value="converted">Converted</SelectItem>

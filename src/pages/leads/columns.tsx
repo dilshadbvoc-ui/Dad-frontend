@@ -74,7 +74,18 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "assignedTo",
-        header: "Owner",
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                >
+                    Owner
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
         cell: ({ row }) => {
             const assignedTo = row.original.assignedTo as any;
             if (!assignedTo) return <span className="text-muted-foreground/30 text-xs italic">Unassigned</span>;
@@ -132,9 +143,13 @@ export const columns: ColumnDef<Lead>[] = [
             switch (status) {
                 case 'new': className += "bg-blue-500/10 text-blue-500 border-blue-500/20"; break;
                 case 'contacted': className += "bg-warning/10 text-warning border-warning/20"; break;
+                case 'interested': className += "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"; break;
+                case 'not_interested': className += "bg-orange-500/10 text-orange-500 border-orange-500/20"; break;
+                case 'call_not_connected': className += "bg-slate-500/10 text-slate-500 border-slate-500/20"; break;
                 case 'qualified': className += "bg-success/10 text-success border-success/20"; break;
                 case 'converted': className += "bg-primary/10 text-primary border-primary/20"; break;
                 case 'lost': className += "bg-destructive/10 text-destructive border-destructive/20"; break;
+                case 're_enquiry': className += "bg-orange-100 text-orange-700 border-orange-200"; break;
                 default: className += "bg-muted text-muted-foreground border-border";
             }
 

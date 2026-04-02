@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
 
 interface TimelineFeedProps {
     type: 'lead' | 'contact' | 'account';
@@ -117,13 +118,10 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                                 ) : null}
                                             </div>
                                             {item.meta?.recordingUrl && item.meta.recordingUrl !== '' && (
-                                                <audio
-                                                    controls
-                                                    className="h-8 w-full max-w-sm mt-1"
-                                                    src={item.meta.recordingUrl.startsWith('/') ? item.meta.recordingUrl : `/${item.meta.recordingUrl}`}
-                                                >
-                                                    Your browser does not support the audio element.
-                                                </audio>
+                                                <CallRecordingPlayer 
+                                                    recordingUrl={item.meta.recordingUrl} 
+                                                    duration={item.meta.recordingDuration || (item.meta.duration ? item.meta.duration * 60 : 0)} 
+                                                />
                                             )}
                                         </div>
                                     )}
@@ -147,13 +145,10 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                                 )}
                                             </div>
                                             {(item.meta as any)?.fileUrl && (item.meta as any).fileUrl !== '' && (
-                                                <audio
-                                                    controls
-                                                    className="h-8 w-full max-w-sm mt-1"
-                                                    src={(item.meta as any).fileUrl.startsWith('/') ? (item.meta as any).fileUrl : `/${(item.meta as any).fileUrl}`}
-                                                >
-                                                    Your browser does not support the audio element.
-                                                </audio>
+                                                <CallRecordingPlayer 
+                                                    recordingUrl={(item.meta as any).fileUrl} 
+                                                    duration={(item.meta as any).duration} 
+                                                />
                                             )}
                                         </div>
                                     )}

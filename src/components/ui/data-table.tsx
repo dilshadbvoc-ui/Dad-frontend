@@ -12,6 +12,7 @@ import {
     getFilteredRowModel,
     getExpandedRowModel,
     type ExpandedState,
+    type RowSelectionState,
 } from "@tanstack/react-table"
 import { useState, Fragment, useEffect, useMemo } from "react"
 
@@ -37,6 +38,8 @@ interface DataTableProps<TData, TValue> {
     renderSubComponent?: (props: { row: any }) => React.ReactElement
     initialPageSize?: number
     onRowSelectionChange?: (selectedRows: TData[]) => void
+    rowSelection?: RowSelectionState
+    onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
 }
 
 export function DataTable<TData, TValue>({
@@ -48,11 +51,13 @@ export function DataTable<TData, TValue>({
     mobileCardRender,
     renderSubComponent,
     initialPageSize,
-    onRowSelectionChange
+    onRowSelectionChange,
+    rowSelection,
+    onRowSelectionChangeState,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    const [rowSelection, setRowSelection] = useState({})
+    const [internalRowSelection, setInternalRowSelection] = useState<RowSelectionState>({})
     const [expanded, setExpanded] = useState<ExpandedState>({})
     const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
     const [globalFilter, setGlobalFilter] = useState("")
@@ -66,7 +71,7 @@ export function DataTable<TData, TValue>({
         getSortedRowModel: getSortedRowModel(),
         onColumnFiltersChange: setColumnFilters,
         getFilteredRowModel: getFilteredRowModel(),
-        onRowSelectionChange: setRowSelection,
+        onRowSelectionChange: onRowSelectionChangeState || setInternalRowSelection,
         onExpandedChange: setExpanded,
         getExpandedRowModel: getExpandedRowModel(),
         onGlobalFilterChange: setGlobalFilter,
@@ -90,7 +95,7 @@ export function DataTable<TData, TValue>({
         state: {
             sorting,
             columnFilters,
-            rowSelection,
+            rowSelection: rowSelection || internalRowSelection,
             globalFilter,
             expanded,
         },

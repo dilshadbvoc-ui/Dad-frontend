@@ -3,6 +3,7 @@ import { Play, Pause } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { api } from '@/services/api';
+import { API_URL } from '@/config';
 
 interface CallRecordingPlayerProps {
     recordingUrl: string;
@@ -53,9 +54,10 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
     };
 
     // Construct full URL if relative
+    const baseUrl = API_URL || api.defaults.baseURL?.replace('/api', '') || '';
     const fullUrl = recordingUrl.startsWith('http')
         ? recordingUrl
-        : `${api.defaults.baseURL?.replace('/api', '')}${recordingUrl}`;
+        : `${baseUrl}${recordingUrl.startsWith('/') ? '' : '/'}${recordingUrl}`.replace(/([^:]\/)\/+/g, "$1");
 
     return (
         <div className="bg-muted p-2 rounded-md flex items-center gap-3 w-full max-w-sm">
@@ -86,6 +88,7 @@ export const CallRecordingPlayer: React.FC<CallRecordingPlayerProps> = ({ record
             <audio
                 ref={audioRef}
                 src={fullUrl}
+                crossOrigin="anonymous"
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={() => setIsPlaying(false)}
