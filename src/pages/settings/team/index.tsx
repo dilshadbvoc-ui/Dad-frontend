@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -348,6 +348,42 @@ export default function TeamSettings() {
         setIsInviteOpen(true)
     }
 
+    const handleExportCSV = () => {
+        if (!members || members.length === 0) {
+            toast.error("No team members to export");
+            return;
+        }
+
+        const headers = ["First Name", "Last Name", "Email", "Phone", "Role", "Position", "Branch", "Manager", "Status"];
+        const csvRows = [headers.join(",")];
+
+        members.forEach((m: TeamMember) => {
+            const row = [
+                `"${m.firstName || ''}"`,
+                `"${m.lastName || ''}"`,
+                `"${m.email || ''}"`,
+                `"${m.phone || ''}"`,
+                `"${m.role?.name?.replace('_', ' ') || ''}"`,
+                `"${m.position || ''}"`,
+                `"${m.branch?.name || ''}"`,
+                `"${m.reportsTo ? `${m.reportsTo.firstName} ${m.reportsTo.lastName}` : ''}"`,
+                `"${m.isActive ? 'Active' : 'Suspended'}"`
+            ];
+            csvRows.push(row.join(","));
+        });
+
+        const csvContent = csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `team_members_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -373,6 +409,14 @@ export default function TeamSettings() {
                             <Network className="h-3.5 w-3.5" /> Hierarchy
                         </button>
                     </div>
+                    <Button 
+                        variant="outline" 
+                        onClick={handleExportCSV}
+                        className="flex items-center gap-2"
+                    >
+                        <Download className="h-4 w-4" />
+                        Download List
+                    </Button>
                     <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
                         <Plus className="h-4 w-4 mr-2" />
                         Invite Member

@@ -73,6 +73,9 @@ export interface CreateLeadData {
         country?: string;
         zip?: string;
     };
+    phoneCountryCode?: string;
+    country?: string;
+    countryCode?: string;
     branchId?: string;
     enquiryAbout?: string;
 }

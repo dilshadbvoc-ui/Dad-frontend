@@ -39,11 +39,11 @@ export default function FollowUpsPage() {
 
             switch (filterParam) {
                 case 'overdue':
-                    return dueDate < today && task.status !== 'completed'
+                    return new Date(task.dueDate) < new Date() && task.status !== 'completed'
                 case 'today':
-                    return dueDate.getTime() === today.getTime() && task.status !== 'completed'
+                    return isToday(new Date(task.dueDate)) && task.status !== 'completed'
                 case 'upcoming':
-                    return dueDate > today && task.status !== 'completed'
+                    return new Date(task.dueDate) > new Date() && !isToday(new Date(task.dueDate)) && task.status !== 'completed'
                 default:
                     return true
             }
@@ -70,21 +70,15 @@ export default function FollowUpsPage() {
     }, [followUps, filterParam, today, sortBy])
 
     const overdueCount = followUps.filter((task: any) => {
-        const dueDate = new Date(task.dueDate)
-        dueDate.setHours(0, 0, 0, 0)
-        return dueDate < today && task.status !== 'completed'
+        return new Date(task.dueDate) < new Date() && task.status !== 'completed'
     }).length
-
+    
     const todayCount = followUps.filter((task: any) => {
-        const dueDate = new Date(task.dueDate)
-        dueDate.setHours(0, 0, 0, 0)
-        return dueDate.getTime() === today.getTime() && task.status !== 'completed'
+        return isToday(new Date(task.dueDate)) && task.status !== 'completed'
     }).length
 
     const upcomingCount = followUps.filter((task: any) => {
-        const dueDate = new Date(task.dueDate)
-        dueDate.setHours(0, 0, 0, 0)
-        return dueDate > today && task.status !== 'completed'
+        return new Date(task.dueDate) > new Date() && !isToday(new Date(task.dueDate)) && task.status !== 'completed'
     }).length
 
     if (isError) {

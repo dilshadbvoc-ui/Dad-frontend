@@ -28,6 +28,8 @@ import { createLead, type CreateLeadData } from "@/services/leadService"
 import { getUsers } from "@/services/settingsService"
 import { useQuery } from "@tanstack/react-query"
 import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
+import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
+import { Globe } from "lucide-react"
 
 // interface for Form Data
 interface QuickLeadFormData {
@@ -35,6 +37,7 @@ interface QuickLeadFormData {
     lastName?: string
     email?: string
     phone: string
+    phoneCountryCode: string
     secondaryPhone?: string
     company?: string
     enquiryAbout?: string
@@ -66,6 +69,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             lastName: "",
             email: "",
             phone: "",
+            phoneCountryCode: "+91",
             secondaryPhone: "",
             company: "",
             enquiryAbout: "",
@@ -101,6 +105,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
         const payload: CreateLeadData = {
             firstName: values.firstName,
             phone: values.phone,
+            phoneCountryCode: values.phoneCountryCode,
             source: values.source,
             status: values.status,
         };
@@ -204,14 +209,45 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                         </FormItem>
                                     )}
                                 />
+                                <div className="grid grid-cols-[80px_1fr] gap-2">
+                                <FormField
+                                    control={form.control}
+                                    name="phoneCountryCode"
+                                    render={({ field }) => (
+                                        <FormItem className="space-y-1">
+                                            <FormLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Code</FormLabel>
+                                            <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                <FormControl>
+                                                    <SelectTrigger className="h-10 px-2">
+                                                        <SelectValue>
+                                                            {field.value}
+                                                        </SelectValue>
+                                                    </SelectTrigger>
+                                                </FormControl>
+                                                <SelectContent className="max-h-[300px]">
+                                                    {countryCodes.map((c) => (
+                                                        <SelectItem key={c.code + c.prefix} value={c.prefix}>
+                                                            <span className="flex items-center gap-2">
+                                                                <span>{c.flag}</span>
+                                                                <span className="font-mono">{c.prefix}</span>
+                                                                <span className="text-muted-foreground text-[10px] truncate max-w-[60px]">{c.name}</span>
+                                                            </span>
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                            <FormMessage className="text-[10px]" />
+                                        </FormItem>
+                                    )}
+                                />
                                 <FormField
                                     control={form.control}
                                     name="phone"
                                     rules={{
                                         required: "Phone number is required",
-                                        pattern: {
-                                            value: /^\d{10}$/,
-                                            message: "Phone number must be exactly 10 digits"
+                                        validate: (value) => {
+                                            if (value.length < 5) return "Too short";
+                                            return true;
                                         }
                                     }}
                                     render={({ field }) => (
@@ -221,10 +257,20 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                                 <Input
                                                     placeholder="9876543210"
                                                     {...field}
-                                                    maxLength={10}
                                                     className="h-10"
                                                     onChange={(e) => {
-                                                        const value = e.target.value.replace(/\D/g, '');
+                                                        const rawValue = e.target.value;
+                                                        // Auto-identify country if it starts with +
+                                                        if (rawValue.startsWith('+')) {
+                                                            const identified = identifyCountryFromPhone(rawValue);
+                                                            if (identified) {
+                                                                form.setValue('phoneCountryCode', identified.country.prefix);
+                                                                field.onChange(identified.localNumber);
+                                                                return;
+                                                            }
+                                                        }
+                                                        // Otherwise just clean and set
+                                                        const value = rawValue.replace(/\D/g, '');
                                                         field.onChange(value);
                                                     }}
                                                 />
@@ -233,6 +279,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                         </FormItem>
                                     )}
                                 />
+                                </div>
                                 <FormField
                                     control={form.control}
                                     name="secondaryPhone"

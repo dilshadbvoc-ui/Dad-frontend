@@ -84,8 +84,8 @@ export const columns: ColumnDef<FollowUpTask>[] = [
             if (!date) return <div>-</div>
 
             const dueDate = new Date(date)
-            const isOverdue = isPast(dueDate) && !isToday(dueDate) && row.original.status !== 'completed'
-            const isDueToday = isToday(dueDate) && row.original.status !== 'completed'
+            const isOverdue = isPast(dueDate) && row.original.status !== 'completed'
+            const isDueToday = isToday(dueDate) && !isOverdue && row.original.status !== 'completed'
 
             return (
                 <div className={cn(

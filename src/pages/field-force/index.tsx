@@ -8,16 +8,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
-import { MapPin, Clock, CheckCircle, Navigation, TrendingUp, Activity } from "lucide-react"
+import { MapPin, Clock, CheckCircle, Navigation, TrendingUp, Activity, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { format } from "date-fns"
 
 import { toast } from "sonner"
 import { createCheckIn } from "@/services/checkInService"
 import { useQueryClient } from "@tanstack/react-query"
-import { getUserInfo } from "@/lib/utils"
+import { getUserInfo, cn } from "@/lib/utils"
 
 export default function FieldForcePage() {
     const [selectedDate] = useState(new Date())
+    const [page, setPage] = useState(1)
+    const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
     const queryClient = useQueryClient()
 
     // Mutation for check-in with optimistic updates
@@ -184,8 +186,13 @@ export default function FieldForcePage() {
     })
 
     const { data: recentCheckInsRaw } = useQuery({
-        queryKey: ['checkins-recent'],
-        queryFn: () => getCheckIns({ limit: 10 })
+        queryKey: ['checkins-recent', page, sortOrder],
+        queryFn: () => getCheckIns({ 
+            limit: 10, 
+            offset: (page - 1) * 10,
+            sortBy: 'createdAt',
+            sortOrder: sortOrder
+        })
     })
 
     // Use specific recent data for the list, unrelated to today's date filter
@@ -386,7 +393,7 @@ export default function FieldForcePage() {
                         {/* Recent Check-ins */}
                         <Card>
                             <CardHeader>
-                                <CardTitle>Recent Check-ins</CardTitle>
+                                <CardTitle>Check-in History</CardTitle>
                                 <CardDescription>Latest field activities</CardDescription>
                             </CardHeader>
                             <CardContent>
@@ -408,7 +415,15 @@ export default function FieldForcePage() {
                                                     <th className="px-6 py-3">Type</th>
                                                     <th className="px-6 py-3 text-center">Coordinates</th>
                                                     <th className="px-6 py-3">Location</th>
-                                                    <th className="px-6 py-3 rounded-r-lg">Time</th>
+                                                    <th className="px-6 py-3 rounded-r-lg">
+                                                        <button 
+                                                            onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                                                            className="flex items-center gap-1 hover:text-foreground transition-colors group"
+                                                        >
+                                                            Time
+                                                            <ArrowUpDown className={cn("h-3 w-3", sortOrder === 'asc' && "text-primary")} />
+                                                        </button>
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-border">
@@ -459,6 +474,34 @@ export default function FieldForcePage() {
                                         </table>
                                     </div>
                                 )}
+                                
+                                {/* Pagination Controls */}
+                                <div className="mt-4 flex items-center justify-between border-t pt-4">
+                                    <div className="text-xs text-muted-foreground">
+                                        Showing page {page}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => setPage(p => Math.max(1, p - 1))}
+                                            disabled={page === 1}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                        </Button>
+                                        <div className="text-xs font-medium w-4 text-center">{page}</div>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            onClick={() => setPage(p => p + 1)}
+                                            disabled={!recentCheckInsRaw || recentCheckInsRaw.length < 10}
+                                            className="h-8 w-8 p-0"
+                                        >
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                </div>
                             </CardContent>
                         </Card>
                     </div>

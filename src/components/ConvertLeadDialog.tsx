@@ -55,6 +55,14 @@ export function ConvertLeadDialog({ open, onOpenChange, lead }: ConvertLeadDialo
 
     const handleConvert = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Final safety check: block if no products
+        if (!lead.products || lead.products.length === 0) {
+            toast.error('Please add at least one product before converting this lead.');
+            onOpenChange(false);
+            return;
+        }
+
         setIsLoading(true);
 
         try {

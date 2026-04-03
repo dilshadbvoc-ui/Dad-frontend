@@ -166,7 +166,7 @@ const AdsManager: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Ads Manager</h1>
-                    <p className="text-muted-foreground mt-1">Monitor and manage your Facebook ad campaigns</p>
+                    <p className="text-muted-foreground mt-1">Monitor and sync your Facebook ad campaigns</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <Button
@@ -178,9 +178,24 @@ const AdsManager: React.FC = () => {
                         <RefreshCcw className={`h-4 w-4 mr-2 ${insightsLoading ? 'animate-spin' : ''}`} />
                         Refresh
                     </Button>
-                    <Button onClick={() => setShowCreateForm(!showCreateForm)}>
-                        {showCreateForm ? 'Cancel' : '+ New Campaign'}
-                    </Button>
+                    <a href="https://adsmanager.facebook.com" target="_blank" rel="noreferrer">
+                        <Button variant="default">
+                            Open Meta Ads Manager
+                        </Button>
+                    </a>
+                </div>
+            </div>
+
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3" role="alert">
+                <div className="bg-blue-100 dark:bg-blue-800 p-1 rounded-full mt-0.5">
+                    <Target className="h-4 w-4 text-blue-600 dark:text-blue-300" />
+                </div>
+                <div>
+                    <p className="font-semibold text-blue-800 dark:text-blue-300">Campaign Management</p>
+                    <p className="text-blue-700 dark:text-blue-400 text-sm mt-1">
+                        Campaigns and ads are now managed directly in your <strong>Meta Ads Manager</strong> account. 
+                        Incoming leads will automatically sync to your CRM leads list.
+                    </p>
                 </div>
             </div>
 

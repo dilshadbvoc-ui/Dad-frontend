@@ -41,7 +41,7 @@ export default function FollowUpReportsPage() {
         switch (viewType) {
             case 'overdue':
                 return tasks.filter((t: Task) =>
-                    t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed'
+                    t.dueDate && isPast(new Date(t.dueDate)) && t.status !== 'completed'
                 );
             case 'today':
                 return tasks.filter((t: Task) =>

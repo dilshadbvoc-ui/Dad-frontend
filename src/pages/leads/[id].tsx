@@ -76,6 +76,12 @@ export default function LeadDetailPage() {
 
     const updateStatusMutation = useMutation({
         mutationFn: async (newStatus: string) => {
+            // CRITICAL: Prevent qualification without products
+            if (['qualified', 'converted'].includes(newStatus)) {
+                if (!lead.products || lead.products.length === 0) {
+                    throw new Error("Please add at least one product before qualifying or converting this lead.")
+                }
+            }
             await api.put(`/leads/${id}`, { status: newStatus })
         },
         onSuccess: () => {
@@ -83,8 +89,8 @@ export default function LeadDetailPage() {
             queryClient.invalidateQueries({ queryKey: ['leads'] })
             toast.success("Lead status updated")
         },
-        onError: () => {
-            toast.error("Failed to update lead status")
+        onError: (error: any) => {
+            toast.error(error.message || "Failed to update lead status")
         }
     })
 
@@ -308,7 +314,14 @@ export default function LeadDetailPage() {
                             variant="default"
                             size="sm"
                             className="h-9 px-3 sm:px-4 text-xs bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/20"
-                            onClick={() => setIsConvertOpen(true)}
+                            onClick={() => {
+                                if (!lead.products || lead.products.length === 0) {
+                                    toast.error("Please add at least one product before moving this lead to the pipeline.")
+                                    setProductDialogOpen(true)
+                                    return
+                                }
+                                setIsConvertOpen(true)
+                            }}
                             disabled={lead.status === 'converted'}
                         >
                             <CheckCircle2 className="h-4 w-4 sm:mr-2" />
