@@ -7,6 +7,7 @@ import { getFollowUps } from "@/services/followUpService"
 import { Calendar, Clock, ListFilter, ArrowUpDown } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { isToday } from "date-fns"
 
 export default function FollowUpsPage() {
     const [searchParams] = useSearchParams()
