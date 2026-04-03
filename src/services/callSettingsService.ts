@@ -11,6 +11,7 @@ export interface CallSettings {
     popupOnIncoming: boolean;
     autoFollowupReminder: boolean;
     followupDelayMinutes: number;
+    syncNonCrmContacts: boolean;
     organisationId: string;
     createdAt: string;
     updatedAt: string;

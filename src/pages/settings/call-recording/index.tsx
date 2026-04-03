@@ -232,6 +232,36 @@ export default function CallRecordingSettingsPage() {
                             </CardContent>
                         </Card>
 
+                        {/* Contact Synchronization */}
+                        <Card>
+                            <CardHeader>
+                                <div className="flex items-center gap-3">
+                                    <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                                        <Settings className="h-5 w-5 text-white" />
+                                    </div>
+                                    <div>
+                                        <CardTitle>Contact Synchronization</CardTitle>
+                                        <CardDescription>Control how the CRM handles unknown phone numbers</CardDescription>
+                                    </div>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-0.5">
+                                        <Label htmlFor="syncNonCrmContacts">Enable Unknown Number Sync</Label>
+                                        <p className="text-sm text-muted-foreground">
+                                            If enabled, all call data will be logged. If disabled, only calls from existing Leads or Contacts will be tracked.
+                                        </p>
+                                    </div>
+                                    <Switch
+                                        id="syncNonCrmContacts"
+                                        checked={settings.syncNonCrmContacts}
+                                        onCheckedChange={(checked) => handleToggle('syncNonCrmContacts', checked)}
+                                    />
+                                </div>
+                            </CardContent>
+                        </Card>
+
                         {/* Notification Options */}
                         <Card>
                             <CardHeader>
