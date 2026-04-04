@@ -438,8 +438,11 @@ export default function LeadsPage() {
                 {/* Header Area */}
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2 sm:px-0">
                     <div className="min-w-0">
-                        <h1 className="text-xl sm:text-2xl font-bold text-foreground capitalize truncate">
+                        <h1 className="text-xl sm:text-2xl font-bold text-foreground capitalize truncate flex items-center gap-2">
                             {currentView.replace(/-/g, ' ')}
+                            <Badge variant="secondary" className="font-mono text-xs">
+                                {leadData?.total || 0}
+                            </Badge>
                         </h1>
                         <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate">
                             {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Lead performance' : 'Manage your leads'}
@@ -553,7 +556,12 @@ export default function LeadsPage() {
                                             <SelectLabel>Users</SelectLabel>
                                             {users.map((user: any) => (
                                                 <SelectItem key={user.id} value={user.id}>
-                                                    {user.firstName} {user.lastName || ''}
+                                                    <div className="flex items-center justify-between gap-2 min-w-[140px]">
+                                                        <span className="truncate">{user.firstName} {user.lastName || ''}</span>
+                                                        <Badge variant="outline" className="ml-auto text-[10px] px-1 h-4 font-mono bg-muted/50">
+                                                            {user._count?.assignedLeads || 0}
+                                                        </Badge>
+                                                    </div>
                                                 </SelectItem>
                                             ))}
                                         </SelectGroup>

@@ -165,8 +165,12 @@ export default function BillingSettingsPage() {
                                         Loading subscription details...
                                     </span>
                                 ) : licenseError ? (
-                                    <span className="text-destructive">
+                                    <span className="text-destructive font-medium">
                                         Error loading subscription. Please refresh the page.
+                                    </span>
+                                ) : !activeLicense ? (
+                                    <span className="text-amber-600 dark:text-amber-400 font-medium">
+                                        No active subscription found. Please select a plan below.
                                     </span>
                                 ) : (
                                     <>

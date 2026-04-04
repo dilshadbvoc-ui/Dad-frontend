@@ -8,12 +8,14 @@ import { ArrowLeft, Building, Globe, MapPin, Pencil, User, Plus } from "lucide-r
 import { Badge } from "@/components/ui/badge"
 import { useState } from "react"
 import { EditAccountDialog } from "@/components/shared/EditAccountDialog"
+import { UpsellDialog } from "@/components/UpsellDialog"
 import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
 
 export default function AccountDetailPage() {
     const { id } = useParams()
     const navigate = useNavigate()
     const [isEditOpen, setIsEditOpen] = useState(false)
+    const [isOpportunityOpen, setIsOpportunityOpen] = useState(false)
     const [isUpsellOpen, setIsUpsellOpen] = useState(false)
     const queryClient = useQueryClient()
 
@@ -97,9 +99,9 @@ export default function AccountDetailPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle>Opportunities</CardTitle>
-                            <Button size="sm" variant="outline" onClick={() => setIsUpsellOpen(true)}>
+                            <Button size="sm" variant="outline" onClick={() => setIsOpportunityOpen(true)}>
                                 <Plus className="h-4 w-4 mr-2" />
-                                Add Payment / Upsell
+                                Add Opportunity
                             </Button>
                         </CardHeader>
                         <CardContent>
@@ -117,6 +119,59 @@ export default function AccountDetailPage() {
                             )}
                         </CardContent>
                     </Card>
+
+                    {/* Purchase History */}
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle>Purchase History</CardTitle>
+                            <div className="flex items-center gap-4">
+                                <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => setIsUpsellOpen(true)}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Finalize Sale / Upsell
+                                </Button>
+                                <div className="text-right">
+                                    <span className="text-sm text-muted-foreground mr-2">Total Purchase:</span>
+                                    <span className="font-bold text-lg text-green-600">
+                                        ₹{(account.accountProducts || []).reduce((acc: number, curr: any) => acc + (curr.price * curr.quantity), 0).toLocaleString()}
+                                    </span>
+                                </div>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {account.accountProducts && account.accountProducts.length > 0 ? (
+                                <div className="rounded-md border overflow-hidden">
+                                    <table className="w-full text-sm">
+                                        <thead className="bg-muted/50 border-b">
+                                            <tr className="text-left">
+                                                <th className="p-2 font-medium">Product</th>
+                                                <th className="p-2 font-medium">Date</th>
+                                                <th className="p-2 font-medium">Qty</th>
+                                                <th className="p-2 font-medium">Price</th>
+                                                <th className="p-2 font-medium text-right">Total</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y">
+                                            {account.accountProducts.map((asset: any) => (
+                                                <tr key={asset.id} className="hover:bg-muted/30">
+                                                    <td className="p-2 font-medium">{asset.product?.name}</td>
+                                                    <td className="p-2 text-muted-foreground">
+                                                        {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}
+                                                    </td>
+                                                    <td className="p-2">{asset.quantity}</td>
+                                                    <td className="p-2">₹{asset.price?.toLocaleString()}</td>
+                                                    <td className="p-2 text-right font-medium">
+                                                        ₹{(asset.price * asset.quantity).toLocaleString()}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            ) : (
+                                <p className="text-sm text-muted-foreground">No purchase history recorded.</p>
+                            )}
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
 
@@ -128,9 +183,16 @@ export default function AccountDetailPage() {
             />
 
             <CreateOpportunityDialog
+                open={isOpportunityOpen}
+                onOpenChange={setIsOpportunityOpen}
+                defaultValues={{ accountId: id }}
+                onSuccess={() => queryClient.invalidateQueries({ queryKey: ['account', id] })}
+            />
+
+            <UpsellDialog
                 open={isUpsellOpen}
                 onOpenChange={setIsUpsellOpen}
-                defaultValues={{ accountId: id }}
+                accountId={id as string}
                 onSuccess={() => queryClient.invalidateQueries({ queryKey: ['account', id] })}
             />
         </div>
