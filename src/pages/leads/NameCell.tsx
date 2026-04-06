@@ -6,7 +6,10 @@ export const NameCell = ({ lead }: { lead: Lead }) => {
     return (
         <div
             className="font-medium cursor-pointer hover:underline text-indigo-400"
-            onClick={() => navigate(`/leads/${lead.id}`)}
+            onClick={(e) => {
+                e.stopPropagation()
+                navigate(`/leads/${lead.id}`)
+            }}
         >
             {lead.firstName} {lead.lastName || ''}
         </div>

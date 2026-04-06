@@ -24,8 +24,9 @@ const LeadTableRowComponent = ({
             onDragOver={(e) => onDragOver?.(e, row.id)}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop?.(e, row)}
+            onClick={() => row.toggleSelected()}
             className={cn(
-                "flex w-full border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10 shrink-0",
+                "flex w-full border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10 shrink-0 cursor-pointer",
                 dragOverRowId === row.id && "bg-accent border-primary"
             )}
         >

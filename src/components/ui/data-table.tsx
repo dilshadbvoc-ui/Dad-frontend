@@ -118,6 +118,13 @@ export function DataTable<TData, TValue>({
         },
     })
 
+    // Force sync row selection state from props to table instance
+    useEffect(() => {
+        if (rowSelection !== undefined) {
+            table.setRowSelection(rowSelection)
+        }
+    }, [rowSelection, table])
+
     // Update page size if prop changes
     useEffect(() => {
         if (pageSize !== undefined) {

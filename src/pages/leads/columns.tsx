@@ -20,14 +20,20 @@ export const columns: ColumnDef<Lead>[] = [
                     table.getIsAllPageRowsSelected() ||
                     (table.getIsSomePageRowsSelected() && "indeterminate")
                 }
-                onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+                onCheckedChange={(value) => {
+                    table.toggleAllPageRowsSelected(!!value)
+                }}
+                onClick={(e) => e.stopPropagation()}
                 aria-label="Select all"
             />
         ),
         cell: ({ row }) => (
             <Checkbox
                 checked={row.getIsSelected()}
-                onCheckedChange={(value) => row.toggleSelected(!!value)}
+                onCheckedChange={(value) => {
+                    row.toggleSelected(!!value)
+                }}
+                onClick={(e) => e.stopPropagation()}
                 aria-label="Select row"
             />
         ),
