@@ -13,6 +13,7 @@ import { NameCell } from "./NameCell"
 export const columns: ColumnDef<Lead>[] = [
     {
         id: "select",
+        size: 40,
         header: ({ table }) => (
             <Checkbox
                 checked={
@@ -35,6 +36,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         id: "expander",
+        size: 40,
         header: () => null,
         cell: ({ row }) => {
             return row.getCanExpand() ? (
@@ -50,6 +52,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "firstName",
+        size: 180,
         header: ({ column }) => {
             return (
                 <Button
@@ -66,14 +69,17 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "email",
+        size: 200,
         header: "Email",
     },
     {
         accessorKey: "company",
+        size: 150,
         header: "Company",
     },
     {
         accessorKey: "assignedTo",
+        size: 150,
         header: ({ column }) => {
             return (
                 <Button
@@ -94,6 +100,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "source",
+        size: 100,
         header: "Source",
         cell: ({ row }) => {
             const source = row.getValue("source") as string
@@ -102,6 +109,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "leadScore",
+        size: 80,
         header: ({ column }) => {
             return (
                 <Button
@@ -121,6 +129,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "nextFollowUp",
+        size: 150,
         header: "Next Follow-up",
         cell: ({ row }) => {
             const date = row.getValue("nextFollowUp") as string
@@ -135,6 +144,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "status",
+        size: 120,
         header: "Status",
         cell: ({ row }) => {
             const status = row.getValue("status") as string
@@ -158,6 +168,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "createdAt",
+        size: 120,
         header: "Created",
         cell: ({ row }) => {
             return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
@@ -165,6 +176,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         id: "contact",
+        size: 100,
         header: "Contact",
         cell: ({ row }) => {
             const lead = row.original
@@ -240,6 +252,7 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         id: "actions",
+        size: 50,
         cell: ({ row }) => <ActionsCell lead={row.original} />,
     },
 ]

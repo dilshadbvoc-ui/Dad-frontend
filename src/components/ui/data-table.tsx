@@ -176,31 +176,42 @@ export function DataTable<TData, TValue>({
             <div 
                 ref={tableContainerRef}
                 className={cn(
-                    "rounded-md border table-responsive-wrapper shadow-sm bg-card overflow-auto",
-                    isVirtual ? "max-h-[600px]" : "",
+                    "rounded-md border shadow-sm bg-card overflow-auto relative",
+                    isVirtual ? "max-h-[600px]" : "w-full",
                     mobileCardRender ? "hidden lg:block" : "block"
                 )}
             >
-                <Table>
-                    <TableHeader className="bg-muted/50">
+                <div className="min-w-full inline-block align-middle">
+                    {/* Header */}
+                    <div className="sticky top-0 z-10 bg-muted/50 border-b border-border flex shrink-0 min-w-full">
                         {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id} className="hover:bg-transparent border-b border-border">
+                            <div key={headerGroup.id} className="flex flex-1 min-w-full items-center">
                                 {headerGroup.headers.map((header) => {
+                                    const width = header.column.getSize();
                                     return (
-                                        <TableHead key={header.id} className="font-semibold text-xs uppercase tracking-wider h-11 text-muted-foreground/80">
+                                        <div 
+                                            key={header.id} 
+                                            className="font-semibold text-xs uppercase tracking-wider h-11 px-4 flex items-center text-muted-foreground/80 shrink-0"
+                                            style={{ width: `${width}px` }}
+                                        >
                                             {header.isPlaceholder
                                                 ? null
                                                 : flexRender(
                                                     header.column.columnDef.header,
                                                     header.getContext()
                                                 )}
-                                        </TableHead>
+                                        </div>
                                     )
                                 })}
-                            </TableRow>
+                            </div>
                         ))}
-                    </TableHeader>
-                    <TableBody style={isVirtual ? { height: `${virtualizer.getTotalSize()}px`, position: 'relative' } : {}}>
+                    </div>
+
+                    {/* Body */}
+                    <div 
+                        className="relative min-w-full flex-1"
+                        style={isVirtual ? { height: `${virtualizer.getTotalSize()}px` } : {}}
+                    >
                         {rows?.length ? (
                             isVirtual ? (
                                 virtualizer.getVirtualItems().map((virtualRow) => {
@@ -208,11 +219,9 @@ export function DataTable<TData, TValue>({
                                     return (
                                         <div
                                             key={virtualRow.key}
+                                            className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted"
+                                            data-state={row.getIsSelected() && "selected"}
                                             style={{
-                                                position: 'absolute',
-                                                top: 0,
-                                                left: 0,
-                                                width: '100%',
                                                 height: `${virtualRow.size}px`,
                                                 transform: `translateY(${virtualRow.start}px)`,
                                             }}
@@ -226,19 +235,21 @@ export function DataTable<TData, TValue>({
                                                     dragOverRowId={dragOverRowId}
                                                 />
                                             ) : (
-                                                <TableRow
-                                                    data-state={row.getIsSelected() && "selected"}
-                                                    className="transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted"
-                                                >
-                                                    {row.getVisibleCells().map((cell) => (
-                                                        <TableCell key={cell.id} className="py-3 font-medium text-sm">
+                                                row.getVisibleCells().map((cell) => {
+                                                    const width = cell.column.getSize();
+                                                    return (
+                                                        <div 
+                                                            key={cell.id} 
+                                                            className="px-4 py-3 font-medium text-sm shrink-0 flex items-center overflow-hidden truncate"
+                                                            style={{ width: `${width}px` }}
+                                                        >
                                                             {flexRender(
                                                                 cell.column.columnDef.cell,
                                                                 cell.getContext()
                                                             )}
-                                                        </TableCell>
-                                                    ))}
-                                                </TableRow>
+                                                        </div>
+                                                    )
+                                                })
                                             )}
                                         </div>
                                     )
@@ -246,81 +257,66 @@ export function DataTable<TData, TValue>({
                             ) : (
                                 rows.map((row) => (
                                     <Fragment key={row.id}>
-                                        {CustomRowComponent ? (
-                                            <CustomRowComponent
-                                                row={row}
-                                                onDragOver={handleDragOver}
-                                                onDragLeave={handleDragLeave}
-                                                onDrop={handleDrop}
-                                                dragOverRowId={dragOverRowId}
-                                            />
-                                        ) : (
-                                            <TableRow
-                                                data-state={row.getIsSelected() && "selected"}
-                                                onDragOver={(e) => handleDragOver(e, row.id)}
-                                                onDragLeave={handleDragLeave}
-                                                onDrop={(e) => handleDrop(e, row)}
-                                                className={cn(
-                                                    "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
-                                                    dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
-                                                )}
-                                            >
-                                                {row.getVisibleCells().map((cell) => (
-                                                    <TableCell key={cell.id} className="py-3 font-medium text-sm">
+                                        <div
+                                            data-state={row.getIsSelected() && "selected"}
+                                            className={cn(
+                                                "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
+                                                dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
+                                            )}
+                                        >
+                                            {row.getVisibleCells().map((cell) => {
+                                                const width = cell.column.getSize();
+                                                return (
+                                                    <div 
+                                                        key={cell.id} 
+                                                        className="px-4 py-3 font-medium text-sm shrink-0 flex items-center overflow-hidden truncate"
+                                                        style={{ width: `${width}px` }}
+                                                    >
                                                         {flexRender(
                                                             cell.column.columnDef.cell,
                                                             cell.getContext()
                                                         )}
-                                                    </TableCell>
-                                                ))}
-                                            </TableRow>
-                                        )}
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
                                         {row.getIsExpanded() && renderSubComponent && (
-                                            <TableRow className="bg-muted/10 hover:bg-muted/10">
-                                                <TableCell colSpan={row.getVisibleCells().length}>
-                                                    {renderSubComponent({ row })}
-                                                </TableCell>
-                                            </TableRow>
+                                            <div className="bg-muted/10 border-b border-border p-4">
+                                                {renderSubComponent({ row })}
+                                            </div>
                                         )}
                                     </Fragment>
                                 ))
                             )
                         ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-64 text-center"
-                                >
-                                    <div className="flex flex-col items-center justify-center space-y-3">
-                                        <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-2">
-                                            <svg
-                                                className="h-8 w-8 text-muted-foreground/50"
-                                                fill="none"
-                                                viewBox="0 0 24 24"
-                                                stroke="currentColor"
-                                                aria-hidden="true"
-                                            >
-                                                <path
-                                                    vectorEffect="non-scaling-stroke"
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={1.5}
-                                                    d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
-                                                />
-                                            </svg>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="font-semibold text-lg text-foreground">No data found</p>
-                                            <p className="text-sm text-muted-foreground max-w-xs mx-auto">
-                                                We couldn't find any records matching your criteria. Try adjusting your filters.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </TableCell>
-                            </TableRow>
+                            <div className="flex flex-col items-center justify-center p-20 min-w-full">
+                                <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                                    <svg
+                                        className="h-8 w-8 text-muted-foreground/50"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        aria-hidden="true"
+                                    >
+                                        <path
+                                            vectorEffect="non-scaling-stroke"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={1.5}
+                                            d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"
+                                        />
+                                    </svg>
+                                </div>
+                                <div className="text-center">
+                                    <p className="font-semibold text-lg text-foreground">No data found</p>
+                                    <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                                        We couldn't find any records matching your criteria. Try adjusting your filters.
+                                    </p>
+                                </div>
+                            </div>
                         )}
-                    </TableBody>
-                </Table>
+                    </div>
+                </div>
             </div>
 
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2">

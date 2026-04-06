@@ -19,25 +19,32 @@ const LeadTableRowComponent = ({
     dragOverRowId
 }: LeadTableRowProps) => {
     return (
-        <tr
+        <div
             data-state={row.getIsSelected() && "selected"}
             onDragOver={(e) => onDragOver?.(e, row.id)}
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop?.(e, row)}
             className={cn(
-                "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted border-b border-border",
+                "flex w-full border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted shrink-0",
                 dragOverRowId === row.id && "bg-accent border-primary"
             )}
         >
-            {row.getVisibleCells().map((cell) => (
-                <td key={cell.id} className="px-4 py-3 font-medium text-sm">
-                    {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                    )}
-                </td>
-            ))}
-        </tr>
+            {row.getVisibleCells().map((cell) => {
+                const width = cell.column.getSize();
+                return (
+                    <div 
+                        key={cell.id} 
+                        className="px-4 py-3 font-medium text-sm shrink-0 flex items-center overflow-hidden truncate"
+                        style={{ width: `${width}px` }}
+                    >
+                        {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                        )}
+                    </div>
+                );
+            })}
+        </div>
     );
 };
 
