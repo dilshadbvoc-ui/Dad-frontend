@@ -39,7 +39,6 @@ interface DataTableProps<TData, TValue> {
     mobileCardRender?: (row: TData) => React.ReactNode
     renderSubComponent?: (props: { row: any }) => React.ReactElement
     initialPageSize?: number
-    onRowSelectionChange?: (selectedRows: TData[]) => void
     rowSelection?: RowSelectionState
     onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
     isVirtual?: boolean
@@ -62,9 +61,8 @@ export function DataTable<TData, TValue>({
     mobileCardRender,
     renderSubComponent,
     initialPageSize,
-    onRowSelectionChange,
-    rowSelection,
     onRowSelectionChangeState,
+    rowSelection,
     isVirtual = false,
     virtualItemHeight = 53,
     CustomRowComponent,
@@ -126,14 +124,6 @@ export function DataTable<TData, TValue>({
         overscan: 10,
     })
 
-    // Expose row selection changes to parent
-    useEffect(() => {
-        if (onRowSelectionChange) {
-            // Only map when rowSelection actually changed to avoid redundant calls
-            onRowSelectionChange(table.getSelectedRowModel().rows.map(row => row.original))
-        }
-    }, [rowSelection, onRowSelectionChange])
-
     const handleDragOver = (e: React.DragEvent, rowId: string) => {
         if (!onRowDrop) return
         e.preventDefault()
@@ -145,7 +135,7 @@ export function DataTable<TData, TValue>({
         setDragOverRowId(null)
     }
 
-    const handleDrop = (e: React.DragEvent, row: { original: TData }) => {
+    const handleDrop = (e: React.DragEvent, row: Row<TData>) => {
         if (!onRowDrop) return
         e.preventDefault()
         setDragOverRowId(null)

@@ -234,13 +234,8 @@ export default function LeadsPage() {
     const currentSort = searchParams.get('sort') || 'newest';
     const currentOwner = searchParams.get('owner') || 'all';
 
-    const [selectedRows, setSelectedRows] = useState<Lead[]>([]);
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
-
-    const handleRowSelectionChange = useCallback((rows: Lead[]) => {
-        setSelectedRows(rows);
-    }, []);
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
@@ -646,7 +641,9 @@ export default function LeadsPage() {
                                         initialPageSize={1000}
                                         rowSelection={rowSelection}
                                         onRowSelectionChangeState={setRowSelection}
-                                        onRowSelectionChange={handleRowSelectionChange}
+                                        isVirtual={true}
+                                        virtualItemHeight={53}
+                                        CustomRowComponent={LeadTableRow as any}
                                         renderSubComponent={({ row }) => {
                                             const leadTasks = tasks.filter((t: Task) => t.leadId === row.original.id);
                                             return (
@@ -667,12 +664,12 @@ export default function LeadsPage() {
             </div>
 
             {/* Bulk Actions Floating Bar */}
-            {isAdminOrManager && selectedRows.length > 0 && (
+            {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
                 <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
                     <div className="bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-2xl flex items-center gap-4 min-w-[300px] border border-primary-foreground/20">
                         <div className="flex items-center gap-2 border-r border-primary-foreground/20 pr-4">
                             <span className="bg-white text-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
-                                {selectedRows.length}
+                                {Object.keys(rowSelection).length}
                             </span>
                             <span className="text-sm font-medium whitespace-nowrap">Leads Selected</span>
                         </div>
@@ -692,7 +689,6 @@ export default function LeadsPage() {
                             variant="ghost" 
                             className="text-primary-foreground/70 hover:bg-white/10 h-8 w-8 rounded-full"
                             onClick={() => {
-                                setSelectedRows([]);
                                 setRowSelection({});
                             }}
                             title="Clear selection"
@@ -706,9 +702,8 @@ export default function LeadsPage() {
             <BulkAssignDialog
                 open={isBulkAssignDialogOpen}
                 onOpenChange={setIsBulkAssignDialogOpen}
-                selectedLeads={selectedRows.map((r: Lead) => r.id)}
+                selectedLeads={Object.keys(rowSelection).map(index => sortedDisplayData[parseInt(index)]?.id).filter(Boolean)}
                 onSuccess={() => {
-                    setSelectedRows([]);
                     setRowSelection({});
                     handleRefresh();
                 }}
