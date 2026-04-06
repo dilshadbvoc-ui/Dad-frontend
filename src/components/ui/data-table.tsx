@@ -13,8 +13,10 @@ import {
     getExpandedRowModel,
     type ExpandedState,
     type RowSelectionState,
+    type Row,
 } from "@tanstack/react-table"
-import { useState, Fragment, useEffect, useMemo } from "react"
+import { useState, Fragment, useEffect, useMemo, useRef } from "react"
+import { useVirtualizer } from "@tanstack/react-virtual"
 
 import {
     Table,
@@ -40,6 +42,15 @@ interface DataTableProps<TData, TValue> {
     onRowSelectionChange?: (selectedRows: TData[]) => void
     rowSelection?: RowSelectionState
     onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
+    isVirtual?: boolean
+    virtualItemHeight?: number
+    CustomRowComponent?: React.ComponentType<{
+        row: Row<TData>;
+        onDragOver?: (e: React.DragEvent, rowId: string) => void;
+        onDragLeave?: () => void;
+        onDrop?: (e: React.DragEvent, row: Row<TData>) => void;
+        dragOverRowId?: string | null;
+    }>
 }
 
 export function DataTable<TData, TValue>({
@@ -54,6 +65,9 @@ export function DataTable<TData, TValue>({
     onRowSelectionChange,
     rowSelection,
     onRowSelectionChangeState,
+    isVirtual = false,
+    virtualItemHeight = 53,
+    CustomRowComponent,
 }: DataTableProps<TData, TValue>) {
     const [sorting, setSorting] = useState<SortingState>([])
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
@@ -61,6 +75,8 @@ export function DataTable<TData, TValue>({
     const [expanded, setExpanded] = useState<ExpandedState>({})
     const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
     const [globalFilter, setGlobalFilter] = useState("")
+
+    const tableContainerRef = useRef<HTMLDivElement>(null)
 
     const table = useReactTable({
         data,
@@ -99,6 +115,15 @@ export function DataTable<TData, TValue>({
             globalFilter,
             expanded,
         },
+    })
+
+    const { rows } = table.getRowModel()
+
+    const virtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => tableContainerRef.current,
+        estimateSize: () => virtualItemHeight,
+        overscan: 10,
     })
 
     // Expose row selection changes to parent
@@ -158,10 +183,14 @@ export function DataTable<TData, TValue>({
             )}
 
             {/* Desktop Table View (visible on lg and above, or always if no mobileCardRender) */}
-            <div className={cn(
-                "rounded-md border table-responsive-wrapper shadow-sm bg-card",
-                mobileCardRender ? "hidden lg:block" : "block"
-            )}>
+            <div 
+                ref={tableContainerRef}
+                className={cn(
+                    "rounded-md border table-responsive-wrapper shadow-sm bg-card overflow-auto",
+                    isVirtual ? "max-h-[600px]" : "",
+                    mobileCardRender ? "hidden lg:block" : "block"
+                )}
+            >
                 <Table>
                     <TableHeader className="bg-muted/50">
                         {table.getHeaderGroups().map((headerGroup) => (
@@ -181,38 +210,91 @@ export function DataTable<TData, TValue>({
                             </TableRow>
                         ))}
                     </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <Fragment key={row.id}>
-                                    <TableRow
-                                        data-state={row.getIsSelected() && "selected"}
-                                        onDragOver={(e) => handleDragOver(e, row.id)}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={(e) => handleDrop(e, row)}
-                                        className={cn(
-                                            "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
-                                            dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
-                                        )}
-                                    >
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id} className="py-3 font-medium text-sm">
-                                                {flexRender(
-                                                    cell.column.columnDef.cell,
-                                                    cell.getContext()
+                    <TableBody style={isVirtual ? { height: `${virtualizer.getTotalSize()}px`, position: 'relative' } : {}}>
+                        {rows?.length ? (
+                            isVirtual ? (
+                                virtualizer.getVirtualItems().map((virtualRow) => {
+                                    const row = rows[virtualRow.index] as Row<TData>
+                                    return (
+                                        <div
+                                            key={virtualRow.key}
+                                            style={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: `${virtualRow.size}px`,
+                                                transform: `translateY(${virtualRow.start}px)`,
+                                            }}
+                                        >
+                                            {CustomRowComponent ? (
+                                                <CustomRowComponent
+                                                    row={row}
+                                                    onDragOver={handleDragOver}
+                                                    onDragLeave={handleDragLeave}
+                                                    onDrop={handleDrop}
+                                                    dragOverRowId={dragOverRowId}
+                                                />
+                                            ) : (
+                                                <TableRow
+                                                    data-state={row.getIsSelected() && "selected"}
+                                                    className="transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted"
+                                                >
+                                                    {row.getVisibleCells().map((cell) => (
+                                                        <TableCell key={cell.id} className="py-3 font-medium text-sm">
+                                                            {flexRender(
+                                                                cell.column.columnDef.cell,
+                                                                cell.getContext()
+                                                            )}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            )}
+                                        </div>
+                                    )
+                                })
+                            ) : (
+                                rows.map((row) => (
+                                    <Fragment key={row.id}>
+                                        {CustomRowComponent ? (
+                                            <CustomRowComponent
+                                                row={row}
+                                                onDragOver={handleDragOver}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={handleDrop}
+                                                dragOverRowId={dragOverRowId}
+                                            />
+                                        ) : (
+                                            <TableRow
+                                                data-state={row.getIsSelected() && "selected"}
+                                                onDragOver={(e) => handleDragOver(e, row.id)}
+                                                onDragLeave={handleDragLeave}
+                                                onDrop={(e) => handleDrop(e, row)}
+                                                className={cn(
+                                                    "transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
+                                                    dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
                                                 )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                    {row.getIsExpanded() && renderSubComponent && (
-                                        <TableRow className="bg-muted/10 hover:bg-muted/10">
-                                            <TableCell colSpan={row.getVisibleCells().length}>
-                                                {renderSubComponent({ row })}
-                                            </TableCell>
-                                        </TableRow>
-                                    )}
-                                </Fragment>
-                            ))
+                                            >
+                                                {row.getVisibleCells().map((cell) => (
+                                                    <TableCell key={cell.id} className="py-3 font-medium text-sm">
+                                                        {flexRender(
+                                                            cell.column.columnDef.cell,
+                                                            cell.getContext()
+                                                        )}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        )}
+                                        {row.getIsExpanded() && renderSubComponent && (
+                                            <TableRow className="bg-muted/10 hover:bg-muted/10">
+                                                <TableCell colSpan={row.getVisibleCells().length}>
+                                                    {renderSubComponent({ row })}
+                                                </TableCell>
+                                            </TableRow>
+                                        )}
+                                    </Fragment>
+                                ))
+                            )
                         ) : (
                             <TableRow>
                                 <TableCell
