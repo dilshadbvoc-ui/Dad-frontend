@@ -724,15 +724,17 @@ export default function LeadsPage() {
                 </div>
             )}
 
-            <BulkAssignDialog
-                open={isBulkAssignDialogOpen}
-                onOpenChange={setIsBulkAssignDialogOpen}
-                selectedLeads={Object.keys(rowSelection).map(index => sortedDisplayData[parseInt(index)]?.id).filter(Boolean)}
-                onSuccess={() => {
-                    setRowSelection({});
-                    handleRefresh();
-                }}
-            />
+            {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
+                <BulkAssignDialog
+                    open={isBulkAssignDialogOpen}
+                    onOpenChange={setIsBulkAssignDialogOpen}
+                    selectedLeads={Object.keys(rowSelection)}
+                    onSuccess={() => {
+                        setRowSelection({});
+                        handleRefresh();
+                    }}
+                />
+            )}
         </div>
     )
 }

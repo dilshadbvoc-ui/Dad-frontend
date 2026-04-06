@@ -103,6 +103,7 @@ export function DataTable<TData, TValue>({
             })
         },
         getRowCanExpand: () => true,
+        getRowId: (row: any) => row.id || row._id || row.uuid,
         initialState: {
             pagination: {
                 pageSize: initialPageSize || 100,
