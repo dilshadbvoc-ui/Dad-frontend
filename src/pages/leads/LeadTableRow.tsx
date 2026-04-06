@@ -25,7 +25,7 @@ const LeadTableRowComponent = ({
             onDragLeave={onDragLeave}
             onDrop={(e) => onDrop?.(e, row)}
             className={cn(
-                "flex w-full border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted shrink-0",
+                "flex w-full border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10 shrink-0",
                 dragOverRowId === row.id && "bg-accent border-primary"
             )}
         >

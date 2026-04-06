@@ -39,6 +39,7 @@ interface DataTableProps<TData, TValue> {
     mobileCardRender?: (row: TData) => React.ReactNode
     renderSubComponent?: (props: { row: any }) => React.ReactElement
     initialPageSize?: number
+    pageSize?: number
     rowSelection?: RowSelectionState
     onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
     isVirtual?: boolean
@@ -61,6 +62,7 @@ export function DataTable<TData, TValue>({
     mobileCardRender,
     renderSubComponent,
     initialPageSize,
+    pageSize,
     onRowSelectionChangeState,
     rowSelection,
     isVirtual = false,
@@ -114,6 +116,13 @@ export function DataTable<TData, TValue>({
             expanded,
         },
     })
+
+    // Update page size if prop changes
+    useEffect(() => {
+        if (pageSize !== undefined) {
+            table.setPageSize(pageSize)
+        }
+    }, [pageSize, table])
 
     const { rows } = table.getRowModel()
 
@@ -219,7 +228,7 @@ export function DataTable<TData, TValue>({
                                     return (
                                         <div
                                             key={virtualRow.key}
-                                            className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted"
+                                            className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10"
                                             data-state={row.getIsSelected() && "selected"}
                                             style={{
                                                 height: `${virtualRow.size}px`,
@@ -260,7 +269,7 @@ export function DataTable<TData, TValue>({
                                         <div
                                             data-state={row.getIsSelected() && "selected"}
                                             className={cn(
-                                                "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-muted",
+                                                "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10",
                                                 dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
                                             )}
                                         >

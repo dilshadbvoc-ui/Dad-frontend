@@ -236,6 +236,7 @@ export default function LeadsPage() {
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+    const [pageSize, setPageSize] = useState(50);
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
@@ -566,6 +567,29 @@ export default function LeadsPage() {
                             </div>
                         )}
 
+                        {!isTaskView && !isChartView && (
+                            <div className="min-w-[100px]">
+                                <Select 
+                                    value={pageSize === (sortedDisplayData as Lead[]).length ? 'all' : pageSize.toString()} 
+                                    onValueChange={(val) => setPageSize(val === 'all' ? (sortedDisplayData as Lead[]).length : parseInt(val))}
+                                >
+                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-muted-foreground hidden lg:inline">View:</span>
+                                            <SelectValue placeholder="Page Size" />
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="20">20 Leads</SelectItem>
+                                        <SelectItem value="50">50 Leads</SelectItem>
+                                        <SelectItem value="100">100 Leads</SelectItem>
+                                        <SelectItem value="500">500 Leads</SelectItem>
+                                        <SelectItem value="all">All Leads</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )}
+
                         {!isTaskView && !isChartView && (sortedDisplayData as Lead[]).length > 0 && (
                             <Button
                                 size="sm"
@@ -638,7 +662,8 @@ export default function LeadsPage() {
                                         data={sortedDisplayData as Lead[]}
                                         searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                                         mobileCardRender={(lead) => <LeadCard lead={lead} />}
-                                        initialPageSize={1000}
+                                        initialPageSize={50}
+                                        pageSize={pageSize}
                                         rowSelection={rowSelection}
                                         onRowSelectionChangeState={setRowSelection}
                                         isVirtual={true}
