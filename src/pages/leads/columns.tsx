@@ -114,26 +114,6 @@ export const columns: ColumnDef<Lead>[] = [
         }
     },
     {
-        accessorKey: "leadScore",
-        size: 80,
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
-                >
-                    Score
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            )
-        },
-        cell: ({ row }) => {
-            const score = parseFloat(row.getValue("leadScore"))
-            return <div className={score > 50 ? "text-success font-bold" : "text-muted-foreground"}>{score}</div>
-        }
-    },
-    {
         accessorKey: "nextFollowUp",
         size: 150,
         header: "Next Follow-up",

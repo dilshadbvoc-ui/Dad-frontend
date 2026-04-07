@@ -185,10 +185,6 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
 
                 <div className="flex items-center gap-4 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
-                        <RefreshCw className="h-3 w-3" />
-                        <span>Score: {lead.leadScore}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
                         <Plus className="h-3 w-3" />
                         <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
                     </div>
@@ -286,8 +282,6 @@ export default function LeadsPage() {
                 return sorted.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
             case 'name-desc':
                 return sorted.sort((a, b) => (b.firstName || '').localeCompare(a.firstName || ''));
-            case 'score-low':
-                return sorted.sort((a, b) => (a.leadScore || 0) - (b.leadScore || 0));
             case 'owner-asc':
                 return sorted.sort((a, b) => {
                     const nameA = a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName || ''}`.trim() : '';
@@ -519,18 +513,6 @@ export default function LeadsPage() {
                                             <div className="flex items-center gap-2">
                                                 <ArrowUpDown className="h-3 w-3" />
                                                 Name (Z-A)
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="score-high">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Score (High-Low)
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="score-low">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Score (Low-High)
                                             </div>
                                         </SelectItem>
                                         <SelectItem value="owner-asc">
