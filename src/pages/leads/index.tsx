@@ -355,6 +355,15 @@ export default function LeadsPage() {
         return isTaskView ? displayData : sortLeads(displayData as Lead[]);
     }, [displayData, isTaskView, currentSort]);
 
+    // Pagination display logic
+    const totalFilteredLeads = (sortedDisplayData as Lead[]).length;
+    const currentRangeEnd = Math.min(pageSize, totalFilteredLeads);
+    const paginationLabel = totalFilteredLeads > 0 
+        ? <span className="text-sm font-medium whitespace-nowrap ml-2">
+            <span className="font-bold">1 - {currentRangeEnd}</span> of <span className="font-bold">{totalFilteredLeads}</span>
+          </span>
+        : <span className="text-sm text-muted-foreground ml-2">0 leads</span>;
+
     // --- Chart Data Helpers ---
     const getChartData = () => {
         const counts: Record<string, number> = {};
@@ -568,25 +577,28 @@ export default function LeadsPage() {
                         )}
 
                         {!isTaskView && !isChartView && (
-                            <div className="min-w-[100px]">
-                                <Select 
-                                    value={pageSize === (sortedDisplayData as Lead[]).length ? 'all' : pageSize.toString()} 
-                                    onValueChange={(val) => setPageSize(val === 'all' ? (sortedDisplayData as Lead[]).length : parseInt(val))}
-                                >
-                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-muted-foreground hidden lg:inline">View:</span>
-                                            <SelectValue placeholder="Page Size" />
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="20">20 Leads</SelectItem>
-                                        <SelectItem value="50">50 Leads</SelectItem>
-                                        <SelectItem value="100">100 Leads</SelectItem>
-                                        <SelectItem value="500">500 Leads</SelectItem>
-                                        <SelectItem value="all">All Leads</SelectItem>
-                                    </SelectContent>
-                                </Select>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground font-medium hidden lg:inline">Show</span>
+                                <div className="min-w-[100px]">
+                                    <Select 
+                                        value={pageSize === (sortedDisplayData as Lead[]).length ? 'all' : pageSize.toString()} 
+                                        onValueChange={(val) => setPageSize(val === 'all' ? (sortedDisplayData as Lead[]).length : parseInt(val))}
+                                    >
+                                        <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                            <div className="flex items-center gap-2">
+                                                <SelectValue placeholder="Page Size" />
+                                            </div>
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="20">20</SelectItem>
+                                            <SelectItem value="50">50</SelectItem>
+                                            <SelectItem value="100">100</SelectItem>
+                                            <SelectItem value="500">500</SelectItem>
+                                            <SelectItem value="all">All</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                {paginationLabel}
                             </div>
                         )}
 
