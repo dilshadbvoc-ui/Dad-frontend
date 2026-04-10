@@ -13,7 +13,8 @@ import {
     AlertCircle,
     Info
 } from "lucide-react";
-import { getOrganisation, updateOrganisation, LeadStatus } from "@/services/settingsService";
+import { getOrganisation, updateOrganisation } from "@/services/settingsService";
+import type { LeadStatus } from "@/services/settingsService";
 import { toast } from "sonner";
 import { 
     Dialog, 

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { getOrganisation, LeadStatus } from "@/services/settingsService";
+import { getOrganisation } from "@/services/settingsService";
+import type { LeadStatus } from "@/services/settingsService";
 
 export const DEFAULT_LEAD_STATUSES: LeadStatus[] = [
     { id: 'new', label: 'New', color: '#3b82f6', isSystem: true, order: 0 },

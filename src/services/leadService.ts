@@ -11,7 +11,7 @@ export interface Lead {
     enquiryAbout?: string;
     jobTitle?: string;
     leadScore: number;
-    status: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry';
+    status: string;
     source: string;
     assignedTo?: {
         id: string;
@@ -63,7 +63,7 @@ export interface CreateLeadData {
     company?: string;
     jobTitle?: string;
     leadScore?: number;
-    status?: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry';
+    status?: string;
     source: string;
     assignedTo?: string;
     address?: {

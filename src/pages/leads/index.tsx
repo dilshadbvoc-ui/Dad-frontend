@@ -337,8 +337,7 @@ export default function LeadsPage() {
 
                 return leads;
 
-            default:
-                return leads;
+
         }
     };
 
