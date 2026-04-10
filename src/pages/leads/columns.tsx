@@ -9,6 +9,7 @@ import { ActionsCell } from "./ActionsCell"
 import { toast } from "sonner"
 
 import { NameCell } from "./NameCell"
+import { StatusCell } from "./StatusCell"
 
 export const columns: ColumnDef<Lead>[] = [
     {
@@ -132,25 +133,7 @@ export const columns: ColumnDef<Lead>[] = [
         accessorKey: "status",
         size: 120,
         header: "Status",
-        cell: ({ row }) => {
-            const status = row.getValue("status") as string
-            let className = "capitalize "
-
-            switch (status) {
-                case 'new': className += "bg-blue-500/10 text-blue-500 border-blue-500/20"; break;
-                case 'contacted': className += "bg-warning/10 text-warning border-warning/20"; break;
-                case 'interested': className += "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"; break;
-                case 'not_interested': className += "bg-orange-500/10 text-orange-500 border-orange-500/20"; break;
-                case 'call_not_connected': className += "bg-slate-500/10 text-slate-500 border-slate-500/20"; break;
-                case 'qualified': className += "bg-success/10 text-success border-success/20"; break;
-                case 'converted': className += "bg-primary/10 text-primary border-primary/20"; break;
-                case 'lost': className += "bg-destructive/10 text-destructive border-destructive/20"; break;
-                case 're_enquiry': className += "bg-orange-100 text-orange-700 border-orange-200"; break;
-                default: className += "bg-muted text-muted-foreground border-border";
-            }
-
-            return <Badge variant="outline" className={className}>{status}</Badge>
-        }
+        cell: ({ row }) => <StatusCell statusId={row.getValue("status")} />
     },
     {
         accessorKey: "createdAt",

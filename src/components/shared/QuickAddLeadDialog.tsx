@@ -30,6 +30,7 @@ import { useQuery } from "@tanstack/react-query"
 import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
 import { Globe } from "lucide-react"
+import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 
 // interface for Form Data
 interface QuickLeadFormData {
@@ -42,7 +43,7 @@ interface QuickLeadFormData {
     company?: string
     enquiryAbout?: string
     source: string
-    status: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
+    status: string
     assignedTo?: string
     customFields?: Record<string, unknown>
 }
@@ -61,6 +62,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
     const finalOpen = isControlled ? open : internalOpen
     const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
+    const { statuses } = useLeadStatuses()
     const queryClient = useQueryClient()
 
     const form = useForm<QuickLeadFormData>({
@@ -383,15 +385,17 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                                                     </SelectTrigger>
                                                 </FormControl>
                                                 <SelectContent>
-                                                    <SelectItem value="new">New</SelectItem>
-                                                    <SelectItem value="contacted">Contacted</SelectItem>
-                                                    <SelectItem value="interested">Interested</SelectItem>
-                                                    <SelectItem value="not_interested">Not Interested</SelectItem>
-                                                    <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
-                                                    <SelectItem value="qualified">Qualified</SelectItem>
-                                                    <SelectItem value="nurturing">Nurturing</SelectItem>
-                                                    <SelectItem value="converted">Converted</SelectItem>
-                                                    <SelectItem value="lost">Lost</SelectItem>
+                                                    {statuses.map((status) => (
+                                                        <SelectItem key={status.id} value={status.id}>
+                                                            <div className="flex items-center gap-2">
+                                                                <div 
+                                                                    className="w-2 h-2 rounded-full" 
+                                                                    style={{ backgroundColor: status.color }}
+                                                                />
+                                                                {status.label}
+                                                            </div>
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectContent>
                                             </Select>
                                             <FormMessage />

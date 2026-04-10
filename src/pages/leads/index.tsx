@@ -44,6 +44,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { LeadTableRow } from "./LeadTableRow"
+import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 
 // --- Helper Components & Logic ---
 
@@ -223,6 +224,7 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
 };
 
 export default function LeadsPage() {
+    const { statuses, getStatusDetails } = useLeadStatuses()
     const [searchParams, setSearchParams] = useSearchParams();
     const queryClient = useQueryClient();
     // Default view is 'all-leads' if not specified
@@ -311,30 +313,29 @@ export default function LeadsPage() {
                     isSameDay(new Date(l.createdAt), new Date()) ||
                     (l.lastEnquiryDate && isSameDay(new Date(l.lastEnquiryDate), new Date()))
                 );
-            case 'interested-leads':
-                return leads.filter((l: Lead) => l.status === 'interested');
-            case 'not-interested-leads':
-                return leads.filter((l: Lead) => l.status === 'not_interested');
-            case 'call-not-connected-leads':
-                return leads.filter((l: Lead) => l.status === 'call_not_connected');
-            case 'converted-leads':
-                return leads.filter((l: Lead) => l.status === 'converted');
-            case 'lost-leads':
-                return leads.filter((l: Lead) => l.status === 'lost');
             case 'no-activity-leads':
                 // Placeholder: simple check if updated recently? Or just return all for now as specific API needed.
                 // Let's filter by updated > 30 days ago for "No Activity" mock
                 return leads.filter((l: Lead) => isPast(new Date(l.updatedAt)) && new Date(l.updatedAt).getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000);
 
-            // Task Views
-            case 'all-followups':
-                return tasks;
-            case 'overdue-followups':
-                return tasks.filter((t: Task) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
-            case 'today-followups':
-                return tasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()) && t.status !== 'completed');
-            case 'upcoming-followups':
-                return tasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
+            // Dynamic Status Views
+            default:
+                if (currentView.startsWith('status-')) {
+                    const statusId = currentView.replace('status-', '');
+                    return leads.filter((l: Lead) => l.status === statusId);
+                }
+                
+                // Task Views
+                if (currentView.includes('followup')) {
+                    switch (currentView) {
+                        case 'all-followups': return tasks;
+                        case 'overdue-followups': return tasks.filter((t: Task) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
+                        case 'today-followups': return tasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()) && t.status !== 'completed');
+                        case 'upcoming-followups': return tasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
+                    }
+                }
+
+                return leads;
 
             default:
                 return leads;
@@ -362,7 +363,10 @@ export default function LeadsPage() {
     const getChartData = () => {
         const counts: Record<string, number> = {};
         if (currentView === 'leads-by-status') {
-            leads.forEach((l: Lead) => { counts[l.status] = (counts[l.status] || 0) + 1; });
+            leads.forEach((l: Lead) => { 
+                const label = getStatusDetails(l.status).label;
+                counts[label] = (counts[label] || 0) + 1; 
+            });
         } else if (currentView === 'leads-by-source') {
             leads.forEach((l: Lead) => { counts[l.source] = (counts[l.source] || 0) + 1; });
         } else if (currentView === 'leads-by-ownership') {
@@ -460,12 +464,14 @@ export default function LeadsPage() {
                                         <SelectLabel>Leads</SelectLabel>
                                         <SelectItem value="all-leads">All Leads</SelectItem>
                                         <SelectItem value="today-leads">Today's Leads</SelectItem>
-                                        <SelectItem value="interested-leads">Interested Leads</SelectItem>
-                                        <SelectItem value="not-interested-leads">Not Interested Leads</SelectItem>
-                                        <SelectItem value="call-not-connected-leads">Not Connected Leads</SelectItem>
                                         <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
-                                        <SelectItem value="converted-leads">Converted Leads</SelectItem>
-                                        <SelectItem value="lost-leads">Lost Leads</SelectItem>
+                                        
+                                        <SelectLabel className="mt-2 text-[10px] uppercase font-bold text-muted-foreground/60 px-2">Pipeline Stages</SelectLabel>
+                                        {statuses.map(status => (
+                                            <SelectItem key={status.id} value={`status-${status.id}`}>
+                                                {status.label} Leads
+                                            </SelectItem>
+                                        ))}
                                     </SelectGroup>
                                     <SelectGroup>
                                         <SelectLabel>Analysis</SelectLabel>

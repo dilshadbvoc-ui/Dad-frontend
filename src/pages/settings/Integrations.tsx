@@ -35,7 +35,7 @@ export default function IntegrationsPage() {
 
     // Config Dialog State
     const [configOpen, setConfigOpen] = useState(false);
-    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | null>(null);
+    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | null>(null);
 
     // Meta Account Config State
     const [metaConfigOpen, setMetaConfigOpen] = useState(false);
@@ -73,7 +73,7 @@ export default function IntegrationsPage() {
         }
     };
 
-    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi') => {
+    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox') => {
         setActiveConfigType(type);
         setConfigOpen(true);
     };
@@ -187,6 +187,18 @@ export default function IntegrationsPage() {
             hasSettings: true,
             settingsType: 'halapi' as const,
             isPlaceholder: false
+        },
+        {
+            id: 'gallabox',
+            name: 'Gallabox',
+            description: 'Connect Gallabox for advanced WhatsApp lead syncing and communication.',
+            icon: WhatsAppLogo, // Mapping to WhatsAppLogo for now, can be changed later
+            iconColor: 'text-indigo-500',
+            connected: integrations.gallabox?.connected,
+            onEnable: () => openConfig('gallabox'),
+            hasSettings: true,
+            settingsType: 'gallabox' as const,
+            isPlaceholder: false
         }
     ];
 
@@ -235,7 +247,8 @@ export default function IntegrationsPage() {
                                                                 integration.id === 'googleads' ? 'bg-gradient-to-br from-yellow-400 via-red-400 to-blue-500' :
                                                                     integration.id === 'wati' ? 'bg-gradient-to-br from-green-600 to-green-800' :
                                                                         integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
-                                                                            'bg-gradient-to-br from-gray-500 to-gray-700'
+                                                                            integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
+                                                                                'bg-gradient-to-br from-gray-500 to-gray-700'
                                         }`}>
                                         <integration.icon className="h-5 w-5 text-white" />
                                     </div>

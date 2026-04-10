@@ -55,6 +55,8 @@ export interface IntegrationSettings {
     authToken?: string;
     phoneNumber?: string;
     forwardTo?: string;
+    // Gallabox / Specific Fields
+    accountId?: string;
     // SSO Fields
     entryPoint?: string;
     issuer?: string;
@@ -80,6 +82,14 @@ export interface LeadScoringConfig {
     websiteVisit: number
 }
 
+export interface LeadStatus {
+    id: string;
+    label: string;
+    color: string;
+    isSystem: boolean;
+    order: number;
+}
+
 export interface OrganisationUpdateData {
     name?: string;
     logo?: string;
@@ -89,6 +99,7 @@ export interface OrganisationUpdateData {
     integrations?: Record<string, IntegrationSettings>;
     ssoConfig?: IntegrationSettings;
     leadScoringConfig?: LeadScoringConfig;
+    leadStatuses?: LeadStatus[];
 }
 
 export const getUsers = async () => {

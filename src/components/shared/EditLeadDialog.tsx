@@ -25,6 +25,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { updateLead, type Lead } from "@/services/leadService"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 
 interface EditLeadFormData {
     firstName: string
@@ -34,7 +35,7 @@ interface EditLeadFormData {
     secondaryPhone?: string
     company: string
     enquiryAbout: string
-    status: 'new' | 'contacted' | 'interested' | 'not_interested' | 'call_not_connected' | 'qualified' | 'nurturing' | 'converted' | 'lost' | 'reborn' | 're_enquiry'
+    status: string
 }
 
 interface EditLeadDialogProps {
@@ -51,6 +52,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
     const finalOpen = isControlled ? open : internalOpen
     const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
+    const { statuses } = useLeadStatuses()
     const queryClient = useQueryClient()
 
     const form = useForm<EditLeadFormData>({
@@ -262,22 +264,24 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Status</FormLabel>
-                                    <Select onValueChange={(value) => field.onChange(value as "new" | "contacted" | "qualified" | "nurturing" | "converted" | "lost")} defaultValue={field.value}>
+                                    <Select onValueChange={(value) => field.onChange(value)} defaultValue={field.value}>
                                         <FormControl>
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Select status" />
                                             </SelectTrigger>
                                         </FormControl>
                                         <SelectContent>
-                                            <SelectItem value="new">New</SelectItem>
-                                            <SelectItem value="contacted">Contacted</SelectItem>
-                                            <SelectItem value="interested">Interested</SelectItem>
-                                            <SelectItem value="not_interested">Not Interested</SelectItem>
-                                            <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
-                                            <SelectItem value="qualified">Qualified</SelectItem>
-                                            <SelectItem value="nurturing">Nurturing</SelectItem>
-                                            <SelectItem value="converted">Converted</SelectItem>
-                                            <SelectItem value="lost">Lost</SelectItem>
+                                            {statuses.map((status) => (
+                                                <SelectItem key={status.id} value={status.id}>
+                                                    <div className="flex items-center gap-2">
+                                                        <div 
+                                                            className="w-2 h-2 rounded-full" 
+                                                            style={{ backgroundColor: status.color }}
+                                                        />
+                                                        {status.label}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
                                         </SelectContent>
                                     </Select>
                                     <FormMessage />

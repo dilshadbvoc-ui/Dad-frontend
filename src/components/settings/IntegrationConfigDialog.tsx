@@ -38,7 +38,7 @@ interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -130,7 +130,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         ? 'Wati Integration'
                                         : integrationType === 'halapi'
                                             ? 'HAL API Integration'
-                                            : 'Single Sign-On (SAML)'
+                                            : integrationType === 'gallabox'
+                                                ? 'Gallabox Integration'
+                                                : 'Single Sign-On (SAML)'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -152,7 +154,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         ? 'Connect Wati for WhatsApp marketing.'
                                         : integrationType === 'halapi'
                                             ? 'Integrate HAL API for appointments.'
-                                            : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
+                                            : integrationType === 'gallabox'
+                                                ? 'Connect Gallabox for WhatsApp lead sync.'
+                                                : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -199,7 +203,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>IDP Entry Point (SSO URL)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="https://idp.example.com/sso/saml" {...field} />
+                                                <Input placeholder="https://idp.example.com/sso/saml" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Login URL provided by your Identity Provider.
@@ -215,7 +219,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Issuer (Entity ID)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="mern-crm" {...field} />
+                                                <Input placeholder="mern-crm" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Audience URI / Entity ID configured in IDP. Default: mern-crm
@@ -259,7 +263,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Page ID</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Enter Facebook Page ID" {...field} />
+                                                <Input placeholder="Enter Facebook Page ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -272,7 +276,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Access Token</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Enter User Access Token" {...field} />
+                                                <Input type="password" placeholder="Enter User Access Token" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Token from Meta Business Suite.
@@ -288,7 +292,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Ad Account ID</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="act_..." {...field} />
+                                                <Input placeholder="act_..." {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Meta Ad Account ID (starts with act_).
@@ -305,7 +309,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>App ID (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Meta App ID" {...field} />
+                                                <Input placeholder="Meta App ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Required for token exchange. Overrides system default.
@@ -321,7 +325,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>App Secret (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Meta App Secret" {...field} />
+                                                <Input type="password" placeholder="Meta App Secret" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Required for token exchange. Overrides system default.
@@ -337,7 +341,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Configuration ID (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Meta Configuration ID" {...field} />
+                                                <Input placeholder="Meta Configuration ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Required for WhatsApp Embedded Signup.
@@ -359,7 +363,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Access Token</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Enter WhatsApp Access Token" {...field} />
+                                                <Input type="password" placeholder="Enter WhatsApp Access Token" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 System User Access Token from Meta Business.
@@ -375,7 +379,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Phone Number ID</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="WhatsApp Phone Number ID" {...field} />
+                                                <Input placeholder="WhatsApp Phone Number ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 From WhatsApp Business Platform &gt; API Setup.
@@ -391,7 +395,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>WABA ID</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="WhatsApp Business Account ID" {...field} />
+                                                <Input placeholder="WhatsApp Business Account ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Required for templates and advanced features.
@@ -407,7 +411,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>App ID (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Meta App ID" {...field} />
+                                                <Input placeholder="Meta App ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -420,7 +424,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>App Secret (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input type="password" placeholder="Meta App Secret" {...field} />
+                                                <Input type="password" placeholder="Meta App Secret" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormMessage />
                                         </FormItem>
@@ -433,7 +437,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                         <FormItem>
                                             <FormLabel>Configuration ID (Optional)</FormLabel>
                                             <FormControl>
-                                                <Input placeholder="Meta Configuration ID" {...field} />
+                                                <Input placeholder="Meta Configuration ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
                                             <FormDescription className="text-xs">
                                                 Required for WhatsApp Embedded Signup.
@@ -616,7 +620,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Channel ID</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="e.g. C12345678" {...field} />
+                                                    <Input placeholder="e.g. C12345678" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -629,7 +633,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Bot Token</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="xoxb-..." {...field} />
+                                                    <Input type="password" placeholder="xoxb-..." {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -650,7 +654,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Account SID</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="AC..." {...field} />
+                                                    <Input placeholder="AC..." {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -663,7 +667,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Auth Token</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Key..." {...field} />
+                                                    <Input type="password" placeholder="Key..." {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -676,7 +680,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Twilio Phone Number</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1234567890" {...field} />
+                                                    <Input placeholder="+1234567890" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormDescription className="text-xs">
                                                     Number to make calls from.
@@ -692,7 +696,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Inbound Forwarding (Optional)</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="+1987654321" {...field} />
+                                                    <Input placeholder="+1987654321" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormDescription className="text-xs">
                                                     Redirect incoming calls to this real number.
@@ -705,9 +709,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                             )
                         }
 
-                        {/* Fields for Happilee, Wabis, DoubleTick, Wati, HAL API */}
+                        {/* Fields for Happilee, Wabis, DoubleTick, Wati, HAL API, Gallabox */}
                         {
-                            ['happilee', 'wabis', 'doubletick', 'wati', 'halapi'].includes(integrationType) && isConnected && (
+                            ['happilee', 'wabis', 'doubletick', 'wati', 'halapi', 'gallabox'].includes(integrationType) && isConnected && (
                                 <>
                                     <FormField
                                         control={form.control}
@@ -716,25 +720,71 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>API Key</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Provider API Key" {...field} />
+                                                    <Input type="password" placeholder="Provider API Key" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
                                         )}
                                     />
-                                    <FormField
-                                        control={form.control}
-                                        name="endpoint"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Endpoint URL (Optional)</FormLabel>
-                                                <FormControl>
-                                                    <Input placeholder="https://api.provider.com/v1" {...field} />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
+                                    {integrationType === 'gallabox' && (
+                                        <FormField
+                                            control={form.control}
+                                            name="apiSecret"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>API Secret</FormLabel>
+                                                    <FormControl>
+                                                        <Input type="password" placeholder="Gallabox API Secret" {...field} value={field.value as string || ''} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
+                                    {integrationType === 'gallabox' ? (
+                                        <>
+                                            <FormField
+                                                control={form.control}
+                                                name="accountId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Account ID</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Gallabox Account ID" {...field} value={field.value as string || ''} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                            <FormField
+                                                control={form.control}
+                                                name="channelId"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Channel ID</FormLabel>
+                                                        <FormControl>
+                                                            <Input placeholder="Gallabox WhatsApp Channel ID" {...field} value={field.value as string || ''} />
+                                                        </FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+                                        </>
+                                    ) : (
+                                        <FormField
+                                            control={form.control}
+                                            name="endpoint"
+                                            render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel>Endpoint URL (Optional)</FormLabel>
+                                                    <FormControl>
+                                                        <Input placeholder="https://api.provider.com/v1" {...field} value={field.value as string || ''} />
+                                                    </FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+                                    )}
                                 </>
                             )
                         }
@@ -750,7 +800,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Customer ID</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="123-456-7890" {...field} />
+                                                    <Input placeholder="123-456-7890" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormDescription className="text-xs">
                                                     Your Google Ads Customer ID.
@@ -766,7 +816,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Developer Token</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Developer Token" {...field} />
+                                                    <Input type="password" placeholder="Developer Token" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>

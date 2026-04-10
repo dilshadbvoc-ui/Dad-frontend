@@ -99,6 +99,7 @@ const AuditLogsPage = lazy(() => import('./pages/settings/audit-logs'));
 const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
 const WhatsAppScraperSettingsPage = lazy(() => import('./pages/settings/whatsapp-scraper'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
+const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
 const queryClient = new QueryClient({
@@ -324,6 +325,7 @@ function AppContent() {
               <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
               <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
               <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
+              <Route path="/settings/lead-statuses" element={<LeadStatusesSettingsPage />} />
               <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
               <Route path="/notifications" element={<NotificationsPage />} />
             </Route>

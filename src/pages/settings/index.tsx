@@ -96,6 +96,14 @@ const ALL_SETTINGS_SECTIONS = [
         roles: ['admin']
     },
     {
+        title: "Lead Statuses",
+        description: "Customize lead status labels, colors, and workflow",
+        href: "/settings/lead-statuses",
+        icon: GitBranch,
+        gradient: "from-indigo-600 to-violet-600",
+        roles: ['admin']
+    },
+    {
         title: "Integrations",
         description: "Manage webhooks, APIs, and third-party integrations",
         href: "/settings/integrations",

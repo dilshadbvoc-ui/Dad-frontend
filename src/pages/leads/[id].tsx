@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock, History } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock, History, RefreshCw } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { LogCallDialog } from "@/components/LogCallDialog"
 import { ConvertLeadDialog } from "@/components/ConvertLeadDialog"
 import { EditLeadDialog } from "@/components/shared/EditLeadDialog"
@@ -66,6 +67,7 @@ export default function LeadDetailPage() {
     const [emailDialogOpen, setEmailDialogOpen] = useState(false)
     const [productDialogOpen, setProductDialogOpen] = useState(false)
     const [dragOver, setDragOver] = useState(false)
+    const { statuses, getStatusDetails } = useLeadStatuses()
     const queryClient = useQueryClient()
 
     const { data: lead, isLoading: leadLoading } = useQuery({
@@ -91,6 +93,19 @@ export default function LeadDetailPage() {
         },
         onError: (error: any) => {
             toast.error(error.message || "Failed to update lead status")
+        }
+    })
+
+    const syncToGallaboxMutation = useMutation({
+        mutationFn: async () => {
+            await api.post(`/leads/${id}/sync-gallabox`)
+        },
+        onSuccess: () => {
+            toast.success("Lead successfully synced to Gallabox")
+            queryClient.invalidateQueries({ queryKey: ['lead', id] })
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to sync to Gallabox")
         }
     })
 
@@ -217,19 +232,14 @@ export default function LeadDetailPage() {
                                 {id && <CollaborationBadge resourceId={`leads/${id}`} />}
                                 <Badge 
                                     variant="outline" 
-                                    className={`text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5 ${
-                                        lead.status === 'new' ? 'bg-blue-500/10 text-blue-500 border-blue-500/20' :
-                                        lead.status === 'contacted' ? 'bg-warning/10 text-warning border-warning/20' :
-                                        lead.status === 'interested' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                        lead.status === 'not_interested' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' :
-                                        lead.status === 'call_not_connected' ? 'bg-slate-500/10 text-slate-500 border-slate-500/20' :
-                                        lead.status === 'qualified' ? 'bg-success/10 text-success border-success/20' :
-                                        lead.status === 'converted' ? 'bg-primary/10 text-primary border-primary/20' :
-                                        lead.status === 'lost' ? 'bg-destructive/10 text-destructive border-destructive/20' :
-                                        ''
-                                    }`}
+                                    className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5"
+                                    style={{
+                                        backgroundColor: `${getStatusDetails(lead.status).color}15`,
+                                        color: getStatusDetails(lead.status).color,
+                                        borderColor: `${getStatusDetails(lead.status).color}30`
+                                    }}
                                 >
-                                    {lead.status.replace(/_/g, ' ')}
+                                    {getStatusDetails(lead.status).label}
                                 </Badge>
                                 {lead.reEnquiryCount > 0 && (
                                     <Badge variant="secondary" className="text-[10px] sm:text-xs font-bold uppercase tracking-tight h-5 bg-orange-100 text-orange-700 hover:bg-orange-100">
@@ -260,17 +270,19 @@ export default function LeadDetailPage() {
                             <SelectTrigger className="w-full h-9 text-xs">
                                 <SelectValue placeholder="Status" />
                             </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="contacted">Contacted</SelectItem>
-                                <SelectItem value="interested">Interested</SelectItem>
-                                <SelectItem value="not_interested">Not Interested</SelectItem>
-                                <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
-                                <SelectItem value="qualified">Qualified</SelectItem>
-                                <SelectItem value="nurturing">Nurturing</SelectItem>
-                                <SelectItem value="converted">Converted</SelectItem>
-                                <SelectItem value="lost">Lost</SelectItem>
-                            </SelectContent>
+                                    <SelectContent>
+                                        {statuses.map((status) => (
+                                            <SelectItem key={status.id} value={status.id}>
+                                                <div className="flex items-center gap-2">
+                                                    <div 
+                                                        className="w-2 h-2 rounded-full" 
+                                                        style={{ backgroundColor: status.color }}
+                                                    />
+                                                    {status.label}
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
                         </Select>
                     </div>
 
@@ -280,15 +292,17 @@ export default function LeadDetailPage() {
                                 <SelectValue placeholder="Select Status" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="new">New</SelectItem>
-                                <SelectItem value="contacted">Contacted</SelectItem>
-                                <SelectItem value="interested">Interested</SelectItem>
-                                <SelectItem value="not_interested">Not Interested</SelectItem>
-                                <SelectItem value="call_not_connected">Call Not Connected</SelectItem>
-                                <SelectItem value="qualified">Qualified</SelectItem>
-                                <SelectItem value="nurturing">Nurturing</SelectItem>
-                                <SelectItem value="converted">Converted</SelectItem>
-                                <SelectItem value="lost">Lost</SelectItem>
+                                {statuses.map((status) => (
+                                    <SelectItem key={status.id} value={status.id}>
+                                        <div className="flex items-center gap-2">
+                                            <div 
+                                                className="w-2 h-2 rounded-full" 
+                                                style={{ backgroundColor: status.color }}
+                                            />
+                                            {status.label}
+                                        </div>
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>
@@ -297,6 +311,16 @@ export default function LeadDetailPage() {
                         <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
                             <Calendar className="h-4 w-4 sm:mr-2" />
                             <span className="hidden sm:inline">Follow-up</span>
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => syncToGallaboxMutation.mutate()} 
+                            disabled={syncToGallaboxMutation.isPending}
+                            className="h-9 px-2 sm:px-3 text-xs"
+                        >
+                            <RefreshCw className={`h-4 w-4 sm:mr-2 ${syncToGallaboxMutation.isPending ? 'animate-spin' : ''}`} />
+                            <span className="hidden sm:inline">{syncToGallaboxMutation.isPending ? 'Syncing...' : 'Sync Gallabox'}</span>
                         </Button>
                         <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
                             <Pencil className="h-4 w-4 sm:mr-2" />
