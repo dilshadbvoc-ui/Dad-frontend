@@ -36,7 +36,7 @@ import { getUserInfo, isAdmin, isSuperAdmin } from '@/lib/utils';
 interface Topic {
     title: string;
     content: string;
-    role?: 'admin' | 'user';
+    role?: string;
 }
 
 interface Module {
@@ -47,7 +47,7 @@ interface Module {
     bg: string;
     description: string;
     topics: Topic[];
-    role?: 'admin' | 'user';
+    role?: string;
 }
 
 const TrainingPage = () => {
