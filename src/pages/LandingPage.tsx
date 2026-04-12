@@ -4,6 +4,7 @@ import FeatureSection from "@/components/landing/FeatureSection";
 import IntegrationSection from "@/components/landing/IntegrationSection";
 import Testimonials from "@/components/landing/Testimonials";
 import PricingTable from "@/components/landing/PricingTable";
+import FAQSection from "@/components/landing/FAQSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
@@ -23,6 +24,7 @@ export default function LandingPage() {
                 <IntegrationSection />
                 <Testimonials />
                 <PricingTable />
+                <FAQSection />
                 <CTASection />
             </main>
             <Footer />

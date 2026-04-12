@@ -103,6 +103,8 @@ const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
+const TrainingPage = lazy(() => import('./pages/Training'));
+
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -305,6 +307,7 @@ function AppContent() {
               <Route path="/quotes" element={<QuotesPage />} />
               <Route path="/field-force" element={<FieldForcePage />} />
               <Route path="/support" element={<SupportPage />} />
+              <Route path="/training" element={<TrainingPage />} />
               <Route path="/goals" element={<GoalsPage />} />
               <Route path="/sales-targets" element={<SalesTargetsPage />} />
               <Route path="/sales/commissions" element={<CommissionsPage />} />

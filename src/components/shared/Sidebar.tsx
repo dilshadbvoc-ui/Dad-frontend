@@ -34,7 +34,8 @@ import {
     Smartphone,
     Percent,
     LifeBuoy,
-    UsersRound
+    UsersRound,
+    BookOpen
 } from "lucide-react";
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
@@ -106,6 +107,7 @@ const menuGroups = [
     {
         title: "System",
         items: [
+            { title: "Training", href: "/training", icon: BookOpen },
             { title: "Workflows", href: "/workflows", icon: GitBranch },
             { title: "Automation", href: "/automation", icon: Zap },
             { title: "Hierarchy", href: "/organisation/hierarchy", icon: Users, role: "admin" },
