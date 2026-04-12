@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { useForm } from "react-hook-form"
 // import { Loader2 } from "lucide-react"
@@ -76,11 +76,22 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             company: "",
             enquiryAbout: "",
             source: "manual",
-
-            status: "new",
+            status: "", // Set dynamically via useEffect
             assignedTo: "",
         },
     })
+
+    // Auto-set default status from settings
+    useEffect(() => {
+        if (statuses?.length > 0) {
+            const defaultStatus = statuses.find(s => s.isDefault);
+            if (defaultStatus && !form.getValues('status')) {
+                form.setValue('status', defaultStatus.id);
+            } else if (!form.getValues('status')) {
+                form.setValue('status', 'new'); // Fallback if no default marked
+            }
+        }
+    }, [statuses, form]);
 
     const { data: usersData } = useQuery({
         queryKey: ['users'],

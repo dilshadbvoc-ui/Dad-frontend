@@ -17,7 +17,10 @@ import {
     Building,
     RefreshCw,
     Award,
-    Target
+    Target,
+    ArrowUpDown,
+    ChevronUp,
+    ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import PageHeader from "../../components/shared/PageHeader";
@@ -56,7 +59,9 @@ export default function UserPerformanceReport() {
     const [startDate, setStartDate] = useState<string>(format(startOfMonth(new Date()), "yyyy-MM-dd"));
     const [endDate, setEndDate] = useState<string>(format(endOfMonth(new Date()), "yyyy-MM-dd"));
     const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+    const [selectedUserId, setSelectedUserId] = useState<string>("all");
     const [activePeriod, setActivePeriod] = useState<string>("month");
+    const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>({ key: 'metrics.performanceIndex', direction: 'desc' });
 
     // Fetch Base Data
     const { data: branches } = useQuery({
@@ -73,17 +78,52 @@ export default function UserPerformanceReport() {
         })
     });
 
+    // Derived Data for Filters and Display
+    const filteredPerformanceData = useMemo(() => {
+        if (!performanceData) return [];
+        let data = [...performanceData];
+        
+        // Filter by User
+        if (selectedUserId !== "all") {
+            data = data.filter((u: any) => u.userId === selectedUserId);
+        }
+
+        // Apply Sorting
+        if (sortConfig) {
+            data.sort((a, b) => {
+                const getValue = (obj: any, path: string) => {
+                    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+                };
+                
+                const aValue = getValue(a, sortConfig.key);
+                const bValue = getValue(b, sortConfig.key);
+
+                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+        
+        return data;
+    }, [performanceData, selectedUserId, sortConfig]);
+
+    const userOptions = useMemo(() => {
+        if (!performanceData) return [];
+        return performanceData.map((u: any) => ({ id: u.userId, name: u.name }));
+    }, [performanceData]);
+
     // Summary Metrics
     const summary = useMemo(() => {
-        if (!performanceData || performanceData.length === 0) return null;
+        if (!filteredPerformanceData || filteredPerformanceData.length === 0) return null;
         
-        const total = performanceData.length;
-        const totalLeads = performanceData.reduce((acc: number, u: any) => acc + u.metrics.totalLeads, 0);
-        const totalCalls = performanceData.reduce((acc: number, u: any) => acc + u.metrics.callsMade, 0);
-        const totalConversions = performanceData.reduce((acc: number, u: any) => acc + u.metrics.wonDeals, 0);
-        const totalUnattended = performanceData.reduce((acc: number, u: any) => acc + u.metrics.unattendedLeads, 0);
-        const totalRevenue = performanceData.reduce((acc: number, u: any) => acc + u.metrics.revenue, 0);
-        const avgIndex = performanceData.reduce((acc: number, u: any) => acc + u.metrics.performanceIndex, 0) / total;
+        const data = filteredPerformanceData;
+        const total = data.length;
+        const totalLeads = data.reduce((acc: number, u: any) => acc + u.metrics.totalLeads, 0);
+        const totalCalls = data.reduce((acc: number, u: any) => acc + u.metrics.callsMade, 0);
+        const totalConversions = data.reduce((acc: number, u: any) => acc + u.metrics.wonDeals, 0);
+        const totalUnattended = data.reduce((acc: number, u: any) => acc + u.metrics.unattendedLeads, 0);
+        const totalRevenue = data.reduce((acc: number, u: any) => acc + u.metrics.revenue, 0);
+        const avgIndex = data.reduce((acc: number, u: any) => acc + u.metrics.performanceIndex, 0) / total;
 
         return {
             totalUsers: total,
@@ -95,7 +135,7 @@ export default function UserPerformanceReport() {
             avgPerformanceIndex: avgIndex.toFixed(1),
             overallConversion: ((totalConversions / (totalLeads || 1)) * 100).toFixed(1)
         };
-    }, [performanceData]);
+    }, [filteredPerformanceData]);
 
     // Period handlers
     const setPeriod = (period: string) => {
@@ -125,6 +165,82 @@ export default function UserPerformanceReport() {
     };
 
     // PDF Generation
+    const handleSort = (key: string) => {
+        let direction: 'asc' | 'desc' = 'desc';
+        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'desc') {
+            direction = 'asc';
+        }
+        setSortConfig({ key, direction });
+    };
+
+    const SortIcon = ({ columnKey }: { columnKey: string }) => {
+        if (!sortConfig || sortConfig.key !== columnKey) return <ArrowUpDown className="ml-1 h-3 w-3 opacity-30 group-hover:opacity-100 transition-opacity" />;
+        return sortConfig.direction === 'asc' ? <ChevronUp className="ml-1 h-3 w-3 text-primary" /> : <ChevronDown className="ml-1 h-3 w-3 text-primary" />;
+    };
+
+    const UserPerformanceCard = ({ user }: { user: any }) => (
+        <Card className="border border-border/50 shadow-sm overflow-hidden mb-4 bg-card/50">
+            <CardHeader className="p-4 border-b bg-muted/20">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-primary/10 shadow-sm">
+                            <AvatarImage src={user.profileImage} />
+                            <AvatarFallback className="bg-primary/5 text-primary text-xs font-bold">
+                                {user.name.split(' ').map((n: string) => n[0]).join('')}
+                            </AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
+                            <span className="font-bold text-sm tracking-tight">{user.name}</span>
+                            <span className="text-[10px] text-muted-foreground uppercase font-black tracking-widest">{user.branch}</span>
+                        </div>
+                    </div>
+                    <div className="flex flex-col items-end">
+                        <span className={cn(
+                            "text-2xl font-black tracking-tighter leading-none",
+                            user.metrics.performanceIndex > 80 ? "text-primary" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
+                        )}>
+                            {user.metrics.performanceIndex}
+                        </span>
+                        <span className="text-[8px] font-bold text-muted-foreground tracking-widest uppercase">Index Score</span>
+                    </div>
+                </div>
+            </CardHeader>
+            <CardContent className="p-4 grid grid-cols-2 gap-4">
+                <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Revenue</p>
+                    <p className="text-sm font-black text-foreground">{formatCurrency(user.metrics.revenue)}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Leads</p>
+                    <p className="text-sm font-black text-foreground">{user.metrics.totalLeads}</p>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Calls</p>
+                    <div className="flex items-baseline gap-1">
+                        <p className="text-sm font-black text-blue-600">{user.metrics.callsMade}</p>
+                        <span className="text-[10px] text-muted-foreground">interactions</span>
+                    </div>
+                </div>
+                <div className="space-y-1">
+                    <p className="text-[10px] uppercase font-bold text-muted-foreground tracking-widest">Target Match</p>
+                    <div className="flex items-baseline gap-1">
+                        <p className="text-sm font-black text-green-600">{user.metrics.wonDeals}</p>
+                        <span className="text-[10px] text-muted-foreground">({user.metrics.conversionRate}%)</span>
+                    </div>
+                </div>
+            </CardContent>
+            <div className="h-1.5 w-full bg-muted overflow-hidden">
+                <div 
+                    className={cn(
+                        "h-full transition-all duration-500",
+                        user.metrics.performanceIndex > 80 ? "bg-primary" : user.metrics.performanceIndex > 50 ? "bg-blue-500" : "bg-orange-500"
+                    )} 
+                    style={{ width: `${user.metrics.performanceIndex}%` }} 
+                />
+            </div>
+        </Card>
+    );
+
     const downloadPDF = async () => {
         if (!reportRef.current) return;
         setIsExporting(true);
@@ -201,7 +317,7 @@ export default function UserPerformanceReport() {
             {/* Filters */}
             <Card className="border-none shadow-sm bg-muted/30 backdrop-blur-sm">
                 <CardContent className="p-4 sm:p-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 items-end">
                         <div className="space-y-1.5">
                             <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Location</label>
                             <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
@@ -215,6 +331,24 @@ export default function UserPerformanceReport() {
                                     <SelectItem value="all">All Organizations</SelectItem>
                                     {(branches || []).map((b: any) => (
                                         <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Representative</label>
+                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                                <SelectTrigger className="h-10 bg-background border-border/50 rounded-xl">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="h-4 w-4 text-primary/60" />
+                                        <SelectValue placeholder="All Users" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent className="rounded-xl">
+                                    <SelectItem value="all">All Representatives</SelectItem>
+                                    {(userOptions || []).map((u: any) => (
+                                        <SelectItem key={u.id} value={u.id}>{u.name}</SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
@@ -331,9 +465,9 @@ export default function UserPerformanceReport() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
-                            <div className="h-[400px]">
+                            <div className="h-[300px] sm:h-[400px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <ComposedChart data={performanceData}>
+                                    <ComposedChart data={filteredPerformanceData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                         <XAxis dataKey="name" tick={{fontSize: 10, fontWeight: 600}} axisLine={false} tickLine={false} />
                                         <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
@@ -351,7 +485,7 @@ export default function UserPerformanceReport() {
                             </div>
                         </CardContent>
                     </Card>
-
+ 
                     {/* Performance Ranking */}
                     <Card className="border-none shadow-sm ring-1 ring-border/50 overflow-hidden">
                         <CardHeader className="border-b bg-muted/10">
@@ -360,9 +494,9 @@ export default function UserPerformanceReport() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="p-6">
-                            <div className="h-[400px]">
+                            <div className="h-[300px] sm:h-[400px]">
                                 <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={performanceData} layout="vertical" margin={{ left: 40, right: 30 }}>
+                                    <BarChart data={filteredPerformanceData} layout="vertical" margin={{ left: 40, right: 30 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                                         <XAxis type="number" domain={[0, 100]} hide />
                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} width={100} />
@@ -372,7 +506,7 @@ export default function UserPerformanceReport() {
                                             formatter={(v) => [`${v}%`, 'Performance Index']}
                                         />
                                         <Bar dataKey="metrics.performanceIndex" radius={[0, 10, 10, 0]} barSize={25}>
-                                            {performanceData?.map((entry: any, index: number) => (
+                                            {filteredPerformanceData?.map((entry: any, index: number) => (
                                                 <Cell key={`cell-${index}`} fill={index === 0 ? '#fbbf24' : index === 1 ? '#94a3b8' : index === 2 ? '#cd7f32' : '#3b82f6'} />
                                             ))}
                                         </Bar>
@@ -382,105 +516,132 @@ export default function UserPerformanceReport() {
                         </CardContent>
                     </Card>
                 </div>
-
+ 
                 {/* Detailed Data Table */}
                 <Card className="border-none shadow-sm ring-1 ring-border/50 overflow-hidden">
                     <CardHeader className="border-b bg-muted/10 flex flex-row items-center justify-between">
                         <div>
                             <CardTitle className="text-sm font-black uppercase tracking-widest">Individual Performance Breakdown</CardTitle>
-                            <CardDescription className="text-xs">Detailed data for all {performanceData?.length} sales identifiers.</CardDescription>
+                            <CardDescription className="text-xs">Detailed data for all {filteredPerformanceData?.length} sales identifiers.</CardDescription>
                         </div>
                     </CardHeader>
-                    <CardContent className="p-0 overflow-x-auto">
-                        <Table>
-                            <TableHeader className="bg-muted/50">
-                                <TableRow className="hover:bg-transparent border-b-border/50">
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest">Representative</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Branch</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Owned Leads</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Calls</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Status Updates</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Unattended</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-center">Conversions</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-right">Revenue</TableHead>
-                                    <TableHead className="font-bold text-[10px] uppercase tracking-widest text-right">Index SCORE</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {performanceData?.map((user: any) => (
-                                    <TableRow key={user.userId} className="hover:bg-muted/30 transition-colors border-b-border/50">
-                                        <TableCell>
-                                            <div className="flex items-center gap-3">
-                                                <Avatar className="h-8 w-8 border border-border shadow-sm">
-                                                    <AvatarImage src={user.profileImage} />
-                                                    <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
-                                                        {user.name.split(' ').map((n:string)=>n[0]).join('')}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span className="font-bold text-sm tracking-tight">{user.name}</span>
-                                                    <span className="text-[10px] text-muted-foreground uppercase font-medium">{user.role}</span>
-                                                </div>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
-                                                {user.branch}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <span className="font-mono text-sm font-bold">{user.metrics.totalLeads}</span>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="font-bold text-sm text-blue-600">{user.metrics.callsMade}</span>
-                                                <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Calls</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <span className="text-xs font-semibold px-2 py-0.5 bg-muted rounded-full">
-                                                {user.metrics.statusChanges}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div 
-                                                className={cn(
-                                                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
-                                                    user.metrics.unattendedLeads > 5 ? "bg-red-500" : user.metrics.unattendedLeads > 0 ? "bg-orange-500" : "bg-green-500"
-                                                )}
-                                            >
-                                                {user.metrics.unattendedLeads}
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-center">
-                                            <div className="flex flex-col items-center">
-                                                <span className="font-bold text-sm text-green-600">{user.metrics.wonDeals}</span>
-                                                <span className="text-[9px] text-muted-foreground font-black tracking-tighter">{user.metrics.conversionRate}%</span>
-                                            </div>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <span className="font-bold text-sm">{formatCurrency(user.metrics.revenue)}</span>
-                                        </TableCell>
-                                        <TableCell className="text-right">
-                                            <div className="inline-flex flex-col items-end">
-                                                <span className={cn(
-                                                    "text-lg font-black tracking-tighter",
-                                                    user.metrics.performanceIndex > 80 ? "text-primary" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
-                                                )}>
-                                                    {user.metrics.performanceIndex}
-                                                </span>
-                                                <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden mt-1">
-                                                    <div className="h-full bg-primary" style={{ width: `${user.metrics.performanceIndex}%` }} />
-                                                </div>
-                                            </div>
-                                        </TableCell>
+                     <CardContent className="p-0 sm:p-0">
+                        <div className="hidden sm:block overflow-x-auto">
+                            <Table>
+                                <TableHeader className="bg-muted/50">
+                                    <TableRow className="hover:bg-transparent border-b-border/50">
+                                        <TableHead onClick={() => handleSort('name')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest">
+                                            <div className="flex items-center">Representative <SortIcon columnKey="name" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('branch')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Branch <SortIcon columnKey="branch" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.totalLeads')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Owned Leads <SortIcon columnKey="metrics.totalLeads" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.callsMade')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Calls <SortIcon columnKey="metrics.callsMade" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.statusChanges')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Status Updates <SortIcon columnKey="metrics.statusChanges" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.unattendedLeads')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Unattended <SortIcon columnKey="metrics.unattendedLeads" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.wonDeals')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Conversions <SortIcon columnKey="metrics.wonDeals" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.revenue')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-right">
+                                            <div className="flex items-center justify-end">Revenue <SortIcon columnKey="metrics.revenue" /></div>
+                                        </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.performanceIndex')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-right">
+                                            <div className="flex items-center justify-end">Index SCORE <SortIcon columnKey="metrics.performanceIndex" /></div>
+                                        </TableHead>
                                     </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredPerformanceData?.map((user: any) => (
+                                        <TableRow key={user.userId} className="hover:bg-muted/30 transition-colors border-b-border/50">
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <Avatar className="h-8 w-8 border border-border shadow-sm">
+                                                        <AvatarImage src={user.profileImage} />
+                                                        <AvatarFallback className="bg-primary/5 text-primary text-[10px] font-bold">
+                                                            {user.name.split(' ').map((n: string) => n[0]).join('')}
+                                                        </AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-bold text-sm tracking-tight">{user.name}</span>
+                                                        <span className="text-[10px] text-muted-foreground uppercase font-medium">{user.role}</span>
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                                                    {user.branch}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <span className="font-mono text-sm font-bold">{user.metrics.totalLeads}</span>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="font-bold text-sm text-blue-600">{user.metrics.callsMade}</span>
+                                                    <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Calls</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <span className="text-xs font-semibold px-2 py-0.5 bg-muted rounded-full">
+                                                    {user.metrics.statusChanges}
+                                                </span>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div
+                                                    className={cn(
+                                                        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold text-white",
+                                                        user.metrics.unattendedLeads > 5 ? "bg-red-500" : user.metrics.unattendedLeads > 0 ? "bg-orange-500" : "bg-green-500"
+                                                    )}
+                                                >
+                                                    {user.metrics.unattendedLeads}
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="font-bold text-sm text-green-600">{user.metrics.wonDeals}</span>
+                                                    <span className="text-[9px] text-muted-foreground font-black tracking-tighter">{user.metrics.conversionRate}%</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <span className="font-bold text-sm">{formatCurrency(user.metrics.revenue)}</span>
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="inline-flex flex-col items-end">
+                                                    <span className={cn(
+                                                        "text-lg font-black tracking-tighter",
+                                                        user.metrics.performanceIndex > 80 ? "text-primary" : user.metrics.performanceIndex > 50 ? "text-blue-500" : "text-orange-500"
+                                                    )}>
+                                                        {user.metrics.performanceIndex}
+                                                    </span>
+                                                    <div className="w-16 h-1.5 bg-muted rounded-full overflow-hidden mt-1">
+                                                        <div className="h-full bg-primary" style={{ width: `${user.metrics.performanceIndex}%` }} />
+                                                    </div>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </div>
+
+                        {/* Mobile Card View */}
+                        <div className="block sm:hidden p-4 space-y-4">
+                            {filteredPerformanceData?.map((user: any) => (
+                                <UserPerformanceCard key={user.userId} user={user} />
+                            ))}
+                        </div>
                         
                         {/* Empty State */}
-                        {performanceData?.length === 0 && (
+                        {filteredPerformanceData?.length === 0 && (
                             <div className="p-12 text-center text-muted-foreground">
                                 <Users className="h-10 w-10 mx-auto mb-4 opacity-20" />
                                 <p className="font-medium">No performance data found for the selected criteria.</p>

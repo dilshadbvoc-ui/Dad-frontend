@@ -88,6 +88,7 @@ export interface LeadStatus {
     color: string;
     isSystem: boolean;
     order: number;
+    isDefault?: boolean;
 }
 
 export interface OrganisationUpdateData {

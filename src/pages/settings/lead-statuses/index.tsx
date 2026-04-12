@@ -11,7 +11,9 @@ import {
     Save, 
     Undo2, 
     AlertCircle,
-    Info
+    Info,
+    Star,
+    StarOff
 } from "lucide-react";
 import { getOrganisation, updateOrganisation } from "@/services/settingsService";
 import type { LeadStatus } from "@/services/settingsService";
@@ -111,9 +113,23 @@ export default function LeadStatusesSettingsPage() {
             toast.error("System statuses cannot be deleted");
             return;
         }
+        if (statusToDelete?.isDefault) {
+            toast.error("Cannot delete the default status. Please set another status as default first.");
+            return;
+        }
 
         setStatuses(statuses.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i })));
         setIsEditing(true);
+    };
+
+    const handleSetDefault = (id: string) => {
+        const updated = statuses.map(s => ({
+            ...s,
+            isDefault: s.id === id
+        }));
+        setStatuses(updated);
+        setIsEditing(true);
+        toast.info(`Default status set to "${statuses.find(s => s.id === id)?.label}"`);
     };
 
     const handleSave = () => {
@@ -182,6 +198,7 @@ export default function LeadStatusesSettingsPage() {
                                 status={status} 
                                 onEdit={() => setEditingStatus(status)}
                                 onDelete={() => handleDeleteStatus(status.id)}
+                                onSetDefault={() => handleSetDefault(status.id)}
                             />
                         ))}
                     </Reorder.Group>
@@ -243,7 +260,12 @@ export default function LeadStatusesSettingsPage() {
     );
 }
 
-function StatusItem({ status, onEdit, onDelete }: { status: LeadStatus; onEdit: () => void; onDelete: () => void }) {
+function StatusItem({ status, onEdit, onDelete, onSetDefault }: { 
+    status: LeadStatus; 
+    onEdit: () => void; 
+    onDelete: () => void;
+    onSetDefault: () => void;
+}) {
     const controls = useDragControls();
 
     return (
@@ -272,9 +294,23 @@ function StatusItem({ status, onEdit, onDelete }: { status: LeadStatus; onEdit: 
                             System
                         </Badge>
                     )}
+                    {status.isDefault && (
+                        <Badge variant="outline" className="text-[10px] font-bold py-0 px-1 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 animate-pulse">
+                            Default
+                        </Badge>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className={`h-8 w-8 ${status.isDefault ? 'text-amber-500' : 'text-gray-400 hover:text-amber-500'}`}
+                        onClick={onSetDefault}
+                        title={status.isDefault ? "Current Default" : "Set as Default"}
+                    >
+                        {status.isDefault ? <Star className="h-4 w-4 fill-amber-500" /> : <StarOff className="h-4 w-4" />}
+                    </Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20" onClick={onEdit}>
                         <Pencil className="h-4 w-4" />
                     </Button>

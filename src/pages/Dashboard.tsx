@@ -311,11 +311,13 @@ export default function Dashboard() {
             </div>
 
             {/* Main Charts Row */}
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-                <ErrorBoundary name="SalesChartWidget">
-                    <SalesChartWidget branchId={selectedBranchId} />
-                </ErrorBoundary>
-                <div className="col-span-3 space-y-6">
+            <div className="grid gap-6 lg:grid-cols-7">
+                <div className="lg:col-span-4 min-w-0">
+                    <ErrorBoundary name="SalesChartWidget">
+                        <SalesChartWidget branchId={selectedBranchId} />
+                    </ErrorBoundary>
+                </div>
+                <div className="lg:col-span-3 space-y-6">
                     <ErrorBoundary name="TopPerformersWidget">
                         <TopPerformersWidget branchId={selectedBranchId} />
                     </ErrorBoundary>
