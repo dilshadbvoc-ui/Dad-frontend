@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp, FileText, PhoneCall } from "lucide-react";
+import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp, FileText, PhoneCall, Trophy } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 
 export default function ReportsPage() {
@@ -128,6 +128,18 @@ export default function ReportsPage() {
                             </div>
                             <CardTitle>Detailed Call Report</CardTitle>
                             <CardDescription>Per-user call performance and talk time.</CardDescription>
+                        </CardHeader>
+                    </Card>
+                </Link>
+
+                <Link to="/reports/user-total">
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-blue-500/20 bg-blue-500/5 ring-1 ring-blue-500/10">
+                        <CardHeader>
+                            <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-2">
+                                <Trophy className="text-blue-600 h-5 w-5" />
+                            </div>
+                            <CardTitle>User Total Report</CardTitle>
+                            <CardDescription>Individual performance, efficiency metrics, and PDF exports.</CardDescription>
                         </CardHeader>
                     </Card>
                 </Link>

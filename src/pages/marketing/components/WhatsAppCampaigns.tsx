@@ -16,16 +16,16 @@ export function WhatsAppCampaigns() {
     const { data: campaigns } = useQuery({
         queryKey: ['whatsapp-campaigns'],
         queryFn: getWhatsAppCampaigns,
-        enabled: !!organisation?.integrations?.whatsapp?.connected
+        enabled: !!organisation?.organisation?.integrations?.whatsapp?.connected
     });
 
     const { data: statistics } = useQuery({
         queryKey: ['whatsapp-statistics'],
         queryFn: getWhatsAppStatistics,
-        enabled: !!organisation?.integrations?.whatsapp?.connected
+        enabled: !!organisation?.organisation?.integrations?.whatsapp?.connected
     });
 
-    const isConnected = organisation?.integrations?.whatsapp?.connected;
+    const isConnected = organisation?.organisation?.integrations?.whatsapp?.connected;
 
     return (
         <div className="space-y-6">

@@ -15,7 +15,7 @@ export function MetaCampaigns() {
         queryFn: getOrganisation
     });
 
-    const isConnected = organisation?.integrations?.meta?.connected;
+    const isConnected = organisation?.organisation?.integrations?.meta?.connected;
 
     return (
         <div className="space-y-6">

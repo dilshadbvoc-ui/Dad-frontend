@@ -6,6 +6,7 @@ import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
 import { getUsers } from "@/services/userService"
+import { getBranches } from "@/services/settingsService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
@@ -22,7 +23,10 @@ import {
     ArrowUpDown,
     Users,
     CheckCircle2,
-    X
+    X,
+    Building,
+    LayoutGrid,
+    Search
 } from "lucide-react"
 import { BulkAssignDialog } from "./BulkAssignDialog"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -171,16 +175,27 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         window.location.href = `tel:${phone}`;
     };
 
+    const { getStatusDetails } = useLeadStatuses();
+    const { label, color } = getStatusDetails(lead.status);
+
     return (
-        <Card className="shadow-sm border-l-4 border-l-primary overflow-hidden">
+        <Card className="shadow-sm border-l-4 overflow-hidden" style={{ borderLeftColor: color }}>
             <CardContent className="p-4 space-y-3">
                 <div className="flex items-start justify-between">
                     <div className="min-w-0">
                         <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
                         <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
                     </div>
-                    <Badge variant="secondary" className="text-[10px] uppercase font-bold tracking-tighter">
-                        {lead.status}
+                    <Badge 
+                        variant="outline" 
+                        className="text-[10px] uppercase font-bold tracking-tighter"
+                        style={{ 
+                            backgroundColor: `${color}15`,
+                            color: color,
+                            borderColor: `${color}30`
+                        }}
+                    >
+                        {label}
                     </Badge>
                 </div>
 
@@ -231,6 +246,7 @@ export default function LeadsPage() {
     const currentView = searchParams.get('view') || 'all-leads';
     const currentSort = searchParams.get('sort') || 'newest';
     const currentOwner = searchParams.get('owner') || 'all';
+    const currentBranch = searchParams.get('branch') || 'all';
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
@@ -249,10 +265,11 @@ export default function LeadsPage() {
     // --- Data Fetching ---
     // 1. Leads
     const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-        queryKey: ['leads', 'all', currentOwner],
+        queryKey: ['leads', 'all', currentOwner, currentBranch],
         queryFn: () => getLeads({ 
             pageSize: 1000,
-            assignedTo: currentOwner === 'all' ? undefined : currentOwner 
+            assignedTo: currentOwner === 'all' ? undefined : currentOwner,
+            branchId: currentBranch === 'all' ? undefined : currentBranch
         }),
     });
 
@@ -268,9 +285,16 @@ export default function LeadsPage() {
         queryFn: () => getUsers(),
     });
 
+    // 4. Branches for Branch Filter
+    const { data: branchData } = useQuery({
+        queryKey: ['branches', 'list'],
+        queryFn: () => getBranches(),
+    });
+
     const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
     const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
     const users = userData?.users || (Array.isArray(userData) ? userData : []);
+    const branches = branchData || [];
 
     // Sort function
     const sortLeads = (leadsToSort: Lead[]) => {
@@ -387,7 +411,11 @@ export default function LeadsPage() {
     };
 
     const handleOwnerChange = (owner: string) => {
-        setSearchParams({ view: currentView, sort: currentSort, owner });
+        setSearchParams({ view: currentView, sort: currentSort, owner, branch: currentBranch });
+    };
+
+    const handleBranchChange = (branch: string) => {
+        setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch });
     };
 
     // Excel download function
@@ -439,121 +467,92 @@ export default function LeadsPage() {
                 </div>
 
                 {/* Header Area */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 px-2 sm:px-0">
-                    <div className="min-w-0">
-                        <h1 className="text-xl sm:text-2xl font-bold text-foreground capitalize truncate flex items-center gap-2">
-                            {currentView.replace(/-/g, ' ')}
-                            <Badge variant="secondary" className="font-mono text-xs">
-                                {leadData?.total || 0}
-                            </Badge>
-                        </h1>
-                        <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 truncate">
-                            {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Lead performance' : 'Manage your leads'}
-                        </p>
+                <div className="space-y-4 px-2 sm:px-0">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                            <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 hidden sm:flex">
+                                <LayoutGrid className="h-6 w-6" />
+                            </div>
+                            <div className="min-w-0">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-foreground capitalize tracking-tight flex items-center gap-3">
+                                    {currentView.replace(/-/g, ' ')}
+                                    <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold border border-primary/20">
+                                        {leadData?.total || 0}
+                                        <span className="text-[10px] uppercase tracking-widest opacity-70">Total</span>
+                                    </div>
+                                </h1>
+                                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Lead performance' : 'Real-time lead management'}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 self-end sm:self-auto">
+                            {!isTaskView && !isChartView && !isAnalyticsView && (
+                                <Link to="/leads/new">
+                                    <Button className="h-11 px-6 bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold rounded-xl">
+                                        <Plus className="h-5 w-5 mr-2" />
+                                        New Lead
+                                    </Button>
+                                </Link>
+                            )}
+                            <Button
+                                variant="outline"
+                                onClick={handleRefresh}
+                                disabled={leadsFetching}
+                                className="h-11 w-11 p-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm"
+                            >
+                                <RefreshCw className={`h-5 w-5 ${leadsFetching ? 'animate-spin text-primary' : ''}`} />
+                            </Button>
+                        </div>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                        <div className="flex-1 min-w-[180px] sm:min-w-[200px]">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
+                        {/* View Filter */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>
                             <Select value={currentView} onValueChange={handleViewChange}>
-                                <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
                                     <SelectValue placeholder="Select View" />
                                 </SelectTrigger>
-                                <SelectContent>
+                                <SelectContent className="rounded-xl shadow-2xl border-border/50">
                                     <SelectGroup>
-                                        <SelectLabel>Leads</SelectLabel>
-                                        <SelectItem value="all-leads">All Leads</SelectItem>
-                                        <SelectItem value="today-leads">Today's Leads</SelectItem>
-                                        <SelectItem value="no-activity-leads">No Activity Leads</SelectItem>
+                                        <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3">Quick Views</SelectLabel>
+                                        <SelectItem value="all-leads" className="rounded-lg">All Leads</SelectItem>
+                                        <SelectItem value="today-leads" className="rounded-lg">Today's Leads</SelectItem>
+                                        <SelectItem value="no-activity-leads" className="rounded-lg">No Activity</SelectItem>
                                         
-                                        <SelectLabel className="mt-2 text-[10px] uppercase font-bold text-muted-foreground/60 px-2">Pipeline Stages</SelectLabel>
+                                        <SelectLabel className="mt-4 text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Pipeline Stages</SelectLabel>
                                         {statuses.map(status => (
-                                            <SelectItem key={status.id} value={`status-${status.id}`}>
-                                                {status.label} Leads
+                                            <SelectItem key={status.id} value={`status-${status.id}`} className="rounded-lg">
+                                                {status.label}
                                             </SelectItem>
                                         ))}
-                                    </SelectGroup>
-                                    <SelectGroup>
-                                        <SelectLabel>Analysis</SelectLabel>
-                                        <SelectItem value="leads-by-status">Leads by Status</SelectItem>
-                                        <SelectItem value="leads-by-source">Leads by Source</SelectItem>
-                                        <SelectItem value="leads-by-ownership">Leads by Ownership</SelectItem>
-                                    </SelectGroup>
-                                    <SelectGroup>
-                                        <SelectLabel>Follow Ups</SelectLabel>
-                                        <SelectItem value="overdue-followups">Overdue Follow Ups</SelectItem>
-                                        <SelectItem value="today-followups">Today's Follow Ups</SelectItem>
-                                        <SelectItem value="upcoming-followups">Upcoming Follow Ups</SelectItem>
-                                        <SelectItem value="all-followups">All Follow Ups</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        {/* Owner Filter */}
                         {!isTaskView && !isChartView && (
-                            <div className="min-w-[140px] sm:min-w-[160px]">
-                                <Select value={currentSort} onValueChange={handleSortChange}>
-                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
-                                        <SelectValue placeholder="Sort by" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="newest">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Newest First
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="oldest">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Oldest First
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="name-asc">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Name (A-Z)
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="name-desc">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Name (Z-A)
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="owner-asc">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Owner (A-Z)
-                                            </div>
-                                        </SelectItem>
-                                        <SelectItem value="owner-desc">
-                                            <div className="flex items-center gap-2">
-                                                <ArrowUpDown className="h-3 w-3" />
-                                                Owner (Z-A)
-                                            </div>
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        )}
-
-                        {!isTaskView && !isChartView && (
-                            <div className="min-w-[140px] sm:min-w-[160px]">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Assigned To</label>
                                 <Select value={currentOwner} onValueChange={handleOwnerChange}>
-                                    <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
+                                    <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
                                         <SelectValue placeholder="All Owners" />
                                     </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="all">All Owners</SelectItem>
+                                    <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                                        <SelectItem value="all" className="rounded-lg font-medium italic">General Pool (All)</SelectItem>
                                         <SelectGroup>
-                                            <SelectLabel>Users</SelectLabel>
+                                            <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Active Users</SelectLabel>
                                             {users.map((user: any) => (
-                                                <SelectItem key={user.id} value={user.id}>
-                                                    <div className="flex items-center justify-between gap-2 min-w-[140px]">
+                                                <SelectItem key={user.id} value={user.id} className="rounded-lg">
+                                                    <div className="flex items-center gap-2">
+                                                        <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">
+                                                            {user.firstName[0]}{user.lastName?.[0] || ''}
+                                                        </div>
                                                         <span className="truncate">{user.firstName} {user.lastName || ''}</span>
-                                                        <Badge variant="outline" className="ml-auto text-[10px] px-1 h-4 font-mono bg-muted/50">
-                                                            {user._count?.assignedLeads || 0}
-                                                        </Badge>
                                                     </div>
                                                 </SelectItem>
                                             ))}
@@ -563,71 +562,91 @@ export default function LeadsPage() {
                             </div>
                         )}
 
+                        {/* Branch Filter */}
                         {!isTaskView && !isChartView && (
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground font-medium hidden lg:inline">Show</span>
-                                <div className="min-w-[100px]">
-                                    <Select 
-                                        value={pageSize === (sortedDisplayData as Lead[]).length ? 'all' : pageSize.toString()} 
-                                        onValueChange={(val) => setPageSize(val === 'all' ? (sortedDisplayData as Lead[]).length : parseInt(val))}
-                                    >
-                                        <SelectTrigger className="w-full h-9 text-xs sm:text-sm">
-                                            <div className="flex items-center gap-2">
-                                                <SelectValue placeholder="Page Size" />
-                                            </div>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="20">20</SelectItem>
-                                            <SelectItem value="50">50</SelectItem>
-                                            <SelectItem value="100">100</SelectItem>
-                                            <SelectItem value="500">500</SelectItem>
-                                            <SelectItem value="all">All</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                {paginationLabel}
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Branch</label>
+                                <Select value={currentBranch} onValueChange={handleBranchChange}>
+                                    <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                                        <SelectValue placeholder="All Branches" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                                        <SelectItem value="all" className="rounded-lg font-medium italic">All Locations</SelectItem>
+                                        <SelectGroup>
+                                            <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Branches</SelectLabel>
+                                            {branches.map((branch: any) => (
+                                                <SelectItem key={branch.id} value={branch.id} className="rounded-lg">
+                                                    <div className="flex items-center gap-2">
+                                                        <Building className="h-3.5 w-3.5 text-muted-foreground" />
+                                                        <span className="truncate font-medium">{branch.name}</span>
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectGroup>
+                                    </SelectContent>
+                                </Select>
                             </div>
                         )}
 
-                        {!isTaskView && !isChartView && (sortedDisplayData as Lead[]).length > 0 && (
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={handleExcelDownload}
-                                className="h-9 px-3 gap-2 text-xs"
-                            >
-                                <Download className="h-3.5 w-3.5" />
-                                <span className="hidden xs:inline">Excel</span>
-                            </Button>
+                        {/* Sort Filter */}
+                        {!isTaskView && !isChartView && (
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Sorting</label>
+                                <Select value={currentSort} onValueChange={handleSortChange}>
+                                    <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                                        <SelectValue placeholder="Sort by" />
+                                    </SelectTrigger>
+                                    <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                                        <SelectItem value="newest" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Newest First</div>
+                                        </SelectItem>
+                                        <SelectItem value="oldest" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Oldest First</div>
+                                        </SelectItem>
+                                        <SelectItem value="name-asc" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Name (A-Z)</div>
+                                        </SelectItem>
+                                        <SelectItem value="owner-asc" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Owner (A-Z)</div>
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         )}
 
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleRefresh}
-                            disabled={leadsFetching}
-                            className="h-9 px-3 gap-2 text-xs"
-                        >
-                            <RefreshCw className={`h-3.5 w-3.5 ${leadsFetching ? 'animate-spin' : ''}`} />
-                            <span className="hidden xs:inline">Refresh</span>
-                        </Button>
-
-                        {!isTaskView && !isChartView && !isAnalyticsView && (
-                            <Link to="/leads/new" className="hidden sm:block">
-                                <Button size="sm" className="h-9 px-4 bg-primary text-primary-foreground shadow-lg shadow-primary/25 text-xs">
-                                    <Plus className="h-4 w-4 mr-2" />
-                                    New Lead
-                                </Button>
-                            </Link>
-                        )}
-
-                        {/* Mobile FAB or specific button if needed */}
-                        {!isTaskView && !isChartView && !isAnalyticsView && (
-                            <Link to="/leads/new" className="sm:hidden flex-shrink-0">
-                                <Button size="icon" className="h-9 w-9 bg-primary text-primary-foreground shadow-lg shadow-primary/25 rounded-full">
-                                    <Plus className="h-5 w-5" />
-                                </Button>
-                            </Link>
+                        {/* Actions Filter */}
+                        {!isTaskView && !isChartView && (
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Page Controls</label>
+                                <div className="flex items-center gap-2">
+                                    <div className="flex-1">
+                                        <Select 
+                                            value={pageSize === totalFilteredLeads ? 'all' : pageSize.toString()} 
+                                            onValueChange={(val) => setPageSize(val === 'all' ? totalFilteredLeads : parseInt(val))}
+                                        >
+                                            <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                                                <SelectValue placeholder="Size" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                                                <SelectItem value="20" className="rounded-lg">20 Per Page</SelectItem>
+                                                <SelectItem value="50" className="rounded-lg">50 Per Page</SelectItem>
+                                                <SelectItem value="100" className="rounded-lg">100 Per Page</SelectItem>
+                                                <SelectItem value="all" className="rounded-lg">Show All</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <Button
+                                        size="icon"
+                                        variant="outline"
+                                        onClick={handleExcelDownload}
+                                        disabled={totalFilteredLeads === 0}
+                                        className="h-10 w-10 border-border/50 bg-background shadow-sm hover:text-green-600 rounded-lg"
+                                        title="Export to Excel"
+                                    >
+                                        <Download className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>

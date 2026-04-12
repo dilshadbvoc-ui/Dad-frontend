@@ -41,23 +41,23 @@ export default function LeadScoringSettingsPage() {
                                 </div>
                                 <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 py-4">
                                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-center">
-                                        <span className="block text-xl font-bold">{organisation?.leadScoringConfig?.emailOpened || 1}</span>
+                                        <span className="block text-xl font-bold">{organisation?.organisation?.leadScoringConfig?.emailOpened || 1}</span>
                                         <span className="text-xs text-gray-500 uppercase">Email Open</span>
                                     </div>
                                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-center">
-                                        <span className="block text-xl font-bold">{organisation?.leadScoringConfig?.linkClicked || 3}</span>
+                                        <span className="block text-xl font-bold">{organisation?.organisation?.leadScoringConfig?.linkClicked || 3}</span>
                                         <span className="text-xs text-gray-500 uppercase">Link Click</span>
                                     </div>
                                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-center">
-                                        <span className="block text-xl font-bold">{organisation?.leadScoringConfig?.formSubmitted || 5}</span>
+                                        <span className="block text-xl font-bold">{organisation?.organisation?.leadScoringConfig?.formSubmitted || 5}</span>
                                         <span className="text-xs text-gray-500 uppercase">Form Submit</span>
                                     </div>
                                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-center">
-                                        <span className="block text-xl font-bold">{organisation?.leadScoringConfig?.callConnected || 10}</span>
+                                        <span className="block text-xl font-bold">{organisation?.organisation?.leadScoringConfig?.callConnected || 10}</span>
                                         <span className="text-xs text-gray-500 uppercase">Call Connected</span>
                                     </div>
                                     <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md text-center">
-                                        <span className="block text-xl font-bold">{organisation?.leadScoringConfig?.websiteVisit || 1}</span>
+                                        <span className="block text-xl font-bold">{organisation?.organisation?.leadScoringConfig?.websiteVisit || 1}</span>
                                         <span className="text-xs text-gray-500 uppercase">Web Visit</span>
                                     </div>
                                 </div>

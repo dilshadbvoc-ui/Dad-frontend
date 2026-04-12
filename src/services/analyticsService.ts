@@ -91,3 +91,12 @@ export const getUserWiseSales = async (filters?: { startDate?: string; endDate?:
         return [];
     }
 };
+export const getUserPerformanceDetails = async (filters?: { startDate?: string; endDate?: string; branchId?: string }) => {
+    try {
+        const response = await api.get('/reports/user-performance-details', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching user performance details:', error);
+        return [];
+    }
+};

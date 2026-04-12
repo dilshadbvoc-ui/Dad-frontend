@@ -48,7 +48,7 @@ export default function IntegrationsPage() {
     });
 
 
-    const integrations = orgData?.integrations || {};
+    const integrations = orgData?.organisation?.integrations || {};
 
     const handleConnectMeta = async () => {
         try {

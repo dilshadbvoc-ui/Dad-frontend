@@ -52,6 +52,7 @@ export interface LeadQueryParams {
     limit?: number;
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
+    branchId?: string;
 }
 
 export interface CreateLeadData {
