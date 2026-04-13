@@ -28,6 +28,7 @@ import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
 import { format } from "date-fns"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
+import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 
 
 
@@ -151,6 +152,7 @@ export default function LeadDetailPage() {
         else if (type === 'whatsapp') {
             const phone = formatWhatsAppNumber(lead?.phone)
             if (phone) {
+                const callSessionId = crypto.randomUUID()
                 // Background log
                 const logWhatsApp = async () => {
                     try {
@@ -162,7 +164,7 @@ export default function LeadDetailPage() {
                                 'Content-Type': 'application/json',
                                 ...(token ? { Authorization: `Bearer ${token}` } : {})
                             },
-                            body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+                            body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone, callSessionId })
                         })
                     } catch (err) {
                         console.warn('Failed to log WhatsApp interaction:', err)
@@ -202,10 +204,29 @@ export default function LeadDetailPage() {
         if (!phone) return toast.error("No phone number available")
         const cleanPhone = phone.replace(/[^0-9+]/g, '') // Keep + for international
 
+        const callSessionId = crypto.randomUUID()
+
+        // If in mobile app, try native bridge first
+        if (isMobileApp()) {
+            initiateCallBridge(cleanPhone, callSessionId);
+            // We still log it to the backend so we have an initiated record for reconciliation
+            try {
+                await api.post('/telephony/outbound', {
+                    to: cleanPhone,
+                    leadId: lead.id,
+                    callSessionId
+                })
+            } catch (err) {
+                console.error('Failed to log outbound call initiation:', err)
+            }
+            return
+        }
+
         toast.promise(
             api.post('/telephony/outbound', {
                 to: cleanPhone,
-                leadId: lead.id
+                leadId: lead.id,
+                callSessionId
             }),
             {
                 loading: 'Initiating call...',

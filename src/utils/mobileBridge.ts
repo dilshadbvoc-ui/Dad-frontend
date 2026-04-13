@@ -9,7 +9,7 @@ interface MobileCallData {
 declare global {
     interface Window {
         MobileBridge?: {
-            initiateCall: (phoneNumber: string) => void;
+            initiateCall: (phoneNumber: string, callSessionId?: string) => void;
             syncToken?: (token: string) => void;
             onCallCompleted?: (data: MobileCallData) => void;
         };
@@ -20,9 +20,9 @@ export const isMobileApp = () => {
     return typeof window !== 'undefined' && !!window.MobileBridge;
 };
 
-export const initiateCall = (phoneNumber: string) => {
+export const initiateCall = (phoneNumber: string, callSessionId?: string) => {
     if (isMobileApp() && window.MobileBridge) {
-        window.MobileBridge.initiateCall(phoneNumber);
+        window.MobileBridge.initiateCall(phoneNumber, callSessionId);
         return true;
     }
     return false;
@@ -37,7 +37,10 @@ export const syncToken = (token: string) => {
 // Initialize MobileBridge object if detecting mobile environment
 if (typeof window !== 'undefined') {
     window.MobileBridge = window.MobileBridge || {
-        initiateCall: (_phoneNumber: string) => { void _phoneNumber; }
+        initiateCall: (_phoneNumber: string, _callSessionId?: string) => { 
+            void _phoneNumber; 
+            void _callSessionId;
+        }
     };
 
     // Define the native callback handler that dispatches a DOM event

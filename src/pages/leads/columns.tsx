@@ -8,6 +8,7 @@ import { format } from "date-fns"
 import { ActionsCell } from "./ActionsCell"
 import { toast } from "sonner"
 import { formatWhatsAppNumber } from "@/lib/utils"
+import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 
 import { NameCell } from "./NameCell"
 import { StatusCell } from "./StatusCell"
@@ -160,6 +161,8 @@ export const columns: ColumnDef<Lead>[] = [
                     return
                 }
 
+                const callSessionId = crypto.randomUUID()
+
                 try {
                     const userInfo = localStorage.getItem('userInfo')
                     const token = userInfo ? JSON.parse(userInfo).token : null
@@ -169,7 +172,7 @@ export const columns: ColumnDef<Lead>[] = [
                             'Content-Type': 'application/json',
                             ...(token ? { Authorization: `Bearer ${token}` } : {})
                         },
-                        body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+                        body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone, callSessionId })
                     })
                 } catch (err) {
                     console.warn('Failed to log WhatsApp interaction:', err)
@@ -179,6 +182,13 @@ export const columns: ColumnDef<Lead>[] = [
 
             const logAndCall = async (e: React.MouseEvent) => {
                 e.stopPropagation()
+                const callSessionId = crypto.randomUUID()
+                
+                // If in mobile app, try native bridge first
+                if (isMobileApp()) {
+                    initiateCallBridge(phone, callSessionId);
+                }
+
                 try {
                     const userInfo = localStorage.getItem('userInfo')
                     const token = userInfo ? JSON.parse(userInfo).token : null
@@ -188,12 +198,15 @@ export const columns: ColumnDef<Lead>[] = [
                             'Content-Type': 'application/json',
                             ...(token ? { Authorization: `Bearer ${token}` } : {})
                         },
-                        body: JSON.stringify({ type: 'call', phoneNumber: phone })
+                        body: JSON.stringify({ type: 'call', phoneNumber: phone, callSessionId })
                     })
                 } catch (err) {
                     console.warn('Failed to log Call interaction:', err)
                 }
-                window.location.href = `tel:${phone}`
+
+                if (!isMobileApp()) {
+                    window.location.href = `tel:${phone}`
+                }
             }
 
             return (

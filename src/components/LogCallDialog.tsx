@@ -121,29 +121,30 @@ export function LogCallDialog({ open, onOpenChange, leadId, leadPhone, onSuccess
             return;
         }
 
+        // Generate a unique session ID for this call lifecycle
+        const callSessionId = crypto.randomUUID();
+
         // Check if running in mobile app wrapper
         if (isMobileApp()) {
             setIsLoading(true);
             setWaitingForDevice(true);
 
             // Initiate call via Bridge
-            initiateCall(phoneNumber);
+            initiateCall(phoneNumber, callSessionId);
 
-            // We don't create the call record yet via API? 
-            // The existing logic created it via API first. 
-            // Lets stick to creating it via API first so we have an ID to update.
+            // Create it via API first so we have an ID for fuzzy/exact matching later
             try {
                 const initiateRes = await api.post('/calls/initiate', {
                     leadId,
                     phoneNumber,
-                    direction: 'outbound'
+                    direction: 'outbound',
+                    callSessionId
                 });
                 const callId = initiateRes.data.id;
                 setCurrentCallId(callId);
                 toast.info('Calling on device...');
             } catch (e) {
                 console.error('Failed to initiate call record', e);
-                // Fallback: just dial
             }
             return;
         }
@@ -178,17 +179,19 @@ export function LogCallDialog({ open, onOpenChange, leadId, leadPhone, onSuccess
             const initiateRes = await api.post('/calls/initiate', {
                 leadId,
                 phoneNumber,
-                direction: 'outbound'
+                direction: 'outbound',
+                callSessionId
             });
             const callId = initiateRes.data.id;
             setCurrentCallId(callId);
 
             // 2. Emit signal to mobile
-            toast.info(`Sending call request to ID: ${userId} for ${phoneNumber}...`);
+            toast.info(`Sending call request to device...`);
             socketService.emit('dial_request', {
                 userId,
                 phoneNumber,
-                callId
+                callId,
+                callSessionId
             });
 
         } catch (error: unknown) {

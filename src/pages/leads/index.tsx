@@ -12,6 +12,7 @@ import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
 import { toast } from "sonner"
 import { formatWhatsAppNumber } from "@/lib/utils"
+import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
 import {
@@ -138,6 +139,8 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
             return;
         }
 
+        const callSessionId = crypto.randomUUID();
+
         try {
             const userInfo = localStorage.getItem('userInfo');
             const token = userInfo ? JSON.parse(userInfo).token : null;
@@ -147,7 +150,7 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone })
+                body: JSON.stringify({ type: 'whatsapp', phoneNumber: phone, callSessionId })
             });
         } catch (err) {
             console.warn('Failed to log WhatsApp interaction:', err);
@@ -159,6 +162,13 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         e.stopPropagation();
         if (!phone) return;
 
+        const callSessionId = crypto.randomUUID();
+
+        // If in mobile app, try native bridge first
+        if (isMobileApp()) {
+            initiateCallBridge(phone, callSessionId);
+        }
+
         try {
             const userInfo = localStorage.getItem('userInfo');
             const token = userInfo ? JSON.parse(userInfo).token : null;
@@ -168,12 +178,15 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
                     'Content-Type': 'application/json',
                     ...(token ? { Authorization: `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify({ type: 'call', phoneNumber: phone })
+                body: JSON.stringify({ type: 'call', phoneNumber: phone, callSessionId })
             });
         } catch (err) {
             console.warn('Failed to log Call interaction:', err);
         }
-        window.location.href = `tel:${phone}`;
+
+        if (!isMobileApp()) {
+            window.location.href = `tel:${phone}`;
+        }
     };
 
     const { getStatusDetails } = useLeadStatuses();
