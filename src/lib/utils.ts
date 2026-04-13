@@ -242,3 +242,29 @@ export function isBranchManager(user: any): boolean {
 export function canAccessSettings(user: any): boolean {
     return !!user; // All authenticated users can access settings
 }
+/**
+ * Formats a phone number for WhatsApp wa.me links.
+ * 1. Removes all non-digit characters.
+ * 2. If the number is 10 digits and starts with 6, 7, 8, or 9 (Indian mobile), prepends 91.
+ * 3. Handles existing country codes properly.
+ */
+export function formatWhatsAppNumber(phone?: string): string {
+    if (!phone) return "";
+
+    // Clean all non-digits
+    let cleaned = phone.replace(/\D/g, "");
+
+    // If phone starts with + in original, it likely has country code
+    // but the cleaned version removes it. If the original starts with +,
+    // we assume the user provided the country code.
+    const hasOriginalPlus = phone.trim().startsWith("+");
+
+    // Logic for India (+91) - Default context
+    // If it's a 10-digit number and doesn't explicitly start with a country code
+    // we assume it's Indian if it starts with standard mobile digits.
+    if (!hasOriginalPlus && cleaned.length === 10 && /^[6-9]/.test(cleaned)) {
+        return `91${cleaned}`;
+    }
+
+    return cleaned;
+}

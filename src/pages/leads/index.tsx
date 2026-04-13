@@ -11,6 +11,7 @@ import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
 import { toast } from "sonner"
+import { formatWhatsAppNumber } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
 import {
@@ -128,7 +129,7 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
 
 // --- Mobile Lead Card ---
 const LeadCard = ({ lead }: { lead: Lead }) => {
-    const phone = lead.phone?.replace(/\D/g, '');
+    const phone = formatWhatsAppNumber(lead.phone);
 
     const handleWhatsApp = async (e: React.MouseEvent) => {
         e.stopPropagation();

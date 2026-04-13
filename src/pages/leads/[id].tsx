@@ -20,6 +20,7 @@ import { ScheduleMeetingDialog } from "@/components/ScheduleMeetingDialog"
 import { AssignLeadDialog } from "@/components/AssignLeadDialog"
 import { useState } from "react"
 import { toast } from "sonner"
+import { formatWhatsAppNumber, isAdmin, isSuperAdmin, isBranchManager } from "@/lib/utils"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
@@ -148,7 +149,7 @@ export default function LeadDetailPage() {
         }
         else if (type === 'meeting') setIsScheduleMeetingOpen(true)
         else if (type === 'whatsapp') {
-            const phone = lead?.phone?.replace(/[^0-9]/g, '')
+            const phone = formatWhatsAppNumber(lead?.phone)
             if (phone) {
                 // Background log
                 const logWhatsApp = async () => {
@@ -209,7 +210,7 @@ export default function LeadDetailPage() {
             {
                 loading: 'Initiating call...',
                 success: 'Call initiated! Your phone will ring shortly.',
-                error: (err) => err.response?.data?.message || 'Failed to initiate call'
+                error: (err: any) => err.response?.data?.message || 'Failed to initiate call'
             }
         )
     }

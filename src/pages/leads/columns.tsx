@@ -7,6 +7,7 @@ import { type Lead } from "@/services/leadService"
 import { format } from "date-fns"
 import { ActionsCell } from "./ActionsCell"
 import { toast } from "sonner"
+import { formatWhatsAppNumber } from "@/lib/utils"
 
 import { NameCell } from "./NameCell"
 import { StatusCell } from "./StatusCell"
@@ -149,7 +150,7 @@ export const columns: ColumnDef<Lead>[] = [
         header: "Contact",
         cell: ({ row }) => {
             const lead = row.original
-            const phone = lead.phone?.replace(/\D/g, '')
+            const phone = formatWhatsAppNumber(lead.phone)
             if (!phone) return <span className="text-muted-foreground/50 text-xs italic">No phone</span>
 
             const logAndOpenWhatsApp = async (e: React.MouseEvent) => {
