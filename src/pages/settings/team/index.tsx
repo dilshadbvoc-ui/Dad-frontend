@@ -95,6 +95,7 @@ function HierarchyNode({
     onEdit,
     onSuspend,
     onActivate,
+    onDelete,
 }: {
     node: TreeNode
     depth: number
