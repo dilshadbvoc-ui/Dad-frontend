@@ -542,6 +542,9 @@ export default function UserPerformanceReport() {
                                         <TableHead onClick={() => handleSort('metrics.callsMade')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
                                             <div className="flex items-center justify-center">Calls <SortIcon columnKey="metrics.callsMade" /></div>
                                         </TableHead>
+                                        <TableHead onClick={() => handleSort('metrics.totalTalkTimeSeconds')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
+                                            <div className="flex items-center justify-center">Talk Time <SortIcon columnKey="metrics.totalTalkTimeSeconds" /></div>
+                                        </TableHead>
                                         <TableHead onClick={() => handleSort('metrics.statusChanges')} className="cursor-pointer group font-bold text-[10px] uppercase tracking-widest text-center">
                                             <div className="flex items-center justify-center">Status Updates <SortIcon columnKey="metrics.statusChanges" /></div>
                                         </TableHead>
@@ -587,7 +590,13 @@ export default function UserPerformanceReport() {
                                             <TableCell className="text-center">
                                                 <div className="flex flex-col items-center">
                                                     <span className="font-bold text-sm text-blue-600">{user.metrics.callsMade}</span>
-                                                    <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Calls</span>
+                                                    <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Calls</span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <div className="flex flex-col items-center">
+                                                    <span className="font-bold text-sm text-primary">{Math.floor(user.metrics.totalTalkTimeSeconds / 60)}m {user.metrics.totalTalkTimeSeconds % 60}s</span>
+                                                    <span className="text-[9px] text-muted-foreground font-black uppercase tracking-widest">Talk Time</span>
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-center">
