@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
@@ -101,6 +101,7 @@ function HierarchyNode({
     onEdit: (m: TeamMember) => void
     onSuspend: (m: TeamMember) => void
     onActivate: (m: TeamMember) => void
+    onDelete: (m: TeamMember) => void
 }) {
     const [expanded, setExpanded] = useState(true)
     const m = node.user
@@ -184,6 +185,18 @@ function HierarchyNode({
                                 Activate User
                             </DropdownMenuItem>
                         )}
+                        {!m.isActive && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                    onClick={() => onDelete(m)}
+                                    className="text-destructive focus:text-destructive font-semibold"
+                                >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Permanently Delete
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -197,7 +210,7 @@ function HierarchyNode({
                         style={{ left: `${26 + depth * 28}px` }}
                     />
                     {node.children.map(child => (
-                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} />
+                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} />
                     ))}
                 </div>
             )}
@@ -213,6 +226,7 @@ export default function TeamSettings() {
     const [viewMode, setViewMode] = useState<'table' | 'tree'>('tree')
     const [suspendingUser, setSuspendingUser] = useState<TeamMember | null>(null)
     const [activatingUser, setActivatingUser] = useState<TeamMember | null>(null)
+    const [deletingUser, setDeletingUser] = useState<TeamMember | null>(null)
     const [moveBack, setMoveBack] = useState(true)
     const queryClient = useQueryClient()
 
@@ -308,6 +322,21 @@ export default function TeamSettings() {
         },
         onError: (error: any) => {
             toast.error(error.response?.data?.message || "Failed to activate user")
+        }
+    })
+
+    const deleteMutation = useMutation({
+        mutationFn: async (userId: string) => {
+            const res = await api.delete(`/users/${userId}`)
+            return res.data
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['users'] })
+            toast.success("User permanently deleted")
+            setDeletingUser(null)
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to delete user")
         }
     })
 
@@ -571,6 +600,18 @@ export default function TeamSettings() {
                                                                 Activate User
                                                             </DropdownMenuItem>
                                                         )}
+                                                        {!member.isActive && (
+                                                            <>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem 
+                                                                    onClick={() => setDeletingUser(member)}
+                                                                    className="text-destructive focus:text-destructive font-semibold"
+                                                                >
+                                                                    <Trash2 className="h-4 w-4 mr-2" />
+                                                                    Permanently Delete
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
@@ -600,6 +641,7 @@ export default function TeamSettings() {
                                     onEdit={openEdit} 
                                     onSuspend={(m) => setSuspendingUser(m)}
                                     onActivate={(m) => setActivatingUser(m)}
+                                    onDelete={(m) => setDeletingUser(m)}
                                 />
                             ))}
                         </div>
@@ -852,6 +894,45 @@ export default function TeamSettings() {
                             disabled={activateMutation.isPending}
                         >
                             {activateMutation.isPending ? "Activating..." : "Confirm Activation"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* ─── Permanent Delete Confirmation Dialog ───────── */}
+            <Dialog open={!!deletingUser} onOpenChange={() => setDeletingUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="text-destructive flex items-center gap-2 font-bold text-xl">
+                           <Trash2 className="h-6 w-6" /> Permanently Delete User?
+                        </DialogTitle>
+                        <DialogDescription className="text-base">
+                            This action is <strong>irreversible</strong>. Are you sure you want to delete <strong>{deletingUser?.firstName} {deletingUser?.lastName}</strong>?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4 text-sm">
+                        <div className="p-4 bg-red-500/10 border border-red-200 rounded-xl space-y-3">
+                            <p className="font-bold text-red-600 flex items-center gap-2 uppercase tracking-wider text-xs">
+                                <Shield className="h-4 w-4" /> Critical Warning
+                            </p>
+                            <ul className="list-disc list-inside space-y-1.5 text-red-600/80 font-medium">
+                                <li>All assigned leads/tasks will be transferred to their manager.</li>
+                                <li>The user record will be permanently purged from the database.</li>
+                                <li>The user will lose access to all CRM data immediately.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setDeletingUser(null)} className="rounded-xl">
+                            Cancel
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            onClick={() => deletingUser && deleteMutation.mutate(deletingUser.id)}
+                            disabled={deleteMutation.isPending}
+                            className="rounded-xl font-bold px-6"
+                        >
+                            {deleteMutation.isPending ? "Deleting..." : "Permanently Delete"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
