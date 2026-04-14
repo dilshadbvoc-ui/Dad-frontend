@@ -13,9 +13,10 @@ export function LicenseUsageWidget() {
         }
     })
 
-    const userLimit = org?.organisation?.userLimit || 5
-    const userCount = org?.userCount || 0
-    const usagePercent = Math.min(100, Math.round((userCount / userLimit) * 100))
+    // Resilient data fetching for both SuperAdmin and Regular Admin response structures
+    const userLimit = org?.organisation?.userLimit || org?.organisation?.activeLicense?.maxUsers || org?.userLimit || 5
+    const userCount = org?.stats?.userCount ?? org?.userCount ?? 0
+    const usagePercent = Math.min(100, Math.round((userCount / (userLimit || 1)) * 100))
 
     return (
         <Link to="/settings/billing" className="block relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
