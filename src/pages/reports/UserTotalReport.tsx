@@ -4,6 +4,7 @@ import { getUserPerformanceDetails } from "@/services/analyticsService";
 import { getBranches } from "@/services/settingsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Link } from "react-router-dom";
 import { 
     Activity, 
     Phone, 
@@ -406,53 +407,61 @@ export default function UserPerformanceReport() {
             <div ref={reportRef} className="space-y-8 bg-background rounded-2xl">
                 {/* Scorecards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <Card className="border-none shadow-sm bg-gradient-to-br from-primary/10 via-background to-background ring-1 ring-primary/5">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2 text-primary font-bold">
-                                <Award className="h-4 w-4" /> TEAM PERFORMANCE INDEX
-                            </CardDescription>
-                            <CardTitle className="text-4xl font-black tracking-tighter text-primary">
-                                {summary?.avgPerformanceIndex}
-                                <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">% SCORE</span>
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
+                    <div className="h-full">
+                        <Card className="h-full border-none shadow-sm bg-gradient-to-br from-primary/10 via-background to-background ring-1 ring-primary/5 transition-all hover:scale-[1.02] active:scale-95 duration-200">
+                            <CardHeader className="pb-2 h-full flex flex-col justify-between">
+                                <CardDescription className="flex items-center gap-2 text-primary font-bold">
+                                    <Award className="h-4 w-4" /> TEAM PERFORMANCE INDEX
+                                </CardDescription>
+                                <CardTitle className="text-4xl font-black tracking-tighter text-primary">
+                                    {summary?.avgPerformanceIndex}
+                                    <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">% SCORE</span>
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </div>
 
-                    <Card className="border-none shadow-sm bg-gradient-to-br from-blue-50/50 via-background to-background ring-1 ring-blue-500/5 dark:from-blue-900/10">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2 text-blue-600 font-bold">
-                                <Phone className="h-4 w-4" /> TOTAL INTERACTIONS
-                            </CardDescription>
-                            <CardTitle className="text-4xl font-black tracking-tighter">
-                                {summary?.totalCalls}
-                                <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">CALLS</span>
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
+                    <Link to="/communications" className="block h-full">
+                        <Card className="h-full border-none shadow-sm bg-gradient-to-br from-blue-50/50 via-background to-background ring-1 ring-blue-500/5 dark:from-blue-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
+                            <CardHeader className="pb-2 h-full flex flex-col justify-between">
+                                <CardDescription className="flex items-center gap-2 text-blue-600 font-bold">
+                                    <Phone className="h-4 w-4" /> TOTAL INTERACTIONS
+                                </CardDescription>
+                                <CardTitle className="text-4xl font-black tracking-tighter">
+                                    {summary?.totalCalls}
+                                    <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">CALLS</span>
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </Link>
 
-                    <Card className="border-none shadow-sm bg-gradient-to-br from-green-50/50 via-background to-background ring-1 ring-green-500/5 dark:from-green-900/10">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2 text-green-600 font-bold">
-                                <Target className="h-4 w-4" /> OVERALL CONVERSION
-                            </CardDescription>
-                            <CardTitle className="text-4xl font-black tracking-tighter">
-                                {summary?.overallConversion}%
-                                <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">RATE</span>
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
+                    <Link to="/reports/sales-book" className="block h-full">
+                        <Card className="h-full border-none shadow-sm bg-gradient-to-br from-green-50/50 via-background to-background ring-1 ring-green-500/5 dark:from-green-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
+                            <CardHeader className="pb-2 h-full flex flex-col justify-between">
+                                <CardDescription className="flex items-center gap-2 text-green-600 font-bold">
+                                    <Target className="h-4 w-4" /> OVERALL CONVERSION
+                                </CardDescription>
+                                <CardTitle className="text-4xl font-black tracking-tighter">
+                                    {summary?.overallConversion}%
+                                    <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal">RATE</span>
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </Link>
 
-                    <Card className="border-none shadow-sm bg-gradient-to-br from-red-50/50 via-background to-background ring-1 ring-red-500/5 dark:from-red-900/10">
-                        <CardHeader className="pb-2">
-                            <CardDescription className="flex items-center gap-2 text-red-600 font-bold">
-                                <AlertCircle className="h-4 w-4" /> UNATTENDED LEADS
-                            </CardDescription>
-                            <CardTitle className="text-4xl font-black tracking-tighter text-red-600">
-                                {summary?.totalUnattended}
-                                <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal font-medium">NEEDS ACTION</span>
-                            </CardTitle>
-                        </CardHeader>
-                    </Card>
+                    <Link to="/leads?view=status-new" className="block h-full">
+                        <Card className="h-full border-none shadow-sm bg-gradient-to-br from-red-50/50 via-background to-background ring-1 ring-red-500/5 dark:from-red-900/10 transition-all hover:scale-[1.02] active:scale-95 duration-200 cursor-pointer">
+                            <CardHeader className="pb-2 h-full flex flex-col justify-between">
+                                <CardDescription className="flex items-center gap-2 text-red-600 font-bold">
+                                    <AlertCircle className="h-4 w-4" /> UNATTENDED LEADS
+                                </CardDescription>
+                                <CardTitle className="text-4xl font-black tracking-tighter text-red-600">
+                                    {summary?.totalUnattended}
+                                    <span className="text-sm font-normal text-muted-foreground ml-2 tracking-normal font-medium uppercase">NEEDS ACTION</span>
+                                </CardTitle>
+                            </CardHeader>
+                        </Card>
+                    </Link>
                 </div>
 
                 {/* Charts Area */}
@@ -464,9 +473,9 @@ export default function UserPerformanceReport() {
                                 <Activity className="h-4 w-4 text-primary" /> Activity vs Conversion Metrics
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6">
-                            <div className="h-[300px] sm:h-[400px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                        <CardContent className="p-6 min-h-0 min-w-0">
+                            <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <ComposedChart data={filteredPerformanceData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                         <XAxis dataKey="name" tick={{fontSize: 10, fontWeight: 600}} axisLine={false} tickLine={false} />
@@ -493,9 +502,9 @@ export default function UserPerformanceReport() {
                                 <Award className="h-4 w-4 text-yellow-500" /> Leaderboard Ranking
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="p-6">
-                            <div className="h-[300px] sm:h-[400px]">
-                                <ResponsiveContainer width="100%" height="100%">
+                        <CardContent className="p-6 min-h-0 min-w-0">
+                            <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
+                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <BarChart data={filteredPerformanceData} layout="vertical" margin={{ left: 40, right: 30 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                                         <XAxis type="number" domain={[0, 100]} hide />

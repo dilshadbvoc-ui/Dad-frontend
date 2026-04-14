@@ -15,22 +15,104 @@ export default function AuditLogsReport() {
     const [endDate, setEndDate] = useState("");
     const [entity, setEntity] = useState("all");
     const [action, setAction] = useState("all");
+    const [userId, setUserId] = useState("all");
     const [isDownloading, setIsDownloading] = useState(false);
 
+    // Fetch users for the filter
+    const { data: userData } = useQuery({
+        queryKey: ["users-list"],
+        queryFn: async () => {
+            const response = await api.get("/users");
+            return response.data.users;
+        },
+    });
+
     const { data: logs, isLoading } = useQuery({
-        queryKey: ["audit-logs-report", startDate, endDate, entity, action],
+        queryKey: ["audit-logs-report", startDate, endDate, entity, action, userId],
         queryFn: async () => {
             const params = new URLSearchParams();
             if (startDate) params.append("startDate", startDate);
             if (endDate) params.append("endDate", endDate);
             if (entity && entity !== "all") params.append("entity", entity);
             if (action && action !== "all") params.append("action", action);
+            if (userId && userId !== "all") params.append("userId", userId);
             params.append("limit", "1000");
 
             const response = await api.get(`/audit-logs?${params.toString()}`);
             return response.data;
         },
     });
+
+    const formatAuditDetail = (log: any) => {
+        if (!log.details) return "No additional details";
+        const d = log.details;
+        
+        // Custom translations based on action and entity
+        const action = (log.action || "").toUpperCase();
+        const entityLabel = (log.entity || "").toLowerCase();
+        
+        // Try to find a name for the subject
+        const name = d.name || d.title || d.email || d.firstName || log.entityId || "item";
+
+        // Handle specific actions first
+        if (action === "LEAD_STATUS_CHANGE") {
+            const oldStatus = d.oldStatus || d.oldStage || "unknown";
+            const newStatus = d.newStatus || d.newStage || d.status || "unknown";
+            return `Changed status of "${name}" from ${oldStatus} to ${newStatus}`;
+        }
+
+        if (action === "LOG_QUICK_INTERACTION") {
+            const type = d.type || "activity";
+            return `Logged a quick ${type} for "${name}"`;
+        }
+
+        if (action.includes("CREATED") || action === "CREATE" || action.includes("CREATE_")) {
+            return `Created new ${entityLabel}: "${name}"`;
+        }
+        if (action.includes("DELETED") || action === "DELETE" || action.includes("DELETE_")) {
+            return `Deleted ${entityLabel} "${name}"`;
+        }
+        if (action.includes("UPDATED") || action === "UPDATE" || action.includes("UPDATE_")) {
+            if (d.updatedFields && Array.isArray(d.updatedFields)) {
+                return `Updated ${entityLabel} "${name}": changed ${d.updatedFields.join(", ")}`;
+            }
+            if ((d.oldStage || d.oldStatus) && (d.newStage || d.newStatus)) {
+                return `Moved ${entityLabel} "${name}" from ${d.oldStage || d.oldStatus} to ${d.newStage || d.newStatus}`;
+            }
+            if (d.status) {
+                return `Changed ${entityLabel} "${name}" status to ${d.status}`;
+            }
+            return `Modified ${entityLabel} details for "${name}"`;
+        }
+        if (action === "LOGIN") return "User logged in";
+        if (action === "LOGOUT") return "User logged out";
+        if (action.includes("INVITE")) return `Invited user: ${d.email || name}`;
+        if (action.includes("DEACTIVATE")) return `Deactivated user: ${d.email || name}`;
+        if (action.includes("ACTIVATE") && !action.includes("DEACTIVATE")) return `Re-activated user: ${d.email || name}`;
+
+        // Fallback to parts list for other updates
+        const parts: string[] = [];
+        if (d.name) parts.push(`Name: ${d.name}`);
+        if (d.company) parts.push(`Company: ${d.company}`);
+        if (d.email) parts.push(`Email: ${d.email}`);
+        if (d.phone) parts.push(`Phone: ${d.phone}`);
+        if (d.status) parts.push(`Status: ${d.status}`);
+        if (d.stage) parts.push(`Stage: ${d.stage}`);
+        if (d.oldStage && d.newStage) parts.push(`Stage: ${d.oldStage} → ${d.newStage}`);
+        if (d.amount) parts.push(`Amount: ${d.amount}`);
+        if (d.title) parts.push(`Title: ${d.title}`);
+        if (d.role) parts.push(`Role: ${d.role}`);
+        
+        return parts.length > 0 ? parts.join("; ") : JSON.stringify(d);
+    };
+
+    const getReadableAction = (action: string) => {
+        if (!action) return "-";
+        return action
+            .split("_")
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(" ");
+    };
 
     const downloadCSV = () => {
         if (!logs?.logs || logs.logs.length === 0) {
@@ -48,33 +130,14 @@ export default function AuditLogsReport() {
             const rows = logs.logs.map((log: any) => {
                 const date = format(new Date(log.createdAt), "yyyy-MM-dd HH:mm:ss");
                 const user = log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System";
-                const action = log.action || "";
+                const actionLabel = getReadableAction(log.action);
                 const entity = log.entity || "";
                 const entityId = log.entityId || "";
                 
                 // Format details in a readable way
-                let details = "";
-                if (log.details) {
-                    const d = log.details;
-                    const parts: string[] = [];
-                    
-                    if (d.name) parts.push(`Name: ${d.name}`);
-                    if (d.company) parts.push(`Company: ${d.company}`);
-                    if (d.email) parts.push(`Email: ${d.email}`);
-                    if (d.phone) parts.push(`Phone: ${d.phone}`);
-                    if (d.status) parts.push(`Status: ${d.status}`);
-                    if (d.stage) parts.push(`Stage: ${d.stage}`);
-                    if (d.oldStage && d.newStage) parts.push(`Stage: ${d.oldStage} → ${d.newStage}`);
-                    if (d.amount) parts.push(`Amount: ${d.amount}`);
-                    if (d.title) parts.push(`Title: ${d.title}`);
-                    if (d.role) parts.push(`Role: ${d.role}`);
-                    if (d.planName) parts.push(`Plan: ${d.planName}`);
-                    if (d.customPrice) parts.push(`Custom Price: ${d.customPrice}`);
-                    
-                    details = parts.length > 0 ? parts.join("; ") : JSON.stringify(d);
-                }
+                const details = formatAuditDetail(log);
 
-                return [date, user, action, entity, entityId, `"${details.replace(/"/g, '""')}"`];
+                return [date, user, actionLabel, entity, entityId, `"${details.replace(/"/g, '""')}"`];
             });
 
             // Combine headers and rows
@@ -181,6 +244,23 @@ export default function AuditLogsReport() {
                                 </SelectContent>
                             </Select>
                         </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="user">User</Label>
+                            <Select value={userId} onValueChange={setUserId}>
+                                <SelectTrigger id="user">
+                                    <SelectValue placeholder="All users" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">All users</SelectItem>
+                                    {userData?.map((u: any) => (
+                                        <SelectItem key={u.id} value={u.id}>
+                                            {u.firstName} {u.lastName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -216,27 +296,7 @@ export default function AuditLogsReport() {
                                 </thead>
                                 <tbody>
                                     {logs.logs.map((log: any) => {
-                                        // Format details in a readable way
-                                        let detailsText = "-";
-                                        if (log.details) {
-                                            const details = log.details;
-                                            const parts: string[] = [];
-                                            
-                                            if (details.name) parts.push(`Name: ${details.name}`);
-                                            if (details.company) parts.push(`Company: ${details.company}`);
-                                            if (details.email) parts.push(`Email: ${details.email}`);
-                                            if (details.phone) parts.push(`Phone: ${details.phone}`);
-                                            if (details.status) parts.push(`Status: ${details.status}`);
-                                            if (details.stage) parts.push(`Stage: ${details.stage}`);
-                                            if (details.oldStage && details.newStage) parts.push(`Stage: ${details.oldStage} → ${details.newStage}`);
-                                            if (details.amount) parts.push(`Amount: ${details.amount}`);
-                                            if (details.title) parts.push(`Title: ${details.title}`);
-                                            if (details.role) parts.push(`Role: ${details.role}`);
-                                            if (details.planName) parts.push(`Plan: ${details.planName}`);
-                                            if (details.customPrice) parts.push(`Custom Price: ${details.customPrice}`);
-                                            
-                                            detailsText = parts.length > 0 ? parts.join(", ") : JSON.stringify(details);
-                                        }
+                                        const detailsText = formatAuditDetail(log);
                                         
                                         return (
                                             <tr key={log.id} className="border-b hover:bg-muted/50">
@@ -246,7 +306,7 @@ export default function AuditLogsReport() {
                                                 <td className="p-3 text-sm">
                                                     {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System"}
                                                 </td>
-                                                <td className="p-3 text-sm capitalize">{log.action}</td>
+                                                <td className="p-3 text-sm">{getReadableAction(log.action)}</td>
                                                 <td className="p-3 text-sm">{log.entity}</td>
                                                 <td className="p-3 text-sm text-muted-foreground max-w-md">
                                                     <div className="line-clamp-2" title={detailsText}>
