@@ -13,7 +13,7 @@ export function LicenseUsageWidget() {
         }
     })
 
-    const userLimit = org?.userLimit || 5
+    const userLimit = org?.organisation?.userLimit || 5
     const userCount = org?.userCount || 0
     const usagePercent = Math.min(100, Math.round((userCount / userLimit) * 100))
 
