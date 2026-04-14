@@ -63,7 +63,7 @@ export default function UserProfilePage() {
     const { id } = useParams()
     const navigate = useNavigate()
 
-    const { data: user, isLoading: userLoading } = useQuery({
+    const { data: user, isLoading: userLoading, error: userError } = useQuery({
         queryKey: ['user', id],
         queryFn: () => getUserById(id!)
     })
@@ -86,7 +86,22 @@ export default function UserProfilePage() {
         return <div className="p-8 space-y-4"><Skeleton className="h-12 w-1/3" /><Skeleton className="h-64 w-full" /></div>
     }
 
-    if (!user) return <div className="p-8">User not found</div>
+    if (!user || userError) {
+        return (
+            <div className="p-12 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="h-20 w-20 rounded-full bg-destructive/10 flex items-center justify-center text-destructive">
+                    <Briefcase className="h-10 w-10" />
+                </div>
+                <h1 className="text-2xl font-bold">User Not Found</h1>
+                <p className="text-muted-foreground max-w-xs">
+                    This account may have been permanently deleted or you do not have permission to view it.
+                </p>
+                <Button onClick={() => navigate('/settings?tab=team')}>
+                    <ArrowLeft className="h-4 w-4 mr-2" /> Back to Team Settings
+                </Button>
+            </div>
+        )
+    }
 
     return (
         <div className="space-y-6">
