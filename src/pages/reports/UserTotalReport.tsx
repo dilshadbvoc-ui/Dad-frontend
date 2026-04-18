@@ -486,7 +486,7 @@ export default function UserPerformanceReport() {
                                         <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                                         <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
                                         <Tooltip 
-                                            contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                                            contentStyle={{borderRadius: '12px', border: 'none'}}
                                             formatter={(value: any, name: string | any) => [name === 'revenue' ? formatCurrency(value) : value, (name || '').toUpperCase()]}
                                         />
                                         <Legend verticalAlign="top" height={36}/>
@@ -515,7 +515,7 @@ export default function UserPerformanceReport() {
                                         <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fontSize: 12, fontWeight: 700}} width={100} />
                                         <Tooltip 
                                             cursor={{fill: 'transparent'}}
-                                            contentStyle={{borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)'}}
+                                            contentStyle={{borderRadius: '12px', border: 'none'}}
                                             formatter={(v) => [`${v}%`, 'Performance Index']}
                                         />
                                         <Bar dataKey="metrics.performanceIndex" radius={[0, 10, 10, 0]} barSize={25}>
