@@ -666,7 +666,7 @@ export default function UserPerformanceReport() {
                         {filteredPerformanceData?.length === 0 && (
                             <div className="p-12 text-center text-muted-foreground">
                                 <Users className="h-10 w-10 mx-auto mb-4 opacity-20" />
-                                <p className="font-medium">No performance data found for the selected criteria.</p>
+                                <div className="font-medium">No performance data found for the selected criteria.</div>
                             </div>
                         )}
                     </CardContent>
