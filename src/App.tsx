@@ -87,7 +87,7 @@ const LeadReportsPage = lazy(() => import('./pages/reports/leads'));
 const FollowUpReportsPage = lazy(() => import('./pages/reports/follow-ups'));
 const AuditLogsReportPage = lazy(() => import('./pages/reports/audit-logs'));
 const CallAnalyticsPage = lazy(() => import('./pages/reports/CallAnalytics'));
-const UserTotalReportPage = lazy(() => import('./pages/reports/UserTotalReport'));
+const UserTotalReportPage = lazy(() => import('./pages/reports/PerformanceReport'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/settings/Integrations'));
 const PipelinesSettingsPage = lazy(() => import('./pages/settings/pipelines'));
 const NotificationsSettingsPage = lazy(() => import('./pages/settings/notifications'));
