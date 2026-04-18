@@ -361,7 +361,7 @@ export default function UserPerformanceReport() {
 
                         <div className="space-y-1.5">
                             <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Period</label>
-                            <div className="flex gap-1 bg-background p-1 rounded-xl border border-border/50 h-10 w-full overflow-x-auto no-scrollbar">
+                            <div className="flex gap-1 bg-background p-1 rounded-xl border border-border/50 h-10 w-full overflow-x-auto">
                                 {['today', 'week', 'month', 'year'].map((p) => (
                                     <Button 
                                         key={p}
@@ -369,7 +369,7 @@ export default function UserPerformanceReport() {
                                         size="sm"
                                         onClick={() => setPeriod(p)}
                                         className={cn(
-                                            "min-w-[60px] flex-1 capitalize text-[10px] h-full rounded-lg px-2",
+                                            "min-w-16 flex-1 capitalize text-xs h-full rounded-lg px-2",
                                             activePeriod === p ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
                                         )}
                                     >
