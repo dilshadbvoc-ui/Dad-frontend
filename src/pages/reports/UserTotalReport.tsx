@@ -361,7 +361,7 @@ export default function UserPerformanceReport() {
 
                         <div className="space-y-1.5">
                             <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Period</label>
-                            <div className="flex gap-1 bg-background p-1 rounded-xl border border-border/50 h-10 w-full overflow-x-auto">
+                            <div className="flex bg-background rounded-xl border border-border/50 h-10 overflow-x-auto">
                                 {['today', 'week', 'month', 'year'].map((period) => (
                                     <Button 
                                         key={period}
