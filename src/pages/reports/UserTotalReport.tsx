@@ -57,11 +57,11 @@ export default function UserPerformanceReport() {
     const [isExporting, setIsExporting] = useState(false);
 
     // Filter States
-    const [startDate, setStartDate] = useState<string>(format(startOfMonth(new Date()), "yyyy-MM-dd"));
-    const [endDate, setEndDate] = useState<string>(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+    const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+    const [endDate, setEndDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
     const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
     const [selectedUserId, setSelectedUserId] = useState<string>("all");
-    const [activePeriod, setActivePeriod] = useState<string>("month");
+    const [activePeriod, setActivePeriod] = useState<string>("today");
     const [sortConfig, setSortConfig] = useState<{key: string, direction: 'asc' | 'desc'} | null>({ key: 'metrics.performanceIndex', direction: 'desc' });
 
     // Fetch Base Data
@@ -145,6 +145,10 @@ export default function UserPerformanceReport() {
         let start, end;
 
         switch (period) {
+            case 'today':
+                start = now;
+                end = now;
+                break;
             case 'week':
                 start = startOfWeek(now);
                 end = endOfWeek(now);
@@ -357,15 +361,15 @@ export default function UserPerformanceReport() {
 
                         <div className="space-y-1.5">
                             <label className="text-[10px] uppercase font-black tracking-widest text-muted-foreground ml-1">Period</label>
-                            <div className="flex gap-1 bg-background p-1 rounded-xl border border-border/50 h-10">
-                                {['week', 'month', 'year'].map((p) => (
+                            <div className="flex gap-1 bg-background p-1 rounded-xl border border-border/50 h-10 w-full overflow-x-auto no-scrollbar">
+                                {['today', 'week', 'month', 'year'].map((p) => (
                                     <Button 
                                         key={p}
                                         variant={activePeriod === p ? "default" : "ghost"}
                                         size="sm"
                                         onClick={() => setPeriod(p)}
                                         className={cn(
-                                            "flex-1 capitalize text-xs h-full rounded-lg",
+                                            "min-w-[60px] flex-1 capitalize text-[10px] h-full rounded-lg px-2",
                                             activePeriod === p ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"
                                         )}
                                     >
