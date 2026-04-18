@@ -89,8 +89,12 @@ export const getCalls = async (filters: CallFilters = {}): Promise<CallsResponse
     return response.data;
 };
 
-export const getCallStats = async (period: 'today' | 'week' | 'month' = 'week'): Promise<CallStats> => {
-    const response = await api.get(`/calls/stats?period=${period}`);
+export const getCallStats = async (period: 'today' | 'week' | 'month' = 'week', userId?: string): Promise<CallStats> => {
+    let url = `/calls/stats?period=${period}`;
+    if (userId && userId !== 'all') {
+        url += `&userId=${userId}`;
+    }
+    const response = await api.get(url);
     return response.data;
 };
 

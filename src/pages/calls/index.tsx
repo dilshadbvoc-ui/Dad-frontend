@@ -25,8 +25,10 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getCalls, getCallStats, deleteCallRecording, type Call, type CallFilters } from '@/services/callService';
+import { getUsers } from '@/services/userService';
 import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
 import { api } from '@/services/api';
+import { User2 } from 'lucide-react';
 
 export default function CallsPage() {
     const queryClient = useQueryClient();
@@ -46,9 +48,17 @@ export default function CallsPage() {
     });
 
     const { data: stats } = useQuery({
-        queryKey: ['callStats', period],
-        queryFn: () => getCallStats(period)
+        queryKey: ['callStats', period, filters.userId],
+        queryFn: () => getCallStats(period, filters.userId)
     });
+
+    const { data: usersData } = useQuery({
+        queryKey: ['users'],
+        queryFn: () => getUsers()
+    });
+
+    const users = usersData?.users || [];
+    const showUserFilter = users.length > 1;
 
     const deleteMutation = useMutation({
         mutationFn: deleteCallRecording,
@@ -294,6 +304,28 @@ export default function CallsPage() {
                                             <SelectItem value="failed">Failed</SelectItem>
                                         </SelectContent>
                                     </Select>
+
+                                    {showUserFilter && (
+                                        <Select
+                                            value={filters.userId || 'all'}
+                                            onValueChange={(v) => handleFilterChange('userId', v)}
+                                        >
+                                            <SelectTrigger className="w-full md:w-[180px] bg-background">
+                                                <div className="flex items-center gap-2">
+                                                    <User2 className="h-4 w-4 text-muted-foreground" />
+                                                    <SelectValue placeholder="All Agents" />
+                                                </div>
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="all">All Agents</SelectItem>
+                                                {users.map((u: any) => (
+                                                    <SelectItem key={u.id} value={u.id}>
+                                                        {u.firstName} {u.lastName}
+                                                    </SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
