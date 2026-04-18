@@ -7,8 +7,9 @@ export default function PrivacyPolicy() {
     return (
         <div className="min-h-screen bg-white dark:bg-gray-950 font-sans">
             <SEO
-                title="Privacy Policy"
-                description="Read the Pype CRM privacy policy to understand how we protect your information and rights."
+                title="Privacy Policy | Pype CRM"
+                description="Our commitment to your security. Read the Pype CRM privacy policy to understand how we protect your data and ensure compliance."
+                canonical="https://pypecrm.com/privacy"
             />
             <LandingNavbar />
             <main className="py-20">

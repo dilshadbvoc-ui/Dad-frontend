@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
     title: string;
@@ -8,7 +8,12 @@ interface SEOProps {
     ogDescription?: string;
     ogImage?: string;
     canonical?: string;
+    jsonLd?: object | object[];
+    noindex?: boolean;
 }
+
+const SITE_URL = "https://pypecrm.com";
+const DEFAULT_IMAGE = `${SITE_URL}/logo.png`;
 
 const SEO = ({
     title,
@@ -16,78 +21,46 @@ const SEO = ({
     keywords,
     ogTitle,
     ogDescription,
-    ogImage,
-    canonical
+    ogImage = DEFAULT_IMAGE,
+    canonical,
+    jsonLd,
+    noindex = false
 }: SEOProps) => {
-    useEffect(() => {
-        // Update Title
-        const fullTitle = `${title} | Pype CRM`;
-        document.title = fullTitle;
+    const fullTitle = `${title} | Pype CRM`;
+    const pageUrl = window.location.href;
+    const currentCanonical = canonical || pageUrl;
 
-        // Update Meta Description
-        if (description) {
-            let metaDescription = document.querySelector('meta[name="description"]');
-            if (metaDescription) {
-                metaDescription.setAttribute('content', description);
-            } else {
-                metaDescription = document.createElement('meta');
-                metaDescription.setAttribute('name', 'description');
-                metaDescription.setAttribute('content', description);
-                document.head.appendChild(metaDescription);
-            }
-        }
+    return (
+        <Helmet prioritizeSeoTags>
+            <html lang="en" />
+            <title>{fullTitle}</title>
+            <meta name="description" content={description} />
+            {keywords && <meta name="keywords" content={keywords} />}
+            <link rel="canonical" href={currentCanonical} />
+            {noindex && <meta name="robots" content="noindex, nofollow" />}
 
-        // Update Meta Keywords
-        if (keywords) {
-            let metaKeywords = document.querySelector('meta[name="keywords"]');
-            if (metaKeywords) {
-                metaKeywords.setAttribute('content', keywords);
-            } else {
-                metaKeywords = document.createElement('meta');
-                metaKeywords.setAttribute('name', 'keywords');
-                metaKeywords.setAttribute('content', keywords);
-                document.head.appendChild(metaKeywords);
-            }
-        }
+            {/* Open Graph */}
+            <meta property="og:type" content="website" />
+            <meta property="og:url" content={pageUrl} />
+            <meta property="og:title" content={ogTitle || fullTitle} />
+            <meta property="og:description" content={ogDescription || description} />
+            <meta property="og:image" content={ogImage} />
 
-        // Update Open Graph tags if provided
-        const ogTags = {
-            'og:title': ogTitle || title,
-            'og:description': ogDescription || description,
-            'og:image': ogImage,
-            'og:url': window.location.href
-        };
+            {/* Twitter */}
+            <meta name="twitter:card" content="summary_large_image" />
+            <meta name="twitter:url" content={pageUrl} />
+            <meta name="twitter:title" content={ogTitle || fullTitle} />
+            <meta name="twitter:description" content={ogDescription || description} />
+            <meta name="twitter:image" content={ogImage} />
 
-        Object.entries(ogTags).forEach(([property, content]) => {
-            if (content) {
-                let tag = document.querySelector(`meta[property="${property}"]`);
-                if (tag) {
-                    tag.setAttribute('content', content);
-                } else {
-                    tag = document.createElement('meta');
-                    tag.setAttribute('property', property);
-                    tag.setAttribute('content', content);
-                    document.head.appendChild(tag);
-                }
-            }
-        });
-
-        // Update Canonical Link
-        if (canonical) {
-            let linkCanonical = document.querySelector('link[rel="canonical"]');
-            if (linkCanonical) {
-                linkCanonical.setAttribute('href', canonical);
-            } else {
-                linkCanonical = document.createElement('link');
-                linkCanonical.setAttribute('rel', 'canonical');
-                linkCanonical.setAttribute('href', canonical);
-                document.head.appendChild(linkCanonical);
-            }
-        }
-
-    }, [title, description, keywords, ogTitle, ogDescription, ogImage, canonical]);
-
-    return null;
+            {/* Structured Data */}
+            {jsonLd && (
+                <script type="application/ld+json">
+                    {JSON.stringify(Array.isArray(jsonLd) ? jsonLd : [jsonLd])}
+                </script>
+            )}
+        </Helmet>
+    );
 };
 
 export default SEO;

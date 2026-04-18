@@ -10,8 +10,9 @@ const Terms = () => {
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-12 px-4 sm:px-6 lg:px-8">
             <SEO
-                title="Terms and Conditions"
-                description="Terms and Conditions for Pype CRM."
+                title="Terms of Service | Pype CRM"
+                description="Review the terms and conditions for using Pype CRM. Clear guidelines on our 14-day free trial, user accounts, and data protection."
+                canonical="https://pypecrm.com/terms"
             />
             <div className="max-w-4xl mx-auto pt-6">
                 <Button

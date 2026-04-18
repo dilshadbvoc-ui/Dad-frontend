@@ -346,25 +346,29 @@ function AppContent() {
   );
 }
 
+import { HelmetProvider } from 'react-helmet-async';
+
 function App() {
   return (
-    <ThemeProvider>
-      <CurrencyProvider>
-        <QueryClientProvider client={queryClient}>
-          <AppContent />
-          <Toaster
-            position="bottom-right"
-            expand={true}
-            richColors
-            closeButton
-            duration={4000}
-            toastOptions={{
-              style: { borderRadius: '12px' },
-            }}
-          />
-        </QueryClientProvider>
-      </CurrencyProvider>
-    </ThemeProvider>
+    <HelmetProvider>
+      <ThemeProvider>
+        <CurrencyProvider>
+          <QueryClientProvider client={queryClient}>
+            <AppContent />
+            <Toaster
+              position="bottom-right"
+              expand={true}
+              richColors
+              closeButton
+              duration={4000}
+              toastOptions={{
+                style: { borderRadius: '12px' },
+              }}
+            />
+          </QueryClientProvider>
+        </CurrencyProvider>
+      </ThemeProvider>
+    </HelmetProvider>
   );
 }
 
