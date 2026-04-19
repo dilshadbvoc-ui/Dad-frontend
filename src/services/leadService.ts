@@ -38,6 +38,11 @@ export interface Lead {
     country?: string;
     countryCode?: string;
     phoneCountryCode?: string;
+    sourceDetails?: {
+        message?: string;
+        originalSource?: string;
+        rawPayload?: any;
+    };
     createdAt: string;
     updatedAt: string;
 }
