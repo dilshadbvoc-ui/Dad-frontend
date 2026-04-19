@@ -14,6 +14,7 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
 import { useQueryClient } from '@tanstack/react-query';
+import { requestNotificationPermissions, triggerRichNotification } from '@/utils/notificationFeedback';
 
 export default function Layout() {
     const location = useLocation();
@@ -54,6 +55,10 @@ export default function Layout() {
             }
         };
         document.addEventListener('keydown', handleEscape);
+        
+        // Request notification permissions on mount
+        requestNotificationPermissions();
+
         return () => document.removeEventListener('keydown', handleEscape);
     }, []);
 
@@ -102,6 +107,9 @@ export default function Layout() {
                 duration: 4000,
             });
 
+            // Trigger sensory feedback (sound/vibration/OS popup)
+            triggerRichNotification(data.title, data.message);
+
             // Native Android App push notification mirror
             triggerAndroidNotification(data.title, data.message);
         };
@@ -112,6 +120,10 @@ export default function Layout() {
         // Real-time Data Sync Listeners
         socketService.on('lead_created', () => {
             handleRealtimeSync('lead_created');
+            
+            // Rich alert for new leads
+            triggerRichNotification('New Lead Assigned', 'A fresh lead has been assigned to you. Details are available in the dashboard.');
+
             const userInfo = localStorage.getItem('userInfo');
             if (userInfo) {
                 const { token } = JSON.parse(userInfo);
