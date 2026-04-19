@@ -381,7 +381,9 @@ function DocsTab() {
     "phone": "9876543210",
     "company": "Acme Inc",
     "message": "Interested in your services",
-    "source": "website"
+    "source": "website",
+    "branchId": "OPTIONAL_BRANCH_ID",
+    "assignedToId": "OPTIONAL_USER_ID"
   }'`
 
     const jsExample = `fetch("${apiEndpoint}", {
@@ -521,6 +523,16 @@ function DocsTab() {
                                 <TableCell className="font-mono text-sm">source</TableCell>
                                 <TableCell>string</TableCell>
                                 <TableCell>Source label (e.g., "website", "landing_page")</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">branchId</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Optional ID of the branch to assign this lead to.</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell className="font-mono text-sm">assignedToId</TableCell>
+                                <TableCell>string</TableCell>
+                                <TableCell>Optional ID of the specific user to assign this lead to.</TableCell>
                             </TableRow>
                         </TableBody>
                     </Table>

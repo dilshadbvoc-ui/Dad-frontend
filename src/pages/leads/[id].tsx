@@ -421,6 +421,19 @@ export default function LeadDetailPage() {
                             )}
                             <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
                             
+                            {/* Source Display */}
+                            <div className="flex items-center gap-3">
+                                <Building className="h-4 w-4 text-muted-foreground" />
+                                <div className="flex flex-col">
+                                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Source</span>
+                                    <span className="text-sm font-semibold capitalize">
+                                        {(lead.source === 'api' && lead.sourceDetails?.originalSource) 
+                                            ? lead.sourceDetails.originalSource 
+                                            : lead.source}
+                                    </span>
+                                </div>
+                            </div>
+
                             {lead.enquiryAbout && (
                                 <div className="pt-2 border-t mt-2">
                                     <div className="flex items-start gap-3 mt-2">

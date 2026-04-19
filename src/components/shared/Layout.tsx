@@ -97,6 +97,9 @@ export default function Layout() {
         const handleNotification = (data: { title: string; message: string; type?: string }) => {
             if (!data) return; // Safeguard against null data
 
+            // Invalidate notification queries to update the bell/popover
+            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+
             // Map backend types to sonner toast types
             const type = data.type === 'error' ? 'error' :
                 data.type === 'success' ? 'success' :

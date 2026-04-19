@@ -112,8 +112,18 @@ export const columns: ColumnDef<Lead>[] = [
         size: 100,
         header: "Source",
         cell: ({ row }) => {
-            const source = row.getValue("source") as string
-            return <Badge variant="outline" className="capitalize bg-primary/10 text-primary border-primary/20">{source}</Badge>
+            const lead = row.original;
+            const source = lead.source as string;
+            const originalSource = lead.sourceDetails?.originalSource;
+            
+            // If it's an API lead and we have the original source label, show that instead
+            const displaySource = (source === 'api' && originalSource) ? originalSource : source;
+
+            return (
+                <Badge variant="outline" className="capitalize bg-primary/10 text-primary border-primary/20">
+                    {displaySource}
+                </Badge>
+            );
         }
     },
     {
