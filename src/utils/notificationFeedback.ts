@@ -6,14 +6,22 @@
 const NOTIFICATION_SOUND_PATH = '/sounds/notification.mp3';
 
 /**
- * Plays a short notification chime.
+ * Plays a short notification chime with pre-loading logic.
  */
+let notificationAudio: HTMLAudioElement | null = null;
+
 export const playNotificationSound = () => {
     try {
-        const audio = new Audio(NOTIFICATION_SOUND_PATH);
-        audio.play().catch(err => {
+        if (!notificationAudio) {
+            notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
+            notificationAudio.load();
+        }
+        
+        // Reset and play
+        notificationAudio.currentTime = 0;
+        notificationAudio.play().catch(err => {
             console.warn('[NotificationFeedback] Audio playback failed:', err);
-            // Audio often fails if there was no prior user interaction
+            // This is expected if the user has not interacted with the page yet
         });
     } catch (err) {
         console.error('[NotificationFeedback] Error playing sound:', err);
