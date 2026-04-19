@@ -135,6 +135,10 @@ export default function Layout() {
         });
         socketService.on('lead_updated', () => {
             handleRealtimeSync('lead_updated');
+            
+            // Rich alert for re-enquiries or updates
+            triggerRichNotification('Lead Activity', 'A lead has been updated or a re-enquiry was received.');
+
             const userInfo = localStorage.getItem('userInfo');
             if (userInfo) {
                 const { token } = JSON.parse(userInfo);
