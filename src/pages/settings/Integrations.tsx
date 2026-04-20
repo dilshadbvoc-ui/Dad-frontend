@@ -275,7 +275,8 @@ export default function IntegrationsPage() {
                                                                     integration.id === 'wati' ? 'bg-gradient-to-br from-green-600 to-green-800' :
                                                                         integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
                                                                             integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
-                                                                                'bg-gradient-to-br from-gray-500 to-gray-700'
+                                                                                integration.id === 'facebook_payload' ? 'bg-gradient-to-br from-indigo-600 to-violet-700' :
+                                                                                    'bg-gradient-to-br from-gray-500 to-gray-700'
                                         }`}>
                                         <integration.icon className="h-5 w-5 text-white" />
                                     </div>
