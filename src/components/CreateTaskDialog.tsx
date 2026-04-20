@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { api } from '@/services/api';
-import { Loader2 } from 'lucide-react';
+import { Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface CreateTaskDialogProps {
@@ -22,14 +22,24 @@ interface CreateTaskDialogProps {
     onSuccess: () => void;
 }
 
+interface BasicUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+}
+
 export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, onSuccess }: CreateTaskDialogProps) {
     const [isLoading, setIsLoading] = useState(false);
+    const [users, setUsers] = useState<BasicUser[]>([]);
+    const [fetchingUsers, setFetchingUsers] = useState(false);
 
     // Form States
     const [subject, setSubject] = useState('');
     const [description, setDescription] = useState('');
     const [priority, setPriority] = useState('medium');
     const [dueDate, setDueDate] = useState('');
+    const [assignedTo, setAssignedTo] = useState<string>('');
 
     useEffect(() => {
         if (open) {
@@ -37,8 +47,27 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
             setDescription('');
             setPriority('medium');
             setDueDate('');
+            
+            // Set default assignee if provided, otherwise it stays empty (defaults to self in backend if not provided)
+            setAssignedTo(defaultValues?.assignedTo || '');
+            
+            fetchReachableUsers();
         }
-    }, [open]);
+    }, [open, defaultValues]);
+
+    const fetchReachableUsers = async () => {
+        setFetchingUsers(true);
+        try {
+            const { data } = await api.get('/users');
+            if (data.users) {
+                setUsers(data.users);
+            }
+        } catch (error) {
+            console.error('Failed to fetch reachable users:', error);
+        } finally {
+            setFetchingUsers(false);
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -53,6 +82,13 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                 status: 'not_started',
             };
 
+            // Use state-controlled assignedTo if selected
+            if (assignedTo) {
+                payload.assignedTo = assignedTo;
+            } else if (defaultValues?.assignedTo) {
+                payload.assignedTo = defaultValues.assignedTo;
+            }
+
             // Handle Lead context (backward compatibility)
             if (leadId) {
                 payload.relatedTo = leadId;
@@ -61,7 +97,6 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
 
             // Handle default/explicit values override
             if (defaultValues) {
-                if (defaultValues.assignedTo) payload.assignedTo = defaultValues.assignedTo;
                 if (defaultValues.relatedTo) payload.relatedTo = defaultValues.relatedTo;
                 if (defaultValues.onModel) payload.onModel = defaultValues.onModel;
             }
@@ -74,7 +109,6 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
 
         } catch (error: any) {
             console.error('Task creation error:', error);
-            console.error('Error response:', error.response?.data);
             const errorMessage = error.response?.data?.message || error.message || 'Failed to create task';
             toast.error(errorMessage);
         } finally {
@@ -87,7 +121,7 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
             <DialogContent className="w-[95vw] sm:max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
                 <DialogHeader>
                     <DialogTitle>Create Task</DialogTitle>
-                    <DialogDescription>Assign a new task.</DialogDescription>
+                    <DialogDescription>Add a new task and assign it to a team member.</DialogDescription>
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,11 +146,31 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                         />
                     </div>
 
+                    <div className="grid gap-2">
+                        <Label htmlFor="assignedTo">Assign To</Label>
+                        <Select value={assignedTo} onValueChange={setAssignedTo}>
+                            <SelectTrigger id="assignedTo">
+                                <SelectValue placeholder={fetchingUsers ? "Loading users..." : "Assign to self (default)"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="self-placeholder-none">Assign to self (default)</SelectItem>
+                                {users.map((user) => (
+                                    <SelectItem key={user.id} value={user.id}>
+                                        <div className="flex items-center gap-2">
+                                            <User className="h-3 w-3 text-muted-foreground" />
+                                            {user.firstName} {user.lastName}
+                                        </div>
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label htmlFor="priority">Priority</Label>
                             <Select value={priority} onValueChange={setPriority}>
-                                <SelectTrigger>
+                                <SelectTrigger id="priority">
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -138,7 +192,7 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                         </div>
                     </div>
 
-                    <DialogFooter>
+                    <DialogFooter className="gap-2 sm:gap-0">
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
                         <Button type="submit" disabled={isLoading}>
                             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

@@ -71,13 +71,14 @@ export const columns: ColumnDef<Task>[] = [
         accessorKey: "assignedTo",
         header: "Assigned To",
         cell: ({ row }) => {
-            const assigned = row.getValue("assignedTo") as { _id: string; firstName: string; lastName: string } | null;
+            const assigned = row.getValue("assignedTo") as { id: string; _id?: string; firstName: string; lastName: string } | null;
+            const targetId = assigned?.id || assigned?._id;
 
-            if (!assigned) return <span className="text-gray-400">-</span>;
+            if (!targetId) return <span className="text-gray-400">-</span>;
 
             return (
                 <Link
-                    to={`/users/${assigned._id}`}
+                    to={`/users/${targetId}`}
                     className="cursor-pointer hover:underline text-blue-600"
                 >
                     {assigned.firstName} {assigned.lastName}
