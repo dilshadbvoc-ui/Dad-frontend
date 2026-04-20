@@ -38,7 +38,7 @@ interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -132,7 +132,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             ? 'HAL API Integration'
                                             : integrationType === 'gallabox'
                                                 ? 'Gallabox Integration'
-                                                : 'Single Sign-On (SAML)'
+                                                : integrationType === 'facebook_payload'
+                                                    ? 'Meta Ads Payload Connection'
+                                                    : 'Single Sign-On (SAML)'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -156,7 +158,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             ? 'Integrate HAL API for appointments.'
                                             : integrationType === 'gallabox'
                                                 ? 'Connect Gallabox for WhatsApp lead sync.'
-                                                : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
+                                                : integrationType === 'facebook_payload'
+                                                    ? 'Manually connect Meta Ads via leadgen webhooks.'
+                                                    : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -788,6 +792,66 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                 </>
                             )
                         }
+
+                        {/* Fields for Facebook Payload (Manual) */}
+                        {integrationType === 'facebook_payload' && isConnected && (
+                            <>
+                                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 mb-4">
+                                    <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-2 uppercase">Webhook Configuration</h4>
+                                    <p className="text-xs text-blue-600/80 dark:text-blue-300/80 mb-2">
+                                        Configure leadgen webhooks in your Meta App Dashboard with these values:
+                                    </p>
+                                    <div className="space-y-2">
+                                        <div>
+                                            <Label className="text-[10px]">Callback URL</Label>
+                                            <Input 
+                                                readOnly 
+                                                className="h-7 text-xs bg-white dark:bg-black" 
+                                                value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/meta/webhook`}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-[10px]">Verify Token</Label>
+                                            <Input 
+                                                readOnly 
+                                                className="h-7 text-xs bg-white dark:bg-black" 
+                                                value="my_secure_token" 
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <FormField
+                                    control={form.control}
+                                    name="pageId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Facebook Page ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter Page ID" {...field} value={field.value as string || ''} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="accessToken"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>System User Access Token</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" placeholder="EAAB..." {...field} value={field.value as string || ''} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs text-muted-foreground/70">
+                                                Generated from Meta Business Suite / System Users.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                            </>
+                        )}
 
                         {/* Specific Fields for Google Ads */}
                         {

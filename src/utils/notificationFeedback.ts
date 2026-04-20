@@ -9,6 +9,35 @@ const NOTIFICATION_SOUND_PATH = '/sounds/notification.mp3';
  * Plays a short notification chime with pre-loading logic.
  */
 let notificationAudio: HTMLAudioElement | null = null;
+let isAudioUnlocked = false;
+
+/**
+ * Browsers block audio until the first user interaction.
+ * This should be called on the first click/tap.
+ */
+export const unlockAudio = () => {
+    if (isAudioUnlocked) return;
+    
+    try {
+        if (!notificationAudio) {
+            notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
+            notificationAudio.load();
+        }
+        
+        // Play silent sound to unlock context
+        notificationAudio.muted = true;
+        notificationAudio.play().then(() => {
+            notificationAudio!.pause();
+            notificationAudio!.muted = false;
+            isAudioUnlocked = true;
+            console.log('[NotificationFeedback] Audio context unlocked successfully');
+        }).catch(err => {
+            console.warn('[NotificationFeedback] Failed to unlock audio context:', err);
+        });
+    } catch (err) {
+        console.error('[NotificationFeedback] Error during audio unlock:', err);
+    }
+};
 
 export const playNotificationSound = () => {
     try {
@@ -17,10 +46,14 @@ export const playNotificationSound = () => {
             notificationAudio.load();
         }
         
+        console.log('[NotificationFeedback] Attempting to play chime...');
+        
         // Reset and play
         notificationAudio.currentTime = 0;
-        notificationAudio.play().catch(err => {
-            console.warn('[NotificationFeedback] Audio playback failed:', err);
+        notificationAudio.play().then(() => {
+            console.log('[NotificationFeedback] Chime played successfully');
+        }).catch(err => {
+            console.warn('[NotificationFeedback] Audio playback failed (Policy):', err);
             // This is expected if the user has not interacted with the page yet
         });
     } catch (err) {

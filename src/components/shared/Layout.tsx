@@ -14,7 +14,7 @@ import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
 import { useQueryClient } from '@tanstack/react-query';
-import { requestNotificationPermissions, triggerRichNotification } from '@/utils/notificationFeedback';
+import { requestNotificationPermissions, triggerRichNotification, unlockAudio } from '@/utils/notificationFeedback';
 
 export default function Layout() {
     const location = useLocation();
@@ -170,7 +170,11 @@ export default function Layout() {
     }, []);
 
     return (
-        <div className="flex h-screen overflow-hidden bg-background">
+        <div 
+            className="flex h-screen overflow-hidden bg-background"
+            onClick={unlockAudio}
+            onTouchStart={unlockAudio}
+        >
             {/* Mobile Menu Overlay */}
             {mobileMenuOpen && (
                 <div

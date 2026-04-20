@@ -19,6 +19,7 @@ import {
 } from "@/components/icons/BrandLogos";
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
+import { NotificationTest } from "@/components/shared/NotificationTest";
 import { GmailConnect } from "@/components/settings/GmailConnect";
 
 interface MetaAccount {
@@ -35,7 +36,7 @@ export default function IntegrationsPage() {
 
     // Config Dialog State
     const [configOpen, setConfigOpen] = useState(false);
-    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | null>(null);
+    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | null>(null);
 
     // Meta Account Config State
     const [metaConfigOpen, setMetaConfigOpen] = useState(false);
@@ -73,7 +74,7 @@ export default function IntegrationsPage() {
         }
     };
 
-    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox') => {
+    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload') => {
         setActiveConfigType(type);
         setConfigOpen(true);
     };
@@ -91,6 +92,28 @@ export default function IntegrationsPage() {
             onDisable: handleDisconnectMeta,
             hasSettings: true,
             settingsType: 'meta' as const,
+            isPlaceholder: false
+        },
+        {
+            id: 'facebook_payload',
+            name: 'Meta Ads (Payload)',
+            description: 'Manual payload connection for Meta Ads. Connect using Page ID and System User Access Token.',
+            icon: FacebookLogo,
+            iconColor: 'text-indigo-600',
+            connected: integrations.facebook_payload?.connected,
+            onEnable: () => openConfig('facebook_payload'),
+            onDisable: async () => {
+                try {
+                    const { api } = await import('@/services/api');
+                    await api.post('/organisation', { integrations: { ...integrations, facebook_payload: { connected: false } } });
+                    queryClient.invalidateQueries({ queryKey: ['organisation'] });
+                    toast.success('Disconnected Facebook Payload');
+                } catch {
+                    toast.error('Failed to disconnect');
+                }
+            },
+            hasSettings: true,
+            settingsType: 'facebook_payload' as const,
             isPlaceholder: false
         },
         {
@@ -232,6 +255,10 @@ export default function IntegrationsPage() {
             </div>
 
             {/* Main Content */}
+            <div className="mb-6">
+                <NotificationTest />
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredIntegrations.map((integration) => (
                     <Card key={integration.id} className={integration.connected ? "border-green-200 dark:border-green-800" : ""}>
