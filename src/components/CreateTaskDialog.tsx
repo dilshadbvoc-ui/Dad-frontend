@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { api } from '@/services/api';
 import { Loader2, User } from 'lucide-react';
 import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 interface CreateTaskDialogProps {
     open: boolean;
@@ -33,6 +34,7 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
     const [isLoading, setIsLoading] = useState(false);
     const [users, setUsers] = useState<BasicUser[]>([]);
     const [fetchingUsers, setFetchingUsers] = useState(false);
+    const [subordinatesOnly, setSubordinatesOnly] = useState(false);
 
     // Form States
     const [subject, setSubject] = useState('');
@@ -51,14 +53,14 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
             // Set default assignee if provided, otherwise it stays empty (defaults to self in backend if not provided)
             setAssignedTo(defaultValues?.assignedTo || '');
             
-            fetchReachableUsers();
+            fetchReachableUsers(subordinatesOnly);
         }
-    }, [open, defaultValues]);
+    }, [open, defaultValues, subordinatesOnly]);
 
-    const fetchReachableUsers = async () => {
+    const fetchReachableUsers = async (onlySubordinates: boolean = false) => {
         setFetchingUsers(true);
         try {
-            const { data } = await api.get('/users');
+            const { data } = await api.get(`/users?subordinatesOnly=${onlySubordinates}`);
             if (data.users) {
                 setUsers(data.users);
             }
@@ -147,7 +149,17 @@ export function CreateTaskDialog({ open, onOpenChange, leadId, defaultValues, on
                     </div>
 
                     <div className="grid gap-2">
-                        <Label htmlFor="assignedTo">Assign To</Label>
+                        <div className="flex items-center justify-between">
+                            <Label htmlFor="assignedTo">Assign To</Label>
+                            <div className="flex items-center space-x-2">
+                                <Switch 
+                                    id="subordinates-only" 
+                                    checked={subordinatesOnly} 
+                                    onCheckedChange={setSubordinatesOnly} 
+                                />
+                                <Label htmlFor="subordinates-only" className="text-xs font-normal text-muted-foreground">Subordinates only</Label>
+                            </div>
+                        </div>
                         <Select value={assignedTo} onValueChange={setAssignedTo}>
                             <SelectTrigger id="assignedTo">
                                 <SelectValue placeholder={fetchingUsers ? "Loading users..." : "Assign to self (default)"} />
