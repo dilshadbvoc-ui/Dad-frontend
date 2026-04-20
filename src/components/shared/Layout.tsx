@@ -130,7 +130,10 @@ export default function Layout() {
             const userInfo = localStorage.getItem('userInfo');
             if (userInfo) {
                 const { token } = JSON.parse(userInfo);
-                if (token) triggerAndroidLeadSync(token);
+                if (token) {
+                    triggerAndroidLeadSync(token);
+                    triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
+                }
             }
         });
         socketService.on('lead_updated', () => {
@@ -142,7 +145,10 @@ export default function Layout() {
             const userInfo = localStorage.getItem('userInfo');
             if (userInfo) {
                 const { token } = JSON.parse(userInfo);
-                if (token) triggerAndroidLeadSync(token);
+                if (token) {
+                    triggerAndroidLeadSync(token);
+                    triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
+                }
             }
         });
         socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
