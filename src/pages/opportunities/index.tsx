@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
+import { cn } from "@/lib/utils"
 import { createOpportunityColumns } from "./columns"
 import { getOpportunities } from "@/services/opportunityService"
 import { Button } from "@/components/ui/button"
@@ -19,6 +20,20 @@ import {
 import { useState, useEffect } from "react"
 import { useSearchParams } from "react-router-dom"
 import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
+import { 
+    Popover, 
+    PopoverContent, 
+    PopoverTrigger 
+} from "@/components/ui/popover"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue
+} from "@/components/ui/select"
+import { Badge } from "@/components/ui/badge"
+import { getUsers } from "@/services/userService"
 
 export default function OpportunitiesPage() {
     const { formatCurrency } = useCurrency()
@@ -32,35 +47,58 @@ export default function OpportunitiesPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'board') 
     const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')
+    const [queryParams, setQueryParams] = useState({
+        ownerId: '',
+        stage: initialStage || 'all',
+        type: 'all',
+        search: ''
+    })
 
-    // Get current user (simple implementation)
+    // Get current user
     const userInfo = localStorage.getItem('userInfo');
     const currentUser = userInfo ? JSON.parse(userInfo) : null;
 
+    // Users for Owner Filter
+    const { data: userData } = useQuery({
+        queryKey: ['users', 'list'],
+        queryFn: () => getUsers(),
+    });
+    const users = userData?.users || [];
+
     const { data, isLoading, isError } = useQuery({
-        queryKey: ['opportunities'],
-        queryFn: () => getOpportunities(),
+        queryKey: ['opportunities', queryParams, filterMode],
+        queryFn: () => {
+            const params: any = { ...queryParams };
+            if (filterMode === 'mine' && currentUser) {
+                params.ownerId = currentUser.id || currentUser._id;
+            }
+            if (params.stage === 'all') delete params.stage;
+            if (params.type === 'all') delete params.type;
+            if (params.ownerId === '') delete params.ownerId;
+            
+            return getOpportunities(params);
+        },
         refetchInterval: 5000,
     })
 
     const allOpportunities = data?.opportunities || []
     
-    console.log('[OpportunitiesPage] currentUser:', currentUser?.id || currentUser?._id, 'Role:', currentUser?.role);
-    console.log('[OpportunitiesPage] allOpportunities count:', allOpportunities.length);
+    // Logic for local filtering if needed (though backend handles most now)
+    const filteredOpportunities = allOpportunities;
 
-    const opportunitiesBeforeStageFilter = filterMode === 'mine' && currentUser
-        ? allOpportunities.filter((opp: any) => {
-            const ownerId = opp.owner?.id || opp.owner?._id || opp.ownerId;
-            const currentId = currentUser.id || currentUser._id;
-            return ownerId === currentId;
-        })
-        : allOpportunities;
+    const handleFilterChange = (key: string, value: string) => {
+        setQueryParams(prev => ({ ...prev, [key]: value }));
+    };
 
-    const filteredOpportunities = initialStage
-        ? opportunitiesBeforeStageFilter.filter((opp: any) => opp.stage === initialStage)
-        : opportunitiesBeforeStageFilter;
-    
-    console.log('[OpportunitiesPage] filteredOpportunities count:', filteredOpportunities.length, 'filterMode:', filterMode);
+    const resetFilters = () => {
+        setQueryParams({
+            ownerId: '',
+            stage: 'all',
+            type: 'all',
+            search: ''
+        });
+        setFilterMode('all');
+    };
 
     if (isError) {
         return (
@@ -86,8 +124,11 @@ export default function OpportunitiesPage() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => setFilterMode('all')}
-                                className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'all' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                onClick={() => {
+                                    setFilterMode('all');
+                                    handleFilterChange('ownerId', '');
+                                }}
+                                className={`rounded-lg h-8 px-2 text-xs font-medium transition-all ${filterMode === 'all' && !queryParams.ownerId ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
                             >
                                 <Users className="h-3.5 w-3.5 mr-1.5" />
                                 Team
@@ -103,12 +144,15 @@ export default function OpportunitiesPage() {
                             </Button>
                         </div>
 
-                        <div className="hidden md:flex bg-muted p-1 rounded-xl mr-2">
+                        <div className="flex bg-muted p-1 rounded-xl mr-2">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setViewMode('list')}
-                                className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                className={cn(
+                                    "rounded-lg h-8 px-2 transition-all",
+                                    viewMode === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                                )}
                             >
                                 <LayoutList className="h-4 w-4" />
                             </Button>
@@ -116,25 +160,93 @@ export default function OpportunitiesPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setViewMode('board')}
-                                className={`rounded-lg h-8 px-2 transition-all ${viewMode === 'board' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                                className={cn(
+                                    "rounded-lg h-8 px-2 transition-all",
+                                    viewMode === 'board' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                                )}
                             >
                                 <LayoutGrid className="h-4 w-4" />
                             </Button>
                         </div>
-                    </div>
 
-                    <div className="flex gap-2">
-                        <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
-                            <Filter className="h-4 w-4 mr-2" />
-                            Filter
-                        </Button>
-                        <Button variant="outline" size="sm" className="rounded-xl hidden sm:flex">
-                            <Download className="h-4 w-4 mr-2" />
-                            Export
+                        <Popover>
+                            <PopoverTrigger asChild>
+                                <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all') ? 'border-primary text-primary bg-primary/5' : '')}>
+                                    <Filter className="h-4 w-4" />
+                                    <span className="ml-2 hidden xs:inline">Filter</span>
+                                    {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all') && (
+                                        <Badge className="ml-2 h-4 w-4 p-0 flex items-center justify-center bg-primary text-white text-[10px] rounded-full">
+                                            !
+                                        </Badge>
+                                    )}
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl border-border/50" align="end">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="font-bold text-sm">Filters</h4>
+                                        <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2 text-xs text-primary hover:text-primary hover:bg-primary/5">
+                                            Reset
+                                        </Button>
+                                    </div>
+                                    
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Sales Owner</label>
+                                        <Select value={queryParams.ownerId || 'all'} onValueChange={(v) => handleFilterChange('ownerId', v === 'all' ? '' : v)}>
+                                            <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
+                                                <SelectValue placeholder="All Owners" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl">
+                                                <SelectItem value="all">All Owners</SelectItem>
+                                                {users.map((u: any) => (
+                                                    <SelectItem key={u.id} value={u.id}>{u.firstName} {u.lastName}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Deal Stage</label>
+                                        <Select value={queryParams.stage} onValueChange={(v) => handleFilterChange('stage', v)}>
+                                            <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
+                                                <SelectValue placeholder="All Stages" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl">
+                                                <SelectItem value="all">All Stages</SelectItem>
+                                                <SelectItem value="prospecting">Prospecting</SelectItem>
+                                                <SelectItem value="qualification">Qualification</SelectItem>
+                                                <SelectItem value="proposal">Proposal</SelectItem>
+                                                <SelectItem value="negotiation">Negotiation</SelectItem>
+                                                <SelectItem value="closed_won">Closed Won</SelectItem>
+                                                <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Deal Type</label>
+                                        <Select value={queryParams.type} onValueChange={(v) => handleFilterChange('type', v)}>
+                                            <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
+                                                <SelectValue placeholder="All Types" />
+                                            </SelectTrigger>
+                                            <SelectContent className="rounded-xl">
+                                                <SelectItem value="all">All Types</SelectItem>
+                                                <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
+                                                <SelectItem value="UPSALE">Upsale</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+
+                        <Button variant="outline" size="sm" className="rounded-xl flex">
+                            <Download className="h-4 w-4 sm:mr-2" />
+                            <span className="hidden sm:inline">Export</span>
                         </Button>
                         <Button size="sm" onClick={() => setIsCreateOpen(true)} className="bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 rounded-xl">
-                            <Target className="mr-2 h-4 w-4" />
-                            Create Opportunity
+                            <Target className="sm:mr-2 h-4 w-4" />
+                            <span className="hidden xs:inline">Create Opportunity</span>
                         </Button>
                     </div>
                 </div>

@@ -131,8 +131,53 @@ export default function TasksPage() {
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-indigo-500 border-t-transparent" />
                 </div>
             ) : (
-                <DataTable columns={columns} data={tasks} searchKeys={["subject", "description", "status", "priority"]} />
+                <div className="px-2 sm:px-0">
+                    <DataTable 
+                        columns={columns} 
+                        data={tasks} 
+                        searchKeys={["subject", "description", "status", "priority"]}
+                        mobileCardRender={(task) => (
+                            <Card className="shadow-sm border-l-4 border-l-primary overflow-hidden">
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex items-start justify-between">
+                                        <div className="min-w-0">
+                                            <h4 className="font-bold text-foreground truncate">{task.subject}</h4>
+                                            {task.description && (
+                                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{task.description}</p>
+                                            )}
+                                        </div>
+                                        <Badge 
+                                            variant="outline" 
+                                            className="text-[10px] uppercase font-bold tracking-tighter shrink-0"
+                                        >
+                                            {task.status.replace('_', ' ')}
+                                        </Badge>
+                                    </div>
+
+                                    <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
+                                        <div className="flex items-center gap-1">
+                                            <Clock className="h-3 w-3" />
+                                            <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1">
+                                            <div className={cn(
+                                                "w-1.5 h-1.5 rounded-full",
+                                                task.priority === 'high' ? "bg-red-500" : task.priority === 'medium' ? "bg-amber-500" : "bg-blue-500"
+                                            )} />
+                                            <span className="capitalize">{task.priority} Priority</span>
+                                        </div>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+                    />
+                </div>
             )}
         </div>
     )
 }
+
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Clock } from "lucide-react"
+import { cn } from "@/lib/utils"

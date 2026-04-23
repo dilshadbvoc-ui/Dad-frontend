@@ -51,6 +51,14 @@ import { Badge } from "@/components/ui/badge"
 import { ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { LeadTableRow } from "./LeadTableRow"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
+import { 
+    Popover, 
+    PopoverContent, 
+    PopoverTrigger 
+} from "@/components/ui/popover"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Calendar as CalendarIcon } from "lucide-react"
 
 // --- Helper Components & Logic ---
 
@@ -130,7 +138,7 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
 
 // --- Mobile Lead Card ---
 const LeadCard = ({ lead }: { lead: Lead }) => {
-    const phone = formatWhatsAppNumber(lead.phone);
+    const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode);
 
     const handleWhatsApp = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -265,6 +273,7 @@ export default function LeadsPage() {
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
     const [pageSize, setPageSize] = useState(50);
+    const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
@@ -318,6 +327,14 @@ export default function LeadsPage() {
                 return sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
             case 'oldest':
                 return sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+            case 'last-updated':
+                return sorted.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+            case 'last-enquiry':
+                return sorted.sort((a, b) => {
+                    const dateA = a.lastEnquiryDate ? new Date(a.lastEnquiryDate).getTime() : 0;
+                    const dateB = b.lastEnquiryDate ? new Date(b.lastEnquiryDate).getTime() : 0;
+                    return dateB - dateA;
+                });
             case 'name-asc':
                 return sorted.sort((a, b) => (a.firstName || '').localeCompare(b.firstName || ''));
             case 'name-desc':
@@ -342,40 +359,68 @@ export default function LeadsPage() {
 
     // --- View Logic ---
     const getDisplayData = () => {
+        let baseLeads = leads;
+        
+        // Apply date range filter if set
+        if (dateFilter.from || dateFilter.to) {
+            baseLeads = leads.filter((l: Lead) => {
+                const leadDate = new Date(l.createdAt);
+                if (dateFilter.from && leadDate < new Date(dateFilter.from)) return false;
+                if (dateFilter.to) {
+                    const toDate = new Date(dateFilter.to);
+                    toDate.setHours(23, 59, 59, 999);
+                    if (leadDate > toDate) return false;
+                }
+                return true;
+            });
+        }
+
         switch (currentView) {
             // Leads Views
             case 'all-leads':
-                return leads; // Apply table filters normally
+                return baseLeads; // Apply table filters normally
             case 'today-leads':
-                return leads.filter((l: Lead) =>
+                return baseLeads.filter((l: Lead) =>
                     isSameDay(new Date(l.createdAt), new Date()) ||
                     (l.lastEnquiryDate && isSameDay(new Date(l.lastEnquiryDate), new Date()))
                 );
             case 'no-activity-leads':
                 // Placeholder: simple check if updated recently? Or just return all for now as specific API needed.
                 // Let's filter by updated > 30 days ago for "No Activity" mock
-                return leads.filter((l: Lead) => isPast(new Date(l.updatedAt)) && new Date(l.updatedAt).getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000);
-
+                return baseLeads.filter((l: Lead) => isPast(new Date(l.updatedAt)) && new Date(l.updatedAt).getTime() < Date.now() - 30 * 24 * 60 * 60 * 1000);
+            
             // Dynamic Status Views
             default:
                 if (currentView.startsWith('status-')) {
                     const statusId = currentView.replace('status-', '');
-                    return leads.filter((l: Lead) => l.status === statusId);
+                    return baseLeads.filter((l: Lead) => l.status === statusId);
                 }
                 
                 // Task Views
                 if (currentView.includes('followup')) {
+                    const displayTasks = dateFilter.from || dateFilter.to 
+                        ? tasks.filter((t: Task) => {
+                            const taskDate = t.dueDate ? new Date(t.dueDate) : null;
+                            if (!taskDate) return false;
+                            if (dateFilter.from && taskDate < new Date(dateFilter.from)) return false;
+                            if (dateFilter.to) {
+                                const toDate = new Date(dateFilter.to);
+                                toDate.setHours(23, 59, 59, 999);
+                                if (taskDate > toDate) return false;
+                            }
+                            return true;
+                        })
+                        : tasks;
+
                     switch (currentView) {
-                        case 'all-followups': return tasks;
-                        case 'overdue-followups': return tasks.filter((t: Task) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
-                        case 'today-followups': return tasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()) && t.status !== 'completed');
-                        case 'upcoming-followups': return tasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
+                        case 'all-followups': return displayTasks;
+                        case 'overdue-followups': return displayTasks.filter((t: Task) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
+                        case 'today-followups': return displayTasks.filter((t: Task) => t.dueDate && isSameDay(new Date(t.dueDate), new Date()) && t.status !== 'completed');
+                        case 'upcoming-followups': return displayTasks.filter((t: Task) => t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)) && t.status !== 'completed');
                     }
                 }
 
-                return leads;
-
-
+                return baseLeads;
         }
     };
 
@@ -522,7 +567,7 @@ export default function LeadsPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
                         {/* View Filter */}
                         <div className="space-y-1.5">
                             <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>
@@ -602,6 +647,77 @@ export default function LeadsPage() {
                             </div>
                         )}
 
+                        {/* Date Filter */}
+                        <div className="space-y-1.5">
+                            <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Date Range</label>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className={`w-full h-10 justify-start text-left font-normal bg-background border-border/50 rounded-lg shadow-sm hover:bg-muted/50 transition-colors ${dateFilter.from || dateFilter.to ? 'text-primary border-primary/30 bg-primary/5' : 'text-muted-foreground'}`}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4" />
+                                        {dateFilter.from ? (
+                                            dateFilter.to ? (
+                                                <span className="truncate text-xs font-medium">
+                                                    {format(new Date(dateFilter.from), 'MMM d')} - {format(new Date(dateFilter.to), 'MMM d')}
+                                                </span>
+                                            ) : (
+                                                <span className="truncate text-xs font-medium">From {format(new Date(dateFilter.from), 'MMM d')}</span>
+                                            )
+                                        ) : (
+                                            <span className="text-xs">Filter by Date</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4 rounded-xl shadow-2xl border-border/50" align="start">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h4 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                                                <CalendarIcon className="h-4 w-4 text-primary" />
+                                                Pick a Date Range
+                                            </h4>
+                                            {(dateFilter.from || dateFilter.to) && (
+                                                <Button 
+                                                    variant="ghost" 
+                                                    size="sm" 
+                                                    className="h-7 px-2 text-xs text-primary hover:text-primary hover:bg-primary/5"
+                                                    onClick={() => setDateFilter({ from: '', to: '' })}
+                                                >
+                                                    Reset
+                                                </Button>
+                                            )}
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/80">From</Label>
+                                                <Input 
+                                                    type="date" 
+                                                    className="h-9 text-xs rounded-lg border-border/50 bg-muted/30" 
+                                                    value={dateFilter.from}
+                                                    onChange={(e) => setDateFilter(prev => ({ ...prev, from: e.target.value }))}
+                                                />
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground/80">To</Label>
+                                                <Input 
+                                                    type="date" 
+                                                    className="h-9 text-xs rounded-lg border-border/50 bg-muted/30" 
+                                                    value={dateFilter.to}
+                                                    onChange={(e) => setDateFilter(prev => ({ ...prev, to: e.target.value }))}
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="pt-2 flex justify-end">
+                                            <p className="text-[10px] text-muted-foreground italic">
+                                                Filters leads by their creation date.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
                         {/* Sort Filter */}
                         {!isTaskView && !isChartView && (
                             <div className="space-y-1.5">
@@ -616,6 +732,12 @@ export default function LeadsPage() {
                                         </SelectItem>
                                         <SelectItem value="oldest" className="rounded-lg">
                                             <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Oldest First</div>
+                                        </SelectItem>
+                                        <SelectItem value="last-updated" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Last Updated</div>
+                                        </SelectItem>
+                                        <SelectItem value="last-enquiry" className="rounded-lg">
+                                            <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Last Enquiry</div>
                                         </SelectItem>
                                         <SelectItem value="name-asc" className="rounded-lg">
                                             <div className="flex items-center gap-2"><ArrowUpDown className="h-3.5 w-3.5" />Name (A-Z)</div>

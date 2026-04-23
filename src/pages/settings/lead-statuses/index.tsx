@@ -46,8 +46,8 @@ export default function LeadStatusesSettingsPage() {
 
     // Initialize local state when data is loaded
     useEffect(() => {
-        if (orgData?.organisation?.leadStatuses) {
-            setStatuses([...orgData.organisation.leadStatuses].sort((a, b) => a.order - b.order));
+        if (orgData?.leadStatuses) {
+            setStatuses([...orgData.leadStatuses].sort((a, b) => a.order - b.order));
         }
     }, [orgData]);
 
@@ -137,8 +137,8 @@ export default function LeadStatusesSettingsPage() {
     };
 
     const handleReset = () => {
-        if (orgData?.organisation?.leadStatuses) {
-            setStatuses([...orgData.organisation.leadStatuses].sort((a, b) => a.order - b.order));
+        if (orgData?.leadStatuses) {
+            setStatuses([...orgData.leadStatuses].sort((a, b) => a.order - b.order));
             setIsEditing(false);
         }
     };

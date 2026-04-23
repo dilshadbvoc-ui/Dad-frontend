@@ -183,7 +183,7 @@ export const deleteCustomField = async (id: string) => {
 
 export const getOrganisation = async () => {
     const response = await api.get('/organisation');
-    return response.data;
+    return response.data.organisation;
 };
 
 export const updateOrganisation = async (data: OrganisationUpdateData) => {

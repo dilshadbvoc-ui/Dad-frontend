@@ -15,7 +15,7 @@ export default function IntegrationsSettingsPage() {
         queryFn: getOrganisation
     })
 
-    const integrations = organisation?.organisation?.integrations || {}
+    const integrations = organisation?.integrations || {}
 
     return (
         <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">

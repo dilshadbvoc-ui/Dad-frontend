@@ -71,6 +71,7 @@ export interface CallFilters {
     startDate?: string;
     endDate?: string;
     search?: string;
+    hasRecording?: boolean | string;
 }
 
 export const getCalls = async (filters: CallFilters = {}): Promise<CallsResponse> => {
@@ -84,6 +85,7 @@ export const getCalls = async (filters: CallFilters = {}): Promise<CallsResponse
     if (filters.startDate) params.append('startDate', filters.startDate);
     if (filters.endDate) params.append('endDate', filters.endDate);
     if (filters.search) params.append('search', filters.search);
+    if (filters.hasRecording) params.append('hasRecording', filters.hasRecording.toString());
 
     const response = await api.get(`/calls?${params.toString()}`);
     return response.data;

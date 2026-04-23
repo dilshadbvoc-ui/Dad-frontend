@@ -117,7 +117,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                 </DialogHeader>
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
                             <FormField
                                 control={form.control}
                                 name="firstName"
@@ -137,7 +137,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                                 name="lastName"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Last Name <span className="text-muted-foreground text-xs font-normal">(optional)</span></FormLabel>
+                                        <FormLabel>Last Name <span className="text-muted-foreground text-[10px] font-normal">(optional)</span></FormLabel>
                                         <FormControl>
                                             <Input placeholder="Doe" {...field} />
                                         </FormControl>
@@ -170,29 +170,18 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                             name="phone"
                             rules={{
                                 required: "Phone number is required",
-                                pattern: {
-                                    value: /^\d{10}$/,
-                                    message: "Phone number must be exactly 10 digits"
-                                }
+                                minLength: { value: 5, message: "Too short" }
                             }}
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>Phone</FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="9876543210"
+                                            placeholder="+1234567890"
                                             {...field}
-                                            maxLength={10}
                                             onChange={(e) => {
-                                                let value = e.target.value.replace(/\D/g, '');
-                                                // If user pastes +919876543210 -> 919876543210 -> 9876543210
-                                                // Heuristic: if starts with 91 and length > 10, strip 91
-                                                if (value.startsWith('91') && value.length > 10) {
-                                                    value = value.substring(2);
-                                                }
-                                                // Limit to 10 digits
-                                                if (value.length > 10) value = value.slice(0, 10);
-
+                                                // Allow +, digits, space, hyphen
+                                                let value = e.target.value.replace(/[^0-9+\s-]/g, '');
                                                 field.onChange(value);
                                             }}
                                         />
@@ -204,26 +193,15 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                         <FormField
                             control={form.control}
                             name="secondaryPhone"
-                            rules={{
-                                pattern: {
-                                    value: /^\d{10}$/,
-                                    message: "Phone number must be exactly 10 digits"
-                                }
-                            }}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Secondary Phone <span className="text-muted-foreground text-xs font-normal">(optional)</span></FormLabel>
+                                    <FormLabel>Secondary Phone <span className="text-muted-foreground text-[10px] font-normal">(optional)</span></FormLabel>
                                     <FormControl>
                                         <Input
-                                            placeholder="9876543211"
+                                            placeholder="+1234567890"
                                             {...field}
-                                            maxLength={10}
                                             onChange={(e) => {
-                                                let value = e.target.value.replace(/\D/g, '');
-                                                if (value.startsWith('91') && value.length > 10) {
-                                                    value = value.substring(2);
-                                                }
-                                                if (value.length > 10) value = value.slice(0, 10);
+                                                let value = e.target.value.replace(/[^0-9+\s-]/g, '');
                                                 field.onChange(value);
                                             }}
                                         />

@@ -150,7 +150,7 @@ export default function LeadDetailPage() {
         }
         else if (type === 'meeting') setIsScheduleMeetingOpen(true)
         else if (type === 'whatsapp') {
-            const phone = formatWhatsAppNumber(lead?.phone)
+            const phone = formatWhatsAppNumber(lead?.phone, lead?.phoneCountryCode)
             if (phone) {
                 const callSessionId = crypto.randomUUID()
                 // Background log
@@ -209,12 +209,14 @@ export default function LeadDetailPage() {
         // If in mobile app, try native bridge first
         if (isMobileApp()) {
             initiateCallBridge(cleanPhone, callSessionId);
-            // We still log it to the backend so we have an initiated record for reconciliation
+            // We only log it to the backend so we have an initiated record for reconciliation. 
+            // DO NOT call /telephony/outbound here as that triggers Twilio, resulting in double dialing.
             try {
-                await api.post('/telephony/outbound', {
-                    to: cleanPhone,
+                await api.post('/calls/initiate', {
+                    phoneNumber: cleanPhone,
                     leadId: lead.id,
-                    callSessionId
+                    callSessionId,
+                    direction: 'outbound'
                 })
             } catch (err) {
                 console.error('Failed to log outbound call initiation:', err)

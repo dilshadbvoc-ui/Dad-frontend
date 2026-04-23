@@ -149,10 +149,40 @@ export const columns: ColumnDef<Lead>[] = [
     },
     {
         accessorKey: "createdAt",
-        size: 120,
-        header: "Created",
+        size: 150,
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                >
+                    Created
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
         cell: ({ row }) => {
             return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+        }
+    },
+    {
+        accessorKey: "updatedAt",
+        size: 150,
+        header: ({ column }) => {
+            return (
+                <Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                    className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+                >
+                    Updated
+                    <ArrowUpDown className="ml-2 h-4 w-4" />
+                </Button>
+            )
+        },
+        cell: ({ row }) => {
+            return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("updatedAt")), "MMM d, yyyy")}</div>
         }
     },
     {
@@ -161,7 +191,7 @@ export const columns: ColumnDef<Lead>[] = [
         header: "Contact",
         cell: ({ row }) => {
             const lead = row.original
-            const phone = formatWhatsAppNumber(lead.phone)
+            const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode)
             if (!phone) return <span className="text-muted-foreground/50 text-xs italic">No phone</span>
 
             const logAndOpenWhatsApp = async (e: React.MouseEvent) => {

@@ -91,7 +91,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
     };
 
     return (
-        <div className="flex h-full overflow-x-auto gap-4 pb-4">
+        <div className="flex h-full overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-2 scrollbar-hide">
             <TooltipProvider>
                 {STAGES.map((stage) => {
                     const stageOpps = columns[stage.id] || [];
@@ -100,7 +100,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                     return (
                         <div
                             key={stage.id}
-                            className="flex-shrink-0 w-80 bg-muted/50 rounded-xl border border-border flex flex-col"
+                            className="flex-shrink-0 w-[280px] sm:w-80 bg-muted/50 rounded-xl border border-border flex flex-col snap-center first:ml-2 last:mr-2"
                             onDragOver={handleDragOver}
                             onDrop={(e) => handleDrop(e, stage.id)}
                         >

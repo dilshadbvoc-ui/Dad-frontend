@@ -21,7 +21,7 @@ export function useLeadStatuses() {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    const statuses: LeadStatus[] = org?.organisation?.leadStatuses || DEFAULT_LEAD_STATUSES;
+    const statuses: LeadStatus[] = org?.leadStatuses || DEFAULT_LEAD_STATUSES;
 
     const getStatusDetails = (id: string) => {
         const status = statuses.find(s => s.id === id);
@@ -32,6 +32,6 @@ export function useLeadStatuses() {
         statuses: statuses.sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
-        orgId: org?.organisation?.id
+        orgId: org?.id
     };
 }

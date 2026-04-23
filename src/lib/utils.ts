@@ -245,26 +245,32 @@ export function canAccessSettings(user: any): boolean {
 /**
  * Formats a phone number for WhatsApp wa.me links.
  * 1. Removes all non-digit characters.
- * 2. If the number is 10 digits and starts with 6, 7, 8, or 9 (Indian mobile), prepends 91.
- * 3. Handles existing country codes properly.
+ * 2. Uses provided country code if available.
+ * 3. Fallback: If the number is 10 digits and starts with 6-9 (Indian), prepends 91.
  */
-export function formatWhatsAppNumber(phone?: string): string {
+export function formatWhatsAppNumber(phone?: string, countryCode?: string): string {
     if (!phone) return "";
 
     // Clean all non-digits
-    let cleaned = phone.replace(/\D/g, "");
+    let cleanedPhone = phone.toString().replace(/\D/g, "");
+    let cleanedCC = countryCode ? countryCode.toString().replace(/\D/g, "") : "";
 
-    // If phone starts with + in original, it likely has country code
-    // but the cleaned version removes it. If the original starts with +,
-    // we assume the user provided the country code.
-    const hasOriginalPlus = phone.trim().startsWith("+");
-
-    // Logic for India (+91) - Default context
-    // If it's a 10-digit number and doesn't explicitly start with a country code
-    // we assume it's Indian if it starts with standard mobile digits.
-    if (!hasOriginalPlus && cleaned.length === 10 && /^[6-9]/.test(cleaned)) {
-        return `91${cleaned}`;
+    // If we have a country code, ensure it's prepended
+    if (cleanedCC) {
+        // If phone already starts with the country code, don't prepend again
+        // But be careful! Some country codes might overlap with local prefixes.
+        // Usually, if it's long (>10) and starts with CC, it's already international.
+        if (cleanedPhone.startsWith(cleanedCC) && cleanedPhone.length > 10) {
+            return cleanedPhone;
+        }
+        return `${cleanedCC}${cleanedPhone}`;
     }
 
-    return cleaned;
+    // Logic for India (+91) - Default context fallback
+    // If it's a 10-digit number, we assume it's Indian if it starts with mobile digits.
+    if (cleanedPhone.length === 10 && /^[6-9]/.test(cleanedPhone)) {
+        return `91${cleanedPhone}`;
+    }
+
+    return cleanedPhone;
 }

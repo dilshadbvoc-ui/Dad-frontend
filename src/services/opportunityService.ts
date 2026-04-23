@@ -40,7 +40,7 @@ export interface Opportunity {
 export interface OpportunityQueryParams {
     stage?: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
     account?: string;
-    owner?: string;
+    ownerId?: string;
     search?: string;
     page?: number;
     limit?: number;

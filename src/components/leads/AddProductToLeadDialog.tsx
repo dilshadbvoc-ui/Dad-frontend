@@ -124,17 +124,18 @@ export function AddProductToLeadDialog({
                     <DialogTitle>Manage Products</DialogTitle>
                 </DialogHeader>
 
-                <div className="flex-1 flex gap-6 overflow-hidden pt-4">
+                <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-hidden pt-4">
                     {/* Left: Product Selection */}
-                    <div className="w-1/2 flex flex-col border rounded-md">
-                        <div className="p-3 bg-muted/50 border-b font-medium text-sm">
+                    <div className="w-full lg:w-1/2 flex flex-col border rounded-md overflow-hidden h-[300px] lg:h-auto">
+                        <div className="p-3 bg-muted/50 border-b font-semibold text-xs uppercase tracking-wider flex items-center justify-between">
                             Available Products
+                            <span className="text-[10px] lowercase font-normal bg-primary/10 text-primary px-1.5 py-0.5 rounded">select to add</span>
                         </div>
                         <div className="p-2 border-b">
-                            <div className="flex items-center border rounded-md px-3">
+                            <div className="flex items-center border rounded-md px-3 bg-background">
                                 <Search className="h-4 w-4 text-muted-foreground mr-2" />
                                 <Input
-                                    className="border-none shadow-none focus-visible:ring-0 p-0 h-9"
+                                    className="border-none shadow-none focus-visible:ring-0 p-0 h-9 text-sm"
                                     placeholder="Search products..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -159,17 +160,17 @@ export function AddProductToLeadDialog({
                                                 key={product.id}
                                                 onClick={() => !isSelected && handleAddProduct(product)}
                                                 className={cn(
-                                                    "flex items-center justify-between p-2 rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm",
-                                                    isSelected && "opacity-50 cursor-not-allowed"
+                                                    "flex items-center justify-between p-2.5 rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground text-sm transition-colors border-b last:border-0",
+                                                    isSelected && "opacity-50 cursor-not-allowed bg-muted/30"
                                                 )}
                                             >
-                                                <div className="flex flex-col">
-                                                    <span>{product.name}</span>
-                                                    <span className="text-xs text-muted-foreground">{product.sku}</span>
+                                                <div className="flex flex-col gap-0.5">
+                                                    <span className="font-medium">{product.name}</span>
+                                                    <span className="text-[10px] text-muted-foreground font-mono">{product.sku || 'No SKU'}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2">
-                                                    <span className="font-semibold">
-                                                        ${product.basePrice}
+                                                    <span className="font-bold text-primary">
+                                                        {formatCurrency(product.basePrice, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                                     </span>
                                                     {isSelected && <Check className="h-4 w-4 text-success" />}
                                                 </div>
@@ -182,45 +183,61 @@ export function AddProductToLeadDialog({
                     </div>
 
                     {/* Right: Selected Products */}
-                    <div className="w-1/2 flex flex-col border rounded-md">
-                        <div className="p-3 bg-muted/50 border-b font-medium text-sm flex justify-between">
-                            <span>Selected Items ({selectedProducts.length})</span>
-                            <span>Total: {formatCurrency(calculateTotal(), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                    <div className="w-full lg:w-1/2 flex flex-col border rounded-md overflow-hidden min-h-[250px] lg:h-auto">
+                        <div className="p-3 bg-muted/50 border-b font-semibold text-xs uppercase tracking-wider flex justify-between items-center">
+                            <div className="flex items-center gap-2">
+                                <span>Selected</span>
+                                <Badge variant="secondary" className="h-5 px-1.5 min-w-[20px] justify-center">{selectedProducts.length}</Badge>
+                            </div>
+                            <div className="text-right">
+                                <span className="text-muted-foreground font-normal mr-2">Total:</span>
+                                <span className="text-primary font-bold">{formatCurrency(calculateTotal(), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                            </div>
                         </div>
-                        <ScrollArea className="flex-1 p-2">
+                        <ScrollArea className="flex-1 p-2 bg-muted/5">
                             {selectedProducts.length === 0 ? (
-                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50">
+                                <div className="h-full flex flex-col items-center justify-center text-muted-foreground opacity-50 py-12">
                                     <ShoppingCart className="h-10 w-10 mb-2" />
                                     <p className="text-sm">No products selected</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-3 pb-2">
                                     {selectedProducts.map((item) => (
-                                        <div key={item.productId} className="flex gap-2 items-start border p-2 rounded-md bg-card">
-                                            <div className="flex-1">
-                                                <div className="font-medium text-sm">{item.product.name}</div>
-                                                <div className="text-xs text-muted-foreground">Price: ${item.product.basePrice}</div>
+                                        <div key={item.productId} className="flex gap-2 items-start border p-3 rounded-lg bg-card shadow-sm">
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-bold text-sm truncate">{item.product.name}</div>
+                                                <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.product.basePrice, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
                                             </div>
 
-                                            <div className="flex flex-col items-end gap-2">
-                                                <div className="flex items-center gap-1">
-                                                    <Input
-                                                        type="number"
-                                                        min="1"
-                                                        value={item.quantity}
-                                                        onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value) || 1)}
-                                                        className="h-7 w-16 text-center px-1"
-                                                    />
+                                            <div className="flex flex-col items-end gap-2 shrink-0">
+                                                <div className="flex items-center gap-1.5">
+                                                    <div className="flex items-center border rounded-md h-7 overflow-hidden bg-background">
+                                                        <button 
+                                                            className="px-1.5 hover:bg-muted text-muted-foreground transition-colors"
+                                                            onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, Math.max(1, item.quantity - 1))}}
+                                                        >-</button>
+                                                        <Input
+                                                            type="number"
+                                                            min="1"
+                                                            value={item.quantity}
+                                                            onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value) || 1)}
+                                                            className="h-full w-9 text-center border-0 border-x rounded-none px-0 shadow-none focus-visible:ring-0 text-xs font-bold"
+                                                        />
+                                                        <button 
+                                                            className="px-1.5 hover:bg-muted text-muted-foreground transition-colors"
+                                                            onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, item.quantity + 1)}}
+                                                        >+</button>
+                                                    </div>
                                                     <Button
                                                         variant="ghost"
                                                         size="icon"
-                                                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                        className="h-7 w-7 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-full"
                                                         onClick={() => handleRemoveProduct(item.productId)}
                                                     >
                                                         <Trash2 className="h-4 w-4" />
                                                     </Button>
                                                 </div>
-                                                <div className="text-sm font-bold">
+                                                <div className="text-sm font-bold text-success">
                                                     {formatCurrency(item.product.basePrice * item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                                 </div>
                                             </div>

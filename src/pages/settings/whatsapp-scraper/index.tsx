@@ -16,7 +16,7 @@ export default function WhatsAppScraperSettingsPage() {
         queryKey: ['organisation'],
         queryFn: async () => {
             const res = await api.get('/organisation');
-            return res.data;
+            return res.data.organisation;
         }
     });
 

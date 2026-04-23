@@ -9,7 +9,7 @@ import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget'
 import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
-import { Building2, Calendar, ArrowRight, FileText, Download, Loader2, TrendingUp, Check, Trophy, AlertCircle } from "lucide-react";
+import { Building2, Calendar, ArrowRight, FileText, Download, Loader2, TrendingUp, Check, Trophy, AlertCircle, Plus, ChevronLeft, ChevronRight, Clock, Users, Video } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -177,14 +177,14 @@ export default function Dashboard() {
                         Here's your daily overview and performance metrics.
                     </p>
                 </div>
-                <div className="flex items-center gap-3 flex-wrap sm:flex-nowrap">
+                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
                     {branches.length > 0 && (
-                        <div className="w-[200px]">
+                        <div className="w-full sm:w-[200px]">
                             <Select
                                 value={selectedBranchId || "all"}
                                 onValueChange={(val) => setSelectedBranchId(val === "all" ? null : val)}
                             >
-                                <SelectTrigger className="h-10 w-full bg-background border-input">
+                                <SelectTrigger className="h-10 w-full bg-background border-input rounded-xl">
                                     <div className="flex items-center gap-2">
                                         <Building2 className="h-4 w-4 text-muted-foreground" />
                                         <SelectValue placeholder="All Branches" />
@@ -202,32 +202,36 @@ export default function Dashboard() {
                         </div>
                     )}
 
-                    <ErrorBoundary name="DailyBriefingDialog">
-                        <DailyBriefingDialog />
-                    </ErrorBoundary>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                        <ErrorBoundary name="DailyBriefingDialog">
+                            <DailyBriefingDialog />
+                        </ErrorBoundary>
 
-                    <Button 
-                        variant="outline" 
-                        className="gap-2" 
-                        onClick={handleExportPDF}
-                        disabled={isExporting}
-                    >
-                        {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-                        <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
-                    </Button>
+                        <Button 
+                            variant="outline" 
+                            className="h-10 w-10 sm:w-auto sm:gap-2 rounded-xl p-0 sm:px-4" 
+                            onClick={handleExportPDF}
+                            disabled={isExporting}
+                            title="Export PDF"
+                        >
+                            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                            <span className="hidden sm:inline">{isExporting ? 'Exporting...' : 'Export PDF'}</span>
+                        </Button>
 
-                    <Link to="/calendar">
-                        <Button variant="outline" className="gap-2 hidden sm:flex">
-                            <Calendar className="h-4 w-4" />
-                            <span>Schedule</span>
-                        </Button>
-                    </Link>
-                    <Link to="/leads/new">
-                        <Button className="gap-2 shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5">
-                            <ArrowRight className="h-4 w-4" />
-                            <span>New Lead</span>
-                        </Button>
-                    </Link>
+                        <Link to="/calendar">
+                            <Button variant="outline" className="h-10 w-10 sm:w-auto sm:gap-2 rounded-xl p-0 sm:px-4" title="Schedule">
+                                <Calendar className="h-4 w-4" />
+                                <span className="hidden sm:inline">Schedule</span>
+                            </Button>
+                        </Link>
+                        
+                        <Link to="/leads/new">
+                            <Button className="h-10 gap-1.5 sm:gap-2 shadow-lg shadow-primary/20 transition-all hover:shadow-primary/40 hover:-translate-y-0.5 rounded-xl px-4">
+                                <Plus className="h-4 w-4" />
+                                <span><span className="hidden xs:inline">New </span>Lead</span>
+                            </Button>
+                        </Link>
+                    </div>
                 </div>
             </div>
 

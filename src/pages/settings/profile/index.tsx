@@ -80,7 +80,7 @@ export default function ProfileSettingsPage() {
     };
 
     return (
-        <div className="space-y-6 container mx-auto p-6 lg:p-8">
+        <div className="space-y-6 container mx-auto p-4 sm:p-6 lg:p-8">
             <div className="max-w-3xl mx-auto space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold text-foreground">Profile Settings</h1>
@@ -127,7 +127,7 @@ export default function ProfileSettingsPage() {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                                         <div className="space-y-2"><Label>First Name</Label><Input value={profile?.firstName || ''} onChange={e => setProfile(p => p ? { ...p, firstName: e.target.value } : null)} className="h-10" /></div>
                                         <div className="space-y-2"><Label>Last Name</Label><Input value={profile?.lastName || ''} onChange={e => setProfile(p => p ? { ...p, lastName: e.target.value } : null)} className="h-10" /></div>
                                     </div>

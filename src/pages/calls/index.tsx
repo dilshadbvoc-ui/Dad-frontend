@@ -29,9 +29,12 @@ import { getUsers } from '@/services/userService';
 import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
 import { api } from '@/services/api';
 import { User2 } from 'lucide-react';
+import { isAdmin } from '@/utils/roleUtils';
 
 export default function CallsPage() {
     const queryClient = useQueryClient();
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userIsAdmin = isAdmin(userInfo);
 
     const [filters, setFilters] = useState<CallFilters>({
         page: 1,
@@ -167,17 +170,22 @@ export default function CallsPage() {
                                     View and manage all call recordings
                                 </p>
                             </div>
-                            <Link to="/settings/call-recording">
-                                <Button variant="outline" size="sm">
-                                    <Phone className="h-4 w-4 mr-2" />
-                                    Recording Settings
-                                </Button>
-                            </Link>
+                            {userIsAdmin && (
+                                <Link to="/settings/call-recording">
+                                    <Button variant="outline" size="sm" className="hover:bg-primary/10 hover:text-primary transition-colors">
+                                        <Phone className="h-4 w-4 mr-2" />
+                                        Recording Settings
+                                    </Button>
+                                </Link>
+                            )}
                         </div>
 
                         {/* Stats Cards */}
                         <div className="grid gap-4 md:grid-cols-4">
-                            <Card className="hover:shadow-md transition-shadow">
+                            <Card 
+                                className="hover:shadow-md transition-all cursor-pointer hover:bg-muted/30 border-primary/10"
+                                onClick={() => setFilters(prev => ({ ...prev, status: 'all', hasRecording: undefined, page: 1 }))}
+                            >
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Phone className="h-4 w-4 text-blue-600 dark:text-blue-400" />
@@ -185,16 +193,24 @@ export default function CallsPage() {
                                     </CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-3xl font-bold text-foreground">
-                                        {stats?.totalCalls ?? '-'}
-                                    </p>
+                                    <div className="flex items-baseline gap-2">
+                                        <p className="text-3xl font-bold text-foreground">
+                                            {stats?.totalCalls ?? '-'}
+                                        </p>
+                                    </div>
                                     <p className="text-xs text-muted-foreground mt-1">
                                         This {period}
                                     </p>
                                 </CardContent>
                             </Card>
 
-                            <Card className="hover:shadow-md transition-shadow">
+                            <Card 
+                                className="hover:shadow-md transition-all cursor-pointer hover:bg-muted/30 border-primary/10"
+                                onClick={() => {
+                                    setFilters({ page: 1, limit: 15, direction: 'all', status: 'all' });
+                                    setSearchQuery('');
+                                }}
+                            >
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
@@ -211,7 +227,10 @@ export default function CallsPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="hover:shadow-md transition-shadow">
+                            <Card 
+                                className="hover:shadow-md transition-all cursor-pointer hover:bg-muted/30 border-primary/10"
+                                onClick={() => setFilters(prev => ({ ...prev, status: 'missed', hasRecording: undefined, page: 1 }))}
+                            >
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <PhoneMissed className="h-4 w-4 text-destructive" />
@@ -228,7 +247,10 @@ export default function CallsPage() {
                                 </CardContent>
                             </Card>
 
-                            <Card className="hover:shadow-md transition-shadow">
+                            <Card 
+                                className="hover:shadow-md transition-all cursor-pointer hover:bg-muted/30 border-primary/10"
+                                onClick={() => setFilters(prev => ({ ...prev, status: 'all', hasRecording: 'true', page: 1 }))}
+                            >
                                 <CardHeader className="pb-2">
                                     <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
                                         <Mic className="h-4 w-4 text-purple-600 dark:text-purple-400" />
