@@ -36,9 +36,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet, Trash2 } from "lucide-react"
+import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet, Trash2, Key } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { isSuperAdmin, getUserInfo } from "@/lib/utils"
 
 interface TeamMember {
     id: string
@@ -96,6 +97,7 @@ function HierarchyNode({
     onSuspend,
     onActivate,
     onDelete,
+    onResetPassword,
 }: {
     node: TreeNode
     depth: number
@@ -103,6 +105,7 @@ function HierarchyNode({
     onSuspend: (m: TeamMember) => void
     onActivate: (m: TeamMember) => void
     onDelete: (m: TeamMember) => void
+    onResetPassword?: (m: TeamMember) => void
 }) {
     const [expanded, setExpanded] = useState(true)
     const m = node.user
@@ -198,6 +201,15 @@ function HierarchyNode({
                                 </DropdownMenuItem>
                             </>
                         )}
+                        {onResetPassword && (
+                            <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => onResetPassword(m)}>
+                                    <Key className="h-4 w-4 mr-2" />
+                                    Reset Password
+                                </DropdownMenuItem>
+                            </>
+                        )}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -211,7 +223,7 @@ function HierarchyNode({
                         style={{ left: `${26 + depth * 28}px` }}
                     />
                     {node.children.map(child => (
-                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} />
+                        <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} onResetPassword={onResetPassword} />
                     ))}
                 </div>
             )}
@@ -221,6 +233,9 @@ function HierarchyNode({
 
 // ─── Main Component ──────────────────────────────────────────────────
 export default function TeamSettings() {
+    const currentUser = getUserInfo()
+    const userIsSuperAdmin = isSuperAdmin(currentUser)
+    
     const [isInviteOpen, setIsInviteOpen] = useState(false)
     const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
     const [searchQuery, setSearchQuery] = useState("")
@@ -228,6 +243,8 @@ export default function TeamSettings() {
     const [suspendingUser, setSuspendingUser] = useState<TeamMember | null>(null)
     const [activatingUser, setActivatingUser] = useState<TeamMember | null>(null)
     const [deletingUser, setDeletingUser] = useState<TeamMember | null>(null)
+    const [resettingUser, setResettingUser] = useState<TeamMember | null>(null)
+    const [resetPassword, setResetPassword] = useState("")
     const [moveBack, setMoveBack] = useState(true)
     const queryClient = useQueryClient()
 
@@ -340,6 +357,21 @@ export default function TeamSettings() {
             toast.error(error.response?.data?.message || "Failed to delete user")
         }
     })
+    
+    const resetPasswordMutation = useMutation({
+        mutationFn: async (data: any) => {
+            const res = await api.post('/super-admin/users/reset-password', data);
+            return res.data;
+        },
+        onSuccess: () => {
+            toast.success("Password reset successfully");
+            setResettingUser(null);
+            setResetPassword("");
+        },
+        onError: (error: any) => {
+            toast.error(error.response?.data?.message || "Failed to reset password");
+        }
+    });
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -613,6 +645,15 @@ export default function TeamSettings() {
                                                                 </DropdownMenuItem>
                                                             </>
                                                         )}
+                                                        {userIsSuperAdmin && (
+                                                            <>
+                                                                <DropdownMenuSeparator />
+                                                                <DropdownMenuItem onClick={() => setResettingUser(member)}>
+                                                                    <Key className="h-4 w-4 mr-2" />
+                                                                    Reset Password
+                                                                </DropdownMenuItem>
+                                                            </>
+                                                        )}
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
                                             </div>
@@ -643,6 +684,7 @@ export default function TeamSettings() {
                                     onSuspend={(m) => setSuspendingUser(m)}
                                     onActivate={(m) => setActivatingUser(m)}
                                     onDelete={(m) => setDeletingUser(m)}
+                                    onResetPassword={userIsSuperAdmin ? (m) => setResettingUser(m) : undefined}
                                 />
                             ))}
                         </div>
@@ -934,6 +976,46 @@ export default function TeamSettings() {
                             className="rounded-xl font-bold px-6"
                         >
                             {deleteMutation.isPending ? "Deleting..." : "Permanently Delete"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+            {/* ─── Reset Password Confirmation Dialog ───────── */}
+            <Dialog open={!!resettingUser} onOpenChange={() => setResettingUser(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 font-bold text-xl">
+                           <Key className="h-6 w-6 text-primary" /> Reset User Password
+                        </DialogTitle>
+                        <DialogDescription className="text-base">
+                            Enter a new password for <strong>{resettingUser?.firstName} {resettingUser?.lastName}</strong>.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4 space-y-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="newPassword">New Password</Label>
+                            <Input
+                                id="newPassword"
+                                type="password"
+                                placeholder="Minimum 8 characters"
+                                value={resetPassword}
+                                onChange={(e) => setResetPassword(e.target.value)}
+                            />
+                        </div>
+                        <p className="text-xs text-muted-foreground bg-muted p-3 rounded-lg border border-border">
+                            This will immediately update the user's password. They will need to use the new password for their next login.
+                        </p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setResettingUser(null)} className="rounded-xl">
+                            Cancel
+                        </Button>
+                        <Button 
+                            onClick={() => resettingUser && resetPasswordMutation.mutate({ userId: resettingUser.id, newPassword: resetPassword })}
+                            disabled={resetPasswordMutation.isPending || resetPassword.length < 8}
+                            className="rounded-xl font-bold px-6"
+                        >
+                            {resetPasswordMutation.isPending ? "Resetting..." : "Reset Password"}
                         </Button>
                     </DialogFooter>
                 </DialogContent>
