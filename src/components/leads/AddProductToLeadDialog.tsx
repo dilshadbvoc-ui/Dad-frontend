@@ -23,13 +23,14 @@ interface Product {
     name: string
     basePrice: number
     sku: string
+    isCustom: boolean
 }
 
 interface AddProductToLeadDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     leadId: string
-    currentProducts?: { productId: string, quantity: number, product?: Product }[]
+    currentProducts?: { productId: string, quantity: number, price?: number, product?: Product }[]
     onSuccess: () => void
 }
 
@@ -42,8 +43,7 @@ export function AddProductToLeadDialog({
 }: AddProductToLeadDialogProps) {
     const { formatCurrency } = useCurrency();
     // Local state for selected products management
-    // We start with existing products if any
-    const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number }[]>([])
+    const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number, price: number }[]>([])
     const [searchQuery, setSearchQuery] = useState("")
 
     // Reset state when dialog opens
@@ -53,10 +53,10 @@ export function AddProductToLeadDialog({
                 // Map existing products to state
                 const mapped = currentProducts.map(p => ({
                     productId: p.productId,
-                    product: p.product as Product, // Assumes product relation is populated
-                    quantity: p.quantity
+                    product: p.product as Product, 
+                    quantity: p.quantity,
+                    price: p.price || p.product?.basePrice || 0
                 })).filter(p => p.product) // Safety check
-                // eslint-disable-next-line react-hooks/set-state-in-effect
                 setSelectedProducts(mapped)
             } else {
                 setSelectedProducts([])
@@ -75,7 +75,12 @@ export function AddProductToLeadDialog({
             toast.info("Product already added")
             return
         }
-        setSelectedProducts([...selectedProducts, { productId: product.id, product, quantity: 1 }])
+        setSelectedProducts([...selectedProducts, { 
+            productId: product.id, 
+            product, 
+            quantity: 1, 
+            price: product.basePrice || 0 
+        }])
     }
 
     const handleRemoveProduct = (productId: string) => {
@@ -89,8 +94,14 @@ export function AddProductToLeadDialog({
         ))
     }
 
+    const handlePriceChange = (productId: string, price: number) => {
+        setSelectedProducts(selectedProducts.map(p =>
+            p.productId === productId ? { ...p, price: price } : p
+        ))
+    }
+
     const calculateTotal = () => {
-        return selectedProducts.reduce((sum, item) => sum + (item.product.basePrice * item.quantity), 0)
+        return selectedProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0)
     }
 
     const handleSubmit = async () => {
@@ -98,7 +109,8 @@ export function AddProductToLeadDialog({
             const payload = {
                 products: selectedProducts.map(p => ({
                     productId: p.productId,
-                    quantity: p.quantity
+                    quantity: p.quantity,
+                    price: p.price
                 }))
             }
 
@@ -206,9 +218,21 @@ export function AddProductToLeadDialog({
                                     {selectedProducts.map((item) => (
                                         <div key={item.productId} className="flex gap-2 items-start border p-3 rounded-lg bg-card shadow-sm">
                                             <div className="flex-1 min-w-0">
-                                                <div className="font-bold text-sm truncate">{item.product.name}</div>
-                                                <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.product.basePrice, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-                                            </div>
+                                                 <div className="font-bold text-sm truncate">{item.product.name}</div>
+                                                 {item.product.isCustom ? (
+                                                     <div className="mt-1 flex items-center gap-2">
+                                                         <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Price:</span>
+                                                         <Input
+                                                             type="number"
+                                                             value={item.price}
+                                                             onChange={(e) => handlePriceChange(item.productId, parseFloat(e.target.value) || 0)}
+                                                             className="h-6 w-24 text-xs font-bold px-1"
+                                                         />
+                                                     </div>
+                                                 ) : (
+                                                     <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                                                 )}
+                                             </div>
 
                                             <div className="flex flex-col items-end gap-2 shrink-0">
                                                 <div className="flex items-center gap-1.5">
@@ -239,7 +263,7 @@ export function AddProductToLeadDialog({
                                                     </Button>
                                                 </div>
                                                 <div className="text-sm font-bold text-success">
-                                                    {formatCurrency(item.product.basePrice * item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                                    {formatCurrency(item.price * item.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                                 </div>
                                             </div>
                                         </div>

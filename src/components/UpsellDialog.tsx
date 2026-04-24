@@ -116,7 +116,7 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
                                 <SelectContent>
                                     {products.map((p: any) => (
                                         <SelectItem key={p.id} value={p.id}>
-                                            {p.name} (₹{p.basePrice?.toLocaleString()})
+                                            {p.name} {p.isCustom ? "(Custom Price)" : `(₹${p.basePrice?.toLocaleString()})`}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>

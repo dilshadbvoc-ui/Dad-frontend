@@ -12,6 +12,8 @@ export interface Product {
     tags: string[];
     unit: string;
     isActive: boolean;
+    isCustom: boolean;
+    isOrgProduct: boolean;
     brochureUrl?: string;
     validFrom?: string;
     validUntil?: string;
@@ -28,6 +30,7 @@ export interface CreateProductData {
     category?: string;
     unit?: string;
     isActive?: boolean;
+    isCustom?: boolean;
     brochureUrl?: string; // Add this line
 }
 

@@ -125,9 +125,10 @@ export default function ProductsPage() {
         createMutation.mutate({
             name: formData.get('name') as string,
             sku: formData.get('sku') as string || undefined,
-            basePrice: parseFloat(formData.get('basePrice') as string),
+            basePrice: parseFloat(formData.get('basePrice') as string) || 0,
             category: formData.get('category') as string || undefined,
             description: formData.get('description') as string || undefined,
+            isCustom: formData.get('isCustom') === 'on',
             brochureUrl
         })
     }
@@ -157,9 +158,10 @@ export default function ProductsPage() {
         const updateData: Partial<CreateProductData> = {
             name: formData.get('name') as string,
             sku: formData.get('sku') as string || undefined,
-            basePrice: parseFloat(formData.get('basePrice') as string),
+            basePrice: parseFloat(formData.get('basePrice') as string) || 0,
             category: formData.get('category') as string || undefined,
             description: formData.get('description') as string || undefined,
+            isCustom: formData.get('isCustom') === 'on',
         };
 
         // Only include brochureUrl if it exists
@@ -274,6 +276,10 @@ export default function ProductsPage() {
                                             </div>
                                             <div><Label>Category</Label><Input name="category" /></div>
                                             <div><Label>Description</Label><Input name="description" /></div>
+                                            <div className="flex items-center gap-2 pt-2">
+                                                <input type="checkbox" name="isCustom" id="isCustom-add" className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                                                <Label htmlFor="isCustom-add" className="cursor-pointer">Custom Price (Price will be entered at time of sale)</Label>
+                                            </div>
                                             <div>
                                                 <Label>Brochure (PDF/Image)</Label>
                                                 <Input name="brochure" type="file" accept=".pdf,image/*" className="cursor-pointer" />
@@ -301,6 +307,16 @@ export default function ProductsPage() {
                                             </div>
                                             <div><Label>Category</Label><Input name="category" defaultValue={editingProduct?.category} /></div>
                                             <div><Label>Description</Label><Input name="description" defaultValue={editingProduct?.description} /></div>
+                                            <div className="flex items-center gap-2 pt-2">
+                                                <input 
+                                                    type="checkbox" 
+                                                    name="isCustom" 
+                                                    id="isCustom-edit" 
+                                                    defaultChecked={editingProduct?.isCustom}
+                                                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" 
+                                                />
+                                                <Label htmlFor="isCustom-edit" className="cursor-pointer">Custom Price (Price will be entered at time of sale)</Label>
+                                            </div>
                                             <div>
                                                 <Label>Brochure (PDF/Image)</Label>
                                                 {editingProduct?.brochureUrl && (
@@ -486,8 +502,13 @@ export default function ProductsPage() {
                                                     </DropdownMenu>
                                                 </div>
                                                 <div className="mt-4 flex items-center justify-between">
-                                                    <span className="text-xl font-bold text-primary">{formatCurrency(product.basePrice)}</span>
-                                                    <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
+                                                    <span className="text-xl font-bold text-primary">
+                                                        {product.isCustom ? "Custom Price" : formatCurrency(product.basePrice)}
+                                                    </span>
+                                                    <div className="flex gap-2">
+                                                        {product.isCustom && <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">Custom</Badge>}
+                                                        <Badge variant={product.isActive ? "default" : "secondary"}>{product.isActive ? "Active" : "Inactive"}</Badge>
+                                                    </div>
                                                 </div>
                                                 {product.category && <Badge variant="outline" className="mt-2">{product.category}</Badge>}
                                             </CardContent>
