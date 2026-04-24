@@ -43,6 +43,7 @@ export interface CustomFieldData {
 export interface IntegrationSettings {
     connected: boolean;
     pageId?: string;
+    pixelId?: string;
     accessToken?: string;
     adAccountId?: string;
     phoneNumberId?: string;

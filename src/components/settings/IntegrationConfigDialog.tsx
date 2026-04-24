@@ -275,6 +275,22 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                 />
                                 <FormField
                                     control={form.control}
+                                    name="pixelId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Meta Pixel ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter Pixel ID (e.g. 1234567890)" {...field} value={field.value as string || ''} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for Conversions API (CAPI).
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
                                     name="accessToken"
                                     render={({ field }) => (
                                         <FormItem>
@@ -830,6 +846,22 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormControl>
                                                 <Input placeholder="Enter Page ID" {...field} value={field.value as string || ''} />
                                             </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+                                <FormField
+                                    control={form.control}
+                                    name="pixelId"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Meta Pixel ID</FormLabel>
+                                            <FormControl>
+                                                <Input placeholder="Enter Pixel ID" {...field} value={field.value as string || ''} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                Required for Conversions API (CAPI).
+                                            </FormDescription>
                                             <FormMessage />
                                         </FormItem>
                                     )}
