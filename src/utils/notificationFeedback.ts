@@ -5,8 +5,40 @@
 
 const NOTIFICATION_SOUND_PATH = '/sounds/notification.mp3';
 
-// Short chime (Base64 encoded MP3) to ensure a fallback always exists
-const CHIME_BASE64 = 'data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjU0LjkuMTAwAK8AAAAAAAAAAAAAAAD/80MUAAAAAAAAAAAAAAAAAAAAAABYaW5nAAAADwAAAAEAAAAsAGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkZGRkAAAACVBTEFNRTMuOTlyAa0AAAAAAAAAABSAJAYFAAAAAAAAACwB3406AAAAbAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAP/zQxQQAAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA/80MUEYAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA/80MUFEAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA/80MUEUAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA/80MUEEAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA/80MUEMAYAAAFvAAABAAAIAAAAQAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAEAAADvAAAAIAAAO8AAAAOAAA=';
+// Web Audio API context for synthesized fallback
+let audioCtx: AudioContext | null = null;
+
+const playSynthesizedBeep = () => {
+    try {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+        
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime); // A5 note
+        oscillator.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.1);
+        
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+        
+        console.log('[NotificationFeedback] Played synthesized beep');
+    } catch (e) {
+        console.error('[NotificationFeedback] Web Audio API fallback failed:', e);
+    }
+};
 
 /**
  * Plays a short notification chime with pre-loading logic.
@@ -49,9 +81,8 @@ export const playNotificationSound = () => {
         }
 
         notificationAudio.onerror = () => {
-            console.warn('[NotificationFeedback] Primary MP3 failed, switching to fallback');
-            notificationAudio!.src = CHIME_BASE64;
-            notificationAudio!.load();
+            console.warn('[NotificationFeedback] Primary MP3 failed, switching to synthesized fallback');
+            playSynthesizedBeep();
         };
 
         const attemptPlay = (audio: HTMLAudioElement) => {
@@ -60,16 +91,13 @@ export const playNotificationSound = () => {
         };
 
         attemptPlay(notificationAudio).then(() => {
-            console.log('[NotificationFeedback] Chime played successfully');
+            console.log('[NotificationFeedback] MP3 played successfully');
         }).catch(err => {
             console.warn('[NotificationFeedback] Audio playback failed (Policy or Source):', err);
             
-            // Final fallback: Re-create element if playback failed completely
-            if (err.name === 'NotSupportedError' || err.name === 'NotAllowedError' || err.name === 'AbortError') {
-                 console.log('[NotificationFeedback] Triggering global fallback audio...');
-                 const fallback = new Audio(CHIME_BASE64);
-                 fallback.play().catch(e => console.error('[NotificationFeedback] Global audio failure:', e));
-            }
+            // Final fallback: Web Audio API (immune to source loading errors)
+            console.log('[NotificationFeedback] Triggering global synthesized fallback audio...');
+            playSynthesizedBeep();
         });
     } catch (err) {
         console.error('[NotificationFeedback] Error playing sound:', err);
