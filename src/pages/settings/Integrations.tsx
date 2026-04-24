@@ -399,6 +399,14 @@ export default function IntegrationsPage() {
                                     <p className="text-sm text-muted-foreground">
                                         {integration.description}
                                     </p>
+                                    
+                                    {integration.id === 'facebook_payload' && integrations.facebook_payload?.pageId && (
+                                        <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded border border-indigo-100 dark:border-indigo-800/30 flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300 mt-2 mb-3">
+                                            <span className="font-semibold">Connected Page ID:</span>
+                                            <code className="bg-white dark:bg-black px-1.5 py-0.5 rounded border">{integrations.facebook_payload.pageId}</code>
+                                        </div>
+                                    )}
+
                                     <div className="flex gap-2">
                                         {integration.hasSettings && (
                                             <Button
