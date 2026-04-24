@@ -687,7 +687,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>Auth Token</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Key..." {...field} value={field.value as string || ''} />
+                                                    <Input type="password" autoComplete="new-password" placeholder="Key..." {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -740,7 +740,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                             <FormItem>
                                                 <FormLabel>API Key</FormLabel>
                                                 <FormControl>
-                                                    <Input type="password" placeholder="Provider API Key" {...field} value={field.value as string || ''} />
+                                                    <Input type="password" autoComplete="new-password" placeholder="Provider API Key" {...field} value={field.value as string || ''} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -754,7 +754,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                                 <FormItem>
                                                     <FormLabel>API Secret</FormLabel>
                                                     <FormControl>
-                                                        <Input type="password" placeholder="Gallabox API Secret" {...field} value={field.value as string || ''} />
+                                                        <Input type="password" autoComplete="new-password" placeholder="Gallabox API Secret" {...field} value={field.value as string || ''} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
