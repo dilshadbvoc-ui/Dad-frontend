@@ -216,9 +216,11 @@ export default function BulkImportLeadsPage() {
                                         <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
                                             <li>Download the CSV template below</li>
                                             <li>Fill in your lead data (First Name, Last Name, Email, Phone are recommended)</li>
-                                            <li>Upload the completed file</li>
-                                            <li>Select target branch (optional)</li>
-                                            <li>Click Import Leads</li>
+                                            <li>
+                                                <span className="font-bold text-red-600 dark:text-red-400">Recommendation:</span> Use <strong>Excel (.xlsx)</strong> for best results with phone numbers.
+                                            </li>
+                                            <li>If using CSV, ensure the Phone column is formatted as <strong>Text</strong> (not Number) to avoid scientific notation.</li>
+                                            <li>Upload the completed file and click Import Leads.</li>
                                         </ol>
                                     </div>
                                 </div>
