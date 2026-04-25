@@ -88,6 +88,7 @@ const FollowUpReportsPage = lazy(() => import('./pages/reports/follow-ups'));
 const AuditLogsReportPage = lazy(() => import('./pages/reports/audit-logs'));
 const CallAnalyticsPage = lazy(() => import('./pages/reports/CallAnalytics'));
 const UserTotalReportPage = lazy(() => import('./pages/reports/PerformanceReport'));
+const DailyReportPage = lazy(() => import('./pages/reports/DailyReport'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/settings/Integrations'));
 const PipelinesSettingsPage = lazy(() => import('./pages/settings/pipelines'));
 const NotificationsSettingsPage = lazy(() => import('./pages/settings/notifications'));
@@ -322,6 +323,7 @@ function AppContent() {
               <Route path="/reports/audit-logs" element={<AuditLogsReportPage />} />
               <Route path="/reports/call-analytics" element={<CallAnalyticsPage />} />
               <Route path="/reports/user-total" element={<UserTotalReportPage />} />
+              <Route path="/reports/daily" element={<DailyReportPage />} />
               <Route path="/super-admin" element={<SuperAdminDashboard />} />
               <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
               <Route path="/super-admin/seo" element={<SeoSettingsPage />} />

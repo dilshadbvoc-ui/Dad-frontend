@@ -143,6 +143,18 @@ export default function ReportsPage() {
                         </CardHeader>
                     </Card>
                 </Link>
+
+                <Link to="/reports/daily">
+                    <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-purple-500/20 bg-purple-500/5 ring-1 ring-purple-500/10">
+                        <CardHeader>
+                            <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center mb-2">
+                                <BarChart3 className="text-purple-600 h-5 w-5" />
+                            </div>
+                            <CardTitle>Daily Report</CardTitle>
+                            <CardDescription>Today's exact call and conversion metrics at a glance.</CardDescription>
+                        </CardHeader>
+                    </Card>
+                </Link>
             </div>
         </div>
     );

@@ -29,6 +29,7 @@ import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialo
 import { format } from "date-fns"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
+import { getBestDurationSeconds, formatDuration } from "@/lib/callUtils"
 
 
 
@@ -600,10 +601,10 @@ export default function LeadDetailPage() {
                                                 {call.description && <p className="text-sm text-muted-foreground mb-3">{call.description}</p>}
                                                 
                                                 <div className="flex flex-wrap items-center gap-4 text-xs">
-                                                    {call.duration && (
+                                                    {getBestDurationSeconds(call) > 0 && (
                                                         <span className="flex items-center gap-1 text-muted-foreground">
                                                             <Clock className="h-3 w-3" />
-                                                            {Math.floor(call.duration)}m {Math.round((call.duration % 1) * 60)}s
+                                                            {formatDuration(getBestDurationSeconds(call))}
                                                         </span>
                                                     )}
                                                     {call.callStatus && (
@@ -617,7 +618,7 @@ export default function LeadDetailPage() {
                                                     <div className="mt-3 p-2 bg-muted/30 rounded-lg">
                                                         <CallRecordingPlayer 
                                                             recordingUrl={call.recordingUrl} 
-                                                            duration={call.recordingDuration}
+                                                            duration={getBestDurationSeconds(call)}
                                                         />
                                                     </div>
                                                 )}

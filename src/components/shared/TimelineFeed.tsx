@@ -14,6 +14,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
+import { getBestDurationSeconds, formatDuration } from '@/lib/callUtils';
 
 interface TimelineFeedProps {
     type: 'lead' | 'contact' | 'account';
@@ -101,7 +102,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                         {item.description || 'No description'}
                                     </p>
 
-                                    {/* Detailed Metadata rendering could go here */}
+                                    {/* Detailed Metadata rendering for Calls */}
                                     {item.type === 'interaction' && item.subType === 'call' && (
                                         <div className="flex flex-col gap-2 mt-2">
                                             <div className="flex items-center gap-2">
@@ -110,27 +111,23 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                                         {item.meta.direction}
                                                     </span>
                                                 )}
-                                                {item.meta?.recordingDuration ? (
+                                                {getBestDurationSeconds(item.meta) > 0 && (
                                                     <span className="text-xs text-muted-foreground italic">
-                                                        ({Math.floor(item.meta.recordingDuration / 60)}m {item.meta.recordingDuration % 60}s)
+                                                        ({formatDuration(getBestDurationSeconds(item.meta))})
                                                     </span>
-                                                ) : item.meta?.duration ? (
-                                                    <span className="text-xs text-muted-foreground italic">
-                                                        ({Math.floor(item.meta.duration)}m {Math.round((item.meta.duration % 1) * 60)}s)
-                                                    </span>
-                                                ) : null}
+                                                )}
                                             </div>
                                             {item.meta?.recordingUrl && item.meta.recordingUrl !== '' && (
                                                 <CallRecordingPlayer 
                                                     recordingUrl={item.meta.recordingUrl} 
-                                                    duration={item.meta.recordingDuration || (item.meta.duration ? item.meta.duration * 60 : 0)} 
+                                                    duration={getBestDurationSeconds(item.meta)} 
                                                 />
                                             )}
                                         </div>
                                     )}
 
                                     {item.type === 'interaction' && item.subType !== 'call' && item.meta?.direction && (
-                                        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block">
+                                        <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block w-fit">
                                             {item.meta.direction}
                                         </span>
                                     )}
@@ -138,19 +135,19 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                                     {item.type === 'recording' && (
                                         <div className="mt-2 space-y-2">
                                             <div className="flex items-center gap-2">
-                                                <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-600">
+                                                <span className="text-xs px-2 py-0.5 rounded bg-blue-500/10 text-blue-600 font-bold uppercase tracking-wider">
                                                     {item.subType}
                                                 </span>
-                                                {item.meta?.duration && (
+                                                {getBestDurationSeconds(item.meta) > 0 && (
                                                     <span className="text-xs text-muted-foreground italic">
-                                                        ({item.meta.duration}s)
+                                                        ({formatDuration(getBestDurationSeconds(item.meta))})
                                                     </span>
                                                 )}
                                             </div>
-                                            {(item.meta as any)?.fileUrl && (item.meta as any).fileUrl !== '' && (
+                                            {item.meta?.fileUrl && (
                                                 <CallRecordingPlayer 
-                                                    recordingUrl={(item.meta as any).fileUrl} 
-                                                    duration={(item.meta as any).duration} 
+                                                    recordingUrl={item.meta.fileUrl} 
+                                                    duration={getBestDurationSeconds(item.meta)} 
                                                 />
                                             )}
                                         </div>
