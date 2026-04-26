@@ -2,7 +2,7 @@ import React, { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { getTrashItems, restoreItem, permanentDelete } from "@/services/trashService"
 import { DataTable } from "@/components/ui/data-table"
-import { ColumnDef } from "@tanstack/react-table"
+import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Undo2, Trash2, LayoutGrid, Info } from "lucide-react"
 import { toast } from "sonner"
@@ -177,19 +177,18 @@ export default function TrashPage() {
                         <DataTable
                             columns={columns}
                             data={trashItems}
-                            isLoading={isLoading}
                         />
                     </CardContent>
                 </Card>
             </div>
 
             <DeleteConfirmationDialog
-                isOpen={!!itemToDelete}
-                onClose={() => setItemToDelete(null)}
+                open={!!itemToDelete}
+                onOpenChange={(open) => !open && setItemToDelete(null)}
                 onConfirm={handlePermanentDelete}
                 title="Permanent Deletion"
                 description="Are you sure you want to permanently delete this item? This action cannot be undone."
-                isLoading={isActionLoading}
+                isDeleting={isActionLoading}
             />
         </div>
     );
