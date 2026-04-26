@@ -28,9 +28,13 @@ import {
     X,
     Building,
     LayoutGrid,
-    Search
+    Search,
+    Trash2
 } from "lucide-react"
 import { BulkAssignDialog } from "./BulkAssignDialog"
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { bulkLeadAction } from "@/services/leadService"
+import { isOrgAdmin as checkIsOrgAdmin } from "@/lib/utils"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     Select,
@@ -278,6 +282,10 @@ export default function LeadsPage() {
     const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
     const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
     const isAdminOrManager = ['admin', 'manager', 'organisation_admin', 'super_admin'].includes(userRole?.toLowerCase());
+    const isOrgAdmin = checkIsOrgAdmin(userInfo);
+
+    const [isDeleting, setIsDeleting] = useState(false);
+    const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
     // Manual refresh function
     const handleRefresh = () => {
@@ -299,9 +307,26 @@ export default function LeadsPage() {
     // 2. Tasks (Follow Ups)
     const { data: taskData, isLoading: tasksLoading } = useQuery({
         queryKey: ['tasks', 'all'],
-        queryFn: () => getTasks({ status: 'all', limit: 1000 }),
+        queryFn: () => getTasks({ limit: 1000 }),
     });
 
+    const handleBulkDelete = async () => {
+        const leadIds = Object.keys(rowSelection);
+        if (leadIds.length === 0) return;
+
+        setIsDeleting(true);
+        try {
+            await bulkLeadAction('delete', leadIds);
+            toast.success(`${leadIds.length} leads deleted successfully`);
+            setRowSelection({});
+            handleRefresh();
+        } catch (error: any) {
+            toast.error(error.message || "Failed to delete leads");
+        } finally {
+            setIsDeleting(false);
+            setShowBulkDeleteDialog(false);
+        }
+    };
     // 3. Users for Owner Filter
     const { data: userData } = useQuery({
         queryKey: ['users', 'list'],
@@ -862,6 +887,17 @@ export default function LeadsPage() {
                                 <Users className="h-4 w-4" />
                                 Assign to User
                             </Button>
+                            {isOrgAdmin && (
+                                <Button 
+                                    size="sm" 
+                                    variant="ghost" 
+                                    className="text-primary-foreground hover:bg-destructive h-8 px-3 rounded-full gap-2 text-xs"
+                                    onClick={() => setShowBulkDeleteDialog(true)}
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                    Delete
+                                </Button>
+                            )}
                         </div>
                         <Button 
                             size="icon" 
@@ -889,6 +925,15 @@ export default function LeadsPage() {
                     }}
                 />
             )}
+
+            <DeleteConfirmationDialog
+                open={showBulkDeleteDialog}
+                onOpenChange={setShowBulkDeleteDialog}
+                onConfirm={handleBulkDelete}
+                title={`Delete ${Object.keys(rowSelection).length} Leads`}
+                description="Are you sure you want to delete these leads? This action cannot be undone."
+                isDeleting={isDeleting}
+            />
         </div>
     )
 }

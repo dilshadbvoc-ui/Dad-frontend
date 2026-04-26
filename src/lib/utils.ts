@@ -222,6 +222,13 @@ export function isAdmin(user: any): boolean {
 }
 
 /**
+ * Checks if a user has organizational administrator privileges (Org Admin, Admin, or Super Admin)
+ */
+export function isOrgAdmin(user: any): boolean {
+    return checkRole(user, ['org_admin', 'organisation_admin', 'admin', 'super_admin']);
+}
+
+/**
  * Checks if a user is a Super Admin
  */
 export function isSuperAdmin(user: any): boolean {

@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { cn, isAdmin, isSuperAdmin, canAccessSettings } from "@/lib/utils";
+import { cn, isAdmin, isOrgAdmin, isSuperAdmin, canAccessSettings } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
     LayoutDashboard,
@@ -35,7 +35,8 @@ import {
     Percent,
     LifeBuoy,
     UsersRound,
-    BookOpen
+    BookOpen,
+    Trash2
 } from "lucide-react";
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
@@ -111,6 +112,7 @@ const menuGroups = [
             { title: "Workflows", href: "/workflows", icon: GitBranch },
             { title: "Automation", href: "/automation", icon: Zap },
             { title: "Hierarchy", href: "/organisation/hierarchy", icon: Users, role: "admin" },
+            { title: "Trash", href: "/trash", icon: Trash2, role: "org_admin" },
             { title: "Settings", href: "/settings", icon: Settings },
             { title: "Support", href: "/support", icon: LifeBuoy },
         ]
@@ -239,6 +241,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
         items: group.items.filter(item => {
             if (item.title === 'Settings') return canAccessSettings(user);
             if (item.role === 'admin' && !isAdmin(user)) return false;
+            if (item.role === 'org_admin' && !isOrgAdmin(user)) return false;
             return true;
         })
     })).filter(group => group.items.length > 0);
