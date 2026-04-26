@@ -32,6 +32,7 @@ import {
     Trash2
 } from "lucide-react"
 import { BulkAssignDialog } from "./BulkAssignDialog"
+import { BulkStatusDialog } from "./BulkStatusDialog"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import { bulkLeadAction } from "@/services/leadService"
 import { isOrgAdmin as checkIsOrgAdmin } from "@/lib/utils"
@@ -276,6 +277,8 @@ export default function LeadsPage() {
 
     const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
     const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+    const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
+    const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
     const [pageSize, setPageSize] = useState(50);
     const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
@@ -285,7 +288,6 @@ export default function LeadsPage() {
     const isOrgAdmin = checkIsOrgAdmin(userInfo);
 
     const [isDeleting, setIsDeleting] = useState(false);
-    const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
 
     // Manual refresh function
     const handleRefresh = () => {
@@ -888,15 +890,26 @@ export default function LeadsPage() {
                                 Assign to User
                             </Button>
                             {isOrgAdmin && (
-                                <Button 
-                                    size="sm" 
-                                    variant="ghost" 
-                                    className="text-primary-foreground hover:bg-destructive h-8 px-3 rounded-full gap-2 text-xs"
-                                    onClick={() => setShowBulkDeleteDialog(true)}
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                    Delete
-                                </Button>
+                                <>
+                                    <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        className="text-primary-foreground hover:bg-white/10 h-8 px-3 rounded-full gap-2 text-xs"
+                                        onClick={() => setIsBulkStatusDialogOpen(true)}
+                                    >
+                                        <CheckCircle2 className="h-4 w-4" />
+                                        Change Status
+                                    </Button>
+                                    <Button 
+                                        size="sm" 
+                                        variant="ghost" 
+                                        className="text-primary-foreground hover:bg-destructive h-8 px-3 rounded-full gap-2 text-xs"
+                                        onClick={() => setShowBulkDeleteDialog(true)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                        Delete
+                                    </Button>
+                                </>
                             )}
                         </div>
                         <Button 
@@ -934,6 +947,18 @@ export default function LeadsPage() {
                 description="Are you sure you want to delete these leads? This action cannot be undone."
                 isDeleting={isDeleting}
             />
+
+            {isOrgAdmin && Object.keys(rowSelection).length > 0 && (
+                <BulkStatusDialog
+                    open={isBulkStatusDialogOpen}
+                    onOpenChange={setIsBulkStatusDialogOpen}
+                    selectedLeads={Object.keys(rowSelection)}
+                    onSuccess={() => {
+                        setRowSelection({});
+                        handleRefresh();
+                    }}
+                />
+            )}
         </div>
     )
 }
