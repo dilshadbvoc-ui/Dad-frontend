@@ -479,7 +479,7 @@ export default function UserPerformanceReport() {
                         </CardHeader>
                         <CardContent className="p-6 min-h-0 min-w-0">
                             <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
-                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <ComposedChart data={filteredPerformanceData}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                                         <XAxis dataKey="name" tick={{fontSize: 10, fontWeight: 600}} axisLine={false} tickLine={false} />
@@ -508,7 +508,7 @@ export default function UserPerformanceReport() {
                         </CardHeader>
                         <CardContent className="p-6 min-h-0 min-w-0">
                             <div className="h-[300px] sm:h-[400px] w-full min-h-0 min-w-0">
-                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <BarChart data={filteredPerformanceData} layout="vertical" margin={{ left: 40, right: 30 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#e2e8f0" />
                                         <XAxis type="number" domain={[0, 100]} hide />

@@ -117,7 +117,7 @@ function TaskTable({ tasks }: { tasks: Task[] }) {
 
 // Chart Components
 const StatusPieChart = React.memo(({ data }: { data: { name: string; value: number }[] }) => (
-    <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
+    <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={[^}]*} minHeight={0}>
         <RechartsPie>
             <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={80} fill="#8884d8" dataKey="value">
                 {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
@@ -129,7 +129,7 @@ const StatusPieChart = React.memo(({ data }: { data: { name: string; value: numb
 ));
 
 const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: number }[] }) => (
-    <ResponsiveContainer width="100%" height={300} minWidth={0} minHeight={0}>
+    <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={[^}]*} minHeight={0}>
         <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" />

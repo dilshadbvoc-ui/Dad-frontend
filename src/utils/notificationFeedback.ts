@@ -76,18 +76,36 @@ export const unlockAudio = () => {
 
 export const playNotificationSound = () => {
     try {
+        // Fallback check: if we know audio isn't working, just beep
+        if (!window.Audio) {
+            playSynthesizedBeep();
+            return;
+        }
+
         if (!notificationAudio) {
-            notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
+            try {
+                notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
+                notificationAudio.load(); // Start loading explicitly
+            } catch (e) {
+                console.error('[NotificationFeedback] Audio constructor failed:', e);
+                playSynthesizedBeep();
+                return;
+            }
         }
 
         notificationAudio.onerror = (e) => {
-            console.warn('[NotificationFeedback] Primary MP3 failed, switching to synthesized fallback', e);
+            const error = notificationAudio?.error;
+            console.warn('[NotificationFeedback] Audio element error:', {
+                code: error?.code,
+                message: error?.message,
+                src: notificationAudio?.src
+            });
             playSynthesizedBeep();
         };
 
         const attemptPlay = (audio: HTMLAudioElement) => {
             audio.currentTime = 0;
-            // Ensure source is correctly set
+            // Ensure source is correctly set and valid
             if (!audio.src || audio.src === '' || audio.src.includes('undefined')) {
                 audio.src = NOTIFICATION_SOUND_PATH;
             }
@@ -97,14 +115,17 @@ export const playNotificationSound = () => {
         attemptPlay(notificationAudio).then(() => {
             console.log('[NotificationFeedback] MP3 played successfully');
         }).catch(err => {
-            console.warn('[NotificationFeedback] Audio playback failed (Policy or Source):', err);
+            // Only log as warning if it's not a standard interaction policy error
+            if (err.name !== 'NotAllowedError') {
+                console.warn('[NotificationFeedback] Audio playback failed:', err.name, err.message);
+            }
             
-            // Final fallback: Web Audio API (immune to source loading errors)
-            console.log('[NotificationFeedback] Triggering global synthesized fallback audio...');
+            // Final fallback: Web Audio API (more reliable for short beeps)
             playSynthesizedBeep();
         });
     } catch (err) {
-        console.error('[NotificationFeedback] Error playing sound:', err);
+        console.error('[NotificationFeedback] Global error in playNotificationSound:', err);
+        playSynthesizedBeep();
     }
 };
 
