@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { isToday } from "date-fns"
 
 export default function FollowUpsPage() {
+    const navigate = useNavigate()
     const [searchParams] = useSearchParams()
     const filterParam = searchParams.get('filter') // overdue, today, upcoming
 
@@ -101,7 +102,13 @@ export default function FollowUpsPage() {
 
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-4">
-                <Card>
+                <Card 
+                    className={cn(
+                        "cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 active:scale-95",
+                        !filterParam && "ring-2 ring-primary bg-primary/5"
+                    )}
+                    onClick={() => navigate('/follow-ups')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Follow-ups</CardTitle>
                         <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -112,7 +119,13 @@ export default function FollowUpsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="border-red-200 bg-red-50/50">
+                <Card 
+                    className={cn(
+                        "cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 active:scale-95 border-red-200 bg-red-50/50",
+                        filterParam === 'overdue' && "ring-2 ring-red-500 bg-red-100/50"
+                    )}
+                    onClick={() => navigate('/follow-ups?filter=overdue')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-red-700">Overdue</CardTitle>
                         <Clock className="h-4 w-4 text-red-600" />
@@ -123,7 +136,13 @@ export default function FollowUpsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="border-orange-200 bg-orange-50/50">
+                <Card 
+                    className={cn(
+                        "cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 active:scale-95 border-orange-200 bg-orange-50/50",
+                        filterParam === 'today' && "ring-2 ring-orange-500 bg-orange-100/50"
+                    )}
+                    onClick={() => navigate('/follow-ups?filter=today')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-orange-700">Today</CardTitle>
                         <Calendar className="h-4 w-4 text-orange-600" />
@@ -134,7 +153,13 @@ export default function FollowUpsPage() {
                     </CardContent>
                 </Card>
 
-                <Card className="border-blue-200 bg-blue-50/50">
+                <Card 
+                    className={cn(
+                        "cursor-pointer transition-all hover:shadow-md hover:-translate-y-1 active:scale-95 border-blue-200 bg-blue-50/50",
+                        filterParam === 'upcoming' && "ring-2 ring-blue-500 bg-blue-100/50"
+                    )}
+                    onClick={() => navigate('/follow-ups?filter=upcoming')}
+                >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-blue-700">Upcoming</CardTitle>
                         <Calendar className="h-4 w-4 text-blue-600" />

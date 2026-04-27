@@ -155,6 +155,7 @@ const Login = () => {
                                     id="email"
                                     name="email"
                                     type="email"
+                                    autoComplete="email"
                                     placeholder="name@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -170,11 +171,14 @@ const Login = () => {
                                     id="password"
                                     name="password"
                                     type="password"
+                                    autoComplete="current-password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                     className="bg-white dark:bg-background"
                                 />
+                                {/* Hidden field for accessibility/password managers */}
+                                <input type="text" name="username" value={email} readOnly className="sr-only" tabIndex={-1} autoComplete="username" aria-hidden="true" />
                             </div>
 
                             {error && (

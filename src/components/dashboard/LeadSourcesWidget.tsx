@@ -33,7 +33,7 @@ export function LeadSourcesWidget({ branchId }: { branchId?: string | null }) {
                             <Skeleton className="h-[300px] w-[300px] rounded-full" />
                         </div>
                     ) : leadSources.length > 0 ? (
-                        <ResponsiveContainer width="100%" height={350} minWidth={0} debounce={50}>
+                        <ResponsiveContainer width="100%" height={350} minWidth={0} minHeight={0} debounce={50}>
                             <PieChart>
                                 <Pie
                                     data={leadSources}

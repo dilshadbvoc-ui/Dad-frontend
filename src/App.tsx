@@ -140,7 +140,6 @@ function AppContent() {
     };
 
     const initializeAuth = async () => {
-      console.log("Initializing Authentication...");
       let userInfo = localStorage.getItem('userInfo');
 
       // 1. Try Android Native Recovery

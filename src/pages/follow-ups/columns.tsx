@@ -255,17 +255,6 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                         </Button>
                     )}
 
-                    {task.status !== 'completed' && (
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
-                            onClick={() => updateStatus('completed')}
-                            title="Mark as Completed"
-                        >
-                            <CheckCircle2 className="h-4 w-4" />
-                        </Button>
-                    )}
                     
                     <Button
                         variant="ghost"
@@ -285,6 +274,14 @@ export const columns: ColumnDef<FollowUpTask>[] = [
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem asChild>
+                                <Link to={`/leads/${task.leadId || (task.relatedTo as any)?.id}`} className="w-full cursor-pointer">
+                                    View Lead
+                                </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuLabel>Quick Status</DropdownMenuLabel>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem onClick={() => updateStatus('not_started')}>
