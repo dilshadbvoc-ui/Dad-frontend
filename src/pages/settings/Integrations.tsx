@@ -332,44 +332,6 @@ export default function IntegrationsPage() {
                             {/* Show connected accounts for Facebook */}
                             {integration.id === 'facebook' && integration.accounts && integration.accounts.length > 0 ? (
                                 <div className="space-y-4">
-                                    <div className="bg-blue-50/50 dark:bg-blue-900/10 p-4 rounded-xl border border-blue-100 dark:border-blue-900/30 space-y-3">
-                                        <div className="flex items-center justify-between">
-                                            <h4 className="text-sm font-semibold text-blue-800 dark:text-blue-300">Webhook Sync Configuration</h4>
-                                            <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400">Action Required</Badge>
-                                        </div>
-                                        <p className="text-xs text-blue-700/80 dark:text-blue-400/80">
-                                            1. Go to your <a href="https://developers.facebook.com/apps" target="_blank" rel="noreferrer" className="underline font-medium">Meta App Dashboard</a>.<br />
-                                            2. Add/Configure <strong>Webhooks</strong> product.<br />
-                                            3. Set <strong>Leadgen</strong> field to the following:
-                                        </p>
-                                        <div className="space-y-2">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase text-blue-600/60 dark:text-blue-400/60">Callback URL</label>
-                                                <div className="flex gap-2">
-                                                    <code className="text-xs bg-white dark:bg-gray-950 p-2 rounded border flex-1 break-all">
-                                                        {window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/meta/webhook
-                                                    </code>
-                                                    <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => {
-                                                        navigator.clipboard.writeText(`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/meta/webhook`);
-                                                        toast.success('URL Copied');
-                                                    }}>Copy</Button>
-                                                </div>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] font-bold uppercase text-blue-600/60 dark:text-blue-400/60">Verify Token</label>
-                                                <div className="flex gap-2">
-                                                    <code className="text-xs bg-white dark:bg-gray-950 p-2 rounded border flex-1">
-                                                        {/* We assume a default token or let them know it's in their env */}
-                                                        {import.meta.env.VITE_META_VERIFY_TOKEN || 'my_secure_token'}
-                                                    </code>
-                                                    <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => {
-                                                        navigator.clipboard.writeText(import.meta.env.VITE_META_VERIFY_TOKEN || 'my_secure_token');
-                                                        toast.success('Token Copied');
-                                                    }}>Copy</Button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
 
                                     {integration.accounts.map((acc: MetaAccount, idx: number) => (
                                         <div key={acc.adAccountId || idx} className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
