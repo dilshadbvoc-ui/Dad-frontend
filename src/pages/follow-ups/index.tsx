@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { useSearchParams } from "react-router-dom"
+import { useSearchParams, useNavigate } from "react-router-dom"
+import { cn } from "@/lib/utils"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
