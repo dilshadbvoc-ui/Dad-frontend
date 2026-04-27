@@ -31,6 +31,7 @@ import {
     Search,
     Trash2
 } from "lucide-react"
+import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
 import { BulkStatusDialog } from "./BulkStatusDialog"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
@@ -311,6 +312,28 @@ export default function LeadsPage() {
         queryKey: ['tasks', 'all'],
         queryFn: () => getTasks({ limit: 1000 }),
     });
+
+    const handleBulkAction = async (action: string) => {
+        const leadIds = Object.keys(rowSelection);
+        if (leadIds.length === 0) return;
+
+        switch (action) {
+            case 'update-status':
+                setIsBulkStatusDialogOpen(true);
+                break;
+            case 'assign':
+                setIsBulkAssignDialogOpen(true);
+                break;
+            case 'delete':
+                setShowBulkDeleteDialog(true);
+                break;
+            case 'export':
+                handleExcelDownload();
+                break;
+            default:
+                console.warn(`Action ${action} not implemented for leads`);
+        }
+    };
 
     const handleBulkDelete = async () => {
         const leadIds = Object.keys(rowSelection);
@@ -871,59 +894,14 @@ export default function LeadsPage() {
 
             {/* Bulk Actions Floating Bar */}
             {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300">
-                    <div className="bg-primary text-primary-foreground px-4 py-3 rounded-full shadow-2xl flex items-center gap-4 min-w-[300px] border border-primary-foreground/20">
-                        <div className="flex items-center gap-2 border-r border-primary-foreground/20 pr-4">
-                            <span className="bg-white text-primary w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold">
-                                {Object.keys(rowSelection).length}
-                            </span>
-                            <span className="text-sm font-medium whitespace-nowrap">Leads Selected</span>
-                        </div>
-                        <div className="flex items-center gap-2 flex-1">
-                            <Button 
-                                size="sm" 
-                                variant="ghost" 
-                                className="text-primary-foreground hover:bg-white/10 h-8 px-3 rounded-full gap-2 text-xs"
-                                onClick={() => setIsBulkAssignDialogOpen(true)}
-                            >
-                                <Users className="h-4 w-4" />
-                                Assign to User
-                            </Button>
-                            {isOrgAdmin && (
-                                <>
-                                    <Button 
-                                        size="sm" 
-                                        variant="ghost" 
-                                        className="text-primary-foreground hover:bg-white/10 h-8 px-3 rounded-full gap-2 text-xs"
-                                        onClick={() => setIsBulkStatusDialogOpen(true)}
-                                    >
-                                        <CheckCircle2 className="h-4 w-4" />
-                                        Change Status
-                                    </Button>
-                                    <Button 
-                                        size="sm" 
-                                        variant="ghost" 
-                                        className="text-primary-foreground hover:bg-destructive h-8 px-3 rounded-full gap-2 text-xs"
-                                        onClick={() => setShowBulkDeleteDialog(true)}
-                                    >
-                                        <Trash2 className="h-4 w-4" />
-                                        Delete
-                                    </Button>
-                                </>
-                            )}
-                        </div>
-                        <Button 
-                            size="icon" 
-                            variant="ghost" 
-                            className="text-primary-foreground/70 hover:bg-white/10 h-8 w-8 rounded-full"
-                            onClick={() => {
-                                setRowSelection({});
-                            }}
-                            title="Clear selection"
-                        >
-                            <X className="h-4 w-4" />
-                        </Button>
-                    </div>
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full max-w-2xl px-4">
+                    <BulkActionsToolbar
+                        selectedItems={Object.keys(rowSelection)}
+                        entityType="leads"
+                        onClearSelection={() => setRowSelection({})}
+                        onBulkAction={handleBulkAction}
+                        className="shadow-2xl !mb-0 bg-primary text-primary-foreground border-primary/20"
+                    />
                 </div>
             )}
 

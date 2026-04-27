@@ -84,6 +84,12 @@ export function BulkActionsToolbar({
     const entitySpecificActions = {
       leads: [
         {
+          label: 'Update Status',
+          icon: Tag,
+          action: 'update-status',
+          variant: 'default' as const
+        },
+        {
           label: 'Assign to User',
           icon: UserPlus,
           action: 'assign',
