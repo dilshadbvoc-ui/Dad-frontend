@@ -31,6 +31,10 @@ export default function FollowUpsPage() {
     const followUps = data?.tasks || []
     const activeCount = followUps.filter((task: any) => task.status !== 'completed').length
 
+    // Calculate stats and filter data based on URL parameter
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+
     const filteredFollowUps = useMemo(() => {
         let result = filterParam ? followUps.filter((task: any) => {
             const dueDate = new Date(task.dueDate)
