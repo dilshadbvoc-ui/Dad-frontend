@@ -28,7 +28,10 @@ class SocketService {
             this.socket = io(SOCKET_URL, {
                 withCredentials: true,
                 autoConnect: true,
-                transports: ['websocket', 'polling'],
+                // Defaulting to auto-upgrade from polling is more reliable in complex network environments
+                reconnection: true,
+                reconnectionAttempts: 10,
+                reconnectionDelay: 1000,
                 auth: {
                     token
                 }

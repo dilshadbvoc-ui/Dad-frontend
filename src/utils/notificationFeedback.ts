@@ -56,19 +56,29 @@ export const unlockAudio = () => {
     try {
         if (!notificationAudio) {
             notificationAudio = new Audio();
+            // Important: Set src to a valid source or a base64 silent clip to avoid 'no supported source' error
             notificationAudio.src = NOTIFICATION_SOUND_PATH;
         }
         
         // Play silent sound to unlock context
         notificationAudio.muted = true;
-        notificationAudio.play().then(() => {
-            notificationAudio!.pause();
-            notificationAudio!.muted = false;
-            isAudioUnlocked = true;
-            console.log('[NotificationFeedback] Audio context unlocked successfully');
-        }).catch(err => {
-            console.warn('[NotificationFeedback] Failed to unlock audio context. This is expected if no user gesture:', err);
-        });
+        const playPromise = notificationAudio.play();
+        
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                notificationAudio!.pause();
+                notificationAudio!.muted = false;
+                isAudioUnlocked = true;
+                console.log('[NotificationFeedback] Audio context unlocked successfully');
+            }).catch(err => {
+                if (err.name === 'NotSupportedError') {
+                    console.warn('[NotificationFeedback] MP3 not supported, using beep fallback.');
+                    isAudioUnlocked = true; // Still mark as unlocked
+                } else {
+                    console.warn('[NotificationFeedback] Failed to unlock audio context:', err.name);
+                }
+            });
+        }
     } catch (err) {
         console.error('[NotificationFeedback] Error during audio unlock:', err);
     }
@@ -76,55 +86,46 @@ export const unlockAudio = () => {
 
 export const playNotificationSound = () => {
     try {
-        // Fallback check: if we know audio isn't working, just beep
-        if (!window.Audio) {
+        // Immediate synthesized beep fallback for environments where MP3 is known to fail
+        if (!window.Audio || !notificationAudio || notificationAudio.error) {
             playSynthesizedBeep();
-            return;
+            if (!window.Audio) return;
         }
 
         if (!notificationAudio) {
             try {
                 notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
-                notificationAudio.load(); // Start loading explicitly
+                notificationAudio.load(); 
             } catch (e) {
-                console.error('[NotificationFeedback] Audio constructor failed:', e);
                 playSynthesizedBeep();
                 return;
             }
         }
 
-        notificationAudio.onerror = (e) => {
-            const error = notificationAudio?.error;
-            console.warn('[NotificationFeedback] Audio element error:', {
-                code: error?.code,
-                message: error?.message,
-                src: notificationAudio?.src
-            });
+        notificationAudio.onerror = () => {
+            console.warn('[NotificationFeedback] Audio source error, using beep fallback.');
             playSynthesizedBeep();
         };
 
         const attemptPlay = (audio: HTMLAudioElement) => {
             audio.currentTime = 0;
-            // Ensure source is correctly set and valid
             if (!audio.src || audio.src === '' || audio.src.includes('undefined')) {
                 audio.src = NOTIFICATION_SOUND_PATH;
             }
             return audio.play();
         };
 
-        attemptPlay(notificationAudio).then(() => {
-            console.log('[NotificationFeedback] MP3 played successfully');
-        }).catch(err => {
-            // Only log as warning if it's not a standard interaction policy error
-            if (err.name !== 'NotAllowedError') {
-                console.warn('[NotificationFeedback] Audio playback failed:', err.name, err.message);
-            }
-            
-            // Final fallback: Web Audio API (more reliable for short beeps)
-            playSynthesizedBeep();
-        });
+        const p = attemptPlay(notificationAudio);
+        if (p !== undefined) {
+            p.then(() => {
+                console.log('[NotificationFeedback] Sound played');
+            }).catch(err => {
+                if (err.name !== 'NotAllowedError') {
+                    playSynthesizedBeep();
+                }
+            });
+        }
     } catch (err) {
-        console.error('[NotificationFeedback] Global error in playNotificationSound:', err);
         playSynthesizedBeep();
     }
 };

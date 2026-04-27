@@ -140,7 +140,7 @@ export default function AnalyticsPage() {
                 <Skeleton className="h-[350px] w-full" />
               </div>
             ) : (
-              <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height={400}>
+              <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={400} debounce={100}>
                 <AreaChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -178,7 +178,7 @@ export default function AnalyticsPage() {
                   <Skeleton className="h-[300px] w-[300px] rounded-full" />
                 </div>
               ) : leadSources.length > 0 ? (
-                <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height={400} >
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={400} debounce={100}>
                   <PieChart>
                     <Pie
                       data={leadSources}
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                   <Skeleton className="h-[300px] w-full" />
                 </div>
               ) : topLeads.length > 0 ? (
-                <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height={400} >
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={400} debounce={100}>
                   <BarChart data={topLeads} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
                     <XAxis type="number" hide />
@@ -256,7 +256,7 @@ export default function AnalyticsPage() {
                   <Skeleton className="h-[300px] w-full" />
                 </div>
               ) : (
-                <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height={400} >
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={400} debounce={100}>
                   <BarChart data={conversionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" />
@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
                   <Skeleton className="h-[300px] w-full" />
                 </div>
               ) : (
-                <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height={400} >
+                <ResponsiveContainer minWidth={0} minHeight={0} width="100%" height={400} debounce={100}>
                   <BarChart data={pipelineData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                     <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                     <XAxis type="number" />
