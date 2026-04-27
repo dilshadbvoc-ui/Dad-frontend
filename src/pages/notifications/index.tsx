@@ -148,7 +148,7 @@ export default function NotificationsPage() {
                         {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
                       </span>
                     </div>
-                    <p className={`text-sm mt-1 ${!notification.isRead ? 'text-foreground/90' : 'text-muted-foreground'}`}>
+                    <p className={`text-sm mt-1 whitespace-pre-line ${!notification.isRead ? 'text-foreground/90' : 'text-muted-foreground'}`}>
                       {notification.message}
                     </p>
                   </div>

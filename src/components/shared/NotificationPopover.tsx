@@ -78,7 +78,7 @@ export function NotificationPopover() {
                     <div className={`mt-1.5 h-2 w-2 rounded-full shrink-0 ${!notif.isRead ? 'bg-primary' : 'bg-transparent'}`} />
                     <div className="space-y-1">
                       <p className="text-sm font-medium leading-none">{notif.title}</p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">
                         {notif.message}
                       </p>
                       <p className="text-xs text-muted-foreground">
