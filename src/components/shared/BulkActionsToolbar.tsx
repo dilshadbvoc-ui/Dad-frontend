@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -24,7 +23,7 @@ interface BulkActionsToolbarProps {
   selectedItems: string[];
   entityType: 'leads' | 'contacts' | 'accounts' | 'opportunities' | 'tasks';
   onClearSelection: () => void;
-  onBulkAction: (action: string, data?: Record<string, unknown>) => Promise<void>;
+  onBulkAction: (action: string, data?: Record<string, unknown>) => void | Promise<void>;
   className?: string;
 }
 
@@ -35,24 +34,7 @@ export function BulkActionsToolbar({
   onBulkAction,
   className = ''
 }: BulkActionsToolbarProps) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [currentAction, setCurrentAction] = useState<string>('');
-
   if (selectedItems.length === 0) return null;
-
-  const handleAction = async (action: string, data?: Record<string, unknown>) => {
-    setIsLoading(true);
-    setCurrentAction(action);
-
-    try {
-      await onBulkAction(action, data);
-    } catch (error) {
-      console.error('Bulk action error:', error);
-    } finally {
-      setIsLoading(false);
-      setCurrentAction('');
-    }
-  };
 
   const getEntityActions = () => {
     const commonActions = [
@@ -60,213 +42,108 @@ export function BulkActionsToolbar({
         label: 'Export Selected',
         icon: Download,
         action: 'export',
-        variant: 'default' as const
       },
       {
         label: 'Add Tags',
         icon: Tag,
         action: 'add-tags',
-        variant: 'default' as const
       }
     ];
 
-    const entitySpecificActions = {
+    const entitySpecificActions: Record<string, { label: string; icon: typeof Tag; action: string }[]> = {
       leads: [
-        {
-          label: 'Update Status',
-          icon: Tag,
-          action: 'update-status',
-          variant: 'default' as const
-        },
-        {
-          label: 'Assign to User',
-          icon: UserPlus,
-          action: 'assign',
-          variant: 'default' as const
-        },
-        {
-          label: 'Send Email',
-          icon: Mail,
-          action: 'send-email',
-          variant: 'default' as const
-        },
-        {
-          label: 'Send WhatsApp',
-          icon: MessageSquare,
-          action: 'send-whatsapp',
-          variant: 'default' as const
-        },
-        {
-          label: 'Schedule Follow-up',
-          icon: Calendar,
-          action: 'schedule-followup',
-          variant: 'default' as const
-        },
-        {
-          label: 'Convert to Contacts',
-          icon: UserPlus,
-          action: 'convert',
-          variant: 'default' as const
-        }
+        { label: 'Update Status', icon: Tag, action: 'update-status' },
+        { label: 'Assign to User', icon: UserPlus, action: 'assign' },
+        { label: 'Send Email', icon: Mail, action: 'send-email' },
+        { label: 'Send WhatsApp', icon: MessageSquare, action: 'send-whatsapp' },
+        { label: 'Schedule Follow-up', icon: Calendar, action: 'schedule-followup' },
+        { label: 'Convert to Contacts', icon: UserPlus, action: 'convert' },
       ],
       contacts: [
-        {
-          label: 'Send Email',
-          icon: Mail,
-          action: 'send-email',
-          variant: 'default' as const
-        },
-        {
-          label: 'Send WhatsApp',
-          icon: MessageSquare,
-          action: 'send-whatsapp',
-          variant: 'default' as const
-        },
-        {
-          label: 'Schedule Call',
-          icon: Phone,
-          action: 'schedule-call',
-          variant: 'default' as const
-        },
-        {
-          label: 'Add to Campaign',
-          icon: Mail,
-          action: 'add-to-campaign',
-          variant: 'default' as const
-        }
+        { label: 'Send Email', icon: Mail, action: 'send-email' },
+        { label: 'Send WhatsApp', icon: MessageSquare, action: 'send-whatsapp' },
+        { label: 'Schedule Call', icon: Phone, action: 'schedule-call' },
+        { label: 'Add to Campaign', icon: Mail, action: 'add-to-campaign' },
       ],
       accounts: [
-        {
-          label: 'Assign Owner',
-          icon: UserPlus,
-          action: 'assign-owner',
-          variant: 'default' as const
-        },
-        {
-          label: 'Update Status',
-          icon: Tag,
-          action: 'update-status',
-          variant: 'default' as const
-        },
-        {
-          label: 'Archive',
-          icon: Archive,
-          action: 'archive',
-          variant: 'default' as const
-        }
+        { label: 'Assign Owner', icon: UserPlus, action: 'assign-owner' },
+        { label: 'Update Status', icon: Tag, action: 'update-status' },
+        { label: 'Archive', icon: Archive, action: 'archive' },
       ],
       opportunities: [
-        {
-          label: 'Update Stage',
-          icon: Tag,
-          action: 'update-stage',
-          variant: 'default' as const
-        },
-        {
-          label: 'Assign Owner',
-          icon: UserPlus,
-          action: 'assign-owner',
-          variant: 'default' as const
-        },
-        {
-          label: 'Generate Quotes',
-          icon: Download,
-          action: 'generate-quotes',
-          variant: 'default' as const
-        }
+        { label: 'Update Stage', icon: Tag, action: 'update-stage' },
+        { label: 'Assign Owner', icon: UserPlus, action: 'assign-owner' },
+        { label: 'Generate Quotes', icon: Download, action: 'generate-quotes' },
       ],
       tasks: [
-        {
-          label: 'Mark Complete',
-          icon: Tag,
-          action: 'mark-complete',
-          variant: 'default' as const
-        },
-        {
-          label: 'Reassign',
-          icon: UserPlus,
-          action: 'reassign',
-          variant: 'default' as const
-        },
-        {
-          label: 'Update Priority',
-          icon: Tag,
-          action: 'update-priority',
-          variant: 'default' as const
-        }
+        { label: 'Mark Complete', icon: Tag, action: 'mark-complete' },
+        { label: 'Reassign', icon: UserPlus, action: 'reassign' },
+        { label: 'Update Priority', icon: Tag, action: 'update-priority' },
       ]
     };
 
-    return [...entitySpecificActions[entityType], ...commonActions];
+    return [...(entitySpecificActions[entityType] || []), ...commonActions];
   };
 
   const actions = getEntityActions();
 
   return (
-    <>
-      <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 gap-3 mb-4 ${className}`}>
-        <div className="flex items-center justify-between w-full sm:w-auto gap-3">
-          <div className="text-sm font-medium text-primary whitespace-nowrap">
-            {selectedItems.length} {entityType} selected
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClearSelection}
-            className="text-primary/70 hover:text-primary hover:bg-primary/10 h-8 px-2 text-xs"
-          >
-            Clear selection
-          </Button>
+    <div className={`flex flex-col sm:flex-row items-start sm:items-center justify-between bg-primary/5 border border-primary/10 rounded-lg p-3 gap-3 mb-4 ${className}`}>
+      <div className="flex items-center justify-between w-full sm:w-auto gap-3">
+        <div className="text-sm font-medium text-primary whitespace-nowrap">
+          {selectedItems.length} {entityType} selected
         </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="default"
-                size="sm"
-                disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-9"
-              >
-                {isLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground mr-2" />
-                    {currentAction}...
-                  </>
-                ) : (
-                  <>
-                    Bulk Actions
-                    <ChevronDown className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              {actions.map((action) => {
-                const Icon = action.icon;
-                return (
-                  <DropdownMenuItem
-                    key={action.action}
-                    onClick={() => handleAction(action.action)}
-                    className="flex items-center gap-2 cursor-pointer"
-                  >
-                    <Icon className="h-4 w-4" />
-                    {action.label}
-                  </DropdownMenuItem>
-                );
-              })}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => handleAction('delete')}
-                className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete Selected
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onClearSelection}
+          className="text-primary/70 hover:text-primary hover:bg-primary/10 h-8 px-2 text-xs"
+        >
+          Clear selection
+        </Button>
       </div>
-    </>
+
+      <div className="flex items-center gap-2 w-full sm:w-auto">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="default"
+              size="sm"
+              className="bg-primary hover:bg-primary/90 w-full sm:w-auto h-9"
+            >
+              Bulk Actions
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            {actions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <DropdownMenuItem
+                  key={action.action}
+                  onSelect={() => {
+                    onBulkAction(action.action);
+                  }}
+                  className="flex items-center gap-2 cursor-pointer"
+                >
+                  <Icon className="h-4 w-4" />
+                  {action.label}
+                </DropdownMenuItem>
+              );
+            })}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => {
+                onBulkAction('delete');
+              }}
+              className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete Selected
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
   );
 }

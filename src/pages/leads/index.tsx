@@ -315,16 +315,23 @@ export default function LeadsPage() {
 
     const handleBulkAction = async (action: string) => {
         const leadIds = Object.keys(rowSelection);
-        if (leadIds.length === 0) return;
+        console.log('[BulkAction] Action received:', action, 'LeadIds:', leadIds);
+        if (leadIds.length === 0) {
+            console.warn('[BulkAction] No leads selected, aborting');
+            return;
+        }
 
         switch (action) {
             case 'update-status':
+                console.log('[BulkAction] Opening status dialog');
                 setIsBulkStatusDialogOpen(true);
                 break;
             case 'assign':
+                console.log('[BulkAction] Opening assign dialog');
                 setIsBulkAssignDialogOpen(true);
                 break;
             case 'delete':
+                console.log('[BulkAction] Opening delete dialog');
                 setShowBulkDeleteDialog(true);
                 break;
             case 'export':
