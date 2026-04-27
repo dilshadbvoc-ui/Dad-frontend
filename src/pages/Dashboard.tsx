@@ -45,6 +45,7 @@ interface Branch {
 
 interface DashboardStats {
   activeOpportunities: number;
+  pendingFollowUps: number;
   opportunities: {
     won: number;
     lost: number;
@@ -263,6 +264,19 @@ export default function Dashboard() {
             <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Deals In Pipeline</h3>
             <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
               {stats?.activeOpportunities || 0}
+            </div>
+          </div>
+        </Link>
+
+        <Link to="/follow-ups" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+          <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+              <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Pending Follow-ups</h3>
+            <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
+              {stats?.pendingFollowUps || 0}
             </div>
           </div>
         </Link>
