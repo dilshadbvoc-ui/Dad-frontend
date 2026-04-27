@@ -29,11 +29,7 @@ export default function FollowUpsPage() {
     })
 
     const followUps = data?.tasks || []
-    const totalCount = data?.totalTasks || 0
-
-    // Calculate stats and filter data based on URL parameter
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const activeCount = followUps.filter((task: any) => task.status !== 'completed').length
 
     const filteredFollowUps = useMemo(() => {
         let result = filterParam ? followUps.filter((task: any) => {
@@ -50,7 +46,7 @@ export default function FollowUpsPage() {
                 default:
                     return true
             }
-        }) : [...followUps]
+        }) : (statusFilter === 'all' ? followUps.filter((task: any) => task.status !== 'completed') : [...followUps])
 
         // Apply Sorting
         const [field, direction] = sortBy.split('-')
@@ -70,7 +66,7 @@ export default function FollowUpsPage() {
         })
 
         return result
-    }, [followUps, filterParam, today, sortBy])
+    }, [followUps, filterParam, today, sortBy, statusFilter])
 
     const overdueCount = followUps.filter((task: any) => {
         return new Date(task.dueDate) < new Date() && task.status !== 'completed'
@@ -111,12 +107,12 @@ export default function FollowUpsPage() {
                     onClick={() => navigate('/follow-ups')}
                 >
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Total Follow-ups</CardTitle>
+                        <CardTitle className="text-sm font-medium">Active Follow-ups</CardTitle>
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalCount}</div>
-                        <p className="text-xs text-muted-foreground">All scheduled follow-ups</p>
+                        <div className="text-2xl font-bold">{activeCount}</div>
+                        <p className="text-xs text-muted-foreground">All pending follow-ups</p>
                     </CardContent>
                 </Card>
 
