@@ -15,7 +15,8 @@ import {
     DoubleTickLogo,
     WatiLogo,
     HalApiLogo,
-    WebFormLogo
+    WebFormLogo,
+    ZapierLogo
 } from "@/components/icons/BrandLogos";
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
@@ -36,7 +37,7 @@ export default function IntegrationsPage() {
 
     // Config Dialog State
     const [configOpen, setConfigOpen] = useState(false);
-    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | null>(null);
+    const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | 'zapier' | null>(null);
 
     // Meta Account Config State
     const [metaConfigOpen, setMetaConfigOpen] = useState(false);
@@ -74,7 +75,7 @@ export default function IntegrationsPage() {
         }
     };
 
-    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload') => {
+    const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | 'zapier') => {
         setActiveConfigType(type);
         setConfigOpen(true);
     };
@@ -222,6 +223,28 @@ export default function IntegrationsPage() {
             hasSettings: true,
             settingsType: 'gallabox' as const,
             isPlaceholder: false
+        },
+        {
+            id: 'zapier',
+            name: 'Zapier (Facebook Leads)',
+            description: 'Connect Facebook Lead Ads via Zapier to automatically sync leads into PypeCRM without direct Meta API access.',
+            icon: ZapierLogo,
+            iconColor: 'text-orange-500',
+            connected: integrations.zapier?.connected,
+            onEnable: () => openConfig('zapier'),
+            onDisable: async () => {
+                try {
+                    const { api } = await import('@/services/api');
+                    await api.post('/organisation', { integrations: { ...integrations, zapier: { connected: false } } });
+                    queryClient.invalidateQueries({ queryKey: ['organisation'] });
+                    toast.success('Disconnected Zapier');
+                } catch {
+                    toast.error('Failed to disconnect');
+                }
+            },
+            hasSettings: true,
+            settingsType: 'zapier' as const,
+            isPlaceholder: false
         }
     ];
 
@@ -276,7 +299,8 @@ export default function IntegrationsPage() {
                                                                         integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
                                                                             integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
                                                                                 integration.id === 'facebook_payload' ? 'bg-gradient-to-br from-indigo-600 to-violet-700' :
-                                                                                    'bg-gradient-to-br from-gray-500 to-gray-700'
+                                                                                    integration.id === 'zapier' ? 'bg-gradient-to-br from-orange-500 to-amber-600' :
+                                                                                        'bg-gradient-to-br from-gray-500 to-gray-700'
                                         }`}>
                                         <integration.icon className="h-5 w-5 text-white" />
                                     </div>
@@ -287,7 +311,8 @@ export default function IntegrationsPage() {
                                                 integration.id === 'webform' ? 'Capture leads from your website' :
                                                     integration.id === 'whatsapp' ? 'Sync leads from WhatsApp' :
                                                         integration.id === 'googleads' ? 'Import leads from Google Ads' :
-                                                            `Connect with ${integration.name}`}
+                                                            integration.id === 'zapier' ? 'Facebook Leads via Zapier webhook' :
+                                                                `Connect with ${integration.name}`}
                                         </CardDescription>
                                     </div>
                                 </div>
@@ -406,6 +431,29 @@ export default function IntegrationsPage() {
                                             <code className="bg-white dark:bg-black px-1.5 py-0.5 rounded border text-indigo-600 dark:text-indigo-400">
                                                 {integrations.facebook_payload?.pageId || 'Not Configured'}
                                             </code>
+                                        </div>
+                                    )}
+
+                                    {integration.id === 'zapier' && integrations.zapier?.connected && (
+                                        <div className="bg-orange-50/50 dark:bg-orange-900/10 p-3 rounded-xl border border-orange-100 dark:border-orange-900/30 space-y-2 mt-2 mb-3">
+                                            <h4 className="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase">Zapier Webhook URL</h4>
+                                            <p className="text-xs text-orange-600/80 dark:text-orange-300/80">
+                                                Use this URL as the <strong>Webhook URL</strong> in your Zapier action step.
+                                            </p>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold uppercase text-orange-600/60 dark:text-orange-400/60">Webhook URL</label>
+                                                <div className="flex gap-2">
+                                                    <code className="text-xs bg-white dark:bg-gray-950 p-2 rounded border flex-1 break-all">
+                                                        {`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/zapier/webhook/${orgData?.id || '<ORG_ID>'}?apiKey=${integrations.zapier?.apiKey || '<API_KEY>'}`}
+                                                    </code>
+                                                    <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => {
+                                                        navigator.clipboard.writeText(
+                                                            `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/zapier/webhook/${orgData?.id || ''}?apiKey=${integrations.zapier?.apiKey || ''}`
+                                                        );
+                                                        toast.success('Webhook URL Copied');
+                                                    }}>Copy</Button>
+                                                </div>
+                                            </div>
                                         </div>
                                     )}
 

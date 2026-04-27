@@ -31,14 +31,14 @@ import {
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { updateOrganisation } from "@/services/settingsService"
+import { updateOrganisation, getOrganisation } from "@/services/settingsService"
 import type { IntegrationSettings } from "@/services/settingsService"
 
 interface IntegrationConfigDialogProps {
     children?: React.ReactNode
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload'
+    integrationType: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | 'zapier'
     initialValues?: Partial<IntegrationSettings>
 }
 
@@ -68,6 +68,12 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
         queryKey: ['assignment-rules', 'Lead'],
         queryFn: () => getAssignmentRules('Lead'),
         enabled: integrationType === 'meta' && isConnected
+    })
+
+    const { data: orgData } = useQuery({
+        queryKey: ['organisation'],
+        queryFn: getOrganisation,
+        enabled: integrationType === 'zapier'
     })
 
     const rules = Array.isArray(rulesData) ? rulesData : [];
@@ -134,7 +140,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                                 ? 'Gallabox Integration'
                                                 : integrationType === 'facebook_payload'
                                                     ? 'Meta Ads Payload Connection'
-                                                    : 'Single Sign-On (SAML)'
+                                                    : integrationType === 'zapier'
+                                                        ? 'Zapier Integration'
+                                                        : 'Single Sign-On (SAML)'
 
     const description = integrationType === 'meta'
         ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -160,7 +168,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                                 ? 'Connect Gallabox for WhatsApp lead sync.'
                                                 : integrationType === 'facebook_payload'
                                                     ? 'Manually connect Meta Ads via leadgen webhooks.'
-                                                    : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
+                                                    : integrationType === 'zapier'
+                                                        ? 'Connect Facebook Lead Ads via Zapier webhook.'
+                                                        : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
     return (
         <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -921,6 +931,50 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                                 </>
                             )
                         }
+
+                        {/* Fields for Zapier */}
+                        {integrationType === 'zapier' && isConnected && (
+                            <>
+                                <FormField
+                                    control={form.control}
+                                    name="apiKey"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>API Key</FormLabel>
+                                            <FormControl>
+                                                <Input type="password" autoComplete="new-password" placeholder="Enter a secure API key" {...field} value={field.value as string || ''} />
+                                            </FormControl>
+                                            <FormDescription className="text-xs">
+                                                A secret key to authenticate incoming Zapier webhooks.
+                                            </FormDescription>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg border border-orange-100 dark:border-orange-900/30">
+                                    <h4 className="text-xs font-bold text-orange-700 dark:text-orange-400 mb-2 uppercase">Zapier Webhook URL</h4>
+                                    <p className="text-xs text-orange-600/80 dark:text-orange-300/80 mb-2">
+                                        Use this URL as the <strong>Webhook URL</strong> in your Zapier action step (Webhooks by Zapier → POST).
+                                    </p>
+                                    <div className="space-y-1">
+                                        <Label className="text-[10px]">Webhook URL (save first to generate)</Label>
+                                        <div className="flex gap-2">
+                                            <Input
+                                                readOnly
+                                                className="h-7 text-xs bg-white dark:bg-black flex-1"
+                                                value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/zapier/webhook/${orgData?.id || '<ORG_ID>'}?apiKey=${form.getValues('apiKey') || '<YOUR_KEY>'}`}
+                                            />
+                                            <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => {
+                                                const url = `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/zapier/webhook/${orgData?.id || ''}?apiKey=${form.getValues('apiKey') || ''}`;
+                                                navigator.clipboard.writeText(url);
+                                                toast.success('Webhook URL Copied');
+                                            }}>Copy</Button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <DialogFooter className="flex justify-between sm:justify-between">
                             {((integrationType === 'meta' && isConnected) || (integrationType === 'whatsapp' && isConnected)) && (

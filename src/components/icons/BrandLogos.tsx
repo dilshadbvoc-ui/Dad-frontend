@@ -114,6 +114,13 @@ export const SSOLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
     </svg>
 );
 
+// Zapier Logo (lightning bolt Z)
+export const ZapierLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
+    <svg viewBox="0 0 24 24" className={className}>
+        <path d="M12 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor" />
+    </svg>
+);
+
 export default {
     FacebookLogo,
     WhatsAppLogo,
@@ -127,4 +134,5 @@ export default {
     SlackLogo,
     TwilioLogo,
     SSOLogo,
+    ZapierLogo,
 };
