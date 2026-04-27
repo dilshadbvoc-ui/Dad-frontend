@@ -178,7 +178,7 @@ export default function AnalyticsPage() {
                                     <Skeleton className="h-[300px] w-[300px] rounded-full" />
                                 </div>
                             ) : leadSources.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
+                                <ResponsiveContainer width="100%" height={350} minWidth={0} minHeight={0}>
                                     <PieChart>
                                         <Pie
                                             data={leadSources}
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : topLeads.length > 0 ? (
-                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
+                                <ResponsiveContainer width="100%" height={350} minWidth={0} minHeight={0}>
                                     <BarChart data={topLeads} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={false} className="stroke-muted" />
                                         <XAxis type="number" hide />
@@ -256,7 +256,7 @@ export default function AnalyticsPage() {
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : (
-                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
+                                <ResponsiveContainer width="100%" height={350} minWidth={0} minHeight={0}>
                                     <BarChart data={conversionData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
                                         <XAxis dataKey="name" />
@@ -285,7 +285,7 @@ export default function AnalyticsPage() {
                                     <Skeleton className="h-[300px] w-full" />
                                 </div>
                             ) : (
-                                <ResponsiveContainer width="100%" height={350} minWidth={0}>
+                                <ResponsiveContainer width="100%" height={350} minWidth={0} minHeight={0}>
                                     <BarChart data={pipelineData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                                         <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
                                         <XAxis type="number" />

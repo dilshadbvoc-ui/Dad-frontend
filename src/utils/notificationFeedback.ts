@@ -80,13 +80,17 @@ export const playNotificationSound = () => {
             notificationAudio = new Audio(NOTIFICATION_SOUND_PATH);
         }
 
-        notificationAudio.onerror = () => {
-            console.warn('[NotificationFeedback] Primary MP3 failed, switching to synthesized fallback');
+        notificationAudio.onerror = (e) => {
+            console.warn('[NotificationFeedback] Primary MP3 failed, switching to synthesized fallback', e);
             playSynthesizedBeep();
         };
 
         const attemptPlay = (audio: HTMLAudioElement) => {
             audio.currentTime = 0;
+            // Ensure source is correctly set
+            if (!audio.src || audio.src === '' || audio.src.includes('undefined')) {
+                audio.src = NOTIFICATION_SOUND_PATH;
+            }
             return audio.play();
         };
 

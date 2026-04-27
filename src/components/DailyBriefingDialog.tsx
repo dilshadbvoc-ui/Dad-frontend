@@ -79,6 +79,7 @@ export function DailyBriefingDialog() {
     return (
         <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
             <DialogContent className="sm:max-w-md overflow-hidden p-0 border-0 shadow-2xl">
+                <DialogDescription className="sr-only">Daily briefing and overview of your sales targets and follow-ups.</DialogDescription>
                 {/* Header */}
                 <div className={`bg-gradient-to-r ${getGradient()} p-6 text-white`}>
                     <DialogHeader>

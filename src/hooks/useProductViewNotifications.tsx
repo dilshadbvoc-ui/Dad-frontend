@@ -67,7 +67,7 @@ export const useProductViewNotifications = () => {
         // Listen for product view notifications
         socket.on('product_view_notification', handleProductView);
 
-        console.log('[Real-time] Listening for product view notifications');
+        // console.log('[Real-time] Listening for product view notifications');
 
         // Cleanup
         return () => {

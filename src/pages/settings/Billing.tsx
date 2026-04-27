@@ -221,6 +221,7 @@ export default function BillingSettingsPage() {
                                                     <Receipt className="h-5 w-5 text-primary" />
                                                     Invoice Summary
                                                 </DialogTitle>
+                                                <DialogDescription className="sr-only">Detailed breakdown of your current billing and subscription.</DialogDescription>
                                             </DialogHeader>
                                             <div className="py-6 space-y-4">
                                                 <div className="flex justify-between border-b border-border pb-2">

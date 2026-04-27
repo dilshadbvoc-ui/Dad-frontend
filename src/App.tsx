@@ -150,7 +150,6 @@ function AppContent() {
           const autoLogin = localStorage.getItem('autoLogin') === 'true';
 
           if (nativeToken && autoLogin) {
-            console.log("Recovered session from Android Native storage");
             const placeholderInfo = { token: nativeToken, fromNative: true };
             localStorage.setItem('userInfo', JSON.stringify(placeholderInfo));
             userInfo = JSON.stringify(placeholderInfo);
@@ -174,7 +173,6 @@ function AppContent() {
               const updatedUser = { ...parsed, ...res.data };
               localStorage.setItem('userInfo', JSON.stringify(updatedUser));
               window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updatedUser }));
-              console.log("Auth verified successfully");
             }
           }
         } catch (err) {
@@ -209,7 +207,6 @@ function AppContent() {
 
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('[App] App became visible, refreshing data...');
         queryClient.invalidateQueries();
       }
     };

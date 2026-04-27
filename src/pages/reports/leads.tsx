@@ -95,7 +95,7 @@ export default function LeadReportsPage() {
                     <Card>
                         <CardHeader><CardTitle>Leads by Status</CardTitle></CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={384}>
+                            <ResponsiveContainer width="100%" height={384} minWidth={0} minHeight={0}>
                                 <PieChart>
                                     <Pie data={data} cx="50%" cy="50%" labelLine={false} label={({ name, percent }: { name?: string; percent?: number }) => `${name || ''} ${((percent || 0) * 100).toFixed(0)}%`} outerRadius={120} fill="#8884d8" dataKey="value">
                                         {data.map((entry, index) => <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />)}
@@ -118,7 +118,7 @@ export default function LeadReportsPage() {
                     <Card>
                         <CardHeader><CardTitle>Leads by Source</CardTitle></CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={384}>
+                            <ResponsiveContainer width="100%" height={384} minWidth={0} minHeight={0}>
                                 <BarChart data={data} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis type="number" />
@@ -142,7 +142,7 @@ export default function LeadReportsPage() {
                     <Card>
                         <CardHeader><CardTitle>Leads by Ownership</CardTitle></CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={384}>
+                            <ResponsiveContainer width="100%" height={384} minWidth={0} minHeight={0}>
                                 <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" />

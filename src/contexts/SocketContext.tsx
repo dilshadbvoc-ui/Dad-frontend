@@ -47,7 +47,6 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         connectSocket();
 
         const handleAuthRefresh = () => {
-            console.log('[SocketContext] Auth refresh detected, reconnecting socket...');
             socketService.disconnect();
             setOnlineUsers([]);
             connectSocket();

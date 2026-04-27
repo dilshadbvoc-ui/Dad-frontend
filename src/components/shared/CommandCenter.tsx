@@ -11,7 +11,9 @@ import {
 } from "lucide-react";
 import {
     Dialog,
-    DialogContent
+    DialogContent,
+    DialogTitle,
+    DialogDescription
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { api } from "@/services/api";
@@ -108,6 +110,8 @@ export function CommandCenter() {
     return (
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogContent className="p-0 border-none shadow-2xl max-w-2xl bg-popover overflow-hidden rounded-2xl">
+                <DialogTitle className="sr-only">Command Center</DialogTitle>
+                <DialogDescription className="sr-only">Quickly search for leads, contacts, and tasks.</DialogDescription>
                 <div className="flex items-center border-b border-border px-4">
                     <Search className="h-4 w-4 shrink-0 opacity-50 mr-2 text-muted-foreground" />
                     <Input

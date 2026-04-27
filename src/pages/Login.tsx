@@ -167,6 +167,8 @@ const Login = () => {
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Password</Label>
                                 </div>
+                                {/* Hidden field for accessibility/password managers - moved before password for better browser detection */}
+                                <input type="text" name="username" value={email} readOnly style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex={-1} autoComplete="username" aria-hidden="true" />
                                 <Input
                                     id="password"
                                     name="password"
@@ -177,8 +179,6 @@ const Login = () => {
                                     required
                                     className="bg-white dark:bg-background"
                                 />
-                                {/* Hidden field for accessibility/password managers */}
-                                <input type="text" name="username" value={email} readOnly className="sr-only" tabIndex={-1} autoComplete="username" aria-hidden="true" />
                             </div>
 
                             {error && (

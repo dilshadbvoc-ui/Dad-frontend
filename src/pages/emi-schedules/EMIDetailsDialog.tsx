@@ -7,6 +7,7 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
+    DialogDescription,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -102,6 +103,7 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>EMI Schedule Details</DialogTitle>
+                    <DialogDescription className="sr-only">Detailed view of installment payments and status.</DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6">

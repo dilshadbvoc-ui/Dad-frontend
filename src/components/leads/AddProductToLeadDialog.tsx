@@ -9,6 +9,7 @@ import {
     DialogHeader,
     DialogTitle,
     DialogFooter,
+    DialogDescription
 } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Check, ShoppingCart, Trash2, Search } from "lucide-react"
@@ -133,6 +134,7 @@ export function AddProductToLeadDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col">
+                <DialogDescription className="sr-only">Select products to add to this lead.</DialogDescription>
                 <DialogHeader>
                     <DialogTitle>Manage Products</DialogTitle>
                 </DialogHeader>

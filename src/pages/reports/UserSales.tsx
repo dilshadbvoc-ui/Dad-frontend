@@ -318,7 +318,7 @@ export default function UserSalesPage() {
                         </CardHeader>
                         <CardContent className="h-[350px]">
                             {isTrendLoading ? <Skeleton className="w-full h-full" /> : (
-                                <ResponsiveContainer width="100%" height="100%" minHeight={300}>
+                                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                                     <AreaChart data={trendData}>
                                         <defs>
                                             <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">

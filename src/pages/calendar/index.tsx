@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Plus, Calendar, Clock, Users, Video, ChevronLeft, ChevronRight } from "lucide-react"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
@@ -115,7 +115,10 @@ export default function CalendarPage() {
                                     <DialogTrigger asChild><Button className="shadow-lg shadow-primary/25 rounded-xl"><Plus className="h-4 w-4 mr-2" />New Event</Button></DialogTrigger>
                                     <DialogContent>
                                         <form onSubmit={handleSubmit}>
-                                            <DialogHeader><DialogTitle>Create Event</DialogTitle></DialogHeader>
+                                            <DialogHeader>
+                                                <DialogTitle>Create Event</DialogTitle>
+                                                <DialogDescription className="sr-only">Schedule a new meeting, call, or task.</DialogDescription>
+                                            </DialogHeader>
                                             <div className="grid gap-4 py-4">
                                                 <div><Label>Title</Label><Input name="title" required /></div>
                                                 <div className="grid grid-cols-2 gap-4">
