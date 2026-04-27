@@ -4,7 +4,7 @@ const API_URL = '/trash';
 
 export const getTrashItems = async () => {
     const response = await api.get(API_URL);
-    return response.data;
+    return response.data.data;
 };
 
 export const restoreItem = async (type: string, id: string) => {
