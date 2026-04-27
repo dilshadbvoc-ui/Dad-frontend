@@ -36,6 +36,7 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog"
 import { formatCurrency } from '@/lib/utils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
@@ -238,6 +239,7 @@ export default function OrganisationDetailPage() {
                                             <Receipt className="h-5 w-5 text-indigo-400" />
                                             Invoice Summary - {org.name}
                                         </DialogTitle>
+                                        <DialogDescription className="sr-only">Detailed breakdown of the organisation's billing and subscription.</DialogDescription>
                                     </DialogHeader>
                                     <div className="py-6 space-y-4">
                                         <div className="flex justify-between border-b border-indigo-900/50 pb-2">

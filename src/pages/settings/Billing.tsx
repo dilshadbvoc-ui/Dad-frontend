@@ -17,6 +17,7 @@ import {
     DialogTitle,
     DialogTrigger,
     DialogFooter,
+    DialogDescription,
 } from "@/components/ui/dialog";
 
 export default function BillingSettingsPage() {
