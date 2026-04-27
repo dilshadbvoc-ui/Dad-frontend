@@ -7,97 +7,97 @@ import { OpportunityActions } from "./OpportunityActions"
 import type { Opportunity } from "@/services/opportunityService"
 
 export const createOpportunityColumns = (formatCurrency: (amount: number) => string): ColumnDef<Opportunity>[] => [
-    {
-        accessorKey: "name",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Name
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            )
-        },
-        cell: ({ row }) => {
-            return <div className="font-medium">{row.getValue("name")}</div>
-        }
+  {
+    accessorKey: "name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Name
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
     },
-    {
-        accessorKey: "amount",
-        header: ({ column }) => {
-            return (
-                <Button
-                    variant="ghost"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Value
-                    <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-            )
-        },
-        cell: ({ row }) => {
-            const amount = parseFloat(row.getValue("amount"))
-            return <div className="font-medium">{formatCurrency(amount)}</div>
-        }
+    cell: ({ row }) => {
+      return <div className="font-medium">{row.getValue("name")}</div>
+    }
+  },
+  {
+    accessorKey: "amount",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Value
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
     },
-    {
-        accessorKey: "stage",
-        header: "Stage",
-        cell: ({ row }) => {
-            const stage = row.getValue("stage") as string
-            const opportunity = row.original
-            let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("amount"))
+      return <div className="font-medium">{formatCurrency(amount)}</div>
+    }
+  },
+  {
+    accessorKey: "stage",
+    header: "Stage",
+    cell: ({ row }) => {
+      const stage = row.getValue("stage") as string
+      const opportunity = row.original
+      let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
 
-            switch (stage) {
-                case 'closed_won': variant = "default"; break;
-                case 'closed_lost': variant = "destructive"; break;
-                case 'negotiation': variant = "outline"; break;
-                default: variant = "secondary";
-            }
+      switch (stage) {
+        case 'closed_won': variant = "default"; break;
+        case 'closed_lost': variant = "destructive"; break;
+        case 'negotiation': variant = "outline"; break;
+        default: variant = "secondary";
+      }
 
-            let label = stage.replace('_', ' ')
-            if (stage === 'closed_won') {
-                if (opportunity.paymentStatus === 'paid') {
-                    label += ' (Paid)'
-                } else if (opportunity.paymentStatus === 'partial') {
-                    label += opportunity.emiSchedule ? ' (EMI)' : ' (Partial)'
-                }
-            }
+      let label = stage.replace('_', ' ')
+      if (stage === 'closed_won') {
+        if (opportunity.paymentStatus === 'paid') {
+          label += ' (Paid)'
+        } else if (opportunity.paymentStatus === 'partial') {
+          label += opportunity.emiSchedule ? ' (EMI)' : ' (Partial)'
+        }
+      }
 
-            return <Badge variant={variant} className="capitalize">{label}</Badge>
-        }
+      return <Badge variant={variant} className="capitalize">{label}</Badge>
+    }
+  },
+  {
+    accessorKey: "probability",
+    header: "Prob.",
+    cell: ({ row }) => {
+      const prob = row.getValue("probability") as number
+      return <div>{prob}%</div>
+    }
+  },
+  {
+    accessorKey: "account",
+    header: "Account",
+    cell: ({ row }) => {
+      const account = row.original.account
+      return account ? <span className="font-medium">{account.name}</span> : <span className="text-muted-foreground">-</span>
+    }
+  },
+  {
+    accessorKey: "closeDate",
+    header: "Close Date",
+    cell: ({ row }) => {
+      const date = row.getValue("closeDate")
+      return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
+    }
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      const opportunity = row.original
+      return <OpportunityActions opportunity={opportunity} />
     },
-    {
-        accessorKey: "probability",
-        header: "Prob.",
-        cell: ({ row }) => {
-            const prob = row.getValue("probability") as number
-            return <div>{prob}%</div>
-        }
-    },
-    {
-        accessorKey: "account",
-        header: "Account",
-        cell: ({ row }) => {
-            const account = row.original.account
-            return account ? <span className="font-medium">{account.name}</span> : <span className="text-muted-foreground">-</span>
-        }
-    },
-    {
-        accessorKey: "closeDate",
-        header: "Close Date",
-        cell: ({ row }) => {
-            const date = row.getValue("closeDate")
-            return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
-        }
-    },
-    {
-        id: "actions",
-        cell: ({ row }) => {
-            const opportunity = row.original
-            return <OpportunityActions opportunity={opportunity} />
-        },
-    },
+  },
 ]

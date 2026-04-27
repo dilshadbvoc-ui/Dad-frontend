@@ -17,257 +17,257 @@ import { useQueryClient } from '@tanstack/react-query';
 import { requestNotificationPermissions, triggerRichNotification, unlockAudio } from '@/utils/notificationFeedback';
 
 export default function Layout() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const isDashboard = location.pathname === '/dashboard';
-    const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
-        location.pathname.startsWith('/workflows') ||
-        location.pathname.startsWith('/whatsapp') ||
-        location.pathname.startsWith('/communications') ||
-        location.pathname.startsWith('/opportunities');
-    const [collapsed, setCollapsed] = useState(() => {
-        const saved = localStorage.getItem('sidebar-collapsed');
-        return saved === 'true';
+  const location = useLocation();
+  const navigate = useNavigate();
+  const isDashboard = location.pathname === '/dashboard';
+  const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
+    location.pathname.startsWith('/workflows') ||
+    location.pathname.startsWith('/whatsapp') ||
+    location.pathname.startsWith('/communications') ||
+    location.pathname.startsWith('/opportunities');
+  const [collapsed, setCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebar-collapsed');
+    return saved === 'true';
+  });
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Enable real-time product view notifications
+  useProductViewNotifications();
+
+  useEffect(() => {
+    localStorage.setItem('sidebar-collapsed', String(collapsed));
+  }, [collapsed]);
+
+  // Close mobile menu when route changes
+  useEffect(() => {
+    // Defer to avoid cascading renders during navigation
+    const timer = setTimeout(() => {
+      setMobileMenuOpen(false);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [location.pathname]);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape);
+    
+    // Request notification permissions on mount
+    requestNotificationPermissions();
+
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, []);
+
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    interface CallUpdateData {
+      status: 'connected' | 'ended';
+      phoneNumber: string;
+      duration?: string;
+    }
+
+    const handleCallUpdate = (data: CallUpdateData) => {
+      if (data.status === 'connected') {
+        toast.info(`Call Connected: ${data.phoneNumber}`, {
+          description: 'Call timer started...',
+          duration: Infinity,
+          id: 'active-call-toast'
+        });
+      } else if (data.status === 'ended') {
+        toast.dismiss('active-call-toast');
+        toast.success(`Call Ended`, {
+          description: `Duration: ${data.duration || 'Unknown'}`,
+        });
+      }
+    };
+    const handleRealtimeSync = (event: string) => {
+      console.log(`[Socket] Real-time event received: ${event}`);
+      if (event.startsWith('lead_')) {
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
+        queryClient.invalidateQueries({ queryKey: ['lead'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      }
+    };
+
+    const handleNotification = (data: { title: string; message: string; type?: string }) => {
+      if (!data) return; // Safeguard against null data
+
+      // Invalidate notification queries to update the bell/popover
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+
+      // Map backend types to sonner toast types
+      const type = data.type === 'error' ? 'error' :
+        data.type === 'success' ? 'success' :
+          data.type === 'warning' ? 'warning' : 'info';
+
+      toast[type](data.title, {
+        description: data.message,
+        duration: 4000,
+      });
+
+      // Trigger sensory feedback (sound/vibration/OS popup)
+      triggerRichNotification(data.title, data.message);
+
+      // Native Android App push notification mirror
+      triggerAndroidNotification(data.title, data.message);
+    };
+
+    socketService.on('call_status_update', handleCallUpdate);
+    socketService.on('notification', handleNotification);
+
+    // Real-time Data Sync Listeners
+    socketService.on('lead_created', () => {
+      handleRealtimeSync('lead_created');
+      
+      // Rich alert for new leads
+      triggerRichNotification('New Lead Assigned', 'A fresh lead has been assigned to you. Details are available in the dashboard.');
+
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        const { token } = JSON.parse(userInfo);
+        if (token) {
+          triggerAndroidLeadSync(token);
+          triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
+        }
+      }
     });
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    socketService.on('lead_updated', () => {
+      handleRealtimeSync('lead_updated');
+      
+      // Rich alert for re-enquiries or updates
+      triggerRichNotification('Lead Activity', 'A lead has been updated or a re-enquiry was received.');
 
-    // Enable real-time product view notifications
-    useProductViewNotifications();
-
-    useEffect(() => {
-        localStorage.setItem('sidebar-collapsed', String(collapsed));
-    }, [collapsed]);
-
-    // Close mobile menu when route changes
-    useEffect(() => {
-        // Defer to avoid cascading renders during navigation
-        const timer = setTimeout(() => {
-            setMobileMenuOpen(false);
-        }, 0);
-        return () => clearTimeout(timer);
-    }, [location.pathname]);
-
-    // Close mobile menu on escape key
-    useEffect(() => {
-        const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') {
-                setMobileMenuOpen(false);
-            }
-        };
-        document.addEventListener('keydown', handleEscape);
-        
-        // Request notification permissions on mount
-        requestNotificationPermissions();
-
-        return () => document.removeEventListener('keydown', handleEscape);
-    }, []);
-
-    const queryClient = useQueryClient();
-
-    useEffect(() => {
-        interface CallUpdateData {
-            status: 'connected' | 'ended';
-            phoneNumber: string;
-            duration?: string;
+      const userInfo = localStorage.getItem('userInfo');
+      if (userInfo) {
+        const { token } = JSON.parse(userInfo);
+        if (token) {
+          triggerAndroidLeadSync(token);
+          triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
         }
+      }
+    });
+    socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
 
-        const handleCallUpdate = (data: CallUpdateData) => {
-            if (data.status === 'connected') {
-                toast.info(`Call Connected: ${data.phoneNumber}`, {
-                    description: 'Call timer started...',
-                    duration: Infinity,
-                    id: 'active-call-toast'
-                });
-            } else if (data.status === 'ended') {
-                toast.dismiss('active-call-toast');
-                toast.success(`Call Ended`, {
-                    description: `Duration: ${data.duration || 'Unknown'}`,
-                });
-            }
-        };
-        const handleRealtimeSync = (event: string) => {
-            console.log(`[Socket] Real-time event received: ${event}`);
-            if (event.startsWith('lead_')) {
-                queryClient.invalidateQueries({ queryKey: ['leads'] });
-                queryClient.invalidateQueries({ queryKey: ['lead'] });
-                queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-            }
-        };
+    // Initial sync on mount if on Android
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      const { token } = JSON.parse(userInfo);
+      if (token) triggerAndroidLeadSync(token);
+    }
 
-        const handleNotification = (data: { title: string; message: string; type?: string }) => {
-            if (!data) return; // Safeguard against null data
+    return () => {
+      socketService.off('call_status_update');
+      socketService.off('notification');
+      socketService.off('lead_created');
+      socketService.off('lead_updated');
+      socketService.off('lead_deleted');
+    };
+  }, []);
 
-            // Invalidate notification queries to update the bell/popover
-            queryClient.invalidateQueries({ queryKey: ['notifications'] });
+  return (
+    <div 
+      className="flex h-screen overflow-hidden bg-background"
+      onClick={unlockAudio}
+      onTouchStart={unlockAudio}
+    >
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
 
-            // Map backend types to sonner toast types
-            const type = data.type === 'error' ? 'error' :
-                data.type === 'success' ? 'success' :
-                    data.type === 'warning' ? 'warning' : 'info';
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:block">
+        <ErrorBoundary name="Sidebar">
+          <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
+        </ErrorBoundary>
+      </div>
 
-            toast[type](data.title, {
-                description: data.message,
-                duration: 4000,
-            });
-
-            // Trigger sensory feedback (sound/vibration/OS popup)
-            triggerRichNotification(data.title, data.message);
-
-            // Native Android App push notification mirror
-            triggerAndroidNotification(data.title, data.message);
-        };
-
-        socketService.on('call_status_update', handleCallUpdate);
-        socketService.on('notification', handleNotification);
-
-        // Real-time Data Sync Listeners
-        socketService.on('lead_created', () => {
-            handleRealtimeSync('lead_created');
-            
-            // Rich alert for new leads
-            triggerRichNotification('New Lead Assigned', 'A fresh lead has been assigned to you. Details are available in the dashboard.');
-
-            const userInfo = localStorage.getItem('userInfo');
-            if (userInfo) {
-                const { token } = JSON.parse(userInfo);
-                if (token) {
-                    triggerAndroidLeadSync(token);
-                    triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
-                }
-            }
-        });
-        socketService.on('lead_updated', () => {
-            handleRealtimeSync('lead_updated');
-            
-            // Rich alert for re-enquiries or updates
-            triggerRichNotification('Lead Activity', 'A lead has been updated or a re-enquiry was received.');
-
-            const userInfo = localStorage.getItem('userInfo');
-            if (userInfo) {
-                const { token } = JSON.parse(userInfo);
-                if (token) {
-                    triggerAndroidLeadSync(token);
-                    triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
-                }
-            }
-        });
-        socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
-
-        // Initial sync on mount if on Android
-        const userInfo = localStorage.getItem('userInfo');
-        if (userInfo) {
-            const { token } = JSON.parse(userInfo);
-            if (token) triggerAndroidLeadSync(token);
-        }
-
-        return () => {
-            socketService.off('call_status_update');
-            socketService.off('notification');
-            socketService.off('lead_created');
-            socketService.off('lead_updated');
-            socketService.off('lead_deleted');
-        };
-    }, []);
-
-    return (
-        <div 
-            className="flex h-screen overflow-hidden bg-background"
-            onClick={unlockAudio}
-            onTouchStart={unlockAudio}
+      {/* Mobile Sidebar */}
+      <div className={cn(
+        "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl",
+        mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+      )}>
+        <ErrorBoundary name="MobileSidebar">
+          <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
+        </ErrorBoundary>
+        {/* Close button inside sidebar for better UX */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={() => setMobileMenuOpen(false)}
+          className="absolute top-2 right-2 text-white/70 hover:text-white hover:bg-white/10 lg:hidden"
         >
-            {/* Mobile Menu Overlay */}
-            {mobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden"
-                    onClick={() => setMobileMenuOpen(false)}
-                />
+          <X className="h-5 w-5" />
+        </Button>
+      </div>
+
+      <div className="flex-1 flex flex-col overflow-hidden w-full relative">
+        {/* Standardized Header Container */}
+        <div className="flex items-center justify-between bg-card border-b border-border px-2 sm:px-4 h-16 shadow-md shadow-black/5 shrink-0 z-20 relative transition-all duration-300">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden h-10 w-10 text-primary hover:bg-primary/10 transition-colors"
+          >
+            {mobileMenuOpen ? (
+              <X className="h-6 w-6 transform rotate-90 transition-transform duration-300" />
+            ) : (
+              <Menu className="h-6 w-6 transform rotate-0 transition-transform duration-300" />
             )}
-
-            {/* Desktop Sidebar */}
-            <div className="hidden lg:block">
-                <ErrorBoundary name="Sidebar">
-                    <Sidebar isCollapsed={collapsed} setIsCollapsed={setCollapsed} />
-                </ErrorBoundary>
-            </div>
-
-            {/* Mobile Sidebar */}
-            <div className={cn(
-                "fixed inset-y-0 left-0 z-50 w-72 transform transition-transform duration-300 ease-in-out lg:hidden shadow-2xl",
-                mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-            )}>
-                <ErrorBoundary name="MobileSidebar">
-                    <Sidebar isCollapsed={false} setIsCollapsed={() => { }} />
-                </ErrorBoundary>
-                {/* Close button inside sidebar for better UX */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="absolute top-2 right-2 text-white/70 hover:text-white hover:bg-white/10 lg:hidden"
-                >
-                    <X className="h-5 w-5" />
-                </Button>
-            </div>
-
-            <div className="flex-1 flex flex-col overflow-hidden w-full relative">
-                {/* Standardized Header Container */}
-                <div className="flex items-center justify-between bg-card border-b border-border px-2 sm:px-4 h-16 shadow-md shadow-black/5 shrink-0 z-20 relative transition-all duration-300">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                        className="lg:hidden h-10 w-10 text-primary hover:bg-primary/10 transition-colors"
-                    >
-                        {mobileMenuOpen ? (
-                            <X className="h-6 w-6 transform rotate-90 transition-transform duration-300" />
-                        ) : (
-                            <Menu className="h-6 w-6 transform rotate-0 transition-transform duration-300" />
-                        )}
-                    </Button>
-                    <ErrorBoundary name="Header">
-                        <Header className="flex-1 pl-2 sm:pl-4" />
-                    </ErrorBoundary>
-                </div>
-
-                <main className={cn(
-                    "flex-1 bg-background/50 safe-bottom",
-                    isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden scrollbar-thin"
-                )}>
-                    <div className={cn(
-                        "w-full max-w-[2000px] mx-auto",
-                        isFullWidthPage ? "h-full" : "pb-24 lg:pb-8"
-                    )}>
-                        {!isDashboard && (
-                            <div className="px-4 py-3 lg:px-6 lg:py-4 flex items-center">
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => navigate(-1)}
-                                    className="group flex items-center gap-2 text-muted-foreground hover:text-primary pl-0 hover:bg-transparent transition-colors touch-safe"
-                                >
-                                    <div className="p-1.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                                        <ChevronLeft className="h-4 w-4" />
-                                    </div>
-                                    <span className="font-bold text-[10px] uppercase tracking-widest hidden xs:inline">Back</span>
-                                </Button>
-                            </div>
-                        )}
-                        <div className={cn(
-                            isFullWidthPage ? "p-0 h-full" : "px-4 sm:px-6 pt-0 sm:pt-4"
-                        )}>
-                            <ErrorBoundary name="PageContent">
-                                <Outlet />
-                            </ErrorBoundary>
-                        </div>
-                    </div>
-                </main>
-            </div>
-            <ErrorBoundary name="ViolationAlert">
-                <ViolationAlert />
-            </ErrorBoundary>
-            <ErrorBoundary name="CommandCenter">
-                <CommandCenter />
-            </ErrorBoundary>
+          </Button>
+          <ErrorBoundary name="Header">
+            <Header className="flex-1 pl-2 sm:pl-4" />
+          </ErrorBoundary>
         </div>
-    );
+
+        <main className={cn(
+          "flex-1 bg-background/50 safe-bottom",
+          isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden scrollbar-thin"
+        )}>
+          <div className={cn(
+            "w-full max-w-[2000px] mx-auto",
+            isFullWidthPage ? "h-full" : "pb-24 lg:pb-8"
+          )}>
+            {!isDashboard && (
+              <div className="px-4 py-3 lg:px-6 lg:py-4 flex items-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(-1)}
+                  className="group flex items-center gap-2 text-muted-foreground hover:text-primary pl-0 hover:bg-transparent transition-colors touch-safe"
+                >
+                  <div className="p-1.5 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <ChevronLeft className="h-4 w-4" />
+                  </div>
+                  <span className="font-bold text-[10px] uppercase tracking-widest hidden xs:inline">Back</span>
+                </Button>
+              </div>
+            )}
+            <div className={cn(
+              isFullWidthPage ? "p-0 h-full" : "px-4 sm:px-6 pt-0 sm:pt-4"
+            )}>
+              <ErrorBoundary name="PageContent">
+                <Outlet />
+              </ErrorBoundary>
+            </div>
+          </div>
+        </main>
+      </div>
+      <ErrorBoundary name="ViolationAlert">
+        <ViolationAlert />
+      </ErrorBoundary>
+      <ErrorBoundary name="CommandCenter">
+        <CommandCenter />
+      </ErrorBoundary>
+    </div>
+  );
 }
