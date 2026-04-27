@@ -7,7 +7,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator
 } from '@/components/ui/dropdown-menu';
-import { DeleteConfirmationDialog } from '@/components/shared/DeleteConfirmationDialog';
 import {
   ChevronDown,
   Mail,
@@ -20,7 +19,6 @@ import {
   Calendar,
   Archive
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 interface BulkActionsToolbarProps {
   selectedItems: string[];
@@ -38,7 +36,6 @@ export function BulkActionsToolbar({
   className = ''
 }: BulkActionsToolbarProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [currentAction, setCurrentAction] = useState<string>('');
 
   if (selectedItems.length === 0) return null;
@@ -49,20 +46,12 @@ export function BulkActionsToolbar({
 
     try {
       await onBulkAction(action, data);
-      toast.success(`Bulk ${action} completed successfully`);
-      onClearSelection();
     } catch (error) {
-      toast.error(`Failed to perform bulk ${action}`);
       console.error('Bulk action error:', error);
     } finally {
       setIsLoading(false);
       setCurrentAction('');
     }
-  };
-
-  const handleDeleteConfirm = () => {
-    setShowDeleteDialog(false);
-    handleAction('delete');
   };
 
   const getEntityActions = () => {
@@ -268,7 +257,7 @@ export function BulkActionsToolbar({
               })}
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => setShowDeleteDialog(true)}
+                onClick={() => handleAction('delete')}
                 className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
               >
                 <Trash2 className="h-4 w-4" />
@@ -278,18 +267,6 @@ export function BulkActionsToolbar({
           </DropdownMenu>
         </div>
       </div>
-
-
-
-      <DeleteConfirmationDialog
-        open={showDeleteDialog}
-        onOpenChange={setShowDeleteDialog}
-        onConfirm={handleDeleteConfirm}
-        title={`Delete ${selectedItems.length} ${entityType}?`}
-        description={`This action cannot be undone. This will permanently delete the selected ${entityType} and remove all associated data.`}
-        confirmText={`Delete ${selectedItems.length} ${entityType}`}
-        isDeleting={isLoading && currentAction === 'delete'}
-      />
     </>
   );
 }
