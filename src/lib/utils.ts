@@ -243,6 +243,13 @@ export function isBranchManager(user: any): boolean {
 }
 
 /**
+ * Checks if a user has manager privileges (Manager, Admin, or Super Admin)
+ */
+export function isManager(user: any): boolean {
+    return checkRole(user, ['manager', 'admin', 'super_admin']);
+}
+
+/**
  * Checks if a user has access to the settings page
  * All users can access settings (they'll see filtered sections based on role)
  */

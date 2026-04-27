@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
-import { Calendar, DollarSign, Target, Package, Loader2, User, RefreshCw } from "lucide-react"
+import { useNavigate } from "react-router-dom"
+import { Calendar, DollarSign, Target, Package, Loader2, User, RefreshCw, ExternalLink } from "lucide-react"
 import { useCurrency } from "@/contexts/CurrencyContext"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
@@ -88,6 +89,7 @@ interface ViewOpportunityDialogProps {
 }
 
 export function ViewOpportunityDialog({ children, open, onOpenChange, opportunity }: ViewOpportunityDialogProps) {
+  const navigate = useNavigate()
   const { formatCurrency } = useCurrency()
   const queryClient = useQueryClient()
 
@@ -235,12 +237,21 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
               </div>
             )}
 
-            {/* Lead Owner Information */}
+            {/* Lead Information */}
             {displayOpportunity.lead && (
-              <div className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800">
-                <div className="flex items-center gap-2 mb-3">
-                  <User className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Lead Owner</span>
+              <div 
+                className="p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded-lg border border-green-200 dark:border-green-800 cursor-pointer hover:shadow-md transition-all group"
+                onClick={() => {
+                   onOpenChange?.(false);
+                   navigate(`/leads/${displayOpportunity.lead.id}`);
+                }}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <User className="w-4 h-4 text-green-600" />
+                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Linked Lead</span>
+                  </div>
+                  <ExternalLink className="w-3 h-3 text-green-600 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
                 {displayOpportunity.lead.assignedTo ? (
                   <div className="flex items-center gap-3">
@@ -256,19 +267,18 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 dark:text-gray-100">
-                        {displayOpportunity.lead.assignedTo.firstName} {displayOpportunity.lead.assignedTo.lastName}
+                      <div className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                        {displayOpportunity.lead.firstName} {displayOpportunity.lead.lastName}
+                        <Badge variant="outline" className="text-[10px] h-4 px-1 bg-white/50">Lead</Badge>
                       </div>
-                      {displayOpportunity.lead.assignedTo.email && (
-                        <div className="text-xs text-gray-600 dark:text-gray-400">
-                          {displayOpportunity.lead.assignedTo.email}
-                        </div>
-                      )}
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Owner: {displayOpportunity.lead.assignedTo.firstName} {displayOpportunity.lead.assignedTo.lastName}
+                      </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Lead: {displayOpportunity.lead.firstName} {displayOpportunity.lead.lastName} (Unassigned)
+                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {displayOpportunity.lead.firstName} {displayOpportunity.lead.lastName} (Unassigned)
                   </div>
                 )}
               </div>

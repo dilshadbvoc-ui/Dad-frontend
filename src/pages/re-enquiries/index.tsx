@@ -8,13 +8,13 @@ import { Input } from "@/components/ui/input"
 import { RefreshCw, Search, Phone, Mail, Building2, Calendar, TrendingUp, ShieldAlert } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 import { formatDistanceToNow } from "date-fns"
-import { isAdmin, getUserInfo } from "@/lib/utils"
+import { isAdmin, isManager, getUserInfo } from "@/lib/utils"
 
 export default function ReEnquiriesPage() {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState("")
   const [user] = useState(() => getUserInfo())
-  const hasAccess = isAdmin(user)
+  const hasAccess = isManager(user)
 
   const [now] = useState(() => Date.now())
 
@@ -42,7 +42,7 @@ export default function ReEnquiriesPage() {
             <ShieldAlert className="h-16 w-16 text-destructive mb-4" />
             <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
             <p className="text-sm text-muted-foreground text-center">
-              Only organisation admins can access re-enquiry leads management.
+              Only organisation admins and managers can access re-enquiry leads.
             </p>
           </CardContent>
         </Card>
