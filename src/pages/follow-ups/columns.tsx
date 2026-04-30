@@ -25,32 +25,25 @@ import { useState } from "react"
 
 export const columns: ColumnDef<FollowUpTask>[] = [
   {
-    accessorKey: "subject",
+    accessorKey: "leadName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Subject
+          Lead Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       )
     },
-    cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("subject")}</div>
-    }
-  },
-  {
-    id: "leadName",
-    header: "Lead Name",
     cell: ({ row }) => {
       const task = row.original
       const related = task.relatedTo as any
       const leadId = task.leadId || (task.onModel === 'Lead' ? related?.id : null)
 
       if (!related || task.onModel !== 'Lead') {
-        return <span className="text-muted-foreground">-</span>
+        return <div className="font-medium">{task.subject}</div>
       }
 
       const name = `${related.firstName || ''} ${related.lastName || ''}`.trim() || related.company || 'Unknown'
@@ -58,10 +51,9 @@ export const columns: ColumnDef<FollowUpTask>[] = [
       return (
         <Link
           to={`/leads/${leadId}`}
-          className="group flex items-center gap-1.5 text-sm font-medium text-primary hover:text-primary/80 hover:underline transition-colors"
+          className="font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
           {name}
-          <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
         </Link>
       )
     }
