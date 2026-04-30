@@ -5,7 +5,8 @@ import { cn } from "@/lib/utils"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
-import { Calendar, Clock, ListFilter, ArrowUpDown } from "lucide-react"
+import { getBranches } from "@/services/settingsService"
+import { Building2, Calendar, Clock, ListFilter, ArrowUpDown } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { isToday } from "date-fns"
@@ -17,13 +18,22 @@ export default function FollowUpsPage() {
 
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
+  const [branchFilter, setBranchFilter] = useState("all")
   const [sortBy, setSortBy] = useState<string>("dueDate-asc")
 
+  const { data: branchesData } = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches
+  })
+
+  const branches = branchesData || []
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['follow-ups', searchQuery, statusFilter],
+    queryKey: ['follow-ups', searchQuery, statusFilter, branchFilter],
     queryFn: () => getFollowUps({
       search: searchQuery || undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
+      branchId: branchFilter !== 'all' ? branchFilter : undefined,
       limit: 1000
     }),
   })
@@ -206,6 +216,23 @@ export default function FollowUpsPage() {
               <SelectItem value="deferred">Deferred</SelectItem>
             </SelectContent>
           </Select>
+
+          {branches.length > 0 && (
+            <Select value={branchFilter} onValueChange={setBranchFilter}>
+              <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="Branch" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branches.map((branch: any) => (
+                  <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
       </div>
 

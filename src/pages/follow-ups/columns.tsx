@@ -67,6 +67,20 @@ export const columns: ColumnDef<FollowUpTask>[] = [
     }
   },
   {
+    accessorKey: "branch",
+    header: "Branch",
+    cell: ({ row }) => {
+      const branch = row.original.branch
+      return (
+        <div className="flex items-center gap-1.5">
+          <Badge variant="outline" className="bg-blue-50/50 text-blue-700 border-blue-200 font-medium">
+            {branch?.name || "Main Branch"}
+          </Badge>
+        </div>
+      )
+    }
+  },
+  {
     accessorKey: "dueDate",
     header: ({ column }) => {
       return (

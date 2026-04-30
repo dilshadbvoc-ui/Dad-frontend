@@ -6,7 +6,7 @@ import { AchievementNotification } from '@/components/AchievementNotification';
 import { DailyBriefingDialog } from '@/components/DailyBriefingDialog';
 import { RecentActivityWidget } from '@/components/dashboard/RecentActivityWidget';
 import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget';
-import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
+
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
 import { ReportsOverviewWidget } from '@/components/dashboard/ReportsOverviewWidget';
@@ -321,12 +321,7 @@ export default function Dashboard() {
           </div>
         </Link>
 
-        {/* License Widget */}
-        {isAdminUser && (
-          <ErrorBoundary name="LicenseUsageWidget">
-            <LicenseUsageWidget />
-          </ErrorBoundary>
-        )}
+
       </div>
 
       {/* Reports Overview Row */}

@@ -20,6 +20,10 @@ export interface FollowUpTask {
     relatedTo?: any;
     leadId?: string;
     onModel?: 'Lead' | 'Contact' | 'Account' | 'Opportunity';
+    branch?: {
+        id: string;
+        name: string;
+    };
     createdAt: string;
     updatedAt: string;
 }
@@ -29,6 +33,7 @@ export interface FollowUpSearchParams {
     limit?: number;
     search?: string;
     status?: string;
+    branchId?: string;
 }
 
 export const getFollowUps = async (params?: FollowUpSearchParams) => {
