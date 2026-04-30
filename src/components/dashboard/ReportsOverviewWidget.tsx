@@ -1,5 +1,5 @@
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { BarChart3, TrendingUp, PhoneCall, FileText, Users, Calendar, ArrowRight } from "lucide-react"
+import { BarChart3, TrendingUp, Trophy, FileText, Users, Calendar, ArrowRight } from "lucide-react"
 import { Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 
@@ -13,11 +13,11 @@ export function ReportsOverviewWidget() {
       color: "bg-blue-500/10",
     },
     {
-      title: "Call Analytics",
-      description: "Talk time & performance",
-      icon: <PhoneCall className="h-5 w-5 text-green-500" />,
-      to: "/reports/call-analytics",
-      color: "bg-green-500/10",
+      title: "User Total",
+      description: "Efficiency & metrics summary",
+      icon: <Trophy className="h-5 w-5 text-blue-600" />,
+      to: "/reports/user-total",
+      color: "bg-blue-600/10",
     },
     {
       title: "User Sales",
