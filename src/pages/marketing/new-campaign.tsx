@@ -65,10 +65,6 @@ export default function CreateCampaignPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6">
       <div className="flex items-center space-x-4 mb-8">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Exit
-        </Button>
         <div className="flex-1 flex justify-center space-x-4">
           {STEPS.map((step, i) => (
             <div key={step} className={`flex items-center space-x-2 ${i === currentStep ? 'text-primary font-bold' : 'text-gray-400'}`}>

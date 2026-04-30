@@ -15,14 +15,6 @@ const Terms = () => {
         canonical="https://pypecrm.com/terms"
       />
       <div className="max-w-4xl mx-auto pt-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-6 flex items-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
 
         <Card className="shadow-lg border-0 bg-white dark:bg-slate-800">
           <CardHeader className="border-b border-slate-100 dark:border-slate-700 pb-6 bg-slate-50/50 dark:bg-slate-800/50 rounded-t-xl">
