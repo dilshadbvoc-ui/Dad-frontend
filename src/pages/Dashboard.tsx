@@ -9,6 +9,7 @@ import { TopPerformersWidget } from '@/components/dashboard/TopPerformersWidget'
 import { LicenseUsageWidget } from '@/components/dashboard/LicenseUsageWidget';
 import { SalesChartWidget } from '@/components/dashboard/SalesChartWidget';
 import { LeadSourcesWidget } from '@/components/dashboard/LeadSourcesWidget';
+import { ReportsOverviewWidget } from '@/components/dashboard/ReportsOverviewWidget';
 import { Building2, Calendar, ArrowRight, FileText, Download, Loader2, TrendingUp, Check, Trophy, AlertCircle, Plus, ChevronLeft, ChevronRight, Clock, Users, Video } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -343,6 +344,13 @@ export default function Dashboard() {
             <LeadSourcesWidget branchId={selectedBranchId} />
           </ErrorBoundary>
         </div>
+      </div>
+
+      {/* Reports Overview Row */}
+      <div className="grid gap-6">
+        <ErrorBoundary name="ReportsOverviewWidget">
+          <ReportsOverviewWidget />
+        </ErrorBoundary>
       </div>
 
       {/* Activity Row */}
