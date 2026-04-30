@@ -329,6 +329,13 @@ export default function Dashboard() {
         )}
       </div>
 
+      {/* Reports Overview Row */}
+      <div className="grid gap-6">
+        <ErrorBoundary name="ReportsOverviewWidget">
+          <ReportsOverviewWidget />
+        </ErrorBoundary>
+      </div>
+
       {/* Main Charts Row */}
       <div className="grid gap-6 lg:grid-cols-7">
         <div className="lg:col-span-4 min-w-0">
@@ -346,12 +353,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Reports Overview Row */}
-      <div className="grid gap-6">
-        <ErrorBoundary name="ReportsOverviewWidget">
-          <ReportsOverviewWidget />
-        </ErrorBoundary>
-      </div>
 
       {/* Activity Row */}
       <div className="grid gap-6 md:grid-cols-1">
