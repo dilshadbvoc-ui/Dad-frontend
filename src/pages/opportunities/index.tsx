@@ -33,7 +33,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { getUsers } from "@/services/userService"
+import { getUsers, getBranches } from "@/services/settingsService"
 
 export default function OpportunitiesPage() {
   const { formatCurrency } = useCurrency()
@@ -51,6 +51,7 @@ export default function OpportunitiesPage() {
     ownerId: '',
     stage: initialStage || 'all',
     type: 'all',
+    branchId: 'all',
     search: ''
   })
 
@@ -64,6 +65,13 @@ export default function OpportunitiesPage() {
     queryFn: () => getUsers(),
   });
   const users = userData?.users || [];
+  
+  // Branches for Filter
+  const { data: branchData } = useQuery({
+    queryKey: ['branches', 'list'],
+    queryFn: () => getBranches(),
+  });
+  const branches = branchData?.branches || [];
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['opportunities', queryParams, filterMode],
@@ -74,6 +82,7 @@ export default function OpportunitiesPage() {
       }
       if (params.stage === 'all') delete params.stage;
       if (params.type === 'all') delete params.type;
+      if (params.branchId === 'all') delete params.branchId;
       if (params.ownerId === '') delete params.ownerId;
       
       return getOpportunities(params);
@@ -95,6 +104,7 @@ export default function OpportunitiesPage() {
       ownerId: '',
       stage: 'all',
       type: 'all',
+      branchId: 'all',
       search: ''
     });
     setFilterMode('all');
@@ -171,10 +181,10 @@ export default function OpportunitiesPage() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all') ? 'border-primary text-primary bg-primary/5' : '')}>
+                <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all') ? 'border-primary text-primary bg-primary/5' : '')}>
                   <Filter className="h-4 w-4" />
                   <span className="ml-2 hidden xs:inline">Filter</span>
-                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all') && (
+                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all') && (
                     <Badge className="ml-2 h-4 w-4 p-0 flex items-center justify-center bg-primary text-white text-[10px] rounded-full">
                       !
                     </Badge>
@@ -233,6 +243,21 @@ export default function OpportunitiesPage() {
                         <SelectItem value="all">All Types</SelectItem>
                         <SelectItem value="NEW_BUSINESS">New Business</SelectItem>
                         <SelectItem value="UPSALE">Upsale</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Branch</label>
+                    <Select value={queryParams.branchId} onValueChange={(v) => handleFilterChange('branchId', v)}>
+                      <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
+                        <SelectValue placeholder="All Branches" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="all">All Branches</SelectItem>
+                        {branches.map((b: any) => (
+                          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
