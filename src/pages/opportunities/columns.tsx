@@ -86,6 +86,24 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     }
   },
   {
+    accessorKey: "branch.name",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Branch
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const branch = row.original.branch
+      return branch ? <span className="font-medium">{branch.name}</span> : <span className="text-muted-foreground">-</span>
+    }
+  },
+  {
     accessorKey: "closeDate",
     header: "Close Date",
     cell: ({ row }) => {

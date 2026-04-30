@@ -34,6 +34,9 @@ export interface Opportunity {
         status: 'active' | 'completed' | 'cancelled';
         installments?: any[];
     };
+    branch?: {
+        name: string;
+    };
     paymentRecords?: any[];
 }
 
