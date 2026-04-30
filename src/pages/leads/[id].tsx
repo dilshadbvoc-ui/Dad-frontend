@@ -30,6 +30,7 @@ import { format } from "date-fns"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { getBestDurationSeconds, formatDuration } from "@/lib/callUtils"
+import { ProductShareDropdown } from "@/components/leads/ProductShareDropdown"
 
 
 
@@ -492,11 +493,27 @@ export default function LeadDetailPage() {
                   </Button>
                 </div>
                 {lead.products && lead.products.length > 0 ? (
-                  <div className="space-y-1">
+                  <div className="space-y-3">
                     {lead.products.map((kp: { productId: string; product?: { name: string }; quantity: number; price: number }) => (
-                      <div key={kp.productId} className="text-sm flex justify-between">
-                        <span>{kp.product?.name} <span className="text-muted-foreground text-xs">x{kp.quantity}</span></span>
-                        <span className="font-medium">{formatCurrency(kp.price * kp.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span>
+                      <div key={kp.productId} className="text-sm border-b last:border-0 border-dashed pb-3 last:pb-0">
+                        <div className="flex justify-between items-start mb-1">
+                          <span className="font-medium">
+                            {kp.product?.name} 
+                            <span className="text-muted-foreground text-[10px] ml-1 bg-muted px-1 rounded font-normal">x{kp.quantity}</span>
+                          </span>
+                          <span className="font-bold text-primary">
+                            {formatCurrency(kp.price * kp.quantity, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                        <div className="flex justify-start">
+                          <ProductShareDropdown 
+                            productId={kp.productId} 
+                            productName={kp.product?.name || 'Product'} 
+                            leadId={lead.id}
+                            leadPhone={lead.phone}
+                            leadEmail={lead.email}
+                          />
+                        </div>
                       </div>
                     ))}
                   </div>
