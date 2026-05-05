@@ -11,12 +11,16 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { differenceInDays, addDays } from "date-fns"
 
 interface TrashedItem {
   id: string;
   type: string;
   name: string;
   deletedAt: string;
+  email?: string;
+  avatar?: string;
 }
 
 export default function TrashPage() {
@@ -67,8 +71,21 @@ export default function TrashPage() {
       header: "Type",
       cell: ({ row }) => {
         const type = row.getValue("type") as string;
+        const colors: Record<string, string> = {
+          Lead: "bg-blue-100 text-blue-700 border-blue-200",
+          Contact: "bg-purple-100 text-purple-700 border-purple-200",
+          Account: "bg-amber-100 text-amber-700 border-amber-200",
+          Opportunity: "bg-emerald-100 text-emerald-700 border-emerald-200",
+          User: "bg-indigo-100 text-indigo-700 border-indigo-200",
+          Task: "bg-slate-100 text-slate-700 border-slate-200",
+          Team: "bg-rose-100 text-rose-700 border-rose-200",
+          Branch: "bg-cyan-100 text-cyan-700 border-cyan-200",
+          Campaign: "bg-orange-100 text-orange-700 border-orange-200",
+          Case: "bg-red-100 text-red-700 border-red-200",
+          Quote: "bg-lime-100 text-lime-700 border-lime-200",
+        };
         return (
-          <Badge variant="outline" className="capitalize">
+          <Badge variant="outline" className={`capitalize font-semibold ${colors[type] || ""}`}>
             {type}
           </Badge>
         );
@@ -76,15 +93,67 @@ export default function TrashPage() {
     },
     {
       accessorKey: "name",
-      header: "Name/Title",
-      cell: ({ row }) => <span className="font-medium">{row.getValue("name")}</span>
+      header: "Record Details",
+      cell: ({ row }) => {
+        const item = row.original;
+        if (item.type === 'User') {
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar className="h-9 w-9 border-2 border-background shadow-sm">
+                <AvatarImage src={item.avatar} />
+                <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  {item.name.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col">
+                <span className="font-bold text-foreground leading-none">{item.name}</span>
+                <span className="text-xs text-muted-foreground mt-1">{item.email}</span>
+              </div>
+            </div>
+          );
+        }
+        if (item.type === 'Quote' || item.type === 'Case') {
+           return (
+            <div className="flex flex-col">
+              <span className="font-bold text-foreground leading-none">{item.name}</span>
+              <span className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider font-medium">Ref: {item.id.slice(0, 8)}</span>
+            </div>
+          );
+        }
+        return <span className="font-bold text-foreground">{item.name}</span>;
+      }
     },
     {
       accessorKey: "deletedAt",
-      header: "Deleted At",
+      header: "Deleted",
       cell: ({ row }) => {
         const date = row.getValue("deletedAt") as string;
-        return date ? format(new Date(date), "MMM d, yyyy HH:mm") : "-";
+        return (
+          <div className="flex flex-col">
+            <span className="text-sm font-medium">{date ? format(new Date(date), "MMM d, yyyy") : "-"}</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-tight">{date ? format(new Date(date), "HH:mm a") : ""}</span>
+          </div>
+        );
+      }
+    },
+    {
+      id: "expires",
+      header: "Purge In",
+      cell: ({ row }) => {
+        const deletedAt = row.original.deletedAt;
+        if (!deletedAt) return "-";
+        
+        const purgeDate = addDays(new Date(deletedAt), 7);
+        const daysLeft = differenceInDays(purgeDate, new Date());
+        
+        return (
+          <div className="flex items-center gap-2">
+            <div className={`h-2 w-2 rounded-full ${daysLeft <= 1 ? 'bg-destructive animate-pulse' : 'bg-orange-400'}`} />
+            <span className={`text-sm font-bold ${daysLeft <= 1 ? 'text-destructive' : 'text-orange-600'}`}>
+              {daysLeft <= 0 ? 'Today' : `${daysLeft} days`}
+            </span>
+          </div>
+        );
       }
     },
     {

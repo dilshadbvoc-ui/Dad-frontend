@@ -947,10 +947,10 @@ export default function TeamSettings() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="text-destructive flex items-center gap-2 font-bold text-xl">
-              <Trash2 className="h-6 w-6" /> Permanently Delete User?
+              <Trash2 className="h-6 w-6" /> Move User to Trash?
             </DialogTitle>
             <DialogDescription className="text-base">
-              This action is <strong>irreversible</strong>. Are you sure you want to delete <strong>{deletingUser?.firstName} {deletingUser?.lastName}</strong>?
+              Are you sure you want to delete <strong>{deletingUser?.firstName} {deletingUser?.lastName}</strong>? They will be moved to the trash folder.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-4 text-sm">
@@ -960,7 +960,7 @@ export default function TeamSettings() {
               </p>
               <ul className="list-disc list-inside space-y-1.5 text-red-600/80 font-medium">
                 <li>All assigned leads/tasks will be transferred to their manager.</li>
-                <li>The user record will be permanently purged from the database.</li>
+                <li>The user will be moved to the <strong>Trash Folder</strong> and can be restored within 7 days.</li>
                 <li>The user will lose access to all CRM data immediately.</li>
               </ul>
             </div>
@@ -975,7 +975,7 @@ export default function TeamSettings() {
               disabled={deleteMutation.isPending}
               className="rounded-xl font-bold px-6"
             >
-              {deleteMutation.isPending ? "Deleting..." : "Permanently Delete"}
+              {deleteMutation.isPending ? "Moving..." : "Move to Trash"}
             </Button>
           </DialogFooter>
         </DialogContent>
