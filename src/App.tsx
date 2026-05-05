@@ -188,7 +188,14 @@ function AppContent() {
    setIsAuthInitialized(true);
   };
 
-  initializeAuth();
+  // Failsafe: if initializeAuth hangs (e.g. network timeout), drop the loading screen after 15s
+  const fallbackTimer = setTimeout(() => {
+   setIsAuthInitialized(true);
+  }, 15000);
+
+  initializeAuth().finally(() => {
+   clearTimeout(fallbackTimer);
+  });
 
   const handleAuthRefresh = (e: any) => {
    if (e.detail?.token) syncWithAndroid(e.detail.token);
