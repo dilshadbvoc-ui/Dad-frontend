@@ -130,6 +130,42 @@ const AdsManager: React.FC = () => {
     }
   };
 
+  const handleToggleLeadSync = async (accountId: string, enabled: boolean) => {
+    try {
+      const { updateOrganisation } = await import('../../services/settingsService');
+      const currentIntegrations = (organisation?.integrations as any) || {};
+      const meta = currentIntegrations.meta || {};
+      const enabledAccounts = [...(meta.enabledLeadSyncAccounts || [])];
+
+      let newEnabledAccounts;
+      if (enabled) {
+        if (!enabledAccounts.includes(accountId)) {
+          newEnabledAccounts = [...enabledAccounts, accountId];
+        } else {
+          newEnabledAccounts = enabledAccounts;
+        }
+      } else {
+        newEnabledAccounts = enabledAccounts.filter(id => id !== accountId);
+      }
+
+      await updateOrganisation({
+        integrations: {
+          ...currentIntegrations,
+          meta: {
+            ...meta,
+            enabledLeadSyncAccounts: newEnabledAccounts
+          }
+        }
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['organisation'] });
+      toast.success(enabled ? 'Lead sync enabled for this account' : 'Lead sync disabled for this account');
+    } catch (error) {
+      console.error('Failed to update lead sync settings', error);
+      toast.error('Failed to update sync settings');
+    }
+  };
+
   const formatNumber = (val: string | number | undefined) => {
     if (!val) return '0';
     const num = typeof val === 'string' ? parseFloat(val) : val;
@@ -236,22 +272,42 @@ const AdsManager: React.FC = () => {
         </div>
       )}
 
-      {/* Account Selector */}
+      {/* Account Selector & Sync Toggle */}
       {metaConnected && (
-        <div className="w-full max-w-sm">
-          <Label className="text-sm font-medium mb-1.5 block">Ad Account</Label>
-          <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-            <SelectTrigger className="bg-white dark:bg-gray-900">
-              <SelectValue placeholder="Select Account" />
-            </SelectTrigger>
-            <SelectContent>
-              {adAccounts.map(acc => (
-                <SelectItem key={acc.id} value={acc.id}>
-                  {acc.name} ({acc.account_id})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="flex flex-col md:flex-row items-end gap-4">
+          <div className="w-full max-w-sm">
+            <Label className="text-sm font-medium mb-1.5 block">Ad Account</Label>
+            <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+              <SelectTrigger className="bg-white dark:bg-gray-900">
+                <SelectValue placeholder="Select Account" />
+              </SelectTrigger>
+              <SelectContent>
+                {adAccounts.map(acc => (
+                  <SelectItem key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.account_id})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {selectedAccount && (
+            <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border rounded-lg px-4 h-10">
+              <span className="text-sm font-medium">Auto-Sync Leads</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="sync-toggle"
+                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  checked={(organisation?.integrations as any)?.meta?.enabledLeadSyncAccounts?.includes(selectedAccount) || false}
+                  onChange={(e) => handleToggleLeadSync(selectedAccount, e.target.checked)}
+                />
+                <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground cursor-pointer">
+                  {(organisation?.integrations as any)?.meta?.enabledLeadSyncAccounts?.includes(selectedAccount) ? 'Enabled' : 'Disabled'}
+                </Label>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
