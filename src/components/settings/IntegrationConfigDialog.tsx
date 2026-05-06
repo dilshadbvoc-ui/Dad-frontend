@@ -822,121 +822,145 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
             {/* Fields for Facebook Payload (Manual) */}
             {integrationType === 'facebook_payload' && isConnected && (
               <>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-900/30 mb-4">
-                  <h4 className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-2 uppercase">Webhook Configuration</h4>
-                  <p className="text-xs text-blue-600/80 dark:text-blue-300/80 mb-2">
-                    Configure leadgen webhooks in your Meta App Dashboard with these values:
-                  </p>
-                  <div className="space-y-2">
-                    <div>
-                      <Label className="text-[10px]">Callback URL</Label>
-                      <Input 
-                        readOnly 
-                        className="h-7 text-xs bg-white dark:bg-black" 
-                        value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/meta/webhook`}
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-[10px]">Verify Token</Label>
-                      <Input 
-                        readOnly 
-                        className="h-7 text-xs bg-white dark:bg-black" 
-                        value="my_secure_token" 
+                <FormField
+                  control={form.control}
+                  name="connectionMode"
+                  render={({ field }) => (
+                    <FormItem className="mb-6">
+                      <FormLabel>Connection Method</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value || 'webhook'}
+                        value={field.value || 'webhook'}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="webhook">Webhook Payload (Push-only, No Tokens needed)</SelectItem>
+                          <SelectItem value="api">Direct API Sync (Requires Access Token, Shows Analytics)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormDescription className="text-xs">
+                        {field.value === 'api' 
+                          ? 'Syncs leads automatically and shows campaign analytics in Ads Manager.' 
+                          : 'Simple setup. You push lead data to us via webhook. No analytics data will be shown in Ads Manager.'}
+                      </FormDescription>
+                    </FormItem>
+                  )}
+                />
+
+                {form.watch('connectionMode') === 'api' ? (
+                  <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <FormField
+                      control={form.control}
+                      name="pageId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Facebook Page ID</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Enter Page ID" {...field} value={field.value as string || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="accessToken"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>System User Access Token</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="EAAB..." {...field} value={field.value as string || ''} />
+                          </FormControl>
+                          <FormDescription className="text-xs">
+                            Generated from Meta Business Suite.
+                          </FormDescription>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="adAccountId"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ad Account ID (for Analytics)</FormLabel>
+                          <FormControl>
+                            <Input placeholder="act_..." {...field} value={field.value as string || ''} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ) : (
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-900/30 mb-4 animate-in fade-in slide-in-from-top-1 duration-200">
+                    <h4 className="text-xs font-bold text-indigo-700 dark:text-indigo-400 mb-2 uppercase">Direct Webhook URL</h4>
+                    <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80 mb-2">
+                      Use this URL in your lead forwarding tool. No Meta tokens required!
+                    </p>
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-[10px] uppercase font-bold text-indigo-600/60">Webhook URL</Label>
+                        <div className="flex gap-2">
+                          <Input 
+                            readOnly 
+                            className="h-8 text-xs bg-white dark:bg-black font-mono" 
+                            value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${form.watch('apiKey') || '<YOUR_KEY>'}`}
+                          />
+                          <Button 
+                            type="button" 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 px-2"
+                            onClick={() => {
+                              const url = `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || ''}?apiKey=${form.getValues('apiKey') || ''}`;
+                              navigator.clipboard.writeText(url);
+                              toast.success('Webhook URL Copied');
+                            }}
+                          >Copy</Button>
+                        </div>
+                      </div>
+                      
+                      <FormField
+                        control={form.control}
+                        name="apiKey"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-[10px] uppercase font-bold text-indigo-600/60">Payload API Key</FormLabel>
+                            <FormControl>
+                              <Input type="password" placeholder="Set a secure key" {...field} value={field.value as string || ''} className="h-8 text-xs" />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
                       />
                     </div>
                   </div>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="pageId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Facebook Page ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter Page ID" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="pixelId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta Pixel ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter Pixel ID" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Required for Conversions API (CAPI).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="accessToken"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>System User Access Token</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="EAAB..." {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs text-muted-foreground/70">
-                        Generated from Meta Business Suite / System Users.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
+                )}
+                
                 <div className="pt-4 border-t mt-4">
-                  <h4 className="text-sm font-semibold mb-2">Alternative: Direct Payload Webhook</h4>
-                  <p className="text-xs text-muted-foreground mb-4">
-                    If you don't want to use a Meta App, use this webhook URL in your lead forwarding tool (like Make.com, custom script, or lead proxy).
-                  </p>
-
+                  <h4 className="text-sm font-semibold mb-2">Advanced Config</h4>
                   <FormField
                     control={form.control}
-                    name="apiKey"
+                    name="pixelId"
                     render={({ field }) => (
-                      <FormItem className="mb-4">
-                        <FormLabel>Payload API Key</FormLabel>
+                      <FormItem>
+                        <FormLabel>Meta Pixel ID (Optional)</FormLabel>
                         <FormControl>
-                          <Input type="password" placeholder="Set a secure key" {...field} value={field.value as string || ''} />
+                          <Input placeholder="Enter Pixel ID" {...field} value={field.value as string || ''} />
                         </FormControl>
                         <FormDescription className="text-xs">
-                          A secret key for your direct payload webhook.
+                          Required only for Conversions API (CAPI).
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
-                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-900/30">
-                    <h4 className="text-xs font-bold text-indigo-700 dark:text-indigo-400 mb-2 uppercase">Direct Webhook URL</h4>
-                    <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80 mb-2">
-                      Send your JSON payload to this URL.
-                    </p>
-                    <div className="space-y-1">
-                      <Label className="text-[10px]">Webhook URL</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          readOnly
-                          className="h-7 text-xs bg-white dark:bg-black flex-1"
-                          value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${form.getValues('apiKey') || '<YOUR_KEY>'}`}
-                        />
-                        <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => {
-                          const url = `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || ''}?apiKey=${form.getValues('apiKey') || ''}`;
-                          navigator.clipboard.writeText(url);
-                          toast.success('Webhook URL Copied');
-                        }}>Copy</Button>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </>
             )}

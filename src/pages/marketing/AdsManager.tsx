@@ -8,8 +8,16 @@ import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getOrganisation } from '../../services/settingsService';
+import { useNavigate } from 'react-router-dom';
 
 const AdsManager: React.FC = () => {
+  const navigate = useNavigate();
+  const { data: organisation } = useQuery({
+    queryKey: ['organisation'],
+    queryFn: getOrganisation
+  });
   const [adAccounts, setAdAccounts] = useState<{ id: string; name: string; account_id: string }[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string>('');
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -206,6 +214,28 @@ const AdsManager: React.FC = () => {
         </div>
       )}
 
+      {/* Connection Info / Notice */}
+      {metaConnected && (
+        <div className="flex flex-col gap-2">
+          {organisation?.integrations?.facebook_payload?.connected && organisation?.integrations?.facebook_payload?.connectionMode === 'webhook' && (
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+              <p className="font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-2">
+                <RefreshCcw className="h-4 w-4" />
+                Push-only Webhook Active
+              </p>
+              <p className="text-indigo-700 dark:text-indigo-400 text-sm mt-1">
+                You are currently using the <strong>Direct Webhook URL</strong> to receive leads. 
+                In this mode, real-time analytics like reach and impressions are not available because no Meta Access Token is provided. 
+                <br />
+                <Button variant="link" className="p-0 h-auto text-xs text-indigo-600 underline" onClick={() => navigate('/settings/integrations')}>
+                  Switch to API Sync to see analytics
+                </Button>
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Account Selector */}
       {metaConnected && (
         <div className="w-full max-w-sm">
@@ -226,7 +256,7 @@ const AdsManager: React.FC = () => {
       )}
 
       {/* ============= ANALYTICS OVERVIEW ============= */}
-      {metaConnected && accountInsights && (
+      {metaConnected && accountInsights && (organisation?.integrations?.facebook_payload?.connectionMode !== 'webhook' || organisation?.integrations?.meta?.connected) && (
         <div>
           <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-primary" />
