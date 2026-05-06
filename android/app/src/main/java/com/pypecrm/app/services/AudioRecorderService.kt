@@ -14,6 +14,7 @@ class AudioRecorderService(private val context: Context) {
     private var isRecording = false
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var currentRecordingFile: File? = null
+    private var speakerphoneTimer: Timer? = null
 
     fun startRecording(leadId: String, currentPhoneNum: String): File? {
         if (isRecording) {
@@ -23,7 +24,7 @@ class AudioRecorderService(private val context: Context) {
 
         try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-            val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.mp4"
+            val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.amr"
             currentRecordingFile = File(context.cacheDir, fileName)
 
             val sources = listOf(
@@ -36,8 +37,12 @@ class AudioRecorderService(private val context: Context) {
 
             for (source in sources) {
                 try {
+                    // Aggressive Audio Setup
                     audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
                     audioManager.isSpeakerphoneOn = true
+                    // Boost volume to help MIC pick up the speaker
+                    audioManager.setStreamVolume(AudioManager.STREAM_VOICE_CALL, 
+                        audioManager.getStreamMaxVolume(AudioManager.STREAM_VOICE_CALL), 0)
                     
                     val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                         MediaRecorder(context)
@@ -48,17 +53,27 @@ class AudioRecorderService(private val context: Context) {
 
                     recorder = mediaRecorder.apply {
                         setAudioSource(source)
-                        setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                        setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                        setAudioSamplingRate(44100)
-                        setAudioEncodingBitRate(96000)
+                        setOutputFormat(MediaRecorder.OutputFormat.AMR_NB)
+                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
                         setOutputFile(currentRecordingFile!!.absolutePath)
                         prepare()
                         start()
                     }
                     
                     isRecording = true
-                    Log.d("AudioRecorder", "Success with source: $source")
+                    
+                    // START THE "IRON GRIP" MONITOR
+                    // Re-force speakerphone every 2 seconds because the dialer app might try to turn it off
+                    speakerphoneTimer = Timer()
+                    speakerphoneTimer?.scheduleAtFixedRate(object : TimerTask() {
+                        override fun run() {
+                            if (isRecording) {
+                                audioManager.isSpeakerphoneOn = true
+                            }
+                        }
+                    }, 1000, 2000)
+
+                    Log.d("AudioRecorder", "Success with source $source and Iron Grip active")
                     return currentRecordingFile
                 } catch (e: Exception) {
                     Log.w("AudioRecorder", "Source $source failed", e)
@@ -77,6 +92,9 @@ class AudioRecorderService(private val context: Context) {
         if (!isRecording) return
 
         try {
+            speakerphoneTimer?.cancel()
+            speakerphoneTimer = null
+            
             recorder?.apply {
                 stop()
                 release()
