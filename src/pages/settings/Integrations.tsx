@@ -98,7 +98,7 @@ export default function IntegrationsPage() {
     {
       id: 'facebook_payload',
       name: 'Meta Ads (Payload)',
-      description: 'Manual payload connection for Meta Ads. Connect using Page ID and System User Access Token.',
+      description: 'Connect Meta Ads using a direct payload webhook. No complex App setup required. Supports direct JSON data from any lead forwarding tool.',
       icon: FacebookLogo,
       iconColor: 'text-indigo-600',
       connected: integrations.facebook_payload?.connected,
@@ -388,11 +388,34 @@ export default function IntegrationsPage() {
                   </p>
                   
                   {integration.id === 'facebook_payload' && (
-                    <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded border border-indigo-100 dark:border-indigo-800/30 flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300 mt-2 mb-3">
-                      <span className="font-semibold">Connected Page ID:</span>
-                      <code className="bg-white dark:bg-black px-1.5 py-0.5 rounded border text-indigo-600 dark:text-indigo-400">
-                        {integrations.facebook_payload?.pageId || 'Not Configured'}
-                      </code>
+                    <div className="space-y-3 mt-2 mb-3">
+                      <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded border border-indigo-100 dark:border-indigo-800/30 flex items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300">
+                        <span className="font-semibold">Connected Page ID:</span>
+                        <code className="bg-white dark:bg-black px-1.5 py-0.5 rounded border text-indigo-600 dark:text-indigo-400">
+                          {integrations.facebook_payload?.pageId || 'Not Configured'}
+                        </code>
+                      </div>
+                      
+                      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30 space-y-2">
+                        <h4 className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase">Direct Webhook URL</h4>
+                        <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80">
+                          Use this URL for direct JSON payloads from any lead tool.
+                        </p>
+                        <div className="space-y-1">
+                          <label className="text-[10px] font-bold uppercase text-indigo-600/60 dark:text-indigo-400/60">Webhook URL</label>
+                          <div className="flex gap-2">
+                            <code className="text-xs bg-white dark:bg-gray-950 p-2 rounded border flex-1 break-all">
+                              {`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${integrations.facebook_payload?.apiKey || '<API_KEY>'}`}
+                            </code>
+                            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => {
+                              navigator.clipboard.writeText(
+                                `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || ''}?apiKey=${integrations.facebook_payload?.apiKey || ''}`
+                              );
+                              toast.success('Webhook URL Copied');
+                            }}>Copy</Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   )}
 

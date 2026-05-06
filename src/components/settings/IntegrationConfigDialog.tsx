@@ -892,6 +892,52 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                     </FormItem>
                   )}
                 />
+
+                <div className="pt-4 border-t mt-4">
+                  <h4 className="text-sm font-semibold mb-2">Alternative: Direct Payload Webhook</h4>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    If you don't want to use a Meta App, use this webhook URL in your lead forwarding tool (like Make.com, custom script, or lead proxy).
+                  </p>
+
+                  <FormField
+                    control={form.control}
+                    name="apiKey"
+                    render={({ field }) => (
+                      <FormItem className="mb-4">
+                        <FormLabel>Payload API Key</FormLabel>
+                        <FormControl>
+                          <Input type="password" placeholder="Set a secure key" {...field} value={field.value as string || ''} />
+                        </FormControl>
+                        <FormDescription className="text-xs">
+                          A secret key for your direct payload webhook.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/20 rounded-lg border border-indigo-100 dark:border-indigo-900/30">
+                    <h4 className="text-xs font-bold text-indigo-700 dark:text-indigo-400 mb-2 uppercase">Direct Webhook URL</h4>
+                    <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80 mb-2">
+                      Send your JSON payload to this URL.
+                    </p>
+                    <div className="space-y-1">
+                      <Label className="text-[10px]">Webhook URL</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          className="h-7 text-xs bg-white dark:bg-black flex-1"
+                          value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${form.getValues('apiKey') || '<YOUR_KEY>'}`}
+                        />
+                        <Button type="button" size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => {
+                          const url = `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || ''}?apiKey=${form.getValues('apiKey') || ''}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('Webhook URL Copied');
+                        }}>Copy</Button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
 
