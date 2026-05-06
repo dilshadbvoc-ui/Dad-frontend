@@ -11,6 +11,7 @@ interface Conversation {
   messageType: string;
   unreadCount?: number;
   lastAgentId?: string;
+  lastAgentName?: string;
   ownerId?: string;
 }
 
