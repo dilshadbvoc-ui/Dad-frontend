@@ -8,7 +8,12 @@ import { Button } from "@/components/ui/button";
 import { format, isToday, isPast, isFuture, isSameDay } from "date-fns";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { api } from "@/services/api";
-import { toast } from "sonner"; 
+import { toast } from "sonner";
+import { useState } from "react";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { getBranches } from "@/services/settingsService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building } from "lucide-react";
 
 // Helper
 const formatDate = (dateString?: string) => {
@@ -25,9 +30,24 @@ export default function FollowUpReportsPage() {
   const navigate = useNavigate();
   const viewType = searchParams.get('type') || 'all';
 
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = checkIsAdmin(user);
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches,
+    enabled: !!isAdmin
+  });
+
   const { data: tasksResponse, isLoading } = useQuery({
-    queryKey: ['tasks-report', 'all'],
-    queryFn: () => getTasks({ status: 'all' }), // Ensure we get all tasks
+    queryKey: ['tasks-report', selectedBranchId],
+    queryFn: () => getTasks({ status: 'all', branchId: selectedBranchId === "all" ? undefined : selectedBranchId }),
   });
 
   const tasks = (tasksResponse as { tasks: Task[] })?.tasks || [];
@@ -68,7 +88,26 @@ export default function FollowUpReportsPage() {
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">Follow Up Reports</h1>
         </div>
-        <Button variant="outline" onClick={async () => {
+        <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && branches && branches.length > 0 && (
+            <div className="w-[200px]">
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="bg-background border-border h-10 px-4">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-primary/60" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Organizations</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <Button variant="outline" onClick={async () => {
           try {
             const response = await api.get(`/reports/export/tasks`, {
               responseType: 'blob'
@@ -114,7 +153,7 @@ export default function FollowUpReportsPage() {
 
 function FollowUpTable({ tasks }: { tasks: Task[] }) {
   if (tasks.length === 0) {
-    return <div className="text-center py-8 text-muted-foreground">No follow ups found.</div>;
+    return <div className="text-center py-8 text-muted-foreground">No follow ups found for the selected criteria.</div>;
   }
 
   return (
@@ -122,6 +161,7 @@ function FollowUpTable({ tasks }: { tasks: Task[] }) {
       <TableHeader>
         <TableRow>
           <TableHead>Subject</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Related To</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Priority</TableHead>
@@ -133,6 +173,11 @@ function FollowUpTable({ tasks }: { tasks: Task[] }) {
         {tasks.map((task) => (
           <TableRow key={task.id}>
             <TableCell className="font-medium">{task.subject}</TableCell>
+            <TableCell>
+              <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                {(task as any).branch?.name || '-'}
+              </span>
+            </TableCell>
             <TableCell>
               {task.relatedTo ? (
                 <span className="text-sm">

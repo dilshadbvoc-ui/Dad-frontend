@@ -31,7 +31,7 @@ interface AddProductToLeadDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   leadId: string
-  currentProducts?: { productId: string, quantity: number, price?: number, product?: Product }[]
+  currentProducts?: { productId: string, quantity: number, price?: number, customName?: string, product?: Product }[]
   onSuccess: () => void
 }
 
@@ -44,7 +44,7 @@ export function AddProductToLeadDialog({
 }: AddProductToLeadDialogProps) {
   const { formatCurrency } = useCurrency();
   // Local state for selected products management
-  const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number, price: number }[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number, price: number, customName: string }[]>([])
   const [searchQuery, setSearchQuery] = useState("")
 
   // Reset state when dialog opens
@@ -56,7 +56,8 @@ export function AddProductToLeadDialog({
           productId: p.productId,
           product: p.product as Product, 
           quantity: p.quantity,
-          price: p.price || p.product?.basePrice || 0
+          price: p.price || p.product?.basePrice || 0,
+          customName: p.customName || p.product?.name || ""
         })).filter(p => p.product) // Safety check
         setSelectedProducts(mapped)
       } else {
@@ -80,7 +81,8 @@ export function AddProductToLeadDialog({
       productId: product.id, 
       product, 
       quantity: 1, 
-      price: product.basePrice || 0 
+      price: product.basePrice || 0,
+      customName: product.name || ""
     }])
   }
 
@@ -101,6 +103,12 @@ export function AddProductToLeadDialog({
     ))
   }
 
+  const handleNameChange = (productId: string, name: string) => {
+    setSelectedProducts(selectedProducts.map(p =>
+      p.productId === productId ? { ...p, customName: name } : p
+    ))
+  }
+
   const calculateTotal = () => {
     return selectedProducts.reduce((sum, item) => sum + (item.price * item.quantity), 0)
   }
@@ -111,7 +119,8 @@ export function AddProductToLeadDialog({
         products: selectedProducts.map(p => ({
           productId: p.productId,
           quantity: p.quantity,
-          price: p.price
+          price: p.price,
+          customName: p.customName
         }))
       }
 
@@ -220,19 +229,32 @@ export function AddProductToLeadDialog({
                   {selectedProducts.map((item) => (
                     <div key={item.productId} className="flex gap-2 items-start border p-3 rounded-lg bg-card shadow-sm">
                       <div className="flex-1 min-w-0">
-                         <div className="font-bold text-sm truncate">{item.product.name}</div>
                          {item.product.isCustom ? (
-                           <div className="mt-1 flex items-center gap-2">
-                             <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Price:</span>
-                             <Input
-                               type="number"
-                               value={item.price}
-                               onChange={(e) => handlePriceChange(item.productId, parseFloat(e.target.value) || 0)}
-                               className="h-6 w-24 text-xs font-bold px-1"
-                             />
+                           <div className="space-y-2">
+                             <div className="flex flex-col gap-1">
+                               <span className="text-[10px] text-muted-foreground font-medium">Product Name:</span>
+                               <Input
+                                 value={item.customName}
+                                 onChange={(e) => handleNameChange(item.productId, e.target.value)}
+                                 className="h-7 text-xs font-bold px-2"
+                                 placeholder="Custom Product Name"
+                               />
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Price:</span>
+                               <Input
+                                 type="number"
+                                 value={item.price}
+                                 onChange={(e) => handlePriceChange(item.productId, parseFloat(e.target.value) || 0)}
+                                 className="h-6 w-24 text-xs font-bold px-1"
+                               />
+                             </div>
                            </div>
                          ) : (
-                           <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                           <>
+                             <div className="font-bold text-sm truncate">{item.product.name}</div>
+                             <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                           </>
                          )}
                        </div>
 

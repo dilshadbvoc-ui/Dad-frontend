@@ -16,6 +16,7 @@ export default function AuditLogsReport() {
   const [entity, setEntity] = useState("all");
   const [action, setAction] = useState("all");
   const [userId, setUserId] = useState("all");
+  const [selectedBranchId, setSelectedBranchId] = useState("all");
   const [isDownloading, setIsDownloading] = useState(false);
 
   // Fetch users for the filter
@@ -27,8 +28,25 @@ export default function AuditLogsReport() {
     },
   });
 
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = (user as any)?.role === 'admin' || (user as any)?.role === 'super_admin' || (user as any)?.role === 'organisation_admin';
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ["branches-list"],
+    queryFn: async () => {
+      const response = await api.get("/branches");
+      return response.data;
+    },
+    enabled: isAdmin
+  });
+
   const { data: logs, isLoading } = useQuery({
-    queryKey: ["audit-logs-report", startDate, endDate, entity, action, userId],
+    queryKey: ["audit-logs-report", startDate, endDate, entity, action, userId, selectedBranchId],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (startDate) params.append("startDate", startDate);
@@ -36,6 +54,7 @@ export default function AuditLogsReport() {
       if (entity && entity !== "all") params.append("entity", entity);
       if (action && action !== "all") params.append("action", action);
       if (userId && userId !== "all") params.append("userId", userId);
+      if (selectedBranchId && selectedBranchId !== "all") params.append("branchId", selectedBranchId);
       params.append("limit", "1000");
 
       const response = await api.get(`/audit-logs?${params.toString()}`);
@@ -261,6 +280,25 @@ export default function AuditLogsReport() {
                 </SelectContent>
               </Select>
             </div>
+
+            {isAdmin && branches && (
+              <div className="space-y-2">
+                <Label htmlFor="branch">Branch</Label>
+                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                  <SelectTrigger id="branch">
+                    <SelectValue placeholder="All branches" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All branches</SelectItem>
+                    {branches.map((b: any) => (
+                      <SelectItem key={b.id} value={b.id}>
+                        {b.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -289,6 +327,7 @@ export default function AuditLogsReport() {
                   <tr className="border-b">
                     <th className="text-left p-3 font-medium">Date & Time</th>
                     <th className="text-left p-3 font-medium">User</th>
+                    <th className="text-left p-3 font-medium">Branch</th>
                     <th className="text-left p-3 font-medium">Action</th>
                     <th className="text-left p-3 font-medium">Entity</th>
                     <th className="text-left p-3 font-medium">Details</th>
@@ -305,6 +344,11 @@ export default function AuditLogsReport() {
                         </td>
                         <td className="p-3 text-sm">
                           {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System"}
+                        </td>
+                        <td className="p-3 text-sm">
+                          <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                            {log.actor?.branch?.name || '-'}
+                          </span>
                         </td>
                         <td className="p-3 text-sm">{getReadableAction(log.action)}</td>
                         <td className="p-3 text-sm">{log.entity}</td>

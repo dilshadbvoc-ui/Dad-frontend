@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
 import { format } from 'date-fns';
 import {
@@ -9,15 +10,48 @@ import {
   CheckSquare,
   Shield,
   Clock,
-  MessageCircle
+  MessageCircle,
+  FileText,
+  Download,
+  Trash2,
+  Pencil
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
 import { getBestDurationSeconds, formatDuration } from '@/lib/callUtils';
+import { isOrgAdmin, getUserInfo } from '@/lib/utils';
+import { toast } from 'sonner';
+import { EditDocumentDialog } from '@/components/EditDocumentDialog';
+
+interface TimelineItem {
+  id: string;
+  type: 'interaction' | 'task' | 'event' | 'audit' | 'recording' | 'document' | 'followUp';
+  subType: string;
+  title: string;
+  description?: string;
+  date: string;
+  actor?: {
+    id?: string;
+    firstName: string;
+    lastName?: string;
+  };
+  meta?: {
+    direction?: string;
+    duration?: number;
+    recordingDuration?: number;
+    recordingUrl?: string;
+    fileUrl?: string;
+    fileSize?: number;
+    fileType?: string;
+    priority?: string;
+    location?: string;
+  };
+}
 
 interface TimelineFeedProps {
-  type: 'lead' | 'contact' | 'account';
+  type: 'lead' | 'contact' | 'account' | 'opportunity';
   id: string;
 }
 
@@ -27,6 +61,25 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
     queryFn: async () => {
       const res = await api.get(`/timeline/${type}/${id}`);
       return res.data;
+    }
+  });
+
+  const [editingDoc, setEditingDoc] = useState<any>(null);
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const user = getUserInfo();
+  const isAdmin = isOrgAdmin(user);
+
+  const deleteDocumentMutation = useMutation({
+    mutationFn: async (docId: string) => {
+      await api.delete(`/documents/${docId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['timeline', type, id] });
+      toast.success("Document deleted successfully");
+    },
+    onError: () => {
+      toast.error("Failed to delete document");
     }
   });
 
@@ -59,6 +112,8 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
         return <Shield className="h-4 w-4" />;
       case 'recording':
         return <PhoneCall className="h-4 w-4" />;
+      case 'document':
+        return <FileText className="h-4 w-4" />;
       default:
         return <Activity className="h-4 w-4" />;
     }
@@ -74,6 +129,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
       case 'event': return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 ring-purple-500/20';
       case 'audit': return 'bg-muted text-muted-foreground ring-border';
       case 'recording': return 'bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-blue-500/20';
+      case 'document': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-500/20';
       default: return 'bg-muted text-muted-foreground ring-border';
     }
   };
@@ -88,7 +144,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
       </CardHeader>
       <CardContent>
         <div className="relative pl-6 border-l-2 border-border space-y-8">
-          {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: { id: string, type: string, subType?: string, title: string, description?: string, meta?: { direction?: string, duration?: number, recordingDuration?: number, fileUrl?: string, recordingUrl?: string }, date: string, actor?: { firstName: string } }) => (
+          {timeline.filter((item: any) => !(item.type === 'interaction' && item.subType === 'whatsapp')).map((item: TimelineItem) => (
             <div key={item.id} className="relative">
               <div className={`absolute -left-[2.15rem] p-2 rounded-full ring-4 ring-background ${getColor(item)}`}>
                 {getIcon(item)}
@@ -108,7 +164,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                       <div className="flex items-center gap-2">
                         {item.meta?.direction && (
                           <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground uppercase tracking-wider font-bold">
-                            {item.meta.direction}
+                            {item.meta?.direction}
                           </span>
                         )}
                         {getBestDurationSeconds(item.meta) > 0 && (
@@ -128,7 +184,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
 
                   {item.type === 'interaction' && item.subType !== 'call' && item.meta?.direction && (
                     <span className="text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground mt-2 inline-block w-fit">
-                      {item.meta.direction}
+                      {item.meta?.direction}
                     </span>
                   )}
 
@@ -152,6 +208,63 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                       )}
                     </div>
                   )}
+
+                  {item.type === 'document' && (
+                    <div className="mt-2 p-3 bg-muted/30 rounded-lg border border-dashed flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-background rounded border">
+                          <FileText className="h-4 w-4 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium truncate max-w-[200px]">{item.title}</p>
+                          <p className="text-[10px] text-muted-foreground">
+                            {item.subType} • {( (item.meta?.fileSize || 0) / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-8 w-8 p-0"
+                        onClick={() => item.meta?.fileUrl && window.open(item.meta.fileUrl, '_blank')}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                      {(isAdmin || (item.actor as any)?.id === user?.id) && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 w-8 p-0"
+                            onClick={() => {
+                              setEditingDoc({
+                                id: item.id,
+                                name: item.title,
+                                description: item.description,
+                                category: item.subType
+                              });
+                              setIsEditOpen(true);
+                            }}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => {
+                              if (window.confirm("Are you sure you want to delete this document?")) {
+                                deleteDocumentMutation.mutate(item.id);
+                              }
+                            }}
+                            disabled={deleteDocumentMutation.isPending}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="mt-2 sm:mt-0 text-xs text-muted-foreground whitespace-nowrap text-right">
                   <div>{format(new Date(item.date), 'MMM d, h:mm a')}</div>
@@ -164,6 +277,13 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
           ))}
         </div>
       </CardContent>
+      {editingDoc && (
+        <EditDocumentDialog
+          open={isEditOpen}
+          onOpenChange={setIsEditOpen}
+          document={editingDoc}
+        />
+      )}
     </Card>
   );
 }

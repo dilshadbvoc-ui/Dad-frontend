@@ -43,6 +43,10 @@ export interface Lead {
         originalSource?: string;
         rawPayload?: any;
     };
+    branchId?: string;
+    branch?: {
+        name: string;
+    };
     createdAt: string;
     updatedAt: string;
 }

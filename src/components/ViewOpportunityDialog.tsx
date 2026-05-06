@@ -18,6 +18,8 @@ import { api } from "@/services/api"
 import { EMISchedulePanel } from "@/components/EMISchedulePanel"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getAssetUrl } from "@/lib/utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import TimelineFeed from "@/components/shared/TimelineFeed"
 
 export interface Opportunity {
   id: string
@@ -167,7 +169,13 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <div className="grid gap-6 py-4">
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-4">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="timeline">Timeline & Files</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-2">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
                 <span className="text-sm font-medium text-gray-500">Stage</span>
@@ -368,7 +376,12 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
               paymentStatus={displayOpportunity.paymentStatus}
               opportunityAmount={displayOpportunity.amount}
             />
-          </div>
+            </TabsContent>
+
+            <TabsContent value="timeline" className="max-h-[60vh] overflow-y-auto pr-2">
+              <TimelineFeed type="opportunity" id={displayOpportunity.id} />
+            </TabsContent>
+          </Tabs>
         )}
       </DialogContent>
     </Dialog>

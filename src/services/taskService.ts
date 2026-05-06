@@ -31,6 +31,7 @@ export interface TaskSearchParams {
     status?: string;
     priority?: string;
     assignedTo?: string;
+    branchId?: string;
     limit?: number;
 }
 

@@ -199,6 +199,23 @@ export default function UserSalesPage() {
 
       {/* Global Filters */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 bg-card p-6 rounded-xl border shadow-sm items-end">
+        {isAdmin && branches && branches.length > 0 && (
+          <div className="space-y-2">
+            <label className="text-xs font-semibold text-muted-foreground uppercase">Location/Branch</label>
+            <Select value={selectedBranchId || "all"} onValueChange={(val) => setSelectedBranchId(val === "all" ? null : val)}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Organizations</SelectItem>
+                {branches.map((b: any) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <div className="space-y-2">
           <label className="text-xs font-semibold text-muted-foreground uppercase">Sales Representative</label>
           <Select value={selectedUserId} onValueChange={setSelectedUserId}>

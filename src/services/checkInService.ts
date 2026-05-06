@@ -32,7 +32,7 @@ export interface CheckIn {
     };
 }
 
-export const getCheckIns = async (params?: { date?: string; userId?: string; limit?: number; offset?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }) => {
+export const getCheckIns = async (params?: { date?: string; userId?: string; branchId?: string; limit?: number; offset?: number; sortBy?: string; sortOrder?: 'asc' | 'desc' }) => {
     const response = await api.get('/checkins', { params });
     return response.data;
 };

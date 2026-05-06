@@ -498,7 +498,7 @@ export default function LeadDetailPage() {
                       <div key={kp.productId} className="text-sm border-b last:border-0 border-dashed pb-3 last:pb-0">
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium">
-                            {kp.product?.name} 
+                            {kp.customName || kp.product?.name} 
                             <span className="text-muted-foreground text-[10px] ml-1 bg-muted px-1 rounded font-normal">x{kp.quantity}</span>
                           </span>
                           <span className="font-bold text-primary">

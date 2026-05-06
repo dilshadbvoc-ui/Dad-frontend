@@ -153,7 +153,7 @@ export default function AccountDetailPage() {
                     <tbody className="divide-y">
                       {account.accountProducts.map((asset: any) => (
                         <tr key={asset.id} className="hover:bg-muted/30">
-                          <td className="p-2 font-medium">{asset.product?.name}</td>
+                          <td className="p-2 font-medium">{asset.customName || asset.product?.name}</td>
                           <td className="p-2 text-muted-foreground">
                             {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}
                           </td>

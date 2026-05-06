@@ -164,6 +164,7 @@ export default function SalesBookPage() {
             <TableHeader>
               <TableRow>
                 <TableHead>Date</TableHead>
+                <TableHead>Branch</TableHead>
                 <TableHead>Opportunity</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Owner</TableHead>
@@ -176,9 +177,10 @@ export default function SalesBookPage() {
                   <TableCell colSpan={5} className="text-center h-24">Loading...</TableCell>
                 </TableRow>
               ) : sales && sales.length > 0 ? (
-                sales.map((sale: { id: string, closeDate: string, opportunityName: string, customerName: string, ownerName: string, amount: number }) => (
+                sales.map((sale: { id: string, closeDate: string, opportunityName: string, customerName: string, ownerName: string, branchName: string, amount: number }) => (
                   <TableRow key={sale.id}>
                     <TableCell>{format(new Date(sale.closeDate), "MMM dd, yyyy")}</TableCell>
+                    <TableCell>{sale.branchName || '-'}</TableCell>
                     <TableCell className="font-medium">{sale.opportunityName}</TableCell>
                     <TableCell>{sale.customerName}</TableCell>
                     <TableCell>{sale.ownerName}</TableCell>

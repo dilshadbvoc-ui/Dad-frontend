@@ -115,6 +115,7 @@ export interface UserCallAnalyticsResponse {
     reportData: {
         userId: string;
         agentName: string;
+        branch: string;
         totalCalls: number;
         connectedCalls: number;
         totalDurationSeconds: number;
@@ -123,7 +124,9 @@ export interface UserCallAnalyticsResponse {
     direction: string;
 }
 
-export const getUserCallAnalytics = async (period: string = 'today', direction: string = 'all'): Promise<UserCallAnalyticsResponse> => {
-    const response = await api.get(`/calls/reports/user-analytics?period=${period}&direction=${direction}`);
+export const getUserCallAnalytics = async (period: string = 'today', direction: string = 'all', branchId?: string): Promise<UserCallAnalyticsResponse> => {
+    let url = `/calls/reports/user-analytics?period=${period}&direction=${direction}`;
+    if (branchId) url += `&branchId=${branchId}`;
+    const response = await api.get(url);
     return response.data;
 };

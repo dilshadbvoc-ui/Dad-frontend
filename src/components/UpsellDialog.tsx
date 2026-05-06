@@ -27,6 +27,7 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
   const [price, setPrice] = useState<number>(0);
   const [isFinalSale, setIsFinalSale] = useState(true);
   const [notes, setNotes] = useState('');
+  const [customName, setCustomName] = useState('');
 
   // Fetch Products for selection
   const { data: productsData } = useQuery({
@@ -42,6 +43,7 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
       const selectedProduct = products.find((p: any) => p.id === productId);
       if (selectedProduct) {
         setPrice(selectedProduct.basePrice || 0);
+        setCustomName(selectedProduct.name || '');
       }
     }
   }, [productId, products]);
@@ -54,6 +56,7 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
       setPrice(0);
       setIsFinalSale(true);
       setNotes('');
+      setCustomName('');
     }
   }, [open]);
 
@@ -73,7 +76,8 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
         isFinalSale,
         notes,
         purchaseDate: new Date().toISOString(),
-        status: 'active'
+        status: 'active',
+        customName
       });
 
       toast.success(isFinalSale ? 'Sale finalized and reflected in stats!' : 'Asset added to account');
@@ -121,6 +125,16 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="customName">Product Name</Label>
+              <Input
+                id="customName"
+                value={customName}
+                onChange={(e) => setCustomName(e.target.value)}
+                placeholder="Product name as it should appear on records"
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">

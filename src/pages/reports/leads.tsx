@@ -10,6 +10,11 @@ import { ArrowLeft, Loader2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { api } from "@/services/api";
 import { toast } from "sonner";
+import { useState, useMemo } from "react";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { getBranches } from "@/services/settingsService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building, Filter } from "lucide-react";
 
 // Formatting helpers
 const formatDate = (dateString: string) => {
@@ -28,9 +33,29 @@ export default function LeadReportsPage() {
   const navigate = useNavigate();
   const viewType = searchParams.get('type') || 'all';
 
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [selectedSource, setSelectedSource] = useState<string>("all");
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = checkIsAdmin(user);
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches,
+    enabled: !!isAdmin
+  });
+
   const { data: leadsResponse, isLoading } = useQuery({
-    queryKey: ['leads-report', 'all'], // Fetching all for client-side filtering for now
-    queryFn: () => getLeads({ limit: 1000 }), // Fetch larger set for reports
+    queryKey: ['leads-report', selectedBranchId, selectedSource],
+    queryFn: () => getLeads({ 
+      limit: 1000, 
+      branchId: selectedBranchId === "all" ? undefined : selectedBranchId,
+      source: selectedSource === "all" ? undefined : selectedSource
+    }),
   });
 
   const leads = (leadsResponse as { leads: Lead[] })?.leads || [];
@@ -72,6 +97,11 @@ export default function LeadReportsPage() {
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
   };
+
+  const sourceOptions = useMemo(() => {
+    const sources = new Set(leads.map((l: Lead) => l.source).filter(Boolean));
+    return Array.from(sources).sort();
+  }, [leads]);
 
   const getLeadsByOwner = () => {
     const counts: Record<string, number> = {};
@@ -186,11 +216,50 @@ export default function LeadReportsPage() {
           </Button>
           <h1 className="text-3xl font-bold tracking-tight">Lead Reports</h1>
         </div>
-        <Button variant="outline" onClick={async () => {
+        <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && branches && branches.length > 0 && (
+            <div className="w-[180px]">
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="bg-background border-border h-9 px-3">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-primary/60" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Organizations</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          <div className="w-[180px]">
+            <Select value={selectedSource} onValueChange={setSelectedSource}>
+              <SelectTrigger className="bg-background border-border h-9 px-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-4 w-4 text-primary/60" />
+                  <SelectValue placeholder="All Sources" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {sourceOptions.map((source) => (
+                  <SelectItem key={source} value={source}>{source}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button variant="outline" onClick={async () => {
           try {
             const params = new URLSearchParams();
             if (viewType === 'converted') params.append('status', 'converted');
             if (viewType === 'lost') params.append('status', 'lost');
+            if (selectedBranchId && selectedBranchId !== 'all') params.append('branchId', selectedBranchId);
+            if (selectedSource && selectedSource !== 'all') params.append('source', selectedSource);
             if (viewType === 'today') {
               params.append('startDate', new Date().toISOString().split('T')[0]);
               params.append('endDate', new Date().toISOString().split('T')[0]);
@@ -230,6 +299,7 @@ function LeadTable({ leads }: { leads: Lead[] }) {
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>
+          <TableHead>Branch</TableHead>
           <TableHead>Company</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Source</TableHead>
@@ -242,6 +312,7 @@ function LeadTable({ leads }: { leads: Lead[] }) {
         {leads.map((lead) => (
           <TableRow key={lead.id}>
             <TableCell className="font-medium">{lead.firstName} {lead.lastName}</TableCell>
+            <TableCell>{lead.branch?.name || '-'}</TableCell>
             <TableCell>{lead.company || '-'}</TableCell>
             <TableCell><Badge variant="outline">{lead.status}</Badge></TableCell>
             <TableCell>{lead.source}</TableCell>

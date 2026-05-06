@@ -6,18 +6,47 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, PieChart, Pie, Cell, Legend, BarChart, Bar } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, Building } from "lucide-react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
 import * as htmlToImage from "html-to-image";
 import { ensureArray } from "@/hooks/useArrayData";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { getBranches } from "@/services/settingsService";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
 export default function AnalyticsPage() {
-  const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ queryKey: ['salesChart'], queryFn: () => getSalesChartData() });
-  const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ queryKey: ['leadSources'], queryFn: () => getLeadSourceAnalytics() });
-  const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ queryKey: ['topLeads'], queryFn: () => getTopLeads() });
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = checkIsAdmin(user);
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches,
+    enabled: !!isAdmin
+  });
+
+  const branchParam = selectedBranchId === "all" ? undefined : selectedBranchId;
+
+  const { data: salesDataRaw, isLoading: salesLoading } = useQuery({ 
+    queryKey: ['salesChart', selectedBranchId], 
+    queryFn: () => getSalesChartData(branchParam) 
+  });
+  const { data: leadSourcesRaw, isLoading: sourcesLoading } = useQuery({ 
+    queryKey: ['leadSources', selectedBranchId], 
+    queryFn: () => getLeadSourceAnalytics(branchParam) 
+  });
+  const { data: topLeadsRaw, isLoading: leadsLoading } = useQuery({ 
+    queryKey: ['topLeads', selectedBranchId], 
+    queryFn: () => getTopLeads(branchParam) 
+  });
   
   const [isExporting, setIsExporting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -70,8 +99,8 @@ export default function AnalyticsPage() {
 
 
   const { data: leadsData, isLoading: leadsListLoading } = useQuery({
-    queryKey: ['leads', 'analytics-full'],
-    queryFn: () => getLeads({ pageSize: 1000 })
+    queryKey: ['leads', 'analytics-full', selectedBranchId],
+    queryFn: () => getLeads({ pageSize: 1000, branchId: branchParam })
   });
 
   const leads = (leadsData as { leads: Lead[] })?.leads || [];
@@ -116,15 +145,35 @@ export default function AnalyticsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
           <p className="text-muted-foreground mt-2">Deep dive into your sales and marketing performance.</p>
         </div>
-        <Button 
-          variant="outline" 
-          className="gap-2" 
-          onClick={handleExportPDF}
-          disabled={isExporting}
-        >
-          {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-          <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
-        </Button>
+        <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && branches && branches.length > 0 && (
+            <div className="w-[200px]">
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="bg-background border-border h-10 px-4">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-primary/60" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Organizations</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <Button 
+            variant="outline" 
+            className="gap-2" 
+            onClick={handleExportPDF}
+            disabled={isExporting}
+          >
+            {isExporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            <span>{isExporting ? 'Exporting...' : 'Export PDF'}</span>
+          </Button>
+        </div>
       </div>
 
       {/* Sales Trend Chart */}

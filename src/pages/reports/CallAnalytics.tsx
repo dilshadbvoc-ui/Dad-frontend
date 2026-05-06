@@ -15,11 +15,29 @@ import { toPng } from 'html-to-image';
 export default function CallAnalyticsPage() {
   const [period, setPeriod] = useState('today');
   const [direction, setDirection] = useState('all');
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
   const reportRef = useRef<HTMLDivElement>(null);
 
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = (user as any)?.role === 'admin' || (user as any)?.role === 'super_admin' || (user as any)?.role === 'organisation_admin';
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: async () => {
+      const { getBranches } = await import('@/services/settingsService');
+      return getBranches();
+    },
+    enabled: isAdmin
+  });
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['userCallAnalytics', period, direction],
-    queryFn: () => getUserCallAnalytics(period, direction),
+    queryKey: ['userCallAnalytics', period, direction, selectedBranchId],
+    queryFn: () => getUserCallAnalytics(period, direction, selectedBranchId === "all" ? undefined : selectedBranchId),
   });
 
   const formatDuration = (seconds: number) => {
@@ -96,7 +114,20 @@ export default function CallAnalyticsPage() {
           </div>
         </div>
 
-        <div className="flex justify-end">
+        <div className="flex justify-end gap-3">
+          {isAdmin && branches && branches.length > 0 && (
+            <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+              <SelectTrigger className="w-[180px] h-9 text-xs sm:text-sm border-border/50 focus:ring-primary/20">
+                <SelectValue placeholder="All Branches" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Branches</SelectItem>
+                {branches.map((b: any) => (
+                  <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
           <Select value={period} onValueChange={setPeriod}>
             <SelectTrigger className="w-[140px] h-9 text-xs sm:text-sm border-border/50 focus:ring-primary/20">
               <SelectValue placeholder="Select period" />
@@ -115,6 +146,7 @@ export default function CallAnalyticsPage() {
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30 border-b border-border/40">
                 <TableHead className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground w-[200px]">Agent Name</TableHead>
+                <TableHead className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">Branch</TableHead>
                 <TableHead className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-muted-foreground text-center">
                   <div className="flex items-center justify-center gap-1">
                     TC <ArrowDown className="h-3 w-3" />
@@ -130,6 +162,11 @@ export default function CallAnalyticsPage() {
                 reportData.map((row) => (
                   <TableRow key={row.userId} className="hover:bg-muted/20 border-b border-border/40 last:border-0 transition-colors">
                     <TableCell className="font-medium text-xs sm:text-sm py-4">{row.agentName}</TableCell>
+                    <TableCell className="text-center text-xs sm:text-sm text-foreground/70">
+                      <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                        {row.branch || '-'}
+                      </span>
+                    </TableCell>
                     <TableCell className="text-center text-xs sm:text-sm font-semibold text-foreground/80">{row.totalCalls}</TableCell>
                     <TableCell className="text-center py-4">
                       <div className="flex flex-col items-center gap-0.5">
@@ -147,7 +184,7 @@ export default function CallAnalyticsPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-32 text-center text-muted-foreground italic">
+                  <TableCell colSpan={6} className="h-32 text-center text-muted-foreground italic">
                     No call data found for this period.
                   </TableCell>
                 </TableRow>

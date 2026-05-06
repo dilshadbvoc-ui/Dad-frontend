@@ -23,6 +23,11 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { differenceInDays } from "date-fns";
+import { isOrgAdmin, getUserInfo } from "@/lib/utils";
+import { EditOpportunityDialog } from "@/components/EditOpportunityDialog";
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteOpportunity } from "@/services/opportunityService";
 
 interface KanbanBoardProps {
   opportunities: Opportunity[];
@@ -45,6 +50,24 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   // but the 5s refetch will sync it back anyway.
   const [closeWonOpp, setCloseWonOpp] = useState<Opportunity | null>(null);
   const [viewDetailsOpp, setViewDetailsOpp] = useState<Opportunity | null>(null);
+  const [editOpp, setEditOpp] = useState<Opportunity | null>(null);
+  const [deleteOpp, setDeleteOpp] = useState<Opportunity | null>(null);
+
+  const queryClient = useQueryClient();
+  const user = getUserInfo();
+  const canDelete = isOrgAdmin(user);
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => deleteOpportunity(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+      toast.success("Opportunity deleted successfully");
+      setDeleteOpp(null);
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to delete opportunity");
+    }
+  });
 
   // Group opportunities by stage
   const columns = useMemo(() => {
@@ -186,7 +209,10 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </DropdownMenuItem>
-                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setEditOpp(opp)}>
+                                  <Pencil className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
 
                                 <DropdownMenuSub>
                                   <DropdownMenuSubTrigger>Move to Stage</DropdownMenuSubTrigger>
@@ -224,7 +250,15 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                   </DropdownMenuItem>
                                 )}
 
-                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                {canDelete && (
+                                  <DropdownMenuItem 
+                                    className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                    onClick={() => setDeleteOpp(opp)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </div>
@@ -316,6 +350,25 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
           open={!!viewDetailsOpp}
           onOpenChange={(open) => !open && setViewDetailsOpp(null)}
           opportunity={viewDetailsOpp}
+        />
+      )}
+
+      {editOpp && (
+        <EditOpportunityDialog
+          open={!!editOpp}
+          onOpenChange={(open) => !open && setEditOpp(null)}
+          opportunity={editOpp}
+        />
+      )}
+
+      {deleteOpp && (
+        <DeleteConfirmationDialog
+          open={!!deleteOpp}
+          onOpenChange={(open) => !open && setDeleteOpp(null)}
+          onConfirm={() => deleteMutation.mutate(deleteOpp.id)}
+          title="Delete Opportunity"
+          description={`Are you sure you want to delete "${deleteOpp.name}"? This action cannot be undone.`}
+          isDeleting={deleteMutation.isPending}
         />
       )}
     </div >

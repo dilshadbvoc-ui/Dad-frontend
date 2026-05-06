@@ -1,21 +1,38 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getDailyReport } from '@/services/analyticsService';
+import { getBranches } from '@/services/settingsService';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileDown, RefreshCw, Printer } from 'lucide-react';
+import { FileDown, RefreshCw, Printer, Building } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { isAdmin as checkIsAdmin } from "@/lib/utils";
 
 export default function DailyReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
+  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [user] = useState<{ role: string } | null>(() => {
+    const userInfo = localStorage.getItem('userInfo');
+    return userInfo ? JSON.parse(userInfo) : null;
+  });
+
+  const isAdmin = checkIsAdmin(user);
+
+  // Fetch Branches
+  const { data: branches } = useQuery({
+    queryKey: ['branches'],
+    queryFn: getBranches,
+    enabled: !!isAdmin
+  });
 
   const { data: reportData = [], isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['dailyReport'],
-    queryFn: () => getDailyReport(),
+    queryKey: ['dailyReport', selectedBranchId],
+    queryFn: () => getDailyReport(selectedBranchId === "all" ? undefined : selectedBranchId),
     refetchInterval: 1000 * 60 * 5, // Refresh every 5 mins
   });
 
@@ -67,6 +84,24 @@ export default function DailyReportPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {isAdmin && branches && branches.length > 0 && (
+            <div className="w-[200px]">
+              <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                <SelectTrigger className="bg-background border-primary/20 h-10 px-4">
+                  <div className="flex items-center gap-2">
+                    <Building className="h-4 w-4 text-primary/60" />
+                    <SelectValue placeholder="All Branches" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Branches</SelectItem>
+                  {branches.map((b: any) => (
+                    <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <Button 
             onClick={() => refetch()} 
             variant="outline" 
@@ -104,6 +139,7 @@ export default function DailyReportPage() {
             <TableHeader className="bg-[#6B3BA8] hover:bg-[#6B3BA8] transition-none border-none">
               <TableRow className="hover:bg-transparent border-none">
                 <TableHead className="text-white font-bold py-6 px-6 text-sm uppercase tracking-wider border-r border-white/10 first:rounded-tl-xl">User Name</TableHead>
+                <TableHead className="text-white font-bold py-6 px-6 text-sm uppercase tracking-wider border-r border-white/10 text-center">Branch</TableHead>
                 <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Calls</TableHead>
                 <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Connected</TableHead>
                 <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Unconnected Calls</TableHead>
@@ -124,6 +160,11 @@ export default function DailyReportPage() {
                   >
                     <TableCell className="py-5 px-6 font-bold text-foreground text-sm uppercase">
                       {row.userName}
+                    </TableCell>
+                    <TableCell className="text-center py-5">
+                      <span className="text-[10px] font-bold uppercase tracking-tighter bg-muted/50 px-2 py-0.5 rounded border border-border/50">
+                        {row.branch || '-'}
+                      </span>
                     </TableCell>
                     <TableCell className="text-center py-5 font-medium text-muted-foreground tabular-nums">
                       {row.totalCalls}
@@ -159,7 +200,7 @@ export default function DailyReportPage() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={6} className="h-48 text-center text-muted-foreground italic">
+                  <TableCell colSpan={7} className="h-48 text-center text-muted-foreground italic">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <p className="text-lg font-medium opacity-50">No activity recorded for today yet.</p>
                       <p className="text-sm opacity-30">Data will appear here as users make calls and update leads.</p>
