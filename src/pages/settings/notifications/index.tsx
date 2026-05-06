@@ -2,6 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { NotificationTest } from "@/components/shared/NotificationTest"
 
 export default function NotificationsSettingsPage() {
   return (
@@ -13,6 +14,8 @@ export default function NotificationsSettingsPage() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Notifications</h1>
               <p className="text-gray-500">Control when and how you get notified.</p>
             </div>
+
+            <NotificationTest />
 
             <Card>
               <CardHeader>

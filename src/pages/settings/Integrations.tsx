@@ -20,7 +20,6 @@ import {
 } from "@/components/icons/BrandLogos";
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
-import { NotificationTest } from "@/components/shared/NotificationTest";
 import { GmailConnect } from "@/components/settings/GmailConnect";
 
 interface MetaAccount {
@@ -255,10 +254,6 @@ export default function IntegrationsPage() {
         <p className="text-sm text-indigo-300/70 mb-4">Manage webhooks, APIs, and third-party integrations.</p>
       </div>
 
-      {/* Main Content */}
-      <div className="mb-6">
-        <NotificationTest />
-      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIntegrations.map((integration) => (
