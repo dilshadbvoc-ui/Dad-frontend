@@ -10,6 +10,8 @@ interface Conversation {
   lastMessageAt: string;
   messageType: string;
   unreadCount?: number;
+  lastAgentId?: string;
+  ownerId?: string;
 }
 
 interface ConversationListProps {
@@ -21,7 +23,10 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<'all' | 'mine'>('all');
+  const [selectedAgentId, setSelectedAgentId] = useState<string>('all');
   const { socket } = useSocket();
+  const userId = JSON.parse(localStorage.getItem('userInfo') || '{}').id;
 
   const fetchConversations = useCallback(async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -88,10 +93,28 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
     return () => clearInterval(interval);
   }, [socket, fetchConversations]);
 
-  const filteredConversations = conversations.filter(c =>
-    c.displayName.toLowerCase().includes(search.toLowerCase()) ||
-    c.phoneNumber.includes(search)
-  );
+  const filteredConversations = conversations.filter(c => {
+    const matchesSearch = c.displayName.toLowerCase().includes(search.toLowerCase()) ||
+      c.phoneNumber.includes(search);
+
+    if (!matchesSearch) return false;
+
+    if (filter === 'mine') {
+      return c.lastAgentId === userId || c.ownerId === userId;
+    }
+
+    if (selectedAgentId !== 'all') {
+      return c.lastAgentId === selectedAgentId || c.ownerId === selectedAgentId;
+    }
+
+    return true;
+  });
+
+  const agents = Array.from(new Set(
+    conversations
+      .filter(c => c.lastAgentId && c.lastAgentName)
+      .map(c => JSON.stringify({ id: c.lastAgentId, name: c.lastAgentName }))
+  )).map(s => JSON.parse(s)) as { id: string, name: string }[];
 
   const getMessagePreview = (conv: Conversation) => {
     if (!conv.lastMessage) return 'No content';
@@ -109,14 +132,53 @@ const ConversationList: React.FC<ConversationListProps> = ({ onSelectConversatio
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden bg-card">
-      <div className="p-3 bg-card border-b border-border">
-        <input
-          type="text"
-          placeholder="Search chats..."
-          className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:bg-background outline-none transition-all"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="px-3 pt-3 bg-card border-b border-border space-y-3">
+        <div className="flex p-1 bg-muted/50 rounded-lg">
+          <button
+            onClick={() => setFilter('all')}
+            className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${filter === 'all'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            All Chats
+          </button>
+          <button
+            onClick={() => setFilter('mine')}
+            className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-md transition-all ${filter === 'mine'
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground'
+              }`}
+          >
+            My Chats
+          </button>
+        </div>
+        
+        {agents.length > 0 && filter === 'all' && (
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-bold text-muted-foreground whitespace-nowrap">Filter By Agent:</span>
+            <select
+              value={selectedAgentId}
+              onChange={(e) => setSelectedAgentId(e.target.value)}
+              className="flex-1 bg-muted/30 border-none text-[11px] rounded px-2 py-1 outline-none focus:ring-1 focus:ring-primary/30"
+            >
+              <option value="all">All Agents</option>
+              {agents.map(agent => (
+                <option key={agent.id} value={agent.id}>{agent.name}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        <div className="pb-3">
+          <input
+            type="text"
+            placeholder="Search chats..."
+            className="w-full px-4 py-2 bg-muted/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:bg-background outline-none transition-all"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar">
