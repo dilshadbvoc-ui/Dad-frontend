@@ -37,8 +37,6 @@ class CallAccessibilityService : AccessibilityService() {
     private var currentLeadId: String? = null
     private var currentPhoneNum: String? = null
     private var callStartTime: Long = 0
-    private var currentCallFile: File? = null
-    private lateinit var recorderService: AudioRecorderService
     private var currentSessionId: String? = null
     private var isOutgoing = false
     private var callHistoryObserver: ContentObserver? = null
@@ -51,17 +49,11 @@ class CallAccessibilityService : AccessibilityService() {
 
             when (action) {
                 "ACTION_CALL_STARTED" -> {
-                    if (number != null && !isCallActive) {
-                        currentPhoneNum = number
-                        isOutgoing = outgoing
+                    if (number != null) {
                         currentSessionId = intent.getStringExtra("session_id")
-                        startRecordingSync(number)
                     }
                 }
                 "ACTION_CALL_ENDED" -> {
-                    if (isCallActive) {
-                        stopRecordingSync()
-                    }
                     // Reset inbound lock for future calls
                     lastInboundSignalTime = 0
                 }
@@ -73,7 +65,6 @@ class CallAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        recorderService = AudioRecorderService(this)
         
         val filter = IntentFilter().apply {
             addAction("ACTION_CALL_STARTED")
@@ -115,58 +106,6 @@ class CallAccessibilityService : AccessibilityService() {
         super.onDestroy()
     }
 
-    private fun startRecordingSync(number: String) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val cleanPhone = number.replace(Regex("[^0-9+]"), "")
-            val lead = AppDatabase.getDatabase(applicationContext).leadDao().findLeadByPhone(cleanPhone)
-            
-            if (lead != null) {
-                currentLeadId = lead.id
-                currentPhoneNum = cleanPhone
-                isCallActive = true
-                callStartTime = System.currentTimeMillis()
-                
-                if (!isOutgoing) {
-                    lastInboundSignalTime = System.currentTimeMillis()
-                }
-
-                Log.d("CallExtService", "Recording matched lead: ${lead.firstName}. Starting recorder.")
-                currentCallFile = recorderService.startRecording(lead.id, cleanPhone)
-            }
-        }
-    }
-
-    private fun stopRecordingSync() {
-        Log.d("CallExtService", "Stopping recording due to Tracker event")
-        isCallActive = false
-        recorderService.stopRecording()
-        
-        val sessId = currentSessionId
-        val recordedFile = currentCallFile
-
-        if (sessId != null && recordedFile != null && recordedFile.exists()) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val db = AppDatabase.getDatabase(applicationContext)
-                val buffer = db.callBufferDao().getBySessionId(sessId)
-                if (buffer != null) {
-                    buffer.recordingPath = recordedFile.absolutePath
-                    db.callBufferDao().update(buffer)
-                    Log.d("CallExtService", "Attached recording to buffer for session: $sessId")
-                } else {
-                    Log.e("CallExtService", "Failed to find buffer entry for session: $sessId")
-                }
-                
-                // Wake up the worker to check for consolidation
-                com.pypecrm.app.services.UnifiedSyncWorker.schedule(applicationContext)
-            }
-        }
-        
-        // Cleanup state immediately
-        currentLeadId = null
-        currentPhoneNum = null
-        currentCallFile = null
-        currentSessionId = null
-    }
 
     data class LogResult(val duration: Int, val timestamp: Long, val hardwareId: String)
 
@@ -384,14 +323,13 @@ class CallAccessibilityService : AccessibilityService() {
 
             isCallActive = true
             callStartTime = System.currentTimeMillis()
-            Log.d("CallExtService", "Call is now ACTIVE. Starting recording.")
-            currentCallFile = recorderService.startRecording(currentLeadId!!, currentPhoneNum!!)
+            Log.d("CallExtService", "Call is now ACTIVE UI.")
         }
 
         // Check if the call has ended. If the UI says "Call ended" or if the dialer closes.
         if ((text.lowercase() == "call ended" || contentDesc.contains("call ended")) && isCallActive) {
-            Log.d("CallExtService", "Call ENDED UI trigger. Finalizing.")
-            stopRecordingSync()
+            Log.d("CallExtService", "Call ENDED UI trigger.")
+            isCallActive = false
         }
 
         // Recurse heavily nested views

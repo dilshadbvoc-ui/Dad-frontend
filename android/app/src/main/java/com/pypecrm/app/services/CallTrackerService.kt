@@ -18,6 +18,8 @@ import kotlinx.coroutines.launch
 import okhttp3.MultipartBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
@@ -31,9 +33,12 @@ class CallTrackerService : Service() {
     private var currentNumber: String? = null
     private var isOutgoing = false
     private var currentSessionId: String? = null
+    private lateinit var recorderService: AudioRecorderService
+    private var currentCallFile: java.io.File? = null
 
     override fun onCreate() {
         super.onCreate()
+        recorderService = AudioRecorderService(applicationContext)
         createNotificationChannel()
         val initialNotification = createNotification("Call Tracker Active", "Waiting for calls...")
         try {
@@ -71,6 +76,7 @@ class CallTrackerService : Service() {
     }
 
     private fun startTrackingLogic(number: String?, isOutgoing: Boolean) {
+        if (isCallActive) return
         this.currentNumber = number
         this.isOutgoing = isOutgoing
         this.callStartTime = System.currentTimeMillis()
@@ -81,16 +87,11 @@ class CallTrackerService : Service() {
 
         if (pendingId != null) {
             this.currentSessionId = pendingId
-            Log.d("CallTracker", "Consuming pending session ID from CRMBridge: $pendingId")
-            // Clear it immediately to avoid reuse for manual redials
             crmPrefs.edit().remove("pending_session_id").apply()
         } else {
-            // ALWAYS generate a unique session ID if one wasn't provided by the CRM
             this.currentSessionId = java.util.UUID.randomUUID().toString()
-            Log.d("CallTracker", "Iron Shield: Generated unique session ID: $currentSessionId")
         }
 
-        // INIT BUFFER: Create the entry for later consolidation
         val sessId = this.currentSessionId
         if (sessId != null && number != null) {
             val db = AppDatabase.getDatabase(applicationContext)
@@ -101,33 +102,39 @@ class CallTrackerService : Service() {
                     startTime = callStartTime,
                     type = if (isOutgoing) "OUTGOING" else "INCOMING"
                 ))
-                Log.d("CallTracker", "Buffered call start for $number (Session: $sessId)")
             }
         }
 
-        val notification = createNotification("Call Tracking Active", "Monitoring call with ${number ?: "Unknown Number"}")
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(NOTIFICATION_ID, notification)
+        if (number != null) {
+            currentCallFile = recorderService.startRecording("lead", number)
+        }
 
-        // Notify other services (e.g., Recorder)
-        sendCallStateBroadcast("ACTION_CALL_STARTED", number, isOutgoing)
+        updateNotification("Call Tracking Active", "Monitoring call with ${number ?: "Unknown"}")
     }
 
     private fun stopTracking() {
         if (isCallActive) {
             val finalNumber = currentNumber
             val wasOutgoing = isOutgoing
-            
-            // Notify other services
-            sendCallStateBroadcast("ACTION_CALL_ENDED", finalNumber, wasOutgoing)
+            val sessionId = currentSessionId
+            val duration = (System.currentTimeMillis() - callStartTime) / 1000
 
+            recorderService.stopRecording()
+            val recordingFile = currentCallFile
+            
             CoroutineScope(Dispatchers.IO).launch {
-                Log.d("CallTracker", "Call ended. Triggering final consolidation in 10 seconds for session: $currentSessionId")
-                
-                // Trigger instant sync for the worker to notice the new buffer entry
+                if (finalNumber != null) {
+                    checkLeadAndUpload(
+                        phone = finalNumber,
+                        durationSecs = duration.toInt(),
+                        callType = if (wasOutgoing) "OUTGOING" else "INCOMING",
+                        callSessionId = sessionId,
+                        recordingFile = recordingFile
+                    )
+                }
                 com.pypecrm.app.services.UnifiedSyncWorker.schedule(applicationContext)
-                
                 isCallActive = false
+                currentCallFile = null
                 updateNotification("Call Tracker Active", "Waiting for calls...")
             }
         } else {
@@ -228,7 +235,7 @@ class CallTrackerService : Service() {
         return Pair(token, apiBase)
     }
 
-    private fun checkLeadAndUpload(phone: String, durationSecs: Int, callType: String, officialTimestamp: Long? = null, hardwareId: String? = null, callSessionId: String? = null) {
+    private fun checkLeadAndUpload(phone: String, durationSecs: Int, callType: String, officialTimestamp: Long? = null, hardwareId: String? = null, callSessionId: String? = null, recordingFile: java.io.File? = null) {
         val cleanPhone = phone.replace(Regex("[^0-9]"), "")
         if (cleanPhone.length < 10) return
         
@@ -236,22 +243,19 @@ class CallTrackerService : Service() {
         val db = AppDatabase.getDatabase(this)
         
         CoroutineScope(Dispatchers.IO).launch {
-            Log.d("CallTracker", "Looking up lead for $last10 locally...")
             val lead = db.leadDao().findLeadByPhone(last10)
             val details = getLatestCallDetails(last10)
-            
-            val finalHwId = details?.hardwareId ?: hardwareId
-            val finalCarrierDuration = details?.duration
             
             uploadMetadataToCrm(
                 leadId = lead?.id, 
                 phoneNumber = phone, 
                 durationSecs = durationSecs, 
-                carrierDurationSecs = finalCarrierDuration,
+                carrierDurationSecs = details?.duration,
                 callType = callType, 
                 officialTimestamp = details?.timestamp ?: officialTimestamp, 
-                hardwareId = finalHwId, 
-                callSessionId = callSessionId
+                hardwareId = details?.hardwareId ?: hardwareId, 
+                callSessionId = callSessionId,
+                recordingFile = recordingFile
             )
         }
     }
@@ -264,7 +268,8 @@ class CallTrackerService : Service() {
         callType: String, 
         officialTimestamp: Long? = null, 
         hardwareId: String? = null, 
-        callSessionId: String? = null
+        callSessionId: String? = null,
+        recordingFile: java.io.File? = null
     ) {
         val (token, apiBase) = getAuthData() ?: run {
             queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId, carrierDurationSecs)
@@ -292,6 +297,15 @@ class CallTrackerService : Service() {
             
         if (leadId != null) {
             requestBodyBuilder.addFormDataPart("leadId", leadId)
+        }
+
+        if (recordingFile != null && recordingFile.exists()) {
+            val mediaType = "audio/mpeg".toMediaTypeOrNull()
+            requestBodyBuilder.addFormDataPart(
+                "file", 
+                recordingFile.name, 
+                recordingFile.asRequestBody(mediaType)
+            )
         }
 
         val request = Request.Builder()
