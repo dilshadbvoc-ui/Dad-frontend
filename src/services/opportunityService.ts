@@ -50,6 +50,7 @@ export interface OpportunityQueryParams {
     sortBy?: string;
     sortOrder?: 'asc' | 'desc';
     type?: 'NEW_BUSINESS' | 'UPSALE';
+    leadSource?: string;
 }
 
 export interface CreateOpportunityData {

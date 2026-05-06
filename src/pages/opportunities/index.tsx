@@ -52,6 +52,7 @@ export default function OpportunitiesPage() {
     stage: initialStage || 'all',
     type: 'all',
     branchId: 'all',
+    leadSource: 'all',
     search: ''
   })
 
@@ -83,6 +84,7 @@ export default function OpportunitiesPage() {
       if (params.stage === 'all') delete params.stage;
       if (params.type === 'all') delete params.type;
       if (params.branchId === 'all') delete params.branchId;
+      if (params.leadSource === 'all') delete params.leadSource;
       if (params.ownerId === '') delete params.ownerId;
       
       return getOpportunities(params);
@@ -105,6 +107,7 @@ export default function OpportunitiesPage() {
       stage: 'all',
       type: 'all',
       branchId: 'all',
+      leadSource: 'all',
       search: ''
     });
     setFilterMode('all');
@@ -184,7 +187,7 @@ export default function OpportunitiesPage() {
                 <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all') ? 'border-primary text-primary bg-primary/5' : '')}>
                   <Filter className="h-4 w-4" />
                   <span className="ml-2 hidden xs:inline">Filter</span>
-                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all') && (
+                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all' || queryParams.leadSource !== 'all') && (
                     <Badge className="ml-2 h-4 w-4 p-0 flex items-center justify-center bg-primary text-white text-[10px] rounded-full">
                       !
                     </Badge>
@@ -258,6 +261,32 @@ export default function OpportunitiesPage() {
                         {branches.map((b: any) => (
                           <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                         ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Source</label>
+                    <Select value={queryParams.leadSource} onValueChange={(v) => handleFilterChange('leadSource', v)}>
+                      <SelectTrigger className="h-9 rounded-lg bg-muted/50 border-0">
+                        <SelectValue placeholder="All Sources" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl">
+                        <SelectItem value="all">All Sources</SelectItem>
+                        <SelectItem value="website">Website</SelectItem>
+                        <SelectItem value="referral">Referral</SelectItem>
+                        <SelectItem value="social">Social</SelectItem>
+                        <SelectItem value="paid_ad">Paid Ad</SelectItem>
+                        <SelectItem value="import">Import</SelectItem>
+                        <SelectItem value="api">API</SelectItem>
+                        <SelectItem value="manual">Manual</SelectItem>
+                        <SelectItem value="whatsapp">WhatsApp</SelectItem>
+                        <SelectItem value="meta_leadgen">Meta Leadgen</SelectItem>
+                        <SelectItem value="cold_call">Cold Call</SelectItem>
+                        <SelectItem value="email_campaign">Email Campaign</SelectItem>
+                        <SelectItem value="meta_ads">Meta Ads</SelectItem>
+                        <SelectItem value="google_ads">Google Ads</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

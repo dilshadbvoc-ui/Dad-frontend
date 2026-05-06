@@ -104,6 +104,18 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     }
   },
   {
+    accessorKey: "leadSource",
+    header: "Source",
+    cell: ({ row }) => {
+      const source = row.original.leadSource
+      return source ? (
+        <Badge variant="outline" className="capitalize bg-primary/10 text-primary border-primary/20">
+          {source.replace(/_/g, ' ')}
+        </Badge>
+      ) : <span className="text-muted-foreground">-</span>
+    }
+  },
+  {
     accessorKey: "closeDate",
     header: "Close Date",
     cell: ({ row }) => {

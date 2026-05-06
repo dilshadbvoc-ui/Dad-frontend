@@ -1,4 +1,4 @@
-import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
+import { copyToClipboard, isOrgAdmin, getUserInfo } from "@/lib/utils";
 import { useState } from "react"
 import { MoreHorizontal, Pencil, Copy, Eye, Trash2, CreditCard, DollarSign } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -41,7 +41,7 @@ export function OpportunityActions({ opportunity }: OpportunityActionsProps) {
   const queryClient = useQueryClient()
 
   const user = getUserInfo();
-  const canDelete = isAdmin(user);
+  const canDelete = isOrgAdmin(user);
 
   const deleteMutation = useMutation({
     mutationFn: () => deleteOpportunity(opportunity.id),

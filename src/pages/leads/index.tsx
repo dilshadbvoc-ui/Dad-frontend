@@ -274,6 +274,7 @@ export default function LeadsPage() {
   const currentSort = searchParams.get('sort') || 'newest';
   const currentOwner = searchParams.get('owner') || 'all';
   const currentBranch = searchParams.get('branch') || 'all';
+  const currentSource = searchParams.get('source') || 'all';
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
@@ -298,11 +299,12 @@ export default function LeadsPage() {
   // --- Data Fetching ---
   // 1. Leads
   const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-    queryKey: ['leads', 'all', currentOwner, currentBranch],
+    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource],
     queryFn: () => getLeads({ 
       pageSize: 1000,
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
-      branchId: currentBranch === 'all' ? undefined : currentBranch
+      branchId: currentBranch === 'all' ? undefined : currentBranch,
+      source: currentSource === 'all' ? undefined : currentSource
     }),
   });
 
@@ -530,7 +532,11 @@ export default function LeadsPage() {
   };
 
   const handleBranchChange = (branch: string) => {
-    setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch });
+    setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch, source: currentSource });
+  };
+
+  const handleSourceChange = (source: string) => {
+    setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch: currentBranch, source });
   };
 
   // Excel download function
@@ -697,6 +703,37 @@ export default function LeadsPage() {
                           </div>
                         </SelectItem>
                       ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Source Filter */}
+            {!isTaskView && !isChartView && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Source</label>
+                <Select value={currentSource} onValueChange={handleSourceChange}>
+                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                    <SelectItem value="all" className="rounded-lg italic">All Sources</SelectItem>
+                    <SelectGroup>
+                      <SelectItem value="website" className="rounded-lg">Website</SelectItem>
+                      <SelectItem value="referral" className="rounded-lg">Referral</SelectItem>
+                      <SelectItem value="social" className="rounded-lg">Social</SelectItem>
+                      <SelectItem value="paid_ad" className="rounded-lg">Paid Ad</SelectItem>
+                      <SelectItem value="import" className="rounded-lg">Import</SelectItem>
+                      <SelectItem value="api" className="rounded-lg">API</SelectItem>
+                      <SelectItem value="manual" className="rounded-lg">Manual</SelectItem>
+                      <SelectItem value="whatsapp" className="rounded-lg">WhatsApp</SelectItem>
+                      <SelectItem value="meta_leadgen" className="rounded-lg">Meta Leadgen</SelectItem>
+                      <SelectItem value="cold_call" className="rounded-lg">Cold Call</SelectItem>
+                      <SelectItem value="email_campaign" className="rounded-lg">Email Campaign</SelectItem>
+                      <SelectItem value="meta_ads" className="rounded-lg">Meta Ads</SelectItem>
+                      <SelectItem value="google_ads" className="rounded-lg">Google Ads</SelectItem>
+                      <SelectItem value="other" className="rounded-lg">Other</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
