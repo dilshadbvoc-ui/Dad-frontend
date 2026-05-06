@@ -105,9 +105,9 @@ export const getDailyReport = async (branchId?: string) => {
     try {
         const params = branchId ? { branchId } : {};
         const response = await api.get('/reports/daily-report', { params });
-        return Array.isArray(response.data) ? response.data : [];
+        return response.data || { table: [], summary: null };
     } catch (error) {
         console.error('Error fetching daily report:', error);
-        return [];
+        return { table: [], summary: null };
     }
 };

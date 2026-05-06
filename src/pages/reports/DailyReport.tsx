@@ -30,11 +30,14 @@ export default function DailyReportPage() {
     enabled: !!isAdmin
   });
 
-  const { data: reportData = [], isLoading, error, refetch, isFetching } = useQuery({
+  const { data: reportData, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['dailyReport', selectedBranchId],
     queryFn: () => getDailyReport(selectedBranchId === "all" ? undefined : selectedBranchId),
     refetchInterval: 1000 * 60 * 5, // Refresh every 5 mins
   });
+
+  const tableData = reportData?.table || [];
+  const summary = reportData?.summary || null;
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
@@ -148,8 +151,8 @@ export default function DailyReportPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {reportData.length > 0 ? (
-                reportData.map((row: any, idx: number) => (
+              {tableData.length > 0 ? (
+                tableData.map((row: any, idx: number) => (
                   <TableRow 
                     key={row.id} 
                     className={`
@@ -213,6 +216,20 @@ export default function DailyReportPage() {
         </div>
       </Card>
 
+      {/* Summary Cards Section (New) */}
+      {summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 no-print">
+          <SummaryCard title="Total Phone Calls" value={summary.totalCalls} subValue={formatDuration(summary.totalDuration)} color="bg-blue-500" />
+          <SummaryCard title="Incoming Calls" value={summary.incoming} subValue={formatDuration(summary.incomingDuration)} color="bg-emerald-500" />
+          <SummaryCard title="Outgoing Calls" value={summary.outgoing} subValue={formatDuration(summary.outgoingDuration)} color="bg-indigo-500" />
+          <SummaryCard title="Missed Calls" value={summary.missed} color="bg-rose-500" />
+          <SummaryCard title="Rejected Calls" value={summary.rejected} color="bg-orange-500" />
+          <SummaryCard title="Never Attended Calls" value={summary.neverAttended} color="bg-slate-500" />
+          <SummaryCard title="Not Pickup by Client" value={summary.notPickedUp} color="bg-amber-500" />
+          <SummaryCard title="Unique Calls" value={summary.unique} color="bg-purple-500" />
+        </div>
+      )}
+
       <style>{`
         @media print {
           .no-print { display: none !important; }
@@ -222,4 +239,35 @@ export default function DailyReportPage() {
       `}</style>
     </div>
   );
+}
+
+function SummaryCard({ title, value, subValue, color }: { title: string; value: number; subValue?: string; color: string }) {
+  return (
+    <Card className="border-none shadow-lg shadow-black/5 overflow-hidden rounded-2xl bg-background group hover:scale-[1.02] transition-all">
+      <div className="p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className={`w-2 h-10 rounded-full ${color}`} />
+          {subValue && (
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-2 py-1 rounded-lg">
+              {subValue}
+            </span>
+          )}
+        </div>
+        <div className="space-y-1">
+          <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground/70">
+            {title}
+          </p>
+          <p className="text-3xl font-black text-foreground tabular-nums group-hover:text-primary transition-colors">
+            {value}
+          </p>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
+function formatDuration(seconds: number) {
+  const m = Math.floor(seconds / 60);
+  const s = seconds % 60;
+  return `${m}m ${s}s`;
 }
