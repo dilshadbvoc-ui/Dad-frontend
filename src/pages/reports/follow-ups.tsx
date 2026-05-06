@@ -129,6 +129,7 @@ export default function FollowUpReportsPage() {
           Download Excel
         </Button>
       </div>
+    </div>
 
       <Card>
         <CardHeader>

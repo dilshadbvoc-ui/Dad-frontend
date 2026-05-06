@@ -285,7 +285,8 @@ export default function LeadReportsPage() {
           Download Excel
         </Button>
       </div>
-      {renderContent()}
+    </div>
+    {renderContent()}
     </div>
   );
 }
