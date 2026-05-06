@@ -281,7 +281,7 @@ export default function OpportunitiesPage() {
                         <SelectItem value="api">API</SelectItem>
                         <SelectItem value="manual">Manual</SelectItem>
                         <SelectItem value="whatsapp">WhatsApp</SelectItem>
-                        <SelectItem value="meta_leadgen">Meta Leadgen</SelectItem>
+                        <SelectItem value="meta_leadgen">Meta Ads</SelectItem>
                         <SelectItem value="cold_call">Cold Call</SelectItem>
                         <SelectItem value="email_campaign">Email Campaign</SelectItem>
                         <SelectItem value="meta_ads">Meta Ads</SelectItem>

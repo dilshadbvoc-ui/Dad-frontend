@@ -728,7 +728,7 @@ export default function LeadsPage() {
                       <SelectItem value="api" className="rounded-lg">API</SelectItem>
                       <SelectItem value="manual" className="rounded-lg">Manual</SelectItem>
                       <SelectItem value="whatsapp" className="rounded-lg">WhatsApp</SelectItem>
-                      <SelectItem value="meta_leadgen" className="rounded-lg">Meta Leadgen</SelectItem>
+                      <SelectItem value="meta_leadgen" className="rounded-lg">Meta Ads</SelectItem>
                       <SelectItem value="cold_call" className="rounded-lg">Cold Call</SelectItem>
                       <SelectItem value="email_campaign" className="rounded-lg">Email Campaign</SelectItem>
                       <SelectItem value="meta_ads" className="rounded-lg">Meta Ads</SelectItem>
