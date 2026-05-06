@@ -37,7 +37,7 @@ export default function IntegrationsPage() {
 
   // Config Dialog State
   const [configOpen, setConfigOpen] = useState(false);
-  const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | 'zapier' | null>(null);
+  const [activeConfigType, setActiveConfigType] = useState<'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'zapier' | null>(null);
 
   // Meta Account Config State
   const [metaConfigOpen, setMetaConfigOpen] = useState(false);
@@ -75,7 +75,7 @@ export default function IntegrationsPage() {
     }
   };
 
-  const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'facebook_payload' | 'zapier') => {
+  const openConfig = (type: 'meta' | 'slack' | 'twilio' | 'whatsapp' | 'sso' | 'happilee' | 'wabis' | 'doubletick' | 'googleads' | 'wati' | 'halapi' | 'gallabox' | 'zapier') => {
     setActiveConfigType(type);
     setConfigOpen(true);
   };
@@ -93,28 +93,6 @@ export default function IntegrationsPage() {
       onDisable: handleDisconnectMeta,
       hasSettings: true,
       settingsType: 'meta' as const,
-      isPlaceholder: false
-    },
-    {
-      id: 'facebook_payload',
-      name: 'Meta Ads (Payload)',
-      description: 'Connect Meta Ads using a direct payload webhook. No complex App setup required. Supports direct JSON data from any lead forwarding tool.',
-      icon: FacebookLogo,
-      iconColor: 'text-indigo-600',
-      connected: integrations.facebook_payload?.connected,
-      onEnable: () => openConfig('facebook_payload'),
-      onDisable: async () => {
-        try {
-          const { api } = await import('@/services/api');
-          await api.post('/organisation', { integrations: { ...integrations, facebook_payload: { connected: false } } });
-          queryClient.invalidateQueries({ queryKey: ['organisation'] });
-          toast.success('Disconnected Facebook Payload');
-        } catch {
-          toast.error('Failed to disconnect');
-        }
-      },
-      hasSettings: true,
-      settingsType: 'facebook_payload' as const,
       isPlaceholder: false
     },
     {
@@ -298,7 +276,6 @@ export default function IntegrationsPage() {
                                   integration.id === 'wati' ? 'bg-gradient-to-br from-green-600 to-green-800' :
                                     integration.id === 'halapi' ? 'bg-gradient-to-br from-purple-500 to-purple-700' :
                                       integration.id === 'gallabox' ? 'bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500' :
-                                        integration.id === 'facebook_payload' ? 'bg-gradient-to-br from-indigo-600 to-violet-700' :
                                           integration.id === 'zapier' ? 'bg-gradient-to-br from-orange-500 to-amber-600' :
                                             'bg-gradient-to-br from-gray-500 to-gray-700'
                     }`}>
@@ -387,48 +364,6 @@ export default function IntegrationsPage() {
                     {integration.description}
                   </p>
                   
-                  {integration.id === 'facebook_payload' && (
-                    <div className="space-y-3 mt-2 mb-3">
-                      <div className="bg-indigo-50 dark:bg-indigo-900/20 p-2 rounded border border-indigo-100 dark:border-indigo-800/30 flex flex-wrap items-center gap-2 text-xs text-indigo-700 dark:text-indigo-300">
-                        <span className="font-semibold">Mode:</span>
-                        <Badge variant="outline" className="text-[10px] h-5 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 border-indigo-200">
-                          {integrations.facebook_payload?.connectionMode === 'api' ? 'Direct API Sync' : 'Push-only Webhook'}
-                        </Badge>
-                        {integrations.facebook_payload?.connectionMode === 'api' && (
-                          <>
-                            <span className="font-semibold ml-2">Page ID:</span>
-                            <code className="bg-white dark:bg-black px-1.5 py-0.5 rounded border text-indigo-600 dark:text-indigo-400">
-                              {integrations.facebook_payload?.pageId || 'N/A'}
-                            </code>
-                          </>
-                        )}
-                      </div>
-                      
-                      <div className="bg-indigo-50/50 dark:bg-indigo-900/10 p-3 rounded-xl border border-indigo-100 dark:border-indigo-900/30 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <h4 className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase">Direct Webhook URL</h4>
-                          <span className="text-[10px] text-indigo-600 font-medium">No Tokens Required</span>
-                        </div>
-                        <p className="text-xs text-indigo-600/80 dark:text-indigo-300/80">
-                          Use this URL for direct JSON payloads from any lead tool.
-                        </p>
-                        <div className="space-y-1">
-                          <label className="text-[10px] font-bold uppercase text-indigo-600/60 dark:text-indigo-400/60">Webhook URL</label>
-                          <div className="flex gap-2">
-                            <code className="text-xs bg-white dark:bg-gray-950 p-2 rounded border flex-1 break-all font-mono">
-                              {`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${integrations.facebook_payload?.apiKey || '<API_KEY>'}`}
-                            </code>
-                            <Button size="sm" variant="ghost" className="h-8 px-2" onClick={() => {
-                              navigator.clipboard.writeText(
-                                `${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || ''}?apiKey=${integrations.facebook_payload?.apiKey || ''}`
-                              );
-                              toast.success('Webhook URL Copied');
-                            }}>Copy</Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  )}
 
                   {integration.id === 'zapier' && integrations.zapier?.connected && (
                     <div className="bg-orange-50/50 dark:bg-orange-900/10 p-3 rounded-xl border border-orange-100 dark:border-orange-900/30 space-y-2 mt-2 mb-3">
