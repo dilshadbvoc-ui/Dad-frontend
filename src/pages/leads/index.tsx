@@ -548,6 +548,7 @@ export default function LeadsPage() {
       'Last Name': lead.lastName || '',
       'Email': lead.email || '',
       'Phone': lead.phone || '',
+      'Company': lead.company || '',
       'Status': lead.status || '',
       'Source': lead.source || '',
       'Lead Score': lead.leadScore || 0,
