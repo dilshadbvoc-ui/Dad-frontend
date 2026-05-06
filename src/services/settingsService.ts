@@ -46,6 +46,7 @@ export interface IntegrationSettings {
     pixelId?: string;
     accessToken?: string;
     adAccountId?: string;
+    connectionMode?: 'api' | 'webhook';
     phoneNumberId?: string;
     wabaId?: string;
     appId?: string;

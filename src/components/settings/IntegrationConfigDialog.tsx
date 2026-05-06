@@ -83,6 +83,16 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
     name: 'formRules' as any
   }) || {};
 
+  const watchedApiKey = useWatch({
+    control: form.control,
+    name: 'apiKey'
+  })
+
+  const watchedConnectionMode = useWatch({
+    control: form.control,
+    name: 'connectionMode'
+  })
+
   useEffect(() => {
     if (initialValues) {
       form.reset({
@@ -852,7 +862,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                   )}
                 />
 
-                {form.watch('connectionMode') === 'api' ? (
+                {watchedConnectionMode === 'api' ? (
                   <div className="space-y-4 animate-in fade-in slide-in-from-top-1 duration-200">
                     <FormField
                       control={form.control}
@@ -910,7 +920,7 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                           <Input 
                             readOnly 
                             className="h-8 text-xs bg-white dark:bg-black font-mono" 
-                            value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${form.watch('apiKey') || '<YOUR_KEY>'}`}
+                            value={`${window.location.origin.replace('3000', '5001').replace('5173', '5000')}/api/public/meta/payload/${orgData?.id || '<ORG_ID>'}?apiKey=${(watchedApiKey as string) || '<YOUR_KEY>'}`}
                           />
                           <Button 
                             type="button" 
