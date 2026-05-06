@@ -8,12 +8,13 @@ import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
 import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrganisation } from '../../services/settingsService';
 import { useNavigate } from 'react-router-dom';
 
 const AdsManager: React.FC = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { data: organisation } = useQuery({
     queryKey: ['organisation'],
     queryFn: getOrganisation
