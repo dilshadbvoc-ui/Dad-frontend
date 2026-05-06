@@ -494,7 +494,7 @@ export default function LeadDetailPage() {
                 </div>
                 {lead.products && lead.products.length > 0 ? (
                   <div className="space-y-3">
-                    {lead.products.map((kp: { productId: string; product?: { name: string }; quantity: number; price: number }) => (
+                    {lead.products.map((kp: { productId: string; product?: { name: string }; quantity: number; price: number; customName?: string }) => (
                       <div key={kp.productId} className="text-sm border-b last:border-0 border-dashed pb-3 last:pb-0">
                         <div className="flex justify-between items-start mb-1">
                           <span className="font-medium">

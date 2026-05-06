@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { getAssetUrl } from "@/lib/utils";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2, CreditCard, Clock, Eye } from "lucide-react";
+import { MoreHorizontal, DollarSign, Calendar, AlertCircle, CheckCircle2, CreditCard, Clock, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
