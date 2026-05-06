@@ -22,61 +22,53 @@ class AudioRecorderService(private val context: Context) {
         }
 
         try {
-            // Android 15 Restriction Bypass: Force speakerphone to grab both sides of the call 
-            // since VOICE_CALL source is restricted without system            // Step 1: Force Speakerphone and wait for system to switch
-            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-            audioManager.isSpeakerphoneOn = true
-            
-            // Small delay to allow audio hardware to stabilize
-            Thread.sleep(500)
-
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.mp4"
-            
-            // Store temporarily in app cache
             currentRecordingFile = File(context.cacheDir, fileName)
-            
-            val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                MediaRecorder(context)
-            } else {
-                @Suppress("DEPRECATION")
-                MediaRecorder()
-            }
 
-            try {
-                recorder = mediaRecorder.apply {
-                    // MIC is often more reliable for catching speaker sound than VOICE_COMMUNICATION
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    setAudioSamplingRate(44100)
-                    setAudioEncodingBitRate(128000) // Slightly higher quality
-                    setOutputFile(currentRecordingFile!!.absolutePath)
+            val sources = listOf(
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION
+            )
+
+            var lastError: Exception? = null
+
+            for (source in sources) {
+                try {
+                    audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+                    audioManager.isSpeakerphoneOn = true
                     
-                    prepare()
-                    start()
-                }
-                
-                // Double-check speakerphone after start
-                audioManager.isSpeakerphoneOn = true
-                
-                isRecording = true
-                Log.d("AudioRecorder", "Started tuned recording call to ${currentRecordingFile!!.absolutePath}")
-                return currentRecordingFile
-            } catch (e: Exception) {
-                Log.e("AudioRecorder", "MediaRecorder start failed (mic might be in use)", e)
-                mediaRecorder.release()
-                recorder = null
-                isRecording = false
-                audioManager.isSpeakerphoneOn = false
-                audioManager.mode = AudioManager.MODE_NORMAL
-                return null
-            }
+                    val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        MediaRecorder(context)
+                    } else {
+                        @Suppress("DEPRECATION")
+                        MediaRecorder()
+                    }
 
+                    recorder = mediaRecorder.apply {
+                        setAudioSource(source)
+                        setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                        setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                        setAudioSamplingRate(44100)
+                        setAudioEncodingBitRate(96000)
+                        setOutputFile(currentRecordingFile!!.absolutePath)
+                        prepare()
+                        start()
+                    }
+                    
+                    isRecording = true
+                    Log.d("AudioRecorder", "Success with source: $source")
+                    return currentRecordingFile
+                } catch (e: Exception) {
+                    Log.w("AudioRecorder", "Source $source failed", e)
+                    lastError = e
+                    recorder?.release()
+                    recorder = null
+                }
+            }
+            return null
         } catch (e: Exception) {
-            Log.e("AudioRecorder", "General failure in startRecording", e)
-            audioManager.isSpeakerphoneOn = false
-            audioManager.mode = AudioManager.MODE_NORMAL
             return null
         }
     }
