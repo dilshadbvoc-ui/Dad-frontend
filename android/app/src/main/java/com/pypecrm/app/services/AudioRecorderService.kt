@@ -23,9 +23,12 @@ class AudioRecorderService(private val context: Context) {
 
         try {
             // Android 15 Restriction Bypass: Force speakerphone to grab both sides of the call 
-            // since VOICE_CALL source is restricted without system permissions.
+            // since VOICE_CALL source is restricted without system            // Step 1: Force Speakerphone and wait for system to switch
             audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
             audioManager.isSpeakerphoneOn = true
+            
+            // Small delay to allow audio hardware to stabilize
+            Thread.sleep(500)
 
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
             val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.mp4"
@@ -42,18 +45,23 @@ class AudioRecorderService(private val context: Context) {
 
             try {
                 recorder = mediaRecorder.apply {
-                    setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                    // MIC is often more reliable for catching speaker sound than VOICE_COMMUNICATION
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                     setAudioSamplingRate(44100)
-                    setAudioEncodingBitRate(96000)
+                    setAudioEncodingBitRate(128000) // Slightly higher quality
                     setOutputFile(currentRecordingFile!!.absolutePath)
                     
                     prepare()
                     start()
                 }
+                
+                // Double-check speakerphone after start
+                audioManager.isSpeakerphoneOn = true
+                
                 isRecording = true
-                Log.d("AudioRecorder", "Started recording call to ${currentRecordingFile!!.absolutePath}")
+                Log.d("AudioRecorder", "Started tuned recording call to ${currentRecordingFile!!.absolutePath}")
                 return currentRecordingFile
             } catch (e: Exception) {
                 Log.e("AudioRecorder", "MediaRecorder start failed (mic might be in use)", e)

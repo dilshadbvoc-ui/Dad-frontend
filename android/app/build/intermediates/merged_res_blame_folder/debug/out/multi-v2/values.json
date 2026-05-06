@@ -112,6 +112,23 @@
                     }
                 },
                 {
+                    "source": "/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/res/values/strings.xml",
+                    "from": {
+                        "startLines": "3,2",
+                        "startColumns": "4,4",
+                        "startOffsets": "101,55",
+                        "endColumns": "143,45",
+                        "endOffsets": "240,96"
+                    },
+                    "to": {
+                        "startLines": "1888,1890",
+                        "startColumns": "4,4",
+                        "startOffsets": "126776,127003",
+                        "endColumns": "143,45",
+                        "endOffsets": "126915,127044"
+                    }
+                },
+                {
                     "source": "/Users/retro/.gradle/caches/transforms-4/87f790a12e10097978402ad1cf40264d/transformed/fragment-1.3.6/res/values/values.xml",
                     "from": {
                         "startLines": "2,3,4,5,10",
@@ -310,23 +327,6 @@
                         "startOffsets": "119960",
                         "endColumns": "49",
                         "endOffsets": "120005"
-                    }
-                },
-                {
-                    "source": "/Users/retro/Documents/D/MERN CRM/android/app/src/main/res/values/strings.xml",
-                    "from": {
-                        "startLines": "3,2",
-                        "startColumns": "4,4",
-                        "startOffsets": "101,55",
-                        "endColumns": "143,45",
-                        "endOffsets": "240,96"
-                    },
-                    "to": {
-                        "startLines": "1888,1890",
-                        "startColumns": "4,4",
-                        "startOffsets": "126776,127003",
-                        "endColumns": "143,45",
-                        "endOffsets": "126915,127044"
                     }
                 },
                 {

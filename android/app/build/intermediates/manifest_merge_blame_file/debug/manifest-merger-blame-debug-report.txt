@@ -10,106 +10,106 @@
 10
 11    <!-- Package visibility for Android 11+ -->
 12    <queries>
-12-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:6:5-20:15
+12-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:6:5-20:15
 13        <package android:name="com.whatsapp" />
-13-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:7:9-48
-13-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:7:18-45
+13-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:7:9-48
+13-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:7:18-45
 14
 15        <intent>
-15-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:8:9-11:18
+15-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:8:9-11:18
 16            <action android:name="android.intent.action.VIEW" />
-16-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:13-65
-16-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:21-62
+16-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:13-65
+16-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:21-62
 17
 18            <data android:scheme="whatsapp" />
-18-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:13-47
-18-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:19-44
+18-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:13-47
+18-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:19-44
 19        </intent>
 20        <intent>
-20-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:12:9-15:18
+20-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:12:9-15:18
 21            <action android:name="android.intent.action.VIEW" />
-21-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:13-65
-21-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:21-62
+21-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:13-65
+21-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:21-62
 22
 23            <data android:scheme="tel" />
-23-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:13-47
-23-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:19-44
+23-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:13-47
+23-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:19-44
 24        </intent>
 25        <intent>
-25-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:16:9-19:18
+25-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:16:9-19:18
 26            <action android:name="android.intent.action.VIEW" />
-26-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:13-65
-26-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:9:21-62
+26-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:13-65
+26-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:9:21-62
 27
 28            <data android:scheme="mailto" />
-28-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:13-47
-28-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:10:19-44
+28-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:13-47
+28-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:10:19-44
 29        </intent>
 30    </queries>
 31
 32    <!-- Permissions required for webview and core app function -->
 33    <uses-permission android:name="android.permission.INTERNET" />
-33-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:23:5-67
-33-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:23:22-64
+33-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:23:5-67
+33-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:23:22-64
 34    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-34-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:24:5-79
-34-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:24:22-76
+34-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:24:5-79
+34-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:24:22-76
 35    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-35-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:25:5-79
-35-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:25:22-76
+35-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:25:5-79
+35-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:25:22-76
 36    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-36-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:26:5-81
-36-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:26:22-78
+36-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:26:5-81
+36-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:26:22-78
 37
 38    <!-- Permissions required for call recording -->
 39    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-39-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:29:5-71
-39-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:29:22-68
+39-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:29:5-71
+39-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:29:22-68
 40    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- To force speakerphone -->
-40-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:30:5-80
-40-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:30:22-77
+40-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:30:5-80
+40-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:30:22-77
 41
 42
 43    <!-- Optional: Read phone state to know caller ID natively if needed in future -->
 44    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-44-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:33:5-75
-44-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:33:22-72
+44-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:33:5-75
+44-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:33:22-72
 45    <uses-permission android:name="android.permission.CALL_PHONE" />
-45-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:34:5-69
-45-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:34:22-66
+45-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:34:5-69
+45-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:34:22-66
 46    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
-46-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:35:5-81
-46-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:35:22-78
+46-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:35:5-81
+46-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:35:22-78
 47    <uses-permission android:name="android.permission.READ_CALL_LOG" />
-47-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:36:5-72
-47-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:36:22-69
+47-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:36:5-72
+47-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:36:22-69
 48    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-48-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:37:5-77
-48-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:37:22-74
+48-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:37:5-77
+48-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:37:22-74
 49    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-49-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:38:5-81
-49-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:38:22-78
+49-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:38:5-81
+49-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:38:22-78
 50    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-50-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:39:5-77
-50-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:39:22-74
+50-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:39:5-77
+50-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:39:22-74
 51    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
-51-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:40:5-88
-51-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:40:22-85
+51-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:40:5-88
+51-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:40:22-85
 52    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
-52-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:41:5-88
-52-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:41:22-85
+52-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:41:5-88
+52-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:41:22-85
 53    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
-53-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:42:5-87
-53-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:42:22-84
+53-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:42:5-87
+53-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:42:22-84
 54    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
-54-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:43:5-89
-54-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:43:22-86
+54-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:43:5-89
+54-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:43:22-86
 55    <uses-permission android:name="android.permission.WAKE_LOCK" />
-55-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:44:5-68
-55-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:44:22-65
+55-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:44:5-68
+55-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:44:22-65
 56    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
-56-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:45:5-95
-56-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:45:22-92
+56-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:45:5-95
+56-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:45:22-92
 57
 58    <permission
 58-->[androidx.core:core:1.13.1] /Users/retro/.gradle/caches/transforms-4/e90b55c5887ff63c5bc3bd3594ed40a8/transformed/core-1.13.1/AndroidManifest.xml:22:5-24:47
@@ -123,130 +123,130 @@
 62-->[androidx.core:core:1.13.1] /Users/retro/.gradle/caches/transforms-4/e90b55c5887ff63c5bc3bd3594ed40a8/transformed/core-1.13.1/AndroidManifest.xml:26:22-94
 63
 64    <application
-64-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:47:5-109:19
+64-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:47:5-109:19
 65        android:allowBackup="true"
-65-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:48:9-35
+65-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:48:9-35
 66        android:appComponentFactory="androidx.core.app.CoreComponentFactory"
 66-->[androidx.core:core:1.13.1] /Users/retro/.gradle/caches/transforms-4/e90b55c5887ff63c5bc3bd3594ed40a8/transformed/core-1.13.1/AndroidManifest.xml:28:18-86
 67        android:debuggable="true"
 68        android:extractNativeLibs="true"
 69        android:icon="@mipmap/ic_launcher"
-69-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:49:9-43
+69-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:49:9-43
 70        android:label="@string/app_name"
-70-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:51:9-41
+70-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:51:9-41
 71        android:roundIcon="@mipmap/ic_launcher_round"
-71-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:50:9-54
+71-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:50:9-54
 72        android:supportsRtl="true"
-72-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:52:9-35
+72-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:52:9-35
 73        android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
-73-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:53:9-77
+73-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:53:9-77
 74        android:usesCleartextTraffic="true" > <!-- If testing on local IP HTTP -->
-74-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:54:9-44
+74-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:54:9-44
 75
 76        <activity
-76-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:56:9-64:20
+76-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:56:9-64:20
 77            android:name="com.pypecrm.app.MainActivity"
-77-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:57:13-41
+77-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:57:13-41
 78            android:exported="true"
-78-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:59:13-36
+78-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:59:13-36
 79            android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar" >
-79-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:58:13-81
+79-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:58:13-81
 80            <intent-filter>
-80-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:60:13-63:29
+80-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:60:13-63:29
 81                <action android:name="android.intent.action.MAIN" />
-81-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:61:17-69
-81-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:61:25-66
+81-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:61:17-69
+81-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:61:25-66
 82
 83                <category android:name="android.intent.category.LAUNCHER" />
-83-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:62:17-77
-83-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:62:27-74
+83-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:62:17-77
+83-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:62:27-74
 84            </intent-filter>
 85        </activity>
 86
 87        <!-- Notification Listener Service for WhatsApp Background Scraping -->
 88        <service
-88-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:67:9-74:19
+88-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:67:9-74:19
 89            android:name="com.pypecrm.app.services.WhatsAppNotificationListener"
-89-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:67:18-71
+89-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:67:18-71
 90            android:exported="true"
-90-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:70:13-36
+90-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:70:13-36
 91            android:label="CRM WhatsApp Sync"
-91-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:68:13-46
+91-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:68:13-46
 92            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE" >
-92-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:69:13-87
+92-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:69:13-87
 93            <intent-filter>
-93-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:71:13-73:29
+93-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:71:13-73:29
 94                <action android:name="android.service.notification.NotificationListenerService" />
-94-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:72:17-99
-94-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:72:25-96
+94-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:72:17-99
+94-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:72:25-96
 95            </intent-filter>
 96        </service>
 97
 98        <!-- Accessibility Service Declaration -->
 99        <service
-99-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:77:9-88:19
+99-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:77:9-88:19
 100            android:name="com.pypecrm.app.services.CallAccessibilityService"
-100-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:78:13-62
+100-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:78:13-62
 101            android:exported="true"
-101-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:81:13-36
+101-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:81:13-36
 102            android:label="CRM Call Recorder Integration"
-102-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:79:13-58
+102-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:79:13-58
 103            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE" >
-103-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:80:13-79
+103-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:80:13-79
 104            <intent-filter>
-104-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:82:13-84:29
+104-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:82:13-84:29
 105                <action android:name="android.accessibilityservice.AccessibilityService" />
-105-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:83:17-92
-105-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:83:25-89
+105-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:83:17-92
+105-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:83:25-89
 106            </intent-filter>
 107
 108            <meta-data
-108-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:85:13-87:72
+108-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:85:13-87:72
 109                android:name="android.accessibilityservice"
-109-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:86:17-60
+109-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:86:17-60
 110                android:resource="@xml/accessibility_service_config" />
-110-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:87:17-69
+110-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:87:17-69
 111        </service>
 112
 113        <receiver
-113-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:90:9-97:20
+113-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:90:9-97:20
 114            android:name="com.pypecrm.app.services.CallStateReceiver"
-114-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:90:19-61
+114-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:90:19-61
 115            android:exported="true" >
-115-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:90:62-85
+115-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:90:62-85
 116            <intent-filter>
-116-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:91:13-96:29
+116-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:91:13-96:29
 117                <action android:name="android.intent.action.PHONE_STATE" />
-117-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:92:17-76
-117-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:92:25-73
+117-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:92:17-76
+117-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:92:25-73
 118                <action android:name="android.intent.action.NEW_OUTGOING_CALL" />
-118-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:93:17-82
-118-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:93:25-79
+118-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:93:17-82
+118-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:93:25-79
 119                <action android:name="android.intent.action.BOOT_COMPLETED" />
-119-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:94:17-79
-119-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:94:25-76
+119-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:94:17-79
+119-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:94:25-76
 120                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
-120-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:95:17-82
-120-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:95:25-79
+120-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:95:17-82
+120-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:95:25-79
 121            </intent-filter>
 122        </receiver>
 123
 124        <service
-124-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:99:9-102:40
+124-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:99:9-102:40
 125            android:name="com.pypecrm.app.services.CallTrackerService"
-125-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:100:13-56
+125-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:100:13-56
 126            android:exported="false"
-126-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:102:13-37
+126-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:102:13-37
 127            android:foregroundServiceType="phoneCall|microphone" />
-127-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:101:13-65
+127-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:101:13-65
 128        <service
-128-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:104:9-107:40
+128-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:104:9-107:40
 129            android:name="com.pypecrm.app.services.BackgroundSyncService"
-129-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:105:13-59
+129-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:105:13-59
 130            android:exported="false"
-130-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:107:13-37
+130-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:107:13-37
 131            android:foregroundServiceType="dataSync" />
-131-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:106:13-53
+131-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:106:13-53
 132
 133        <provider
 133-->[androidx.emoji2:emoji2:1.2.0] /Users/retro/.gradle/caches/transforms-4/d1bb7737b9d9889a285491f2099fe119/transformed/jetified-emoji2-1.2.0/AndroidManifest.xml:24:9-32:20
@@ -415,8 +415,8 @@
 217            <intent-filter>
 217-->[androidx.work:work-runtime:2.9.0] /Users/retro/.gradle/caches/transforms-4/8f23626c9795f59e487282ae184def45/transformed/work-runtime-2.9.0/AndroidManifest.xml:116:13-120:29
 218                <action android:name="android.intent.action.BOOT_COMPLETED" />
-218-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:94:17-79
-218-->/Users/retro/Documents/D/MERN CRM/android/app/src/main/AndroidManifest.xml:94:25-76
+218-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:94:17-79
+218-->/Users/retro/Documents/D/MERN CRM/client/android/app/src/main/AndroidManifest.xml:94:25-76
 219                <action android:name="android.intent.action.TIME_SET" />
 219-->[androidx.work:work-runtime:2.9.0] /Users/retro/.gradle/caches/transforms-4/8f23626c9795f59e487282ae184def45/transformed/work-runtime-2.9.0/AndroidManifest.xml:118:17-73
 219-->[androidx.work:work-runtime:2.9.0] /Users/retro/.gradle/caches/transforms-4/8f23626c9795f59e487282ae184def45/transformed/work-runtime-2.9.0/AndroidManifest.xml:118:25-70

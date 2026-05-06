@@ -32,10 +32,10 @@ com.pypecrm.app-core-1.13.1-30 /Users/retro/.gradle/caches/transforms-4/e90b55c5
 com.pypecrm.app-sqlite-framework-2.4.0-31 /Users/retro/.gradle/caches/transforms-4/e91abfaeeb422200e69b9f6c15c0615c/transformed/sqlite-framework-2.4.0/res
 com.pypecrm.app-transition-1.2.0-32 /Users/retro/.gradle/caches/transforms-4/fab56aa1f4ba30ab451d264854cb91ac/transformed/transition-1.2.0/res
 com.pypecrm.app-sqlite-2.4.0-33 /Users/retro/.gradle/caches/transforms-4/fbb3373f15987721e7d3541987aa9233/transformed/sqlite-2.4.0/res
-com.pypecrm.app-pngs-34 /Users/retro/Documents/D/MERN CRM/android/app/build/generated/res/pngs/debug
-com.pypecrm.app-resValues-35 /Users/retro/Documents/D/MERN CRM/android/app/build/generated/res/resValues/debug
-com.pypecrm.app-packageDebugResources-36 /Users/retro/Documents/D/MERN CRM/android/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
-com.pypecrm.app-packageDebugResources-37 /Users/retro/Documents/D/MERN CRM/android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
-com.pypecrm.app-merged_res-38 /Users/retro/Documents/D/MERN CRM/android/app/build/intermediates/merged_res/debug
-com.pypecrm.app-debug-39 /Users/retro/Documents/D/MERN CRM/android/app/src/debug/res
-com.pypecrm.app-main-40 /Users/retro/Documents/D/MERN CRM/android/app/src/main/res
+com.pypecrm.app-pngs-34 /Users/retro/Documents/D/MERN CRM/client/android/app/build/generated/res/pngs/debug
+com.pypecrm.app-resValues-35 /Users/retro/Documents/D/MERN CRM/client/android/app/build/generated/res/resValues/debug
+com.pypecrm.app-packageDebugResources-36 /Users/retro/Documents/D/MERN CRM/client/android/app/build/intermediates/incremental/debug/packageDebugResources/merged.dir
+com.pypecrm.app-packageDebugResources-37 /Users/retro/Documents/D/MERN CRM/client/android/app/build/intermediates/incremental/debug/packageDebugResources/stripped.dir
+com.pypecrm.app-merged_res-38 /Users/retro/Documents/D/MERN CRM/client/android/app/build/intermediates/merged_res/debug
+com.pypecrm.app-debug-39 /Users/retro/Documents/D/MERN CRM/client/android/app/src/debug/res
+com.pypecrm.app-main-40 /Users/retro/Documents/D/MERN CRM/client/android/app/src/main/res
