@@ -82,11 +82,6 @@ export const columns: ColumnDef<Lead>[] = [
     header: "Email",
   },
   {
-    accessorKey: "company",
-    size: 150,
-    header: "Company",
-  },
-  {
     accessorKey: "assignedTo",
     size: 150,
     header: ({ column }) => {
