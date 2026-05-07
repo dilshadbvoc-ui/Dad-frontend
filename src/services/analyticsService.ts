@@ -108,6 +108,6 @@ export const getDailyReport = async (branchId?: string) => {
         return response.data || { table: [], summary: null };
     } catch (error) {
         console.error('Error fetching daily report:', error);
-        return { table: [], summary: null };
+        throw error;
     }
 };
