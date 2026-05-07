@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "PypeCRM"
+rootProject.name = "PypeCRM-Native-Mobile"
 include(":app")

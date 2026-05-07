@@ -45,9 +45,18 @@ export default function DailyReportPage() {
     try {
       toast.loading('Preparing Report...', { id: 'pdf-export' });
       
-      const dataUrl = await toPng(reportRef.current, { backgroundColor: '#fff', cacheBust: true });
+      // Capture with high scale and no overflow restrictions
+      const dataUrl = await toPng(reportRef.current, { 
+        backgroundColor: '#fff', 
+        cacheBust: true,
+        pixelRatio: 2, // High quality
+        style: {
+          overflow: 'visible',
+          width: 'auto'
+        }
+      });
       
-      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdf = new jsPDF('l', 'mm', 'a4'); // Use Landscape for wider reports
       const imgProps = pdf.getImageProperties(dataUrl);
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
@@ -141,13 +150,13 @@ export default function DailyReportPage() {
           <Table>
             <TableHeader className="bg-[#6B3BA8] hover:bg-[#6B3BA8] transition-none border-none">
               <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="text-white font-bold py-6 px-6 text-sm uppercase tracking-wider border-r border-white/10 first:rounded-tl-xl">User Name</TableHead>
-                <TableHead className="text-white font-bold py-6 px-6 text-sm uppercase tracking-wider border-r border-white/10 text-center">Branch</TableHead>
-                <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Calls</TableHead>
-                <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Connected</TableHead>
-                <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Unconnected Calls</TableHead>
-                <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider border-r border-white/10">Total Converted</TableHead>
-                <TableHead className="text-white font-bold py-6 text-center text-sm uppercase tracking-wider last:rounded-tr-xl">Total Lost</TableHead>
+                <TableHead className="text-white font-bold py-6 px-4 text-[11px] uppercase tracking-wider border-r border-white/10 first:rounded-tl-xl w-[220px]">User Name</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-[11px] uppercase tracking-wider border-r border-white/10 text-center w-[100px]">Branch</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Calls</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Connected</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Unconnected</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider border-r border-white/10">Converted</TableHead>
+                <TableHead className="text-white font-bold py-6 px-2 text-center text-[11px] uppercase tracking-wider last:rounded-tr-xl">Lost</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -161,7 +170,7 @@ export default function DailyReportPage() {
                       hover:bg-purple-500/5
                     `}
                   >
-                    <TableCell className="py-5 px-6 font-bold text-foreground text-sm uppercase">
+                    <TableCell className="py-5 px-4 font-bold text-foreground text-[12px] uppercase">
                       {row.userName}
                     </TableCell>
                     <TableCell className="text-center py-5">
