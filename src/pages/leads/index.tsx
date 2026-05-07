@@ -226,11 +226,17 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
           </Badge>
         </div>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+        <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Plus className="h-3 w-3" />
             <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
           </div>
+          {(lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName) && (
+            <div className="flex items-center gap-1 text-primary/80 font-medium truncate max-w-[150px]">
+              <span className="w-1 h-1 rounded-full bg-primary/40" />
+              <span className="truncate">{lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName}</span>
+            </div>
+          )}
         </div>
 
         <div className="pt-2 flex items-center justify-between border-t border-border">

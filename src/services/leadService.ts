@@ -41,6 +41,8 @@ export interface Lead {
     sourceDetails?: {
         message?: string;
         originalSource?: string;
+        campaignName?: string;
+        metaCampaignName?: string;
         rawPayload?: any;
     };
     branchId?: string;

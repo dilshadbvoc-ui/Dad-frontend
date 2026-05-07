@@ -122,6 +122,23 @@ export const columns: ColumnDef<Lead>[] = [
     }
   },
   {
+    id: "campaign",
+    size: 150,
+    header: "Campaign",
+    cell: ({ row }) => {
+      const lead = row.original;
+      const campaignName = lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName;
+      
+      if (!campaignName) return <span className="text-muted-foreground/30 text-xs italic">-</span>;
+      
+      return (
+        <div className="text-xs font-medium truncate max-w-[140px]" title={campaignName}>
+          {campaignName}
+        </div>
+      );
+    }
+  },
+  {
     accessorKey: "nextFollowUp",
     size: 150,
     header: "Next Follow-up",
