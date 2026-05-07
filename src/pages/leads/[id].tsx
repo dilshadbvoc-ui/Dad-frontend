@@ -429,7 +429,7 @@ export default function LeadDetailPage() {
               <div className="flex items-center gap-3">
                 <Building className="h-4 w-4 text-muted-foreground" />
                 <div className="flex flex-col">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Source</span>
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Source [LIVE]</span>
                   <span className="text-sm font-semibold capitalize">
                     {(lead.source === 'api' && lead.sourceDetails?.originalSource) 
                       ? lead.sourceDetails.originalSource 
@@ -439,19 +439,25 @@ export default function LeadDetailPage() {
               </div>
 
               {/* Campaign Display */}
-              {(lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName) && (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center h-4 w-4">
-                    <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+              {(() => {
+                const details = typeof lead.sourceDetails === 'string' ? JSON.parse(lead.sourceDetails) : lead.sourceDetails;
+                const campaign = details?.campaignName || details?.metaCampaignName;
+                if (!campaign) return null;
+                
+                return (
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center h-4 w-4">
+                      <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Campaign</span>
+                      <span className="text-sm font-semibold text-primary">
+                        {campaign}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Campaign</span>
-                    <span className="text-sm font-semibold text-primary">
-                      {lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName}
-                    </span>
-                  </div>
-                </div>
-              )}
+                );
+              })()}
 
               {lead.enquiryAbout && (
                 <div className="pt-2 border-t mt-2">
