@@ -438,6 +438,21 @@ export default function LeadDetailPage() {
                 </div>
               </div>
 
+              {/* Campaign Display */}
+              {(lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName) && (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center justify-center h-4 w-4">
+                    <svg className="h-3.5 w-3.5 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-tight">Campaign</span>
+                    <span className="text-sm font-semibold text-primary">
+                      {lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {lead.enquiryAbout && (
                 <div className="pt-2 border-t mt-2">
                   <div className="flex items-start gap-3 mt-2">
