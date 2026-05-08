@@ -240,29 +240,29 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         </div>
 
         <div className="pt-2 flex items-center justify-between border-t border-border">
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <Button
               size="sm"
-              variant="ghost"
-              className="h-9 w-9 p-0 text-success hover:bg-success/10 rounded-full"
+              variant="outline"
+              className="h-10 w-10 p-0 text-success border-success/20 hover:bg-success/10 rounded-xl"
               onClick={handleWhatsApp}
               title="WhatsApp"
             >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle className="h-5 w-5" />
             </Button>
             <Button
               size="sm"
-              variant="ghost"
-              className="h-9 w-9 p-0 text-info hover:bg-info/10 rounded-full"
+              variant="outline"
+              className="h-10 w-10 p-0 text-info border-info/20 hover:bg-info/10 rounded-xl"
               onClick={handleCall}
               title="Call"
             >
-              <Phone className="h-4 w-4" />
+              <Phone className="h-5 w-5" />
             </Button>
           </div>
           <Link to={`/leads/${lead.id}`}>
-            <Button size="sm" variant="outline" className="text-xs h-8 px-3 rounded-full">
-              View Details
+            <Button size="sm" variant="ghost" className="text-xs h-10 px-4 rounded-xl font-bold uppercase tracking-tight text-primary">
+              Details
             </Button>
           </Link>
         </div>
@@ -601,16 +601,15 @@ export default function LeadsPage() {
                 <LayoutGrid className="h-6 w-6" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-2xl sm:text-3xl font-bold text-foreground capitalize tracking-tight flex items-center gap-3">
+                <h1 className="text-xl sm:text-3xl font-bold text-foreground capitalize tracking-tight flex items-center gap-2">
                   {currentView.replace(/-/g, ' ')}
-                  <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold border border-primary/20">
+                  <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold border border-primary/20">
                     {leadData?.total || 0}
-                    <span className="text-[10px] uppercase tracking-widest opacity-70">Total</span>
                   </div>
                 </h1>
-                <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2">
+                <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Lead performance' : 'Real-time lead management'}
+                  {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Performance' : 'Real-time'}
                 </p>
               </div>
             </div>

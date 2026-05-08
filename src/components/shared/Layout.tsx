@@ -15,6 +15,7 @@ import { useProductViewNotifications } from '@/hooks/useProductViewNotifications
 import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
 import { useQueryClient } from '@tanstack/react-query';
 import { requestNotificationPermissions, triggerRichNotification, unlockAudio } from '@/utils/notificationFeedback';
+import { BottomNav } from './BottomNav';
 
 export default function Layout() {
   const location = useLocation();
@@ -257,6 +258,10 @@ export default function Layout() {
           </div>
         </main>
       </div>
+
+      {/* Mobile Sticky Navigation */}
+      <BottomNav onMenuClick={() => setMobileMenuOpen(true)} />
+
       <ErrorBoundary name="ViolationAlert">
         <ViolationAlert />
       </ErrorBoundary>

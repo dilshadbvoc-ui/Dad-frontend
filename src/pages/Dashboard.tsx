@@ -170,13 +170,13 @@ export default function Dashboard() {
   }
 
   return (
-    <div ref={dashboardRef} className="space-y-6 sm:space-y-8 p-4 sm:p-8 animate-in fade-in duration-500">
+    <div ref={dashboardRef} className="space-y-4 sm:space-y-8 p-3 sm:p-8 animate-in fade-in duration-500 pb-20 sm:pb-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-            Here's your daily overview and performance metrics.
+          <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground mt-0.5 text-xs sm:text-base opacity-80">
+            Performance overview for today.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full sm:w-auto">
@@ -246,10 +246,10 @@ export default function Dashboard() {
         <Link to="/opportunities" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
               <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Expected Revenue</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Exp. Revenue</h3>
             <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
               {formatCurrencyCompact(forecast?.weightedForecast || 0)}
             </div>
@@ -259,10 +259,10 @@ export default function Dashboard() {
         <Link to="/opportunities" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
           <div className="absolute inset-0 bg-gradient-to-br from-indigo-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 group-hover:scale-110 transition-transform">
               <Check className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Deals In Pipeline</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Pipeline</h3>
             <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
               {stats?.activeOpportunities || 0}
             </div>
@@ -272,10 +272,10 @@ export default function Dashboard() {
         <Link to="/follow-ups" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
           <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 group-hover:scale-110 transition-transform">
               <Clock className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Pending Follow-ups</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Follow-ups</h3>
             <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
               {stats?.pendingFollowUps || 0}
             </div>
@@ -285,10 +285,10 @@ export default function Dashboard() {
         <Link to="/opportunities?stage=closed_won" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
           <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform">
               <Trophy className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Won This Month</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Won</h3>
             <div className="text-xl sm:text-2xl font-extrabold text-card-foreground">
               {stats?.opportunities?.won || 0}
             </div>
@@ -311,10 +311,10 @@ export default function Dashboard() {
         <Link to="/reports/sales-book" className="block relative overflow-hidden rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
           <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
-            <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
+            <div className="flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
               <TrendingUp className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <h3 className="text-[10px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Revenue This Month</h3>
+            <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Revenue</h3>
             <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
               {formatCurrencyCompact(stats?.revenueThisMonth || 0)}
             </div>
