@@ -179,7 +179,7 @@ export function GlobalSearch() {
 
       {/* Search results dropdown */}
       {showResults && query.length >= 2 && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-popover border border-border rounded-xl shadow-xl z-50 max-h-[70vh] sm:max-h-[400px] overflow-y-auto filter backdrop-blur-sm bg-popover/95">
+        <div className="fixed sm:absolute top-16 sm:top-full left-0 right-0 sm:mt-2 bg-popover border-b sm:border border-border sm:rounded-xl shadow-2xl z-50 max-h-[85vh] sm:max-h-[400px] overflow-y-auto filter backdrop-blur-md bg-popover/95 animate-in fade-in slide-in-from-top-2 duration-200">
           {isLoading ? (
             <div className="p-8 flex flex-col items-center justify-center text-sm text-muted-foreground">
               <Loader2 className="h-6 w-6 animate-spin mb-2" />

@@ -142,13 +142,13 @@ export function AddProductToLeadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] h-[80vh] flex flex-col">
+      <DialogContent className="sm:max-w-[700px] h-full sm:h-[80vh] flex flex-col p-0 sm:p-6 dialog-mobile">
         <DialogDescription className="sr-only">Select products to add to this lead.</DialogDescription>
-        <DialogHeader>
+        <DialogHeader className="p-4 sm:p-0 border-b sm:border-0">
           <DialogTitle>Manage Products</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-hidden pt-4">
+        <div className="flex-1 flex flex-col lg:flex-row gap-4 lg:gap-6 overflow-hidden px-4 sm:px-0 pt-4">
           {/* Left: Product Selection */}
           <div className="w-full lg:w-1/2 flex flex-col border rounded-md overflow-hidden h-[300px] lg:h-auto">
             <div className="p-3 bg-muted/50 border-b font-semibold text-xs uppercase tracking-wider flex items-center justify-between">
@@ -298,9 +298,11 @@ export function AddProductToLeadDialog({
           </div>
         </div>
 
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={handleSubmit}>Save Changes</Button>
+        <DialogFooter className="mt-auto p-4 sm:p-0 border-t sm:border-0 bg-background sm:bg-transparent">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button className="flex-1 sm:flex-none" onClick={handleSubmit}>Save Changes</Button>
+          </div>
         </DialogFooter>
       </DialogContent>
     </Dialog>
