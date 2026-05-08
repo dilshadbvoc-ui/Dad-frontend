@@ -143,22 +143,10 @@ export function AddProductToLeadDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent 
-        className="sm:max-w-[700px] h-full sm:h-[80vh] flex flex-col p-0 sm:p-6"
-        style={{
-          width: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vw' : undefined,
-          height: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vh' : undefined,
-          maxWidth: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vw' : undefined,
-          maxHeight: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vh' : undefined,
-          margin: 0,
-          borderRadius: 0,
-          top: typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : '50%',
-          left: typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : '50%',
-          transform: typeof window !== 'undefined' && window.innerWidth < 640 ? 'none' : 'translate(-50%, -50%)',
-          position: 'fixed'
-        }}
+        className="!fixed !inset-0 !z-50 !w-screen !h-screen !max-w-none !max-h-none !m-0 !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 sm:!fixed sm:!left-[50%] sm:!top-[50%] sm:!w-full sm:!max-w-[700px] sm:!h-[80vh] sm:!max-h-[80vh] sm:!translate-x-[-50%] sm:!translate-y-[-50%] sm:!rounded-lg flex flex-col p-0 sm:p-6"
       >
         <DialogDescription className="sr-only">Select products to add to this lead.</DialogDescription>
-        <DialogHeader className="p-4 sm:p-0 border-b sm:border-0">
+        <DialogHeader className="p-4 sm:p-0 border-b sm:border-0 shrink-0">
           <DialogTitle>Manage Products</DialogTitle>
         </DialogHeader>
 
