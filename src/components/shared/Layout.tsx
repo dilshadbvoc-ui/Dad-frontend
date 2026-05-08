@@ -48,6 +48,8 @@ export default function Layout() {
     return () => clearTimeout(timer);
   }, [location.pathname]);
 
+  const queryClient = useQueryClient();
+
   // Close mobile menu on escape key
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -60,10 +62,36 @@ export default function Layout() {
     // Request notification permissions on mount
     requestNotificationPermissions();
 
-    return () => document.removeEventListener('keydown', handleEscape);
-  }, []);
+    // QUICK RESUME SYNC: Force refresh when app comes to foreground
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('[Layout] App resumed - forcing real-time sync...');
+        queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        
+        // Force socket to re-check connection
+        socketService.reconnect();
+        
+        // Trigger native Android sync bridge if available
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+          try {
+            const { token } = JSON.parse(userInfo);
+            if (token) triggerAndroidLeadSync(token);
+          } catch (e) {
+            console.error('Failed to parse userInfo for sync', e);
+          }
+        }
+      }
+    };
 
-  const queryClient = useQueryClient();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('keydown', handleEscape);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [queryClient]);
 
   useEffect(() => {
     interface CallUpdateData {

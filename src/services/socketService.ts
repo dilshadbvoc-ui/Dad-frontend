@@ -51,6 +51,12 @@ class SocketService {
         }
     }
 
+    reconnect() {
+        if (this.socket && this.socket.disconnected) {
+            this.socket.connect();
+        }
+    }
+
     emit<T = unknown>(event: string, data: T) {
         this.socket?.emit(event, data);
     }
