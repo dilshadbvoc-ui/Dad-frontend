@@ -142,7 +142,21 @@ export function AddProductToLeadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] h-full sm:h-[80vh] flex flex-col p-0 sm:p-6 dialog-mobile">
+      <DialogContent 
+        className="sm:max-w-[700px] h-full sm:h-[80vh] flex flex-col p-0 sm:p-6"
+        style={{
+          width: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vw' : undefined,
+          height: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vh' : undefined,
+          maxWidth: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vw' : undefined,
+          maxHeight: typeof window !== 'undefined' && window.innerWidth < 640 ? '100vh' : undefined,
+          margin: 0,
+          borderRadius: 0,
+          top: typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : '50%',
+          left: typeof window !== 'undefined' && window.innerWidth < 640 ? 0 : '50%',
+          transform: typeof window !== 'undefined' && window.innerWidth < 640 ? 'none' : 'translate(-50%, -50%)',
+          position: 'fixed'
+        }}
+      >
         <DialogDescription className="sr-only">Select products to add to this lead.</DialogDescription>
         <DialogHeader className="p-4 sm:p-0 border-b sm:border-0">
           <DialogTitle>Manage Products</DialogTitle>

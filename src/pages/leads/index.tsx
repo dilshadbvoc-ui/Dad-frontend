@@ -177,9 +177,12 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
 
     const callSessionId = crypto.randomUUID();
 
-    // If in mobile app, try native bridge first
-    if (isMobileApp()) {
-      initiateCallBridge(phone, callSessionId);
+    // DUAL TRIGGER: Try bridge AND standard tel link for reliability
+    initiateCallBridge(phone, callSessionId);
+    
+    // Always fire tel link on mobile just in case bridge is restricted
+    if (isMobileApp() || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+      window.location.href = `tel:${phone}`;
     }
 
     try {
@@ -195,10 +198,6 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
       });
     } catch (err) {
       console.warn('Failed to log Call interaction:', err);
-    }
-
-    if (!isMobileApp()) {
-      window.location.href = `tel:${phone}`;
     }
   };
 
