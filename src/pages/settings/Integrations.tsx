@@ -308,8 +308,10 @@ export default function IntegrationsPage() {
                   {integration.accounts.map((acc: MetaAccount, idx: number) => (
                     <div key={acc.adAccountId || idx} className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
                       <div className="flex flex-col">
-                        <span className="text-sm font-medium">{acc.adAccountName || acc.pageName || 'Account'}</span>
-                        <span className="text-xs text-muted-foreground">ID: {acc.adAccountId || 'N/A'}</span>
+                        <span className="text-sm font-medium">{acc.pageName || acc.adAccountName || 'Account'}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : `ID: ${acc.adAccountId || 'N/A'}`}
+                        </span>
                       </div>
                       <div className="flex gap-1">
                         <Button
