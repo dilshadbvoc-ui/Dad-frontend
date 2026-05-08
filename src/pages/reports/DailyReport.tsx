@@ -51,25 +51,49 @@ export default function DailyReportPage() {
     try {
       toast.loading('Preparing Report...', { id: 'pdf-export' });
       
-      // Capture with high scale and no overflow restrictions
-      const dataUrl = await toPng(reportRef.current, { 
+      const element = reportRef.current;
+      
+      // Capture the entire element
+      const dataUrl = await toPng(element, { 
         backgroundColor: '#fff', 
         cacheBust: true,
-        pixelRatio: 2, // High quality
+        pixelRatio: 2,
+        width: element.scrollWidth,
+        height: element.scrollHeight,
         style: {
           overflow: 'visible',
-          width: 'auto'
+          width: element.scrollWidth + 'px',
+          height: element.scrollHeight + 'px',
+          margin: '0',
+          padding: '20px'
         }
       });
       
-      const pdf = new jsPDF('l', 'mm', 'a4'); // Use Landscape for wider reports
+      const pdf = new jsPDF('l', 'mm', 'a4');
       const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      // Calculate how the image fits the page width
+      const imgWidth = pageWidth;
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // Add the first page
+      pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // If content is longer than one page, add more pages
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+      
       pdf.save(`Daily_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);
-      
       toast.success('Report saved successfully', { id: 'pdf-export' });
     } catch (err) {
       console.error('Export failed:', err);
