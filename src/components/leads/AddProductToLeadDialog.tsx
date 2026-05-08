@@ -207,7 +207,7 @@ export function AddProductToLeadDialog({
           </div>
 
           {/* Right: Selected Products */}
-          <div className="w-full lg:w-1/2 flex flex-col border rounded-md overflow-hidden min-h-[250px] lg:h-auto">
+          <div className="w-full lg:w-1/2 flex flex-col border rounded-md overflow-hidden min-h-0 flex-1 lg:h-auto">
             <div className="p-3 bg-muted/50 border-b font-semibold text-xs uppercase tracking-wider flex justify-between items-center">
               <div className="flex items-center gap-2">
                 <span>Selected</span>
