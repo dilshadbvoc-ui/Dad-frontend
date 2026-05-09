@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Switch } from "@/components/ui/switch"
 import { setGlobalCurrency } from "@/lib/utils"
 import { useCurrency } from "@/contexts/CurrencyContext"
 
@@ -34,6 +35,14 @@ export default function OrganisationSettingsPage() {
       return res.data.organisation
     }
   })
+  
+  const [emailEnabled, setEmailEnabled] = useState(false)
+
+  useEffect(() => {
+    if (org?.dailyReportEmailEnabled !== undefined) {
+      setEmailEnabled(org.dailyReportEmailEnabled)
+    }
+  }, [org])
 
   const updateMutation = useMutation({
     mutationFn: async (data: Record<string, unknown>) => {
@@ -57,7 +66,8 @@ export default function OrganisationSettingsPage() {
       contactEmail: formData.get('contactEmail'),
       contactPhone: formData.get('contactPhone'),
       address: formData.get('address'),
-      dailyReportTime: formData.get('dailyReportTime')
+      dailyReportTime: formData.get('dailyReportTime'),
+      dailyReportEmailEnabled: emailEnabled
     })
   }
 
@@ -100,14 +110,30 @@ export default function OrganisationSettingsPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <Label>Address</Label>
                   <Input name="address" defaultValue={org?.address} placeholder="123 Business St, City, Country" />
                 </div>
-                <div className="space-y-2">
-                  <Label>Daily Report Time (WhatsApp)</Label>
-                  <Input name="dailyReportTime" type="time" defaultValue={org?.dailyReportTime || "09:00"} />
+                <div className="space-y-4">
+                   <div className="flex flex-col gap-2">
+                      <Label>Daily Report Time</Label>
+                      <Input name="dailyReportTime" type="time" defaultValue={org?.dailyReportTime || "09:00"} className="w-full" />
+                      <p className="text-[10px] text-muted-foreground italic">This time applies to both WhatsApp and Email reports.</p>
+                   </div>
+                   
+                   <div className="flex items-center justify-between p-3 bg-muted/30 rounded-lg border border-border/50">
+                      <div className="space-y-0.5">
+                        <Label className="text-sm font-bold">Email Report Delivery</Label>
+                        <p className="text-xs text-muted-foreground">Automatically send this report to all Org Admins via email.</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Switch 
+                          checked={emailEnabled} 
+                          onCheckedChange={setEmailEnabled}
+                        />
+                      </div>
+                   </div>
                 </div>
               </div>
 
