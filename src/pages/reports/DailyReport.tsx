@@ -73,23 +73,43 @@ export default function DailyReportPage() {
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
-      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      const img = new Image();
+      img.src = dataUrl;
+      await new Promise((resolve) => { img.onload = resolve; });
       
-      let heightLeft = imgHeight;
-      let position = 10; // Start with top margin
+      const margin = 10; // 10mm margin
+      const contentWidth = pageWidth - (2 * margin);
+      const contentHeight = pageHeight - (2 * margin);
+      
+      // Calculate how many pixels of the image fit in one PDF page height
+      const pxWidth = img.width;
+      const pxPageHeight = (img.width * contentHeight) / contentWidth;
+      
+      let totalHeightLeft = img.height;
+      let startY = 0;
+      let firstPage = true;
 
-      // Add the first page
-      pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - 20); // Subtract available space (page - margins)
-
-      // If content is longer than one page, add more pages
-      while (heightLeft > 0) {
-        pdf.addPage();
-        position = heightLeft - imgHeight + 10;
-        pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - 20);
+      while (totalHeightLeft > 0) {
+        if (!firstPage) pdf.addPage();
+        
+        const canvas = document.createElement('canvas');
+        const sliceHeight = Math.min(pxPageHeight, totalHeightLeft);
+        
+        canvas.width = pxWidth;
+        canvas.height = sliceHeight;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, startY, pxWidth, sliceHeight, 0, 0, pxWidth, sliceHeight);
+          const sliceDataUrl = canvas.toDataURL('image/png');
+          
+          const displayHeight = (sliceHeight * contentWidth) / pxWidth;
+          pdf.addImage(sliceDataUrl, 'PNG', margin, margin, contentWidth, displayHeight);
+        }
+        
+        startY += sliceHeight;
+        totalHeightLeft -= sliceHeight;
+        firstPage = false;
       }
       
       pdf.save(`Daily_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);

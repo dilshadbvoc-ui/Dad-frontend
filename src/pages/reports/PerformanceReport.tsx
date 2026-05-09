@@ -272,22 +272,37 @@ export default function UserPerformanceReport() {
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
       
-      const imgWidth = pageWidth - 20; // 10mm margin on each side
-      const imgHeight = (img.height * imgWidth) / img.width;
+      const margin = 10;
+      const contentWidth = pageWidth - (2 * margin);
+      const contentHeight = pageHeight - (2 * margin);
       
-      let heightLeft = imgHeight;
-      let position = 10; // Start with top margin
+      const pxWidth = img.width;
+      const pxPageHeight = (img.width * contentHeight) / contentWidth;
       
-      // Add first page
-      pdf.addImage(dataUrl, "PNG", 10, position, imgWidth, imgHeight);
-      heightLeft -= (pageHeight - 20);
-      
-      // Add extra pages if needed
-      while (heightLeft > 0) {
-        pdf.addPage();
-        position = heightLeft - imgHeight + 10;
-        pdf.addImage(dataUrl, "PNG", 10, position, imgWidth, imgHeight);
-        heightLeft -= (pageHeight - 20);
+      let totalHeightLeft = img.height;
+      let startY = 0;
+      let firstPage = true;
+
+      while (totalHeightLeft > 0) {
+        if (!firstPage) pdf.addPage();
+        
+        const canvas = document.createElement('canvas');
+        const sliceHeight = Math.min(pxPageHeight, totalHeightLeft);
+        
+        canvas.width = pxWidth;
+        canvas.height = sliceHeight;
+        
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, startY, pxWidth, sliceHeight, 0, 0, pxWidth, sliceHeight);
+          const sliceDataUrl = canvas.toDataURL('image/png');
+          const displayHeight = (sliceHeight * contentWidth) / pxWidth;
+          pdf.addImage(sliceDataUrl, 'PNG', margin, margin, contentWidth, displayHeight);
+        }
+        
+        startY += sliceHeight;
+        totalHeightLeft -= sliceHeight;
+        firstPage = false;
       }
 
       pdf.save(`User_Total_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
