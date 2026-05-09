@@ -69,28 +69,27 @@ export default function DailyReportPage() {
         }
       });
       
-      const pdf = new jsPDF('l', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(dataUrl);
+      const pdf = new jsPDF('p', 'mm', 'a4');
       const pageWidth = pdf.internal.pageSize.getWidth();
       const pageHeight = pdf.internal.pageSize.getHeight();
       
-      // Calculate how the image fits the page width
-      const imgWidth = pageWidth;
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
       const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
       
       let heightLeft = imgHeight;
-      let position = 0;
+      let position = 10; // Start with top margin
 
       // Add the first page
-      pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
+      pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20); // Subtract available space (page - margins)
 
       // If content is longer than one page, add more pages
       while (heightLeft > 0) {
-        position = heightLeft - imgHeight;
         pdf.addPage();
-        pdf.addImage(dataUrl, 'PNG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
+        position = heightLeft - imgHeight + 10;
+        pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
       }
       
       pdf.save(`Daily_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);

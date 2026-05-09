@@ -265,14 +265,31 @@ export default function UserPerformanceReport() {
       });
       
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
       const img = new Image();
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
-      const pdfHeight = (img.height * pdfWidth) / img.width;
       
-      pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
+      const imgWidth = pageWidth - 20; // 10mm margin on each side
+      const imgHeight = (img.height * imgWidth) / img.width;
+      
+      let heightLeft = imgHeight;
+      let position = 10; // Start with top margin
+      
+      // Add first page
+      pdf.addImage(dataUrl, "PNG", 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+      
+      // Add extra pages if needed
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position = heightLeft - imgHeight + 10;
+        pdf.addImage(dataUrl, "PNG", 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+      }
+
       pdf.save(`User_Total_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
       toast.success("PDF report downloaded successfully!");
     } catch (error) {

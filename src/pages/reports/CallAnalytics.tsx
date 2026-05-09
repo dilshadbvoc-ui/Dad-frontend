@@ -63,11 +63,28 @@ export default function CallAnalyticsPage() {
       const dataUrl = await toPng(reportRef.current, { backgroundColor: '#fff', cacheBust: true });
       
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgProps = pdf.getImageProperties(dataUrl);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
       
-      pdf.addImage(dataUrl, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      const imgProps = pdf.getImageProperties(dataUrl);
+      const imgWidth = pageWidth - 20; // 10mm margin
+      const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+      
+      let heightLeft = imgHeight;
+      let position = 10;
+      
+      // First page
+      pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
+      heightLeft -= (pageHeight - 20);
+      
+      // Extra pages
+      while (heightLeft > 0) {
+        pdf.addPage();
+        position = heightLeft - imgHeight + 10;
+        pdf.addImage(dataUrl, 'PNG', 10, position, imgWidth, imgHeight);
+        heightLeft -= (pageHeight - 20);
+      }
+
       pdf.save(`Call_Report_${period}_${direction}.pdf`);
       
       toast.success('PDF downloaded successfully', { id: 'pdf-export' });
