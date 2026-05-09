@@ -34,6 +34,7 @@ export interface FollowUpSearchParams {
     search?: string;
     status?: string;
     branchId?: string;
+    userId?: string;
 }
 
 export const getFollowUps = async (params?: FollowUpSearchParams) => {

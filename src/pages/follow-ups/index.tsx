@@ -6,7 +6,8 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
 import { getBranches } from "@/services/settingsService"
-import { Building2, Calendar, Clock, ListFilter, ArrowUpDown } from "lucide-react"
+import { getUsers } from "@/services/userService"
+import { Building2, Calendar, Clock, ListFilter, ArrowUpDown, User2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { isToday } from "date-fns"
@@ -19,6 +20,7 @@ export default function FollowUpsPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [branchFilter, setBranchFilter] = useState("all")
+  const [userFilter, setUserFilter] = useState("all")
   const [sortBy, setSortBy] = useState<string>("dueDate-asc")
 
   const { data: branchesData } = useQuery({
@@ -28,12 +30,20 @@ export default function FollowUpsPage() {
 
   const branches = branchesData || []
 
+  const { data: usersData } = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers
+  })
+
+  const users = usersData?.users || []
+
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['follow-ups', searchQuery, statusFilter, branchFilter],
+    queryKey: ['follow-ups', searchQuery, statusFilter, branchFilter, userFilter],
     queryFn: () => getFollowUps({
       search: searchQuery || undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
       branchId: branchFilter !== 'all' ? branchFilter : undefined,
+      userId: userFilter !== 'all' ? userFilter : undefined,
       limit: 1000
     }),
   })
@@ -72,6 +82,12 @@ export default function FollowUpsPage() {
       if (field === 'dueDate') {
         valA = new Date(valA).getTime()
         valB = new Date(valB).getTime()
+      }
+
+      // Handle user name sorting
+      if (field === 'assignedTo') {
+        valA = a.assignedTo ? `${a.assignedTo.firstName} ${a.assignedTo.lastName}` : ''
+        valB = b.assignedTo ? `${b.assignedTo.firstName} ${b.assignedTo.lastName}` : ''
       }
 
       if (valA < valB) return direction === 'asc' ? -1 : 1
@@ -199,6 +215,7 @@ export default function FollowUpsPage() {
               <SelectItem value="dueDate-asc">Due Date (Earliest)</SelectItem>
               <SelectItem value="dueDate-desc">Due Date (Latest)</SelectItem>
               <SelectItem value="priority-desc">Priority (High to Low)</SelectItem>
+              <SelectItem value="assignedTo-asc">User (A-Z)</SelectItem>
               <SelectItem value="status-asc">Status (A-Z)</SelectItem>
               <SelectItem value="subject-asc">Subject (A-Z)</SelectItem>
             </SelectContent>
@@ -229,6 +246,23 @@ export default function FollowUpsPage() {
                 <SelectItem value="all">All Branches</SelectItem>
                 {branches.map((branch: any) => (
                   <SelectItem key={branch.id} value={branch.id}>{branch.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {users.length > 0 && (
+            <Select value={userFilter} onValueChange={setUserFilter}>
+              <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
+                <div className="flex items-center gap-2">
+                  <User2 className="h-3.5 w-3.5 text-muted-foreground" />
+                  <SelectValue placeholder="User" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                {users.map((user: any) => (
+                  <SelectItem key={user.id} value={user.id}>{user.firstName} {user.lastName}</SelectItem>
                 ))}
               </SelectContent>
             </Select>

@@ -89,7 +89,7 @@ const menuGroups = [
   {
     title: "Connect",
     items: [
-      { title: "WhatsApp", href: "/whatsapp/inbox", icon: MessageSquare },
+      { title: "WhatsApp", href: "/whatsapp/inbox", icon: MessageSquare, role: "org_admin" },
       { title: "Call Logs", href: "/calls", icon: PhoneCall },
       { title: "Communications", href: "/communications", icon: Phone },
     ]

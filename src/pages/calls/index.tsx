@@ -25,11 +25,12 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { getCalls, getCallStats, deleteCallRecording, type Call, type CallFilters } from '@/services/callService';
+import { getBranches } from '@/services/settingsService';
 import { getUsers } from '@/services/userService';
 import { CallRecordingPlayer } from '@/components/CallRecordingPlayer';
 import { api } from '@/services/api';
-import { User2 } from 'lucide-react';
 import { isAdmin } from '@/utils/roleUtils';
+import { Building, User2 } from 'lucide-react';
 
 export default function CallsPage() {
   const queryClient = useQueryClient();
@@ -59,8 +60,14 @@ export default function CallsPage() {
     queryKey: ['users'],
     queryFn: () => getUsers()
   });
+  
+  const { data: branchesData } = useQuery({
+    queryKey: ['branches'],
+    queryFn: () => getBranches()
+  });
 
   const users = usersData?.users || [];
+  const branchesList = branchesData || [];
   const showUserFilter = users.length > 1;
 
   const deleteMutation = useMutation({
@@ -324,6 +331,24 @@ export default function CallsPage() {
                       <SelectItem value="missed">Missed</SelectItem>
                       <SelectItem value="busy">Busy</SelectItem>
                       <SelectItem value="failed">Failed</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={filters.branchId || 'all'}
+                    onValueChange={(v) => handleFilterChange('branchId', v)}
+                  >
+                    <SelectTrigger className="w-full md:w-[150px] bg-background">
+                      <div className="flex items-center gap-2">
+                        <Building className="h-4 w-4 text-muted-foreground" />
+                        <SelectValue placeholder="All Branches" />
+                      </div>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Branches</SelectItem>
+                      {branchesList.map((b: any) => (
+                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
 
