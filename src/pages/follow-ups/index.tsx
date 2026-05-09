@@ -25,14 +25,14 @@ export default function FollowUpsPage() {
 
   const { data: branchesData } = useQuery({
     queryKey: ['branches'],
-    queryFn: getBranches
+    queryFn: () => getBranches()
   })
 
   const branches = branchesData || []
 
   const { data: usersData } = useQuery({
     queryKey: ['users'],
-    queryFn: getUsers
+    queryFn: () => getUsers()
   })
 
   const users = usersData?.users || []
