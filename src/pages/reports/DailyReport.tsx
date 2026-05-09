@@ -77,13 +77,10 @@ export default function DailyReportPage() {
       img.src = dataUrl;
       await new Promise((resolve) => { img.onload = resolve; });
       
-      const margin = 10; // 10mm margin
-      const contentWidth = pageWidth - (2 * margin);
-      const contentHeight = pageHeight - (2 * margin);
-      
-      // Calculate how many pixels of the image fit in one PDF page height
+      // Calculate content dimensions (Full width, no vertical margin to avoid gaps)
+      const contentWidth = pageWidth;
       const pxWidth = img.width;
-      const pxPageHeight = (img.width * contentHeight) / contentWidth;
+      const pxPageHeight = (pxWidth * pageHeight) / pageWidth;
       
       let totalHeightLeft = img.height;
       let startY = 0;
@@ -101,10 +98,11 @@ export default function DailyReportPage() {
         const ctx = canvas.getContext('2d');
         if (ctx) {
           ctx.drawImage(img, 0, startY, pxWidth, sliceHeight, 0, 0, pxWidth, sliceHeight);
-          const sliceDataUrl = canvas.toDataURL('image/png');
+          const sliceDataUrl = canvas.toDataURL('image/png', 1.0);
           
-          const displayHeight = (sliceHeight * contentWidth) / pxWidth;
-          pdf.addImage(sliceDataUrl, 'PNG', margin, margin, contentWidth, displayHeight);
+          const displayHeight = (sliceHeight * pageWidth) / pxWidth;
+          // Use 0,0 to fill the page entirely and avoid gaps between slices
+          pdf.addImage(sliceDataUrl, 'PNG', 0, 0, pageWidth, displayHeight);
         }
         
         startY += sliceHeight;
@@ -326,8 +324,10 @@ export default function DailyReportPage() {
       <style>{`
         @media print {
           .no-print { display: none !important; }
-          body { background: white !important; }
-          .Card { box-shadow: none !important; }
+          body { background: white !important; margin: 0 !important; padding: 0 !important; }
+          .Card, .card, table tr { page-break-inside: avoid !important; break-inside: avoid !important; }
+          .Table { width: 100% !important; border-collapse: collapse !important; }
+          @page { size: auto; margin: 10mm; }
         }
       `}</style>
     </div>
