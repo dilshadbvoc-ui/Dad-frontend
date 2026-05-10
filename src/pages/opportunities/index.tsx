@@ -226,10 +226,7 @@ export default function OpportunitiesPage() {
                       </SelectTrigger>
                       <SelectContent className="rounded-xl">
                         <SelectItem value="all">All Stages</SelectItem>
-                        <SelectItem value="prospecting">Prospecting</SelectItem>
-                        <SelectItem value="qualification">Qualification</SelectItem>
-                        <SelectItem value="proposal">Proposal</SelectItem>
-                        <SelectItem value="negotiation">Negotiation</SelectItem>
+                        <SelectItem value="expected">Expected</SelectItem>
                         <SelectItem value="closed_won">Closed Won</SelectItem>
                         <SelectItem value="closed_lost">Closed Lost</SelectItem>
                       </SelectContent>

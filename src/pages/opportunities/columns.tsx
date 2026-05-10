@@ -49,15 +49,18 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
       const stage = row.getValue("stage") as string
       const opportunity = row.original
       let variant: "default" | "secondary" | "destructive" | "outline" = "secondary"
+      const isExpected = ['prospecting', 'qualification', 'proposal', 'negotiation'].includes(stage)
 
       switch (stage) {
         case 'closed_won': variant = "default"; break;
         case 'closed_lost': variant = "destructive"; break;
-        case 'negotiation': variant = "outline"; break;
-        default: variant = "secondary";
+        default: 
+          if (isExpected) variant = "outline";
+          else variant = "secondary";
       }
 
-      let label = stage.replace('_', ' ')
+      let label = isExpected ? 'Expected' : stage.replace('_', ' ')
+      
       if (stage === 'closed_won') {
         if (opportunity.paymentStatus === 'paid') {
           label += ' (Paid)'

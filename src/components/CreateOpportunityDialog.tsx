@@ -235,15 +235,15 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
             </div>
             <div className="grid gap-2">
               <Label htmlFor="stage">Stage</Label>
-              <Select value={stage} onValueChange={setStage}>
+              <Select 
+                value={['prospecting', 'qualification', 'proposal', 'negotiation'].includes(stage) ? 'prospecting' : stage} 
+                onValueChange={setStage}
+              >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder="Select stage" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="prospecting">Prospecting</SelectItem>
-                  <SelectItem value="qualification">Qualification</SelectItem>
-                  <SelectItem value="proposal">Proposal</SelectItem>
-                  <SelectItem value="negotiation">Negotiation</SelectItem>
+                  <SelectItem value="prospecting">Expected</SelectItem>
                   <SelectItem value="closed_won">Closed Won</SelectItem>
                   <SelectItem value="closed_lost">Closed Lost</SelectItem>
                 </SelectContent>

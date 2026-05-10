@@ -30,7 +30,11 @@ import { format } from "date-fns"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { getBestDurationSeconds, formatDuration } from "@/lib/callUtils"
-import { ProductShareDropdown } from "@/components/leads/ProductShareDropdown"
+import { 
+  ProductShareDropdown, 
+  QuickConvertWonDialog, 
+  QuickConvertLostDialog 
+} from "@/components/leads"
 
 
 
@@ -70,6 +74,8 @@ export default function LeadDetailPage() {
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [productDialogOpen, setProductDialogOpen] = useState(false)
+  const [isQuickWonOpen, setIsQuickWonOpen] = useState(false)
+  const [isQuickLostOpen, setIsQuickLostOpen] = useState(false)
   const [dragOver, setDragOver] = useState(false)
   const { statuses, getStatusDetails } = useLeadStatuses()
   const queryClient = useQueryClient()
@@ -360,23 +366,46 @@ export default function LeadDetailPage() {
               <Mail className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Email</span>
             </Button>
-            <Button
-              variant="default"
-              size="sm"
-              className="h-9 px-3 sm:px-4 text-xs bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/20"
-              onClick={() => {
-                if (!lead.products || lead.products.length === 0) {
-                  toast.error("Please add at least one product before moving this lead to the pipeline.")
-                  setProductDialogOpen(true)
-                  return
-                }
-                setIsConvertOpen(true)
-              }}
-              disabled={lead.status === 'converted'}
-            >
-              <CheckCircle2 className="h-4 w-4 sm:mr-2" />
-              <span>{lead.status === 'converted' ? 'Converted' : 'Move to Pipeline'}</span>
-            </Button>
+            <div className="flex flex-col gap-2">
+              <Button
+                variant="default"
+                size="sm"
+                className="h-9 px-3 sm:px-4 text-xs bg-success hover:bg-success/90 text-success-foreground shadow-lg shadow-success/20"
+                onClick={() => {
+                  if (!lead.products || lead.products.length === 0) {
+                    toast.error("Please add at least one product before moving this lead to the pipeline.")
+                    setProductDialogOpen(true)
+                    return
+                  }
+                  setIsConvertOpen(true)
+                }}
+                disabled={lead.status === 'converted'}
+              >
+                <CheckCircle2 className="h-4 w-4 sm:mr-2" />
+                <span>{lead.status === 'converted' ? 'Converted' : 'Move to Pipeline'}</span>
+              </Button>
+
+              {lead.status !== 'converted' && lead.products && lead.products.length > 0 && (
+                <div className="flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 text-[10px] bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+                    onClick={() => setIsQuickWonOpen(true)}
+                  >
+                    Closed Won
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-8 text-[10px] bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+                    onClick={() => setIsQuickLostOpen(true)}
+                  >
+                    Closed Lost
+                  </Button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -752,13 +781,25 @@ export default function LeadDetailPage() {
       />
       {
         lead && (
-          <AddProductToLeadDialog
-            open={productDialogOpen}
-            onOpenChange={setProductDialogOpen}
-            leadId={lead.id}
-            currentProducts={lead.products}
-            onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
-          />
+          <>
+            <QuickConvertWonDialog
+              open={isQuickWonOpen}
+              onOpenChange={setIsQuickWonOpen}
+              lead={lead}
+            />
+            <QuickConvertLostDialog
+              open={isQuickLostOpen}
+              onOpenChange={setIsQuickLostOpen}
+              lead={lead}
+            />
+            <AddProductToLeadDialog
+              open={productDialogOpen}
+              onOpenChange={setProductDialogOpen}
+              leadId={lead.id}
+              currentProducts={lead.products}
+              onSuccess={() => queryClient.invalidateQueries({ queryKey: ['lead', id] })}
+            />
+          </>
         )
       }
 

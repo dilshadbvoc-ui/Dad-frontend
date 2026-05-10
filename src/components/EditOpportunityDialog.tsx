@@ -205,17 +205,17 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Stage</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={['prospecting', 'qualification', 'proposal', 'negotiation'].includes(field.value) ? 'prospecting' : field.value}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select stage" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="prospecting">Prospecting</SelectItem>
-                      <SelectItem value="qualification">Qualification</SelectItem>
-                      <SelectItem value="proposal">Proposal</SelectItem>
-                      <SelectItem value="negotiation">Negotiation</SelectItem>
+                      <SelectItem value="prospecting">Expected</SelectItem>
                       <SelectItem value="closed_won">Closed Won</SelectItem>
                       <SelectItem value="closed_lost">Closed Lost</SelectItem>
                     </SelectContent>

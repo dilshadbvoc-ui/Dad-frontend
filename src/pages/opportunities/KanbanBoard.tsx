@@ -33,11 +33,13 @@ interface KanbanBoardProps {
   opportunities: Opportunity[];
 }
 
-const STAGES: { id: string; label: string; color: string }[] = [
-  { id: "prospecting", label: "Prospecting", color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" },
-  { id: "qualification", label: "Qualification", color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" },
-  { id: "proposal", label: "Proposal", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300" },
-  { id: "negotiation", label: "Negotiation", color: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300" },
+const STAGES: { id: string; label: string; color: string; mergedFrom?: string[] }[] = [
+  { 
+    id: "expected", 
+    label: "Expected", 
+    color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
+    mergedFrom: ["prospecting", "qualification", "proposal", "negotiation"]
+  },
   { id: "closed_won", label: "Closed Won", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" },
   { id: "closed_lost", label: "Closed Lost", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
 ];
@@ -75,11 +77,18 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
     STAGES.forEach((stage) => (cols[stage.id] = []));
 
     opportunities.forEach((opp: Opportunity) => {
-      const stage = opp.stage || "prospecting";
-      if (!cols[stage]) {
-        if (cols["prospecting"]) cols["prospecting"].push(opp);
+      const stageId = opp.stage || "prospecting";
+      
+      // Find if this stage belongs to a merged column
+      const targetColumn = STAGES.find(s => 
+        s.id === stageId || (s.mergedFrom && s.mergedFrom.includes(stageId))
+      );
+
+      if (targetColumn) {
+        cols[targetColumn.id].push(opp);
       } else {
-        cols[stage].push(opp);
+        // Fallback to first stage if somehow it doesn't match
+        cols[STAGES[0].id].push(opp);
       }
     });
     return cols;
@@ -103,13 +112,17 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
       return;
     }
 
-    // Optimistic update removed - now relying on react-query invalidation or refresh
+    // Determine the actual stage value to send to backend
+    let actualStage = stageId;
+    if (stageId === 'expected') {
+      actualStage = 'prospecting';
+    }
 
     try {
-      await updateOpportunity(id, { stage: stageId as Opportunity['stage'] });
+      await updateOpportunity(id, { stage: actualStage as Opportunity['stage'] });
+      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
     } catch (error) {
       console.error("Failed to update opportunity stage:", error);
-      // Revert on failure
     }
   };
 
@@ -221,7 +234,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                       {STAGES.map((s) => (
                                         <DropdownMenuItem
                                           key={s.id}
-                                          disabled={s.id === opp.stage}
+                                          disabled={s.id === opp.stage || (s.id === 'expected' && STAGES[0].mergedFrom?.includes(opp.stage))}
                                           onClick={() => {
                                             const mockEvent = {
                                               preventDefault: () => { },
