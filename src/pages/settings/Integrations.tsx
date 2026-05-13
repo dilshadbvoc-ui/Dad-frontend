@@ -289,10 +289,21 @@ export default function IntegrationsPage() {
                   </div>
                 </div>
                 {integration.connected ? (
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 gap-1">
-                    <CheckCircle2 className="w-3 h-3" />
-                    Connected
-                  </Badge>
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Connected
+                    </Badge>
+                    {integration.id === 'facebook' && integrations.meta?.tokenExpiresAt && (
+                      <span className={`text-[10px] font-medium ${
+                        new Date(integrations.meta.tokenExpiresAt).getTime() - Date.now() < 7 * 24 * 60 * 60 * 1000
+                          ? 'text-amber-500 animate-pulse'
+                          : 'text-muted-foreground'
+                      }`}>
+                        Expires: {new Date(integrations.meta.tokenExpiresAt).toLocaleDateString()}
+                      </span>
+                    )}
+                  </div>
                 ) : (
                   <Badge variant="outline" className="text-muted-foreground">
                     Not Connected

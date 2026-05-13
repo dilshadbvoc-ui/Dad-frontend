@@ -276,6 +276,18 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
             {/* Fields for Meta */}
             {integrationType === 'meta' && isConnected && (
               <>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-xs space-y-2">
+                  <p className="font-semibold text-blue-800 dark:text-blue-300">💡 Pro Tip: Use a System User Token for a Permanent Connection</p>
+                  <p className="text-blue-700 dark:text-blue-400">
+                    Standard "Login with Facebook" tokens expire every 60 days. To avoid this, use a <strong>System User Token</strong>:
+                  </p>
+                  <ol className="list-decimal list-inside space-y-1 text-blue-700 dark:text-blue-400">
+                    <li>Go to Meta Business Settings &gt; System Users</li>
+                    <li>Generate a token for this App</li>
+                    <li>Select <code>ads_management</code>, <code>ads_read</code>, and <code>leads_retrieval</code></li>
+                  </ol>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="pageId"
@@ -291,31 +303,15 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                 />
                 <FormField
                   control={form.control}
-                  name="pixelId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Meta Pixel ID</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter Pixel ID (e.g. 1234567890)" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Required for Conversions API (CAPI).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
                   name="accessToken"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Access Token</FormLabel>
                       <FormControl>
-                        <Input type="password" placeholder="Enter User Access Token" {...field} value={field.value as string || ''} />
+                        <Input type="password" placeholder="Paste your System User Token here" {...field} value={field.value as string || ''} />
                       </FormControl>
-                      <FormDescription className="text-xs">
-                        Token from Meta Business Suite.
+                      <FormDescription className="text-[10px]">
+                        Paste a permanent System User Token or a User Access Token.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
@@ -332,55 +328,6 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                       </FormControl>
                       <FormDescription className="text-xs">
                         Meta Ad Account ID (starts with act_).
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="appId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>App ID (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Meta App ID" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Required for token exchange. Overrides system default.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="appSecret"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>App Secret (Optional)</FormLabel>
-                      <FormControl>
-                        <Input type="password" placeholder="Meta App Secret" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Required for token exchange. Overrides system default.
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="configId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Configuration ID (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Meta Configuration ID" {...field} value={field.value as string || ''} />
-                      </FormControl>
-                      <FormDescription className="text-xs">
-                        Required for WhatsApp Embedded Signup.
                       </FormDescription>
                       <FormMessage />
                     </FormItem>
