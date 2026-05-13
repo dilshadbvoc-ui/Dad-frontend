@@ -454,6 +454,20 @@ export default function LeadDetailPage() {
               )}
               <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
               
+              {(() => {
+                const details = typeof lead.sourceDetails === 'string' ? JSON.parse(lead.sourceDetails) : lead.sourceDetails;
+                if (!details?.metaCreatedTime) return null;
+                return (
+                  <div className="flex items-center gap-3 text-blue-600 dark:text-blue-400">
+                    <Clock className="h-4 w-4" /> 
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold uppercase tracking-tight">Meta Captured</span>
+                      <span className="text-sm font-semibold">{format(new Date(details.metaCreatedTime), "MMM d, yyyy, h:mm a")}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+              
               {/* Source Display */}
               <div className="flex items-center gap-3">
                 <Building className="h-4 w-4 text-muted-foreground" />

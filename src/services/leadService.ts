@@ -43,6 +43,7 @@ export interface Lead {
         originalSource?: string;
         campaignName?: string;
         metaCampaignName?: string;
+        metaCreatedTime?: string;
         rawPayload?: any;
     };
     branchId?: string;
