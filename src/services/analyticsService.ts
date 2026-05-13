@@ -111,3 +111,13 @@ export const getDailyReport = async (branchId?: string) => {
         throw error;
     }
 };
+
+export const getLeadDistributionReport = async (filters?: { startDate?: string; endDate?: string; branchId?: string; userId?: string }) => {
+    try {
+        const response = await api.get('/reports/lead-distribution', { params: filters });
+        return response.data || { leads: [], summary: { total: 0, byUser: [], byDate: [] } };
+    } catch (error) {
+        console.error('Error fetching lead distribution report:', error);
+        throw error;
+    }
+};

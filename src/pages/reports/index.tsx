@@ -26,6 +26,7 @@ export default function ReportsPage() {
             <ReportLink to="/leads?view=leads-by-ownership" label="Leads by Ownership" />
             <ReportLink to="/leads?view=converted-leads" label="Converted Leads" />
             <ReportLink to="/leads?view=lost-leads" label="Lost Leads" />
+            <ReportLink to="/reports/lead-distribution" label="Lead Distribution Report" />
           </div>
         </div>
 
