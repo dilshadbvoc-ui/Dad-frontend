@@ -280,6 +280,15 @@ export default function LeadsPage() {
   const currentOwner = searchParams.get('owner') || 'all';
   const currentBranch = searchParams.get('branch') || 'all';
   const currentSource = searchParams.get('source') || 'all';
+  const currentStatus = currentView.startsWith('status-') ? currentView.replace('status-', '') : undefined;
+
+  const backendDateFilter = useMemo(() => {
+    if (currentView === 'today-leads') {
+      const today = new Date().toISOString().split('T')[0];
+      return { from: today, to: today };
+    }
+    return dateFilter;
+  }, [currentView, dateFilter]);
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
@@ -304,12 +313,15 @@ export default function LeadsPage() {
   // --- Data Fetching ---
   // 1. Leads
   const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource],
+    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource, currentStatus, backendDateFilter],
     queryFn: () => getLeads({ 
       pageSize: 1000,
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
       branchId: currentBranch === 'all' ? undefined : currentBranch,
-      source: currentSource === 'all' ? undefined : currentSource
+      source: currentSource === 'all' ? undefined : currentSource,
+      status: currentStatus,
+      startDate: backendDateFilter.from || undefined,
+      endDate: backendDateFilter.to || undefined
     }),
   });
 
@@ -441,12 +453,8 @@ export default function LeadsPage() {
     switch (currentView) {
       // Leads Views
       case 'all-leads':
-        return baseLeads; // Apply table filters normally
-      case 'today-leads':
-        return baseLeads.filter((l: Lead) =>
-          isSameDay(new Date(l.createdAt), new Date()) ||
-          (l.lastEnquiryDate && isSameDay(new Date(l.lastEnquiryDate), new Date()))
-        );
+      case 'today-leads': // Backend now handles date, but we keep this case for consistency
+        return baseLeads;
       case 'no-activity-leads':
         // Placeholder: simple check if updated recently? Or just return all for now as specific API needed.
         // Let's filter by updated > 30 days ago for "No Activity" mock
@@ -455,8 +463,8 @@ export default function LeadsPage() {
       // Dynamic Status Views
       default:
         if (currentView.startsWith('status-')) {
-          const statusId = currentView.replace('status-', '');
-          return baseLeads.filter((l: Lead) => l.status === statusId);
+          // Backend now handles status filtering
+          return baseLeads;
         }
         
         // Task Views
