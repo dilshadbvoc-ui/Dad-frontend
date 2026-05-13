@@ -24,6 +24,7 @@ const AdsManager: React.FC = () => {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(false);
   const [metaConnected, setMetaConnected] = useState(true);
+  const [tokenExpired, setTokenExpired] = useState(false);
   const [newCampaign, setNewCampaign] = useState({ name: '', objective: 'OUTCOME_LEADS' });
 
   // Analytics state
@@ -64,9 +65,12 @@ const AdsManager: React.FC = () => {
         }
       }
       setMetaConnected(true);
+      setTokenExpired(false);
     } catch (error: unknown) {
       const err = error as { response?: { status: number; data?: { code?: string } } };
-      if (err.response?.status === 400 && err.response?.data?.code === 'META_NOT_CONNECTED') {
+      if (err.response?.status === 401 || err.response?.data?.code === 'META_TOKEN_EXPIRED') {
+        setTokenExpired(true);
+      } else if (err.response?.status === 400 && err.response?.data?.code === 'META_NOT_CONNECTED') {
         setMetaConnected(false);
       } else {
         console.error('Failed to fetch ad accounts', error);
@@ -248,6 +252,18 @@ const AdsManager: React.FC = () => {
         <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4" role="alert">
           <p className="font-semibold text-yellow-800 dark:text-yellow-300">Meta Account Not Connected</p>
           <p className="text-yellow-700 dark:text-yellow-400 text-sm mt-1">Please connect your Facebook account in Settings → Integrations to manage ads.</p>
+        </div>
+      )}
+
+      {tokenExpired && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between" role="alert">
+          <div>
+            <p className="font-semibold text-red-800 dark:text-red-300">Meta Connection Expired</p>
+            <p className="text-red-700 dark:text-red-400 text-sm mt-1">Your Meta access token has expired or been revoked. Please reconnect to continue managing ads.</p>
+          </div>
+          <Button variant="destructive" size="sm" onClick={() => navigate('/settings/integrations')}>
+            Reconnect Now
+          </Button>
         </div>
       )}
 
