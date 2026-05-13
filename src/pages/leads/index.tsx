@@ -282,6 +282,13 @@ export default function LeadsPage() {
   const currentSource = searchParams.get('source') || 'all';
   const currentStatus = currentView.startsWith('status-') ? currentView.replace('status-', '') : undefined;
 
+  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
+  const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [pageSize, setPageSize] = useState(50);
+  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
+
   const backendDateFilter = useMemo(() => {
     if (currentView === 'today-leads') {
       const today = new Date().toISOString().split('T')[0];
@@ -289,13 +296,6 @@ export default function LeadsPage() {
     }
     return dateFilter;
   }, [currentView, dateFilter]);
-
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
-  const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
-  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [pageSize, setPageSize] = useState(50);
-  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
 
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const userRole = typeof userInfo.role === 'object' ? userInfo.role.id : userInfo.role;
