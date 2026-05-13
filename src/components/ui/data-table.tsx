@@ -50,6 +50,7 @@ interface DataTableProps<TData, TValue> {
     onDragLeave?: () => void;
     onDrop?: (e: React.DragEvent, row: Row<TData>) => void;
     dragOverRowId?: string | null;
+    handleRowClick: (e: React.MouseEvent, row: Row<TData>) => void;
   }>
 }
 
@@ -75,6 +76,7 @@ export function DataTable<TData, TValue>({
   const [expanded, setExpanded] = useState<ExpandedState>({})
   const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
   const [globalFilter, setGlobalFilter] = useState("")
+  const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
 
   const tableContainerRef = useRef<HTMLDivElement>(null)
 
@@ -87,7 +89,16 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onRowSelectionChange: onRowSelectionChangeState || setInternalRowSelection,
+    onRowSelectionChange: (updater) => {
+      const currentSelection = rowSelection || internalRowSelection;
+      const nextSelection = typeof updater === 'function' ? updater(currentSelection) : updater;
+      
+      if (onRowSelectionChangeState) {
+        onRowSelectionChangeState(nextSelection);
+      } else {
+        setInternalRowSelection(nextSelection);
+      }
+    },
     onExpandedChange: setExpanded,
     getExpandedRowModel: getExpandedRowModel(),
     onGlobalFilterChange: setGlobalFilter,
@@ -118,13 +129,6 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  // Force sync row selection state from props to table instance
-  useEffect(() => {
-    if (rowSelection !== undefined) {
-      table.setRowSelection(rowSelection)
-    }
-  }, [rowSelection, table])
-
   // Update page size if prop changes
   useEffect(() => {
     if (pageSize !== undefined) {
@@ -133,6 +137,45 @@ export function DataTable<TData, TValue>({
   }, [pageSize, table])
 
   const { rows } = table.getRowModel()
+
+  const handleRowClick = (e: React.MouseEvent, row: Row<TData>) => {
+    const isShiftKey = e.shiftKey;
+    const currentRowId = row.id;
+
+    if (isShiftKey && lastSelectedId) {
+      const allRows = table.getRowModel().rows;
+      const lastIndex = allRows.findIndex((r) => r.id === lastSelectedId);
+      const currentIndex = allRows.findIndex((r) => r.id === currentRowId);
+
+      if (lastIndex !== -1 && currentIndex !== -1) {
+        const start = Math.min(lastIndex, currentIndex);
+        const end = Math.max(lastIndex, currentIndex);
+        const rowsToSelect = allRows.slice(start, end + 1);
+
+        const newSelection = { ...(rowSelection || internalRowSelection) };
+        const isSelecting = !row.getIsSelected();
+
+        rowsToSelect.forEach((r) => {
+          if (isSelecting) {
+            newSelection[r.id] = true;
+          } else {
+            delete newSelection[r.id];
+          }
+        });
+
+        if (onRowSelectionChangeState) {
+          onRowSelectionChangeState(newSelection);
+        } else {
+          setInternalRowSelection(newSelection);
+        }
+        setLastSelectedId(currentRowId);
+        return;
+      }
+    }
+
+    row.toggleSelected();
+    setLastSelectedId(currentRowId);
+  }
 
   const virtualizer = useVirtualizer({
     count: rows.length,
@@ -250,6 +293,7 @@ export function DataTable<TData, TValue>({
                           onDragLeave={handleDragLeave}
                           onDrop={handleDrop}
                           dragOverRowId={dragOverRowId}
+                          handleRowClick={handleRowClick}
                         />
                       ) : (
                         row.getVisibleCells().map((cell) => {
@@ -276,8 +320,9 @@ export function DataTable<TData, TValue>({
                   <Fragment key={row.id}>
                     <div
                       data-state={row.getIsSelected() && "selected"}
+                      onClick={(e) => handleRowClick(e, row)}
                       className={cn(
-                        "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10",
+                        "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10 cursor-pointer",
                         dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
                       )}
                     >

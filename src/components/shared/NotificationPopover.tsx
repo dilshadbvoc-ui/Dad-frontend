@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell } from 'lucide-react'
 import { Button } from "@/components/ui/button"
@@ -9,10 +9,36 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { getNotifications, markAsRead, markAllAsRead, type CRMNotification } from '@/services/notificationService'
 import { formatDistanceToNow } from 'date-fns'
+import { useSocket } from '@/contexts/useSocket'
+import { toast } from '@/components/ui/use-toast'
 
 export function NotificationPopover() {
   const [open, setOpen] = useState(false)
   const queryClient = useQueryClient()
+  const { socket } = useSocket()
+
+  useEffect(() => {
+    if (!socket) return
+
+    const handleNotification = (notification: CRMNotification) => {
+      // Invalidate query to refresh list
+      queryClient.invalidateQueries({ queryKey: ['notifications'] })
+      
+      // Optional: Show toast if popover is closed
+      if (!open) {
+        toast({
+          title: notification.title,
+          description: notification.message,
+        })
+      }
+    }
+
+    socket.on('notification', handleNotification)
+
+    return () => {
+      socket.off('notification', handleNotification)
+    }
+  }, [socket, queryClient, open])
 
   const { data } = useQuery({
     queryKey: ['notifications'],

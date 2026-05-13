@@ -58,7 +58,6 @@ const menuGroups = [
       { title: "Leads", href: "/leads", icon: User },
       { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
       { title: "Duplicates", href: "/duplicates", icon: AlertTriangle, role: "admin" },
-      { title: "Contacts", href: "/contacts", icon: Users },
       { title: "Accounts", href: "/accounts", icon: Building },
       { title: "Opportunities", href: "/opportunities", icon: Target },
       { title: "Quotes", href: "/quotes", icon: FileText },

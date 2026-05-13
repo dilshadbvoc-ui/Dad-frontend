@@ -9,6 +9,7 @@ interface LeadTableRowProps {
   onDragLeave?: () => void;
   onDrop?: (e: React.DragEvent, row: Row<Lead>) => void;
   dragOverRowId?: string | null;
+  handleRowClick: (e: React.MouseEvent, row: Row<Lead>) => void;
 }
 
 const LeadTableRowComponent = ({
@@ -16,7 +17,8 @@ const LeadTableRowComponent = ({
   onDragOver,
   onDragLeave,
   onDrop,
-  dragOverRowId
+  dragOverRowId,
+  handleRowClick
 }: LeadTableRowProps) => {
   return (
     <div
@@ -29,7 +31,7 @@ const LeadTableRowComponent = ({
         const target = e.target as HTMLElement;
         const isInteractive = target.closest('button, a, input, [role="checkbox"]');
         if (!isInteractive) {
-          row.toggleSelected();
+          handleRowClick(e, row);
         }
       }}
       className={cn(
