@@ -1,4 +1,4 @@
-import { copyToClipboard } from "@/lib/utils";
+import { copyToClipboard, getUserInfo, isOrgAdmin } from "@/lib/utils";
 import { useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { getProducts, createProduct, deleteProduct, uploadBrochure, generateShareLink, updateProduct, type Product, type CreateProductData } from "@/services/productService"
@@ -23,6 +23,8 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function ProductsPage() {
+  const user = getUserInfo();
+  const orgAdmin = isOrgAdmin(user);
   const { formatCurrency } = useCurrency()
   const [searchQuery, setSearchQuery] = useState("")
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -259,9 +261,11 @@ export default function ProductsPage() {
                 <p className="text-muted-foreground mt-1">Manage your product catalog</p>
               </div>
               <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
-                </DialogTrigger>
+                {orgAdmin && (
+                  <DialogTrigger asChild>
+                    <Button className="shadow-lg shadow-primary/25"><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+                  </DialogTrigger>
+                )}
                 <DialogContent>
                   <form onSubmit={handleSubmit}>
                     <DialogHeader>
@@ -486,9 +490,11 @@ export default function ProductsPage() {
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEditClick(product)}>
-                                <Edit className="h-4 w-4 mr-2" />Edit
-                              </DropdownMenuItem>
+                              {orgAdmin && (
+                                <DropdownMenuItem onClick={() => handleEditClick(product)}>
+                                  <Edit className="h-4 w-4 mr-2" />Edit
+                                </DropdownMenuItem>
+                              )}
                               <DropdownMenuItem onClick={() => handleShareClick(product)}>
                                 <Share2 className="h-4 w-4 mr-2" />Share
                               </DropdownMenuItem>
@@ -497,7 +503,9 @@ export default function ProductsPage() {
                                   <FileText className="h-4 w-4 mr-2" />View Brochure
                                 </DropdownMenuItem>
                               )}
-                              <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(product.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
+                              {orgAdmin && (
+                                <DropdownMenuItem className="text-destructive" onClick={() => deleteMutation.mutate(product.id)}><Trash2 className="h-4 w-4 mr-2" />Delete</DropdownMenuItem>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </div>
