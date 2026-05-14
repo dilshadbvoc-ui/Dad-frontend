@@ -17,6 +17,7 @@ import {
 } from "@tanstack/react-table"
 import { useState, Fragment, useEffect, useMemo, useRef } from "react"
 import { useVirtualizer } from "@tanstack/react-virtual"
+import { useLocation } from "react-router-dom"
 
 import {
   Table,
@@ -77,8 +78,59 @@ export function DataTable<TData, TValue>({
   const [dragOverRowId, setDragOverRowId] = useState<string | null>(null)
   const [globalFilter, setGlobalFilter] = useState("")
   const [lastSelectedId, setLastSelectedId] = useState<string | null>(null)
+  const location = useLocation()
 
   const tableContainerRef = useRef<HTMLDivElement>(null)
+
+  // --- Scroll Restoration ---
+  useEffect(() => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const scrollKey = `table-scroll-${location.pathname}${location.search}`;
+    const saved = sessionStorage.getItem(scrollKey);
+
+    if (saved) {
+      // Use multiple attempts to handle virtualization/data loading
+      const restore = () => {
+        if (container) container.scrollTop = parseInt(saved, 10);
+      };
+      
+      const timer1 = setTimeout(restore, 0);
+      const timer2 = setTimeout(restore, 100);
+      const timer3 = setTimeout(restore, 500);
+
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        clearTimeout(timer3);
+      };
+    }
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const container = tableContainerRef.current;
+    if (!container) return;
+
+    const scrollKey = `table-scroll-${location.pathname}${location.search}`;
+    
+    let throttleTimer: any = null;
+    const handleScroll = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        if (container && container.scrollTop > 0) {
+          sessionStorage.setItem(scrollKey, container.scrollTop.toString());
+        }
+        throttleTimer = null;
+      }, 200);
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [location.pathname, location.search]);
 
   const table = useReactTable({
     data,

@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Phone, MessageCircle, ChevronDown, ChevronRight } from "lucide-react"
+import { ArrowUpDown, Phone, MessageCircle, ChevronDown, ChevronRight, Copy } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -77,9 +77,45 @@ export const columns: ColumnDef<Lead>[] = [
     cell: ({ row }) => <NameCell lead={row.original} />
   },
   {
-    accessorKey: "email",
+    accessorKey: "phone",
     size: 200,
-    header: "Email",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+        >
+          Phone
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
+    cell: ({ row }) => {
+      const phone = row.getValue("phone") as string;
+      if (!phone) return <span className="text-muted-foreground/30 text-xs italic">-</span>;
+
+      const handleCopy = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(phone);
+        toast.success("Phone number copied");
+      };
+
+      return (
+        <div className="flex items-center gap-1 group">
+          <span className="text-sm font-medium">{phone}</span>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-primary"
+            onClick={handleCopy}
+            title="Copy Number"
+          >
+            <Copy className="h-3.5 w-3.5" />
+          </Button>
+        </div>
+      );
+    }
   },
   {
     accessorKey: "assignedTo",

@@ -29,7 +29,8 @@ import {
   Building,
   LayoutGrid,
   Search,
-  Trash2
+  Trash2,
+  Copy
 } from "lucide-react"
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
@@ -210,7 +211,22 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
-            <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <p className="text-xs text-muted-foreground truncate font-medium">{lead.phone || 'No phone'}</p>
+              {lead.phone && (
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigator.clipboard.writeText(lead.phone!);
+                    toast.success('Number copied');
+                  }}
+                  className="p-1 hover:bg-primary/10 rounded-md text-muted-foreground/60 hover:text-primary transition-colors"
+                  title="Copy Number"
+                >
+                  <Copy className="h-3 w-3" />
+                </button>
+              )}
+            </div>
           </div>
           <Badge 
             variant="outline" 
@@ -893,13 +909,13 @@ export default function LeadsPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 min-h-0 bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm overflow-hidden flex flex-col">
+        <div className="flex-1 min-h-0 bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm flex flex-col">
           {isLoading ? (
             <div className="flex items-center justify-center h-full p-6">
               <LoadingCard text="Loading leads..." />
             </div>
           ) : (
-            <div className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-thin">
+            <div className="flex-1">
               {isChartView ? (
                 <div className="p-2 sm:p-6">
                   <Card className="border-0 sm:border shadow-sm">

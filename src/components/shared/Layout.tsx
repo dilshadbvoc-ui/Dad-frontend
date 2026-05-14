@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, Menu, X } from 'lucide-react';
@@ -9,7 +9,7 @@ import { CommandCenter } from "@/components/shared/CommandCenter";
 
 import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { useProductViewNotifications } from '@/hooks/useProductViewNotifications';
 import { triggerAndroidNotification, triggerAndroidLeadSync } from '@/utils/androidBridge';
@@ -20,6 +20,8 @@ import { BottomNav } from './BottomNav';
 export default function Layout() {
   const location = useLocation();
   const navigate = useNavigate();
+  const navType = useNavigationType();
+  const mainRef = useRef<HTMLElement>(null);
   const isDashboard = location.pathname === '/dashboard';
   const isFullWidthPage = location.pathname.startsWith('/automation/workflows') ||
     location.pathname.startsWith('/workflows') ||
@@ -198,6 +200,58 @@ export default function Layout() {
     };
   }, []);
 
+  // --- Scroll Restoration Logic ---
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
+    const scrollKey = `scroll-pos-${location.pathname}${location.search}`;
+
+    // 1. Restore scroll if it's a POP navigation (back button)
+    if (navType === 'POP') {
+      const savedScroll = sessionStorage.getItem(scrollKey);
+      if (savedScroll) {
+        const targetScroll = parseInt(savedScroll, 10);
+        
+        // Multiple attempts to restore scroll (handles slow-loading content/React Query)
+        const restore = () => {
+          if (main) main.scrollTop = targetScroll;
+        };
+
+        const timer1 = setTimeout(restore, 0);
+        const timer2 = setTimeout(restore, 100);
+        const timer3 = setTimeout(restore, 500); // Failsafe for slower data loads
+
+        return () => {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+          clearTimeout(timer3);
+        };
+      }
+    } else {
+      // 2. Reset scroll to top for PUSH navigation (new page)
+      main.scrollTop = 0;
+    }
+
+    // 3. Save scroll position on scroll (throttled)
+    let throttleTimer: any = null;
+    const handleScroll = () => {
+      if (throttleTimer) return;
+      throttleTimer = setTimeout(() => {
+        if (main && main.scrollTop > 0) {
+          sessionStorage.setItem(scrollKey, main.scrollTop.toString());
+        }
+        throttleTimer = null;
+      }, 150);
+    };
+
+    main.addEventListener('scroll', handleScroll);
+    return () => {
+      main.removeEventListener('scroll', handleScroll);
+      if (throttleTimer) clearTimeout(throttleTimer);
+    };
+  }, [location.pathname, location.search, navType]);
+
   return (
     <div 
       className="flex h-screen overflow-hidden bg-background"
@@ -268,7 +322,9 @@ export default function Layout() {
           </ErrorBoundary>
         </div>
 
-        <main className={cn(
+        <main 
+          ref={mainRef as any}
+          className={cn(
           "flex-1 bg-background/50 safe-bottom",
           isFullWidthPage ? "overflow-hidden flex flex-col" : "overflow-y-auto overflow-x-hidden scrollbar-thin"
         )}>
