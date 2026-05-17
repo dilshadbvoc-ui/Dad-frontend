@@ -72,7 +72,7 @@ export default function OpportunitiesPage() {
     queryKey: ['branches', 'list'],
     queryFn: () => getBranches(),
   });
-  const branches = branchData?.branches || [];
+  const branches = branchData || [];
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ['opportunities', queryParams, filterMode],
