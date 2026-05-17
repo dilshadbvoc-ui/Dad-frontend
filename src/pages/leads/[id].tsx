@@ -134,6 +134,27 @@ export default function LeadDetailPage() {
   if (leadLoading) return <div className="p-8 space-y-4"><Skeleton className="h-12 w-1/3" /><Skeleton className="h-64 w-full" /></div>
   if (!lead) return <div className="p-8">Lead not found</div>
 
+  const isWhatsAppCall = (msg: any) => {
+    const desc = (msg.description || msg.content || '').toLowerCase();
+    const subj = (msg.subject || '').toLowerCase();
+    return (
+      subj.includes('call') ||
+      desc.includes('voice call') ||
+      desc.includes('video call') ||
+      desc.includes('call not connected') ||
+      desc.includes('initiated whatsapp call')
+    );
+  };
+
+  const whatsappMessagesOnly = whatsappMessages ? whatsappMessages.filter((msg: any) => !isWhatsAppCall(msg)) : [];
+  const whatsappCallsOnly = whatsappMessages ? whatsappMessages.filter((msg: any) => isWhatsAppCall(msg)) : [];
+
+  const totalWaCalls = whatsappCallsOnly.length;
+  const totalWaDuration = whatsappCallsOnly.reduce((acc: number, call: any) => acc + getBestDurationSeconds(call), 0);
+  const lastWaCallDate = whatsappCallsOnly.length > 0
+    ? new Date(Math.max(...whatsappCallsOnly.map((c: any) => new Date(c.date).getTime())))
+    : null;
+
   const handleDragStart = (e: React.DragEvent, type: string) => {
     e.dataTransfer.setData('activityType', type)
     e.dataTransfer.effectAllowed = 'copy'
@@ -184,6 +205,13 @@ export default function LeadDetailPage() {
         window.location.href = `https://wa.me/${phone}`
       }
       else toast.error('No phone number available')
+    }
+    else if (type === 'whatsapp-call') {
+      if (lead?.phone) {
+        handleWhatsAppCall(lead.phone)
+      } else {
+        toast.error('No phone number available')
+      }
     }
     else if (type === 'email') {
       if (lead?.email) {
@@ -244,6 +272,31 @@ export default function LeadDetailPage() {
         error: (err: any) => err.response?.data?.message || 'Failed to initiate call'
       }
     )
+  }
+
+  const handleWhatsAppCall = async (phone: string) => {
+    const cleanPhone = formatWhatsAppNumber(phone, lead?.phoneCountryCode)
+    if (cleanPhone) {
+      const callSessionId = crypto.randomUUID()
+      try {
+        const userInfo = localStorage.getItem('userInfo')
+        const token = userInfo ? JSON.parse(userInfo).token : null
+        await fetch(`/api/interactions/leads/${lead.id}/quick-log`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          body: JSON.stringify({ type: 'whatsapp-call', phoneNumber: cleanPhone, callSessionId })
+        })
+      } catch (err) {
+        console.warn('Failed to log WhatsApp Call interaction:', err)
+      }
+      queryClient.invalidateQueries({ queryKey: ['lead', id] })
+      window.location.href = `https://wa.me/${cleanPhone}`
+    } else {
+      toast.error('No phone number available')
+    }
   }
 
   return (
@@ -606,7 +659,8 @@ export default function LeadDetailPage() {
           <Tabs defaultValue="timeline">
             <TabsList>
               <TabsTrigger value="timeline">Timeline</TabsTrigger>
-              <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
+              <TabsTrigger value="whatsapp">WhatsApp Messages</TabsTrigger>
+              <TabsTrigger value="whatsapp-calls">WhatsApp Calls</TabsTrigger>
               <TabsTrigger value="calls">Call History</TabsTrigger>
               <TabsTrigger value="history">Ownership History</TabsTrigger>
             </TabsList>
@@ -632,8 +686,8 @@ export default function LeadDetailPage() {
             <TabsContent value="whatsapp" className="space-y-4">
               {wsLoading ? (
                 <Skeleton className="h-32 w-full" />
-              ) : whatsappMessages && whatsappMessages.length > 0 ? (
-                whatsappMessages.map((msg: any) => (
+              ) : whatsappMessagesOnly.length > 0 ? (
+                whatsappMessagesOnly.map((msg: any) => (
                   <Card key={msg.id} className="overflow-hidden border-teal-100 dark:border-teal-900 shadow-sm transition-all hover:shadow-md">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
@@ -655,7 +709,85 @@ export default function LeadDetailPage() {
               ) : (
                 <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
                   <MessageSquare className="mx-auto h-8 w-8 mb-2 opacity-20" />
-                  <p>No WhatsApp activity recorded.</p>
+                  <p>No WhatsApp messages recorded.</p>
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="whatsapp-calls" className="space-y-4">
+              {/* WhatsApp Call Analytics Summary Banner */}
+              <div className="grid grid-cols-3 gap-4 p-4 rounded-xl border bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-100 dark:border-emerald-900/50">
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Calls</p>
+                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalWaCalls}</p>
+                </div>
+                <div className="text-center border-x border-emerald-100 dark:border-emerald-900/30">
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Talk-Time</p>
+                  <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">{formatDuration(totalWaDuration)}</p>
+                </div>
+                <div className="text-center">
+                  <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Last Contacted</p>
+                  <p className="text-sm font-semibold mt-1">
+                    {lastWaCallDate ? format(lastWaCallDate, "MMM d, yyyy") : 'Never'}
+                  </p>
+                </div>
+              </div>
+
+              {wsLoading ? (
+                <Skeleton className="h-32 w-full" />
+              ) : whatsappCallsOnly.length > 0 ? (
+                whatsappCallsOnly.map((call: any) => (
+                  <Card key={call.id} className="overflow-hidden border-emerald-100 dark:border-emerald-900 shadow-sm transition-all hover:shadow-md">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-4">
+                        <div className={`p-2 rounded-full ${call.direction === 'inbound' ? 'bg-orange-100 text-orange-600 dark:bg-orange-950/30' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30'}`}>
+                          <Phone className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                                {call.direction === 'inbound' ? 'Incoming WhatsApp' : 'Outgoing WhatsApp'}
+                              </span>
+                              <span className="font-semibold text-sm">{call.subject || 'WhatsApp Call'}</span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{format(new Date(call.date), "MMM d, h:mm a")}</span>
+                          </div>
+                          
+                          {call.content && <p className="text-sm text-muted-foreground mb-3">{call.content}</p>}
+                          
+                          <div className="flex flex-wrap items-center gap-4 text-xs">
+                            {getBestDurationSeconds(call) > 0 && (
+                              <span className="flex items-center gap-1 text-muted-foreground">
+                                <Clock className="h-3 w-3" />
+                                {formatDuration(getBestDurationSeconds(call))}
+                              </span>
+                            )}
+                            {call.callStatus && (
+                              <Badge variant="outline" className="text-[10px] h-5 px-2 bg-emerald-50/50 text-emerald-600 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400">
+                                {call.callStatus}
+                              </Badge>
+                            )}
+                            {call.actor && <span className="text-[10px] text-muted-foreground">Logged by {call.actor}</span>}
+                          </div>
+
+                          {call.recordingUrl && (
+                            <div className="mt-3 p-2 bg-muted/30 rounded-lg">
+                              <CallRecordingPlayer 
+                                recordingUrl={call.recordingUrl} 
+                                duration={getBestDurationSeconds(call)}
+                              />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                <div className="text-center py-10 text-muted-foreground bg-muted/20 rounded-lg border-2 border-dashed">
+                  <Phone className="mx-auto h-8 w-8 mb-2 opacity-20" />
+                  <p>No WhatsApp call history recorded.</p>
                 </div>
               )}
             </TabsContent>
