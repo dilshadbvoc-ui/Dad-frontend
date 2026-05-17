@@ -310,6 +310,12 @@ export default function LeadsPage() {
       const today = new Date().toISOString().split('T')[0];
       return { from: today, to: today };
     }
+    if (currentView === 'yesterday-leads') {
+      const yesterdayDate = new Date();
+      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+      const yesterday = yesterdayDate.toISOString().split('T')[0];
+      return { from: yesterday, to: yesterday };
+    }
     return dateFilter;
   }, [currentView, dateFilter]);
 
@@ -470,6 +476,7 @@ export default function LeadsPage() {
       // Leads Views
       case 'all-leads':
       case 'today-leads': // Backend now handles date, but we keep this case for consistency
+      case 'yesterday-leads':
         return baseLeads;
       case 'no-activity-leads':
         // Placeholder: simple check if updated recently? Or just return all for now as specific API needed.
@@ -670,6 +677,7 @@ export default function LeadsPage() {
                     <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3">Quick Views</SelectLabel>
                     <SelectItem value="all-leads" className="rounded-lg">All Leads</SelectItem>
                     <SelectItem value="today-leads" className="rounded-lg">Today's Leads</SelectItem>
+                    <SelectItem value="yesterday-leads" className="rounded-lg">Yesterday's Leads</SelectItem>
                     <SelectItem value="no-activity-leads" className="rounded-lg">No Activity</SelectItem>
                     
                     <SelectLabel className="mt-4 text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Pipeline Stages</SelectLabel>
