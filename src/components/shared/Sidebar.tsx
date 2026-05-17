@@ -217,6 +217,17 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
   // My Team data for sidebar hierarchy
   const [teamData, setTeamData] = useState<{ team: any[]; managedBranches: any[] }>({ team: [], managedBranches: [] });
   const [teamExpanded, setTeamExpanded] = useState(false);
+  const [systemExpanded, setSystemExpanded] = useState(false);
+
+  // Auto-expand System group if active page is under System
+  useEffect(() => {
+    const isSystemRoute = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support'].some(
+      route => pathname === route || pathname.startsWith(route + '/')
+    );
+    if (isSystemRoute) {
+      setSystemExpanded(true);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     if (user && !userIsSuperAdmin) {
@@ -337,35 +348,103 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
 
           {/* Filtered Grouped Menu */}
-          {filteredGroups.map((group, groupIndex) => (
-            <div key={groupIndex} className="space-y-1">
-              {!isCollapsed && (
-                <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
-                  {group.title}
-                </div>
-              )}
-              {group.items.map((item, itemIndex) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
-                return (
-                  <Link
-                    key={itemIndex}
-                    to={item.href}
+          {filteredGroups.map((group, groupIndex) => {
+            if (group.title === "System") {
+              const isAnySystemActive = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support'].some(
+                route => pathname === route || pathname.startsWith(route + '/')
+              );
+              
+              return (
+                <div key={groupIndex} className="space-y-1">
+                  {/* Collapsible System Button Header */}
+                  <button
+                    onClick={() => {
+                      if (isCollapsed) {
+                        setIsCollapsed(false);
+                      }
+                      setSystemExpanded(!systemExpanded);
+                    }}
                     className={cn(
-                      "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                      isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                      "w-full group flex items-center justify-between rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                      isAnySystemActive 
+                        ? "bg-sidebar-active/10 text-sidebar-active hover:bg-sidebar-active/20" 
+                        : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                       isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
                     )}
                   >
-                    <item.icon className={cn(
-                      "h-5 w-5 shrink-0 transition-colors stroke-[3]",
-                      isActive ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text"
-                    )} />
-                    {!isCollapsed && <span>{item.title}</span>}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                    <div className="flex items-center gap-3">
+                      <Settings className={cn(
+                        "h-5 w-5 shrink-0 transition-colors stroke-[3]",
+                        isAnySystemActive ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text"
+                      )} />
+                      {!isCollapsed && <span>System</span>}
+                    </div>
+                    {!isCollapsed && (
+                      <ChevronDown className={cn(
+                        "h-4 w-4 shrink-0 transition-transform text-sidebar-text/60 group-hover:text-sidebar-text/80", 
+                        systemExpanded && "rotate-180"
+                      )} />
+                    )}
+                  </button>
+
+                  {/* Collapsible System Sub-items list */}
+                  {systemExpanded && !isCollapsed && (
+                    <div className="pl-4 ml-4 border-l border-sidebar-border/30 space-y-1 mt-1 transition-all duration-200">
+                      {group.items.map((item, itemIndex) => {
+                        const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                        return (
+                          <Link
+                            key={itemIndex}
+                            to={item.href}
+                            className={cn(
+                              "group flex items-center gap-3 rounded-full px-4 py-2.5 text-xs font-bold transition-all duration-200",
+                              isActive ? "bg-sidebar-active text-sidebar-bg shadow-sm" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover/40"
+                            )}
+                          >
+                            <item.icon className={cn(
+                              "h-4 w-4 shrink-0 transition-colors stroke-[3.5]",
+                              isActive ? "text-sidebar-bg" : "text-sidebar-text/60 group-hover:text-sidebar-text"
+                            )} />
+                            <span>{item.title}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div key={groupIndex} className="space-y-1">
+                {!isCollapsed && (
+                  <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
+                    {group.title}
+                  </div>
+                )}
+                {group.items.map((item, itemIndex) => {
+                  const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+                  return (
+                    <Link
+                      key={itemIndex}
+                      to={item.href}
+                      className={cn(
+                        "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                        isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                        isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+                      )}
+                    >
+                      <item.icon className={cn(
+                        "h-5 w-5 shrink-0 transition-colors stroke-[3]",
+                        isActive ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text"
+                      )} />
+                      {!isCollapsed && <span>{item.title}</span>}
+                    </Link>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </nav>
 
