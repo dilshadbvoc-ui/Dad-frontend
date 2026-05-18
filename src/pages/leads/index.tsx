@@ -5,6 +5,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
+import { getFollowUps } from "@/services/followUpService"
 import { getUsers } from "@/services/userService"
 import { getBranches } from "@/services/settingsService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
@@ -350,7 +351,7 @@ export default function LeadsPage() {
   // 2. Tasks (Follow Ups)
   const { data: taskData, isLoading: tasksLoading } = useQuery({
     queryKey: ['tasks', 'all'],
-    queryFn: () => getTasks({ limit: 1000 }),
+    queryFn: () => getFollowUps({ limit: 1000 }),
   });
 
   const handleBulkAction = async (action: string) => {

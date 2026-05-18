@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { getTasks, type Task } from "@/services/taskService";
+import { getFollowUps } from "@/services/followUpService";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -47,7 +48,7 @@ export default function FollowUpReportsPage() {
 
   const { data: tasksResponse, isLoading } = useQuery({
     queryKey: ['tasks-report', selectedBranchId],
-    queryFn: () => getTasks({ status: 'all', branchId: selectedBranchId === "all" ? undefined : selectedBranchId }),
+    queryFn: () => getFollowUps({ limit: 10000, status: 'all', branchId: selectedBranchId === "all" ? undefined : selectedBranchId }),
   });
 
   const tasks = (tasksResponse as { tasks: Task[] })?.tasks || [];
