@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from "react"
+import React, { useState, useMemo, useCallback, useEffect } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { type RowSelectionState } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
@@ -291,6 +291,19 @@ export default function LeadsPage() {
   const { statuses, getStatusDetails } = useLeadStatuses()
   const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
+
+  const updateSearchParams = useCallback((newParams: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, val]) => {
+      if (val === undefined || val === null || val === '') {
+        params.delete(key);
+      } else {
+        params.set(key, val);
+      }
+    });
+    setSearchParams(params);
+  }, [searchParams, setSearchParams]);
+
   // Default view is 'all-leads' if not specified
   const currentView = searchParams.get('view') || 'all-leads';
   const currentSort = searchParams.get('sort') || 'newest';
@@ -299,12 +312,42 @@ export default function LeadsPage() {
   const currentSource = searchParams.get('source') || 'all';
   const currentStatus = currentView.startsWith('status-') ? currentView.replace('status-', '') : undefined;
 
+  // Save active filters to sessionStorage whenever they change
+  useEffect(() => {
+    const paramsString = searchParams.toString();
+    if (paramsString) {
+      sessionStorage.setItem('last-leads-filters', paramsString);
+    }
+  }, [searchParams]);
+
+  // Restore filters on mount if URL is empty
+  useEffect(() => {
+    if (!searchParams.get('view')) {
+      const savedFilters = sessionStorage.getItem('last-leads-filters');
+      if (savedFilters) {
+        setSearchParams(new URLSearchParams(savedFilters));
+      }
+    }
+  }, []);
+
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
   const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [pageSize, setPageSize] = useState(50);
-  const [dateFilter, setDateFilter] = useState({ from: '', to: '' });
+
+  const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
+  const setPageSize = (val: number | ((prev: number) => number)) => {
+    const next = typeof val === 'function' ? val(pageSize) : val;
+    updateSearchParams({ pageSize: next.toString() });
+  };
+
+  const dateFrom = searchParams.get('dateFrom') || '';
+  const dateTo = searchParams.get('dateTo') || '';
+  const dateFilter = useMemo(() => ({ from: dateFrom, to: dateTo }), [dateFrom, dateTo]);
+  const setDateFilter = (val: { from: string; to: string } | ((prev: { from: string; to: string }) => { from: string; to: string })) => {
+    const next = typeof val === 'function' ? val({ from: dateFrom, to: dateTo }) : val;
+    updateSearchParams({ dateFrom: next.from || undefined, dateTo: next.to || undefined });
+  };
 
   const backendDateFilter = useMemo(() => {
     if (currentView === 'today-leads') {
@@ -557,23 +600,23 @@ export default function LeadsPage() {
 
 
   const handleViewChange = (view: string) => {
-    setSearchParams({ view, sort: currentSort });
+    updateSearchParams({ view });
   };
 
   const handleSortChange = (sort: string) => {
-    setSearchParams({ view: currentView, sort, owner: currentOwner });
+    updateSearchParams({ sort });
   };
 
   const handleOwnerChange = (owner: string) => {
-    setSearchParams({ view: currentView, sort: currentSort, owner, branch: currentBranch });
+    updateSearchParams({ owner });
   };
 
   const handleBranchChange = (branch: string) => {
-    setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch, source: currentSource });
+    updateSearchParams({ branch });
   };
 
   const handleSourceChange = (source: string) => {
-    setSearchParams({ view: currentView, sort: currentSort, owner: currentOwner, branch: currentBranch, source });
+    updateSearchParams({ source });
   };
 
   // Excel download function
