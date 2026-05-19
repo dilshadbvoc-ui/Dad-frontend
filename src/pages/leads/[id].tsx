@@ -864,6 +864,7 @@ export default function LeadDetailPage() {
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ['lead', id] })
                 queryClient.invalidateQueries({ queryKey: ['follow-ups'] })
+                queryClient.invalidateQueries({ queryKey: ['tasks'] })
               }}
             />
             <ConvertLeadDialog
