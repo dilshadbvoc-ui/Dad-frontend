@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
   // Process Pipeline (by Status)
   const pipelineData = (() => {
     const counts: Record<string, number> = {};
-    const pipelineOrder = ['new', 'contacted', 'qualified', 'nurturing', 'converted', 'lost'];
+    const pipelineOrder = ['new', 'contacted', 'pre_qualified', 'qualified', 'nurturing', 'converted', 'lost'];
     leads.forEach((l: Lead) => {
       const status = l.status || 'new'; // valid status fallback or assert type
       counts[status] = (counts[status] || 0) + 1;

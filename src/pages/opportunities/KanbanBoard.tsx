@@ -35,6 +35,16 @@ interface KanbanBoardProps {
 
 const STAGES: { id: string; label: string; color: string; mergedFrom?: string[] }[] = [
   { 
+    id: "pre_qualified_lead", 
+    label: "Pre-qualified Lead", 
+    color: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300" 
+  },
+  { 
+    id: "qualified_lead", 
+    label: "Qualified Lead", 
+    color: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300" 
+  },
+  { 
     id: "expected", 
     label: "Expected", 
     color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",

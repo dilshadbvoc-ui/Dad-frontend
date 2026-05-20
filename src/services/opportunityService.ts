@@ -4,7 +4,7 @@ export interface Opportunity {
     id: string;
     name: string;
     amount: number;
-    stage: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
+    stage: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost' | 'pre_qualified_lead' | 'qualified_lead';
     probability: number;
     closeDate?: string;
     leadSource?: string;
@@ -41,7 +41,7 @@ export interface Opportunity {
 }
 
 export interface OpportunityQueryParams {
-    stage?: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
+    stage?: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost' | 'pre_qualified_lead' | 'qualified_lead';
     account?: string;
     ownerId?: string;
     search?: string;
@@ -56,7 +56,7 @@ export interface OpportunityQueryParams {
 export interface CreateOpportunityData {
     name: string;
     amount: number;
-    stage?: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost';
+    stage?: 'prospecting' | 'qualification' | 'proposal' | 'negotiation' | 'closed_won' | 'closed_lost' | 'pre_qualified_lead' | 'qualified_lead';
     probability?: number;
     closeDate?: string;
     account: string;
