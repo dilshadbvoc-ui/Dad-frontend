@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { Header } from './Header';
 import { ViolationAlert } from "@/components/shared/ViolationAlert";
 import { CommandCenter } from "@/components/shared/CommandCenter";
+import { PersistentBroadcastModal } from './PersistentBroadcastModal';
 
 import { socketService } from '@/services/socketService';
 import { toast } from 'sonner';
@@ -130,6 +131,13 @@ export default function Layout() {
 
       // Invalidate notification queries to update the bell/popover
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
+
+      // If it's a persistent popup, suppress the transient sonner toast to avoid duplicate alerts
+      if (data.type === 'popup') {
+        triggerRichNotification(data.title, data.message);
+        triggerAndroidNotification(data.title, data.message);
+        return;
+      }
 
       // Map backend types to sonner toast types
       const type = data.type === 'error' ? 'error' :
@@ -351,6 +359,9 @@ export default function Layout() {
       </ErrorBoundary>
       <ErrorBoundary name="CommandCenter">
         <CommandCenter />
+      </ErrorBoundary>
+      <ErrorBoundary name="PersistentBroadcastModal">
+        <PersistentBroadcastModal />
       </ErrorBoundary>
     </div>
   );

@@ -103,6 +103,7 @@ const DeveloperSettingsPage = lazy(() => import('./pages/settings/developer'));
 const WhatsAppScraperSettingsPage = lazy(() => import('./pages/settings/whatsapp-scraper'));
 const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
+const BroadcastSettingsPage = lazy(() => import('./pages/settings/broadcast'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
 const TrashPage = lazy(() => import('./pages/trash'));
@@ -305,6 +306,7 @@ function AppContent() {
        <Route path="/settings/billing" element={<BillingSettingsPage />} />
        <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
        <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
+       <Route path="/settings/broadcast" element={<BroadcastSettingsPage />} />
        <Route path="/automation" element={<AutomationPage />} />
        <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />
        <Route path="/automation/new" element={<CreateWorkflowPage />} />

@@ -17,7 +17,8 @@ import {
   Loader2,
   FileJson,
   Trash2,
-  ChevronRight
+  ChevronRight,
+  Bell
 } from 'lucide-react';
 import {
   Card,
@@ -223,6 +224,7 @@ export default function SuperAdminDashboard() {
           <TabsTrigger value="landing-page" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Landing Page</TabsTrigger>
           <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">System Roles</TabsTrigger>
           <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Database</TabsTrigger>
+          <TabsTrigger value="broadcast" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Broadcast</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
@@ -654,6 +656,27 @@ export default function SuperAdminDashboard() {
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="broadcast" className="space-y-6">
+          <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-2xl">
+            <CardHeader className="border-b border-indigo-900/40 pb-5">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
+                  <Bell className="h-6 w-6 stroke-[1.5]" />
+                </div>
+                <div>
+                  <CardTitle className="text-white text-xl">Platform Broadcast</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Send a persistent popup notification to all Organisation Administrators across the platform.
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              <SuperAdminBroadcastForm />
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {editingOrg && (
@@ -663,6 +686,101 @@ export default function SuperAdminDashboard() {
           organisation={editingOrg}
         />
       )}
+    </div>
+  );
+}
+
+function SuperAdminBroadcastForm() {
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSending, setIsSending] = useState(false);
+
+  const handleSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title || !message) {
+      toast.error('Both title and message are required.');
+      return;
+    }
+
+    try {
+      setIsSending(true);
+      const res = await api.post('/super-admin/broadcast-notification', { title, message });
+      if (res.data?.success) {
+        toast.success(res.data?.message || 'Broadcast sent successfully!');
+        setTitle('');
+        setMessage('');
+      } else {
+        toast.error('Failed to send broadcast');
+      }
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || err.message || 'An error occurred.');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-2">
+      {/* Form Input fields */}
+      <form onSubmit={handleSend} className="space-y-5">
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-300">Broadcast Title</label>
+          <Input
+            placeholder="e.g. System Scheduled Maintenance"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+            className="bg-[#0f172a] border-indigo-900/50 text-white placeholder:text-slate-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl h-11"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label className="text-sm font-semibold text-slate-300">Message Description</label>
+          <textarea
+            placeholder="Write your announcement details here..."
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            required
+            rows={5}
+            className="w-full bg-[#0f172a] border border-indigo-900/50 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 resize-none min-h-[120px]"
+          />
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isSending || !title || !message}
+          className="w-full h-11 text-sm font-semibold tracking-wide text-white rounded-xl shadow-lg bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 transition-all shadow-indigo-600/20 disabled:opacity-50"
+        >
+          {isSending ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Broadcasting Popup...
+            </span>
+          ) : (
+            'Broadcast Announcement'
+          )}
+        </Button>
+      </form>
+
+      {/* Live Preview Area */}
+      <div className="flex flex-col justify-start">
+        <label className="text-sm font-semibold text-slate-300 mb-3">Real-time Pop-up Preview</label>
+        <div className="relative border border-indigo-850 bg-slate-900/80 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center min-h-[220px] overflow-hidden">
+          <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-600 via-indigo-500 to-purple-600" />
+          <div className="h-10 w-10 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mb-3 animate-pulse">
+            <Bell className="h-5 w-5" />
+          </div>
+          <h4 className="text-white font-bold text-base mb-1.5 line-clamp-1">
+            {title || 'Your Announcement Title'}
+          </h4>
+          <p className="text-slate-400 text-xs text-center line-clamp-3 leading-relaxed max-w-sm px-2">
+            {message || 'The detailed message of your popup broadcast announcement will appear here exactly as your users will see it in their premium non-dismissible dialog.'}
+          </p>
+          <div className="mt-5 w-full max-w-[140px] h-8 bg-indigo-600/25 border border-indigo-500/35 rounded-lg flex items-center justify-center text-[11px] font-semibold text-indigo-300">
+            Mark as Read
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

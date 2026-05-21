@@ -31,3 +31,13 @@ export const markAllAsRead = async () => {
     const response = await api.put(`/notifications/read-all`);
     return response.data;
 };
+
+export const broadcastNotification = async (title: string, message: string) => {
+    const response = await api.post('/notifications/broadcast', { title, message });
+    return response.data;
+};
+
+export const broadcastToOrgAdmins = async (title: string, message: string) => {
+    const response = await api.post('/super-admin/broadcast-notification', { title, message });
+    return response.data;
+};

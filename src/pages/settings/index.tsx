@@ -119,6 +119,14 @@ const ALL_SETTINGS_SECTIONS = [
     gradient: "from-indigo-600 to-violet-600"
   },
   {
+    title: "Broadcast Announcements",
+    description: "Send persistent popup notifications to all team members in the organisation",
+    href: "/settings/broadcast",
+    icon: Bell,
+    gradient: "from-indigo-600 to-violet-600",
+    roles: ['admin']
+  },
+  {
     title: "Data Migration",
     description: "Data migration from other CRMs.",
     href: "/settings/import",
