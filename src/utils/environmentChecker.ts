@@ -20,9 +20,9 @@ export function getEnvironmentInfo(): EnvironmentInfo {
     let isLocal = false;
 
     // Check if production
-    if (hostname.includes('vercel.app') || hostname.includes('dad-frontend') || hostname === '13.53.145.83') {
+    if (hostname.includes('vercel.app') || hostname.includes('dad-frontend') || hostname === '65.2.29.78' || hostname.includes('pypecrm.com')) {
         environment = 'production';
-        backendUrl = 'http://13.53.145.83';
+        backendUrl = 'https://pypecrm.com';
         isProduction = true;
     }
     // Check if local
