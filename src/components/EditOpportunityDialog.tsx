@@ -215,8 +215,6 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="pre_qualified_lead">Pre-qualified Lead</SelectItem>
-                      <SelectItem value="qualified_lead">Qualified Lead</SelectItem>
                       <SelectItem value="prospecting">Expected</SelectItem>
                       <SelectItem value="closed_won">Closed Won</SelectItem>
                       <SelectItem value="closed_lost">Closed Lost</SelectItem>
