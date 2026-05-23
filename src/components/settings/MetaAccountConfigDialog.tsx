@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import type { AxiosError } from "axios"
 
 import { Button } from "@/components/ui/button"
+import { Switch } from "@/components/ui/switch"
 import {
   Dialog,
   DialogContent,
@@ -51,35 +52,52 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   });
   const branches = branchesData?.branches || [];
 
-  const form = useForm<{ branchId: string }>({
+  const form = useForm<{ branchId: string; syncEnabled: boolean }>({
     defaultValues: {
-      branchId: account?.branchId || "all_branches_placeholder"
+      branchId: account?.branchId || "all_branches_placeholder",
+      syncEnabled: account?.connected !== false
     }
   })
 
   useEffect(() => {
     if (open && account) {
       form.reset({
-        branchId: account.branchId || "all_branches_placeholder"
+        branchId: account.branchId || "all_branches_placeholder",
+        syncEnabled: account.connected !== false
       })
     }
   }, [open, account, form])
 
   const mutation = useMutation({
-    mutationFn: (data: { branchId: string }) => {
+    mutationFn: (data: { branchId: string; syncEnabled: boolean }) => {
       const allAccounts = integrations.metaAccounts || [];
 
-      // update the specific account in the array
+      // update the specific account in the array using pageId
       const updatedAccounts = allAccounts.map((acc: any) => {
-        if (acc.adAccountId === account.adAccountId && acc.pageId === account.pageId) {
-          return { ...acc, branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId }
+        if (acc.pageId === account.pageId) {
+          return { 
+            ...acc, 
+            branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
+            connected: data.syncEnabled
+          }
         }
         return acc
       })
 
+      // Update legacy meta object if it matches this pageId
+      let updatedMeta = integrations.meta;
+      if (updatedMeta && updatedMeta.pageId === account.pageId) {
+        updatedMeta = {
+          ...updatedMeta,
+          branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
+          connected: data.syncEnabled
+        };
+      }
+
       // Construct full payload properly preserving other keys
       const updatedIntegrations = {
         ...integrations,
+        meta: updatedMeta,
         metaAccounts: updatedAccounts
       };
 
@@ -87,7 +105,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organisation"] })
-      toast.success(`Branch settings saved for ${account.adAccountName || 'Account'}`)
+      toast.success(`Settings saved for ${account?.pageName || account?.adAccountName || 'Page'}`)
       onOpenChange(false)
     },
     onError: (error: AxiosError<{ message: string }>) => {
@@ -95,7 +113,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     },
   })
 
-  function onSubmit(values: { branchId: string }) {
+  function onSubmit(values: { branchId: string; syncEnabled: boolean }) {
     mutation.mutate(values)
   }
 
@@ -110,6 +128,26 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="syncEnabled"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm bg-card">
+                  <div className="space-y-0.5">
+                    <FormLabel>Sync Leads</FormLabel>
+                    <FormDescription>
+                      Retrieve and sync leads generated from this page.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="branchId"

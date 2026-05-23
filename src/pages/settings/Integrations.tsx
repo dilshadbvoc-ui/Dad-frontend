@@ -28,6 +28,7 @@ interface MetaAccount {
   pageName?: string;
   pageId?: string;
   branchId?: string;
+  connected?: boolean;
 }
 
 export default function IntegrationsPage() {
@@ -317,9 +318,24 @@ export default function IntegrationsPage() {
                 <div className="space-y-4">
 
                   {integration.accounts.map((acc: MetaAccount, idx: number) => (
-                    <div key={acc.adAccountId || idx} className="flex items-center justify-between p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{acc.pageName || acc.adAccountName || 'Account'}</span>
+                    <div key={acc.pageId || acc.adAccountId || idx} className={`flex items-center justify-between p-3 rounded-lg border ${
+                      acc.connected !== false 
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30" 
+                        : "bg-slate-50/30 dark:bg-slate-900/5 border-slate-100 dark:border-slate-900/10 opacity-70"
+                    }`}>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{acc.pageName || acc.adAccountName || 'Account'}</span>
+                          {acc.connected !== false ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-[10px] py-0 px-1.5 h-4">
+                              Active
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/20 dark:text-slate-400 dark:border-slate-800 text-[10px] py-0 px-1.5 h-4">
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
                         <span className="text-xs text-muted-foreground">
                           {acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : `ID: ${acc.adAccountId || 'N/A'}`}
                         </span>
@@ -344,9 +360,9 @@ export default function IntegrationsPage() {
                           onClick={async () => {
                             try {
                               const { api } = await import('@/services/api');
-                              await api.post('/meta/disconnect', { type: 'meta', adAccountId: acc.adAccountId });
+                              await api.post('/meta/disconnect', { type: 'meta', pageId: acc.pageId });
                               queryClient.invalidateQueries({ queryKey: ['organisation'] });
-                              toast.success(`Disconnected ${acc.adAccountName || 'account'}`);
+                              toast.success(`Disconnected ${acc.pageName || 'page'}`);
                             } catch {
                               toast.error('Failed to disconnect');
                             }
