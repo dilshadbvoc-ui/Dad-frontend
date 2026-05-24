@@ -152,38 +152,21 @@ class CRMBridge(val context: Context) {
         val prefs = context.getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("pending_session_id", sessionId).apply()
 
-        // Clean and format the phone number to prevent any URI parsing errors
-        var cleanPhone = phone.replace(Regex("[^0-9+]"), "")
-        if (cleanPhone.startsWith("91") && cleanPhone.length == 12) {
-            cleanPhone = "+$cleanPhone"
-        } else if (cleanPhone.startsWith("1") && cleanPhone.length == 11) {
-            cleanPhone = "+$cleanPhone"
-        }
+        // Clean the phone number (keep only digits, +, *, and #)
+        val cleanPhone = phone.replace(Regex("[^0-9+*#]"), "")
 
-        // Dial the number
+        // Dial the number using Intent.ACTION_DIAL for maximum compatibility,
+        // dual-SIM select prompting, and to prevent any "number is invalid" system blocks.
         try {
-            val intent = Intent(Intent.ACTION_CALL)
+            val intent = Intent(Intent.ACTION_DIAL)
             intent.data = Uri.parse("tel:$cleanPhone")
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            
-            if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
-                context.startActivity(intent)
-            } else {
-                Log.w("CRMBridge", "CALL_PHONE permission not granted, requesting dynamically and falling back to DIAL")
-                if (context is MainActivity) {
-                    context.runOnUiThread {
-                        ActivityCompat.requestPermissions(context, arrayOf(android.Manifest.permission.CALL_PHONE), 200)
-                    }
-                }
-                val dialIntent = Intent(Intent.ACTION_DIAL)
-                dialIntent.data = Uri.parse("tel:$cleanPhone")
-                dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                context.startActivity(dialIntent)
-            }
+            context.startActivity(intent)
         } catch (e: Exception) {
             Log.e("CRMBridge", "Failed to initiate call to $cleanPhone", e)
-            Toast.makeText(context, "Failed to initiate call", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Failed to open dialer", Toast.LENGTH_SHORT).show()
         }
     }
+
 
 }
