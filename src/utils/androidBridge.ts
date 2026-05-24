@@ -10,6 +10,7 @@ interface AndroidInterface {
     requestLocationPermission: () => void;
     getRecordingStatus: () => string;
     showNotification: (title: string, message: string) => void;
+    initiateCall?: (phone: string, sessionId: string) => void;
 }
 
 declare global {

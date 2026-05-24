@@ -13,29 +13,18 @@ declare global {
             syncToken?: (token: string) => void;
             onCallCompleted?: (data: MobileCallData) => void;
         };
-        AndroidBridge?: {
-            initiateCall: (phone: string, sessionId: string) => void;
-            syncLeads?: (token: string) => void;
-            saveToken?: (token: string) => void;
-            saveApiUrl?: (url: string) => void;
-            getToken?: () => string | null;
-            clearToken?: () => void;
-            requestLocationPermission?: () => void;
-            getRecordingStatus?: () => string;
-            showNotification?: (title: string, message: string) => void;
-        };
     }
 }
 
 export const isMobileApp = () => {
-    return typeof window !== 'undefined' && !!window.AndroidBridge;
+    return typeof window !== 'undefined' && !!(window as any).AndroidBridge;
 };
 
 export const initiateCall = (phoneNumber: string, callSessionId?: string) => {
     const sessionId = callSessionId || '';
-    if (isMobileApp() && window.AndroidBridge) {
+    if (isMobileApp() && (window as any).AndroidBridge) {
         try {
-            window.AndroidBridge.initiateCall(phoneNumber, sessionId);
+            (window as any).AndroidBridge.initiateCall(phoneNumber, sessionId);
             return true;
         } catch (e) {
             console.error("Failed to call AndroidBridge.initiateCall", e);
@@ -45,9 +34,9 @@ export const initiateCall = (phoneNumber: string, callSessionId?: string) => {
 };
 
 export const syncToken = (token: string) => {
-    if (isMobileApp() && window.AndroidBridge?.saveToken) {
+    if (isMobileApp() && (window as any).AndroidBridge?.saveToken) {
         try {
-            window.AndroidBridge.saveToken(token);
+            (window as any).AndroidBridge.saveToken(token);
         } catch (e) {
             console.error("Failed to call AndroidBridge.saveToken", e);
         }
@@ -59,8 +48,8 @@ if (typeof window !== 'undefined') {
     window.MobileBridge = window.MobileBridge || {
         initiateCall: (phoneNumber: string, callSessionId?: string) => { 
             const sessionId = callSessionId || '';
-            if (window.AndroidBridge) {
-                window.AndroidBridge.initiateCall(phoneNumber, sessionId);
+            if ((window as any).AndroidBridge) {
+                (window as any).AndroidBridge.initiateCall(phoneNumber, sessionId);
             }
         }
     };
