@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form"
 import { Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { CloseWonDialog } from "./CloseWonDialog"
+import { CloseLostDialog } from "./CloseLostDialog"
 
 import { Button } from "@/components/ui/button"
 import {
@@ -54,6 +55,7 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
   )
   const [prevOpportunityId, setPrevOpportunityId] = useState(opportunity.id);
   const [showCloseWonDialog, setShowCloseWonDialog] = useState(false)
+  const [showCloseLostDialog, setShowCloseLostDialog] = useState(false)
   const [pendingData, setPendingData] = useState<EditOpportunityFormData | null>(null)
 
   if (opportunity.id !== prevOpportunityId) {
@@ -117,6 +119,11 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
     if (values.stage === 'closed_won' && opportunity.stage !== 'closed_won') {
       setPendingData(values);
       setShowCloseWonDialog(true);
+      return;
+    }
+    if (values.stage === 'closed_lost' && opportunity.stage !== 'closed_lost') {
+      setPendingData(values);
+      setShowCloseLostDialog(true);
       return;
     }
     mutation.mutate(values)
@@ -285,6 +292,18 @@ export function EditOpportunityDialog({ children, open, onOpenChange, opportunit
           opportunityId={opportunity.id}
           opportunityName={opportunity.name}
           amount={pendingData?.amount || opportunity.amount}
+          onSuccess={() => {
+            finalOnOpenChange?.(false)
+          }}
+        />
+      )}
+
+      {showCloseLostDialog && (
+        <CloseLostDialog
+          open={showCloseLostDialog}
+          onOpenChange={setShowCloseLostDialog}
+          opportunityId={opportunity.id}
+          opportunityName={opportunity.name}
           onSuccess={() => {
             finalOnOpenChange?.(false)
           }}

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { type Opportunity, updateOpportunity } from "@/services/opportunityService";
 import { CloseWonDialog } from "@/components/CloseWonDialog";
+import { CloseLostDialog } from "@/components/CloseLostDialog";
 import { ViewOpportunityDialog } from "@/components/ViewOpportunityDialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   // Optimistic updates for drag-and-drop can still be handled if needed, 
   // but the 5s refetch will sync it back anyway.
   const [closeWonOpp, setCloseWonOpp] = useState<Opportunity | null>(null);
+  const [closeLostOpp, setCloseLostOpp] = useState<Opportunity | null>(null);
   const [viewDetailsOpp, setViewDetailsOpp] = useState<Opportunity | null>(null);
   const [editOpp, setEditOpp] = useState<Opportunity | null>(null);
   const [deleteOpp, setDeleteOpp] = useState<Opportunity | null>(null);
@@ -109,6 +111,11 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
 
     if (stageId === 'closed_won' && opportunity && opportunity.stage !== 'closed_won') {
       setCloseWonOpp(opportunity);
+      return;
+    }
+
+    if (stageId === 'closed_lost' && opportunity && opportunity.stage !== 'closed_lost') {
+      setCloseLostOpp(opportunity);
       return;
     }
 
@@ -355,6 +362,15 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
           onSuccess={() => {
             // Rely on parent refetch or manual refresh
           }}
+        />
+      )}
+
+      {closeLostOpp && (
+        <CloseLostDialog
+          open={!!closeLostOpp}
+          onOpenChange={(open) => !open && setCloseLostOpp(null)}
+          opportunityId={closeLostOpp.id}
+          opportunityName={closeLostOpp.name}
         />
       )}
 
