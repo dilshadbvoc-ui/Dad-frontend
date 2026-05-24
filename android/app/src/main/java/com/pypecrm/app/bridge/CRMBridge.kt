@@ -163,7 +163,7 @@ class CRMBridge(val context: Context) {
         // Dial the number
         try {
             val intent = Intent(Intent.ACTION_CALL)
-            intent.data = Uri.fromParts("tel", cleanPhone, null)
+            intent.data = Uri.parse("tel:$cleanPhone")
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -176,7 +176,7 @@ class CRMBridge(val context: Context) {
                     }
                 }
                 val dialIntent = Intent(Intent.ACTION_DIAL)
-                dialIntent.data = Uri.fromParts("tel", cleanPhone, null)
+                dialIntent.data = Uri.parse("tel:$cleanPhone")
                 dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(dialIntent)
             }
