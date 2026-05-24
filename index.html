@@ -3,6 +3,95 @@
 
 <head>
   <meta charset="UTF-8" />
+  <script>
+    // --- PWA Auto-Cache Buster & Recovery System ---
+    (function() {
+      // 1. Version-based Cache Clear on Build Mismatch
+      var currentVersion = "__BUILD_TIMESTAMP__";
+      var storedVersion = localStorage.getItem('app_build_version');
+      
+      if (storedVersion && storedVersion !== currentVersion) {
+        console.log('[CacheBuster] App version mismatch! Stored:', storedVersion, 'Current:', currentVersion, '. Purging cache...');
+        
+        // Unregister service workers
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var i = 0; i < regs.length; i++) {
+              regs[i].unregister();
+            }
+          });
+        }
+        
+        // Delete all cache storage databases
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            for (var i = 0; i < keys.length; i++) {
+              caches.delete(keys[i]);
+            }
+          });
+        }
+        
+        localStorage.setItem('app_build_version', currentVersion);
+        sessionStorage.clear();
+        
+        // Trigger cache-busting hard reload after short delay for cleanup
+        setTimeout(function() {
+          window.location.reload(true);
+        }, 300);
+      } else {
+        localStorage.setItem('app_build_version', currentVersion);
+      }
+
+      // 2. Global Recovery for ChunkLoadError (fails to fetch dynamically imported chunks)
+      function clearCachesAndForceReload(errorContext) {
+        console.warn('[CacheBuster] Dynamic chunk load failure caught! Wiping cache to recover...', errorContext);
+        
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.getRegistrations().then(function(regs) {
+            for (var i = 0; i < regs.length; i++) {
+              regs[i].unregister();
+            }
+          });
+        }
+        if ('caches' in window) {
+          caches.keys().then(function(keys) {
+            for (var i = 0; i < keys.length; i++) {
+              caches.delete(keys[i]);
+            }
+          });
+        }
+        
+        // Clear session state and reload
+        sessionStorage.clear();
+        setTimeout(function() {
+          window.location.reload(true);
+        }, 200);
+      }
+
+      window.addEventListener('error', function(e) {
+        if (e && e.message && (
+          e.message.indexOf('Dynamically imported module') > -1 || 
+          e.message.indexOf('Failed to fetch') > -1 || 
+          e.message.indexOf('ChunkLoadError') > -1
+        )) {
+          clearCachesAndForceReload(e.message);
+        }
+      }, true);
+
+      window.addEventListener('unhandledrejection', function(e) {
+        if (e && e.reason) {
+          var msg = e.reason.message || String(e.reason);
+          if (
+            e.reason.name === 'ChunkLoadError' || 
+            msg.indexOf('Failed to fetch dynamically imported module') > -1 ||
+            msg.indexOf('Failed to fetch') > -1
+          ) {
+            clearCachesAndForceReload(msg);
+          }
+        }
+      });
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#2E75B6" />
   <meta name="color-scheme" content="light dark" />

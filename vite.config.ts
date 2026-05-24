@@ -17,6 +17,12 @@ export default defineConfig({
   plugins: [
     react(),
     // basicSsl(),
+    {
+      name: 'html-transform-timestamp',
+      transformIndexHtml(html) {
+        return html.replace(/__BUILD_TIMESTAMP__/g, Date.now().toString());
+      }
+    },
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
