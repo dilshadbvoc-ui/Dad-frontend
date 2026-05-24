@@ -188,12 +188,16 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             
             val logTruth = getTalkTimeFromCallLog(buffer.phoneNumber, buffer.startTime)
             
-            // Reconcile
+            // Reconcile duration from hardware log
             val finalDuration = logTruth?.duration ?: 0
-            val finalTimestamp = logTruth?.timestamp ?: buffer.startTime
             val finalHwId = logTruth?.hardwareId ?: ""
             
-            Log.d("UnifiedSync", "Reconciled Truth for ${buffer.phoneNumber}: Dur=${finalDuration}s, HwId=$finalHwId")
+            // TIMESTAMP FIX: Always use buffer.startTime (captured when call began on device)
+            // as the authoritative timestamp. The hardware log DATE field reflects when the
+            // call entry was written (post-call), which causes timestamp skew in the CRM.
+            val finalTimestamp = buffer.startTime
+            
+            Log.d("UnifiedSync", "Reconciled Truth for ${buffer.phoneNumber}: Dur=${finalDuration}s, HwId=$finalHwId, StartTime=${buffer.startTime}")
             
             val success = uploadConsolidatedReport(buffer, finalDuration, finalTimestamp, finalHwId)
             if (success) {
@@ -290,11 +294,14 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
     }
 
     private fun performSelfHealingCallLogSync() {
-        // Implementation of the "Self-Healing" scan
-        // Queries last 24 hours of call log and sends to bulk-sync
+        // Self-Healing scan: Only looks at the last 2 HOURS (not 24h) to avoid ghost duplicates.
+        // The hardwareId from each log entry ensures the server's fuzzy-match or race-check
+        // can merge it into an existing interaction rather than creating a ghost.
+        // Calls that were already uploaded by CallTrackerService via /recordings will be
+        // matched by hardwareId on the server and healed, not duplicated.
         try {
             val (token, apiBase) = getAuthData() ?: return
-            val twentyFourHoursAgo = System.currentTimeMillis() - (24 * 60 * 60 * 1000)
+            val twoHoursAgo = System.currentTimeMillis() - (2 * 60 * 60 * 1000)
             
             val cursor = applicationContext.contentResolver.query(
                 android.provider.CallLog.Calls.CONTENT_URI,
@@ -306,21 +313,25 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
                     android.provider.CallLog.Calls._ID
                 ),
                 android.provider.CallLog.Calls.DATE + " > ?",
-                arrayOf(twentyFourHoursAgo.toString()),
+                arrayOf(twoHoursAgo.toString()),
                 android.provider.CallLog.Calls.DATE + " DESC"
             )
 
             val callsJson = org.json.JSONArray()
             cursor?.use {
                 while (it.moveToNext()) {
+                    val hwId = it.getLong(4).toString()
+                    val carrierDuration = it.getString(1)
+                    // Use the hardware log DATE as timestamp for self-healed entries
+                    // (these are historical calls, no capturedStartTime is available)
                     val call = JSONObject().apply {
-                        val carrierDuration = it.getString(1)
                         put("phoneNumber", it.getString(0))
-                        put("duration", carrierDuration) // fallback
-                        put("hardwareDuration", carrierDuration) // Truth: carrier source
+                        put("duration", carrierDuration)
+                        put("hardwareDuration", carrierDuration)
                         put("callType", it.getInt(2).toString())
                         put("timestamp", it.getString(3))
-                        put("hardwareId", it.getLong(4).toString())
+                        put("hardwareId", hwId)
+                        // No callSessionId: server will match by hardwareId to avoid duplicates
                     }
                     callsJson.put(call)
                 }
@@ -338,7 +349,7 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
                 .build()
                 
             executeRequest(request)
-            Log.d("UnifiedSync", "Self-healing bulk sync completed for ${callsJson.length()} logs")
+            Log.d("UnifiedSync", "Self-healing bulk sync completed for ${callsJson.length()} logs (last 2h)")
         } catch (e: Exception) {
             Log.e("UnifiedSync", "Self-healing sync failed", e)
         }

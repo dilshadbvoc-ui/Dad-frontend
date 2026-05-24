@@ -117,21 +117,42 @@ class CallTrackerService : Service() {
             val finalNumber = currentNumber
             val wasOutgoing = isOutgoing
             val sessionId = currentSessionId
-            val duration = (System.currentTimeMillis() - callStartTime) / 1000
+            // Use callStartTime as the authoritative timestamp (captured at call start, not post-call)
+            val capturedStartTime = callStartTime
+            val duration = (System.currentTimeMillis() - capturedStartTime) / 1000
 
             recorderService.stopRecording()
             val recordingFile = currentCallFile
             
             CoroutineScope(Dispatchers.IO).launch {
                 if (finalNumber != null) {
-                    checkLeadAndUpload(
+                    val uploadSucceeded = checkLeadAndUpload(
                         phone = finalNumber,
                         durationSecs = duration.toInt(),
                         callType = if (wasOutgoing) "OUTGOING" else "INCOMING",
                         callSessionId = sessionId,
-                        recordingFile = recordingFile
+                        recordingFile = recordingFile,
+                        capturedStartTime = capturedStartTime
                     )
+                    
+                    // CRITICAL FIX: If direct upload succeeded, mark the CallBuffer as COMPLETED
+                    // so UnifiedSyncWorker.consolidateCallBuffer() does NOT re-upload it (ghost entries).
+                    if (uploadSucceeded && sessionId != null) {
+                        try {
+                            val db = AppDatabase.getDatabase(applicationContext)
+                            val buffer = db.callBufferDao().getBySessionId(sessionId)
+                            if (buffer != null) {
+                                buffer.isConsolidated = true
+                                buffer.status = 2 // COMPLETED
+                                db.callBufferDao().update(buffer)
+                                Log.d("CallTracker", "Marked buffer session $sessionId as COMPLETED after direct upload.")
+                            }
+                        } catch (e: Exception) {
+                            Log.e("CallTracker", "Failed to mark buffer as completed", e)
+                        }
+                    }
                 }
+                // Schedule worker for any remaining queued items (WhatsApp, failed calls, etc.)
                 com.pypecrm.app.services.UnifiedSyncWorker.schedule(applicationContext)
                 isCallActive = false
                 currentCallFile = null
@@ -145,7 +166,6 @@ class CallTrackerService : Service() {
     private data class CallDetails(val number: String, val duration: Int, val type: String, val timestamp: Long, val hardwareId: String)
 
     private fun getLatestCallDetails(expectedNumber: String?): CallDetails? {
-        var duration = 0
         var result: CallDetails? = null
         
         val cleanQuery = expectedNumber?.replace(Regex("[^0-9]"), "") ?: ""
@@ -174,7 +194,7 @@ class CallTrackerService : Service() {
                 cursor?.use {
                     if (it.moveToFirst()) {
                         val number = it.getString(0)
-                        duration = it.getInt(1)
+                        val duration = it.getInt(1)
                         val typeInt = it.getInt(2)
                         val hardwareId = it.getLong(4).toString()
                         
@@ -235,29 +255,32 @@ class CallTrackerService : Service() {
         return Pair(token, apiBase)
     }
 
-    private fun checkLeadAndUpload(phone: String, durationSecs: Int, callType: String, officialTimestamp: Long? = null, hardwareId: String? = null, callSessionId: String? = null, recordingFile: java.io.File? = null) {
+    private suspend fun checkLeadAndUpload(phone: String, durationSecs: Int, callType: String, officialTimestamp: Long? = null, hardwareId: String? = null, callSessionId: String? = null, recordingFile: java.io.File? = null, capturedStartTime: Long? = null): Boolean {
         val cleanPhone = phone.replace(Regex("[^0-9]"), "")
-        if (cleanPhone.length < 10) return
+        if (cleanPhone.length < 10) return false
         
         val last10 = cleanPhone.takeLast(10)
         val db = AppDatabase.getDatabase(this)
         
-        CoroutineScope(Dispatchers.IO).launch {
-            val lead = db.leadDao().findLeadByPhone(last10)
-            val details = getLatestCallDetails(last10)
-            
-            uploadMetadataToCrm(
-                leadId = lead?.id, 
-                phoneNumber = phone, 
-                durationSecs = durationSecs, 
-                carrierDurationSecs = details?.duration,
-                callType = callType, 
-                officialTimestamp = details?.timestamp ?: officialTimestamp, 
-                hardwareId = details?.hardwareId ?: hardwareId, 
-                callSessionId = callSessionId,
-                recordingFile = recordingFile
-            )
-        }
+        val lead = db.leadDao().findLeadByPhone(last10)
+        val details = getLatestCallDetails(last10)
+        
+        // TIMESTAMP FIX: Use capturedStartTime (when call began on device) as primary timestamp.
+        // Fall back to officialTimestamp, then system time — never use the hardware log's DATE
+        // directly as it can reflect when the call ENDED or the log was written, not when it started.
+        val resolvedTimestamp = capturedStartTime ?: officialTimestamp ?: System.currentTimeMillis()
+        
+        return uploadMetadataToCrm(
+            leadId = lead?.id, 
+            phoneNumber = phone, 
+            durationSecs = durationSecs, 
+            carrierDurationSecs = details?.duration,
+            callType = callType, 
+            officialTimestamp = resolvedTimestamp,
+            hardwareId = details?.hardwareId ?: hardwareId, 
+            callSessionId = callSessionId,
+            recordingFile = recordingFile
+        )
     }
 
     private fun uploadMetadataToCrm(
@@ -270,21 +293,22 @@ class CallTrackerService : Service() {
         hardwareId: String? = null, 
         callSessionId: String? = null,
         recordingFile: java.io.File? = null
-    ) {
+    ): Boolean {
         val (token, apiBase) = getAuthData() ?: run {
             queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId, carrierDurationSecs)
-            return
+            return false
         }
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(15, TimeUnit.SECONDS)
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
             .build()
             
         val finalTimestamp = officialTimestamp ?: System.currentTimeMillis()
         
         val requestBodyBuilder = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
-            .addFormDataPart("duration", durationSecs.toString()) // Usually recording length
+            .addFormDataPart("duration", durationSecs.toString())
             .addFormDataPart("callType", callType)
             .addFormDataPart("phoneNumber", phoneNumber)
             .addFormDataPart("timestamp", finalTimestamp.toString())
@@ -314,21 +338,21 @@ class CallTrackerService : Service() {
             .post(requestBodyBuilder.build())
             .build()
 
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                Log.e("CallTrackerService", "Upload failed, queuing for offline sync", e)
-                queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId)
+        return try {
+            val response = client.newCall(request).execute()
+            if (response.isSuccessful) {
+                Log.d("CallTrackerService", "Metadata uploaded successfully (sessionId=$callSessionId)")
+                true
+            } else {
+                Log.e("CallTrackerService", "Metadata upload failed with code: ${response.code}, queuing")
+                queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId, carrierDurationSecs)
+                false
             }
-
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                if (!response.isSuccessful) {
-                    Log.e("CallTrackerService", "Metadata upload failed with code: ${response.code}, queuing")
-                    queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId, carrierDurationSecs)
-                } else {
-                    Log.d("CallTrackerService", "Metadata uploaded successfully")
-                }
-            }
-        })
+        } catch (e: IOException) {
+            Log.e("CallTrackerService", "Upload failed (network), queuing for offline sync", e)
+            queueForSync(leadId, phoneNumber, durationSecs, callType, officialTimestamp, hardwareId, carrierDurationSecs)
+            false
+        }
     }
 
     private fun queueForSync(leadId: String?, phoneNumber: String, durationSecs: Int, callType: String, officialTimestamp: Long? = null, hardwareId: String? = null, carrierDurationSecs: Int? = null) {
