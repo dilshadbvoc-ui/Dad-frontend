@@ -190,8 +190,22 @@ class MainActivity : AppCompatActivity() {
 
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 if (url != null) {
-                    // Handle WhatsApp, Phone, and Email links
-                    if (url.startsWith("tel:") || url.startsWith("mailto:") || 
+                    if (url.startsWith("tel:")) {
+                        try {
+                            // Extract the phone part and clean it (leaving only digits, +, *, and #)
+                            val phonePart = url.substring(4)
+                            val cleanPhone = phonePart.replace(Regex("[^0-9+*#]"), "")
+                            
+                            val intent = Intent(Intent.ACTION_DIAL)
+                            intent.data = Uri.parse("tel:$cleanPhone")
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                            startActivity(intent)
+                        } catch (e: Exception) {
+                            Toast.makeText(this@MainActivity, "Failed to open dialer.", Toast.LENGTH_SHORT).show()
+                        }
+                        return true
+                    }
+                    if (url.startsWith("mailto:") || 
                         url.startsWith("whatsapp:") || url.contains("wa.me") || 
                         url.contains("api.whatsapp.com")) {
                         try {
@@ -207,6 +221,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 return false
             }
+
 
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
                 Toast.makeText(this@MainActivity, "Failed loading CRM: $description", Toast.LENGTH_LONG).show()
