@@ -152,10 +152,18 @@ class CRMBridge(val context: Context) {
         val prefs = context.getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("pending_session_id", sessionId).apply()
 
+        // Clean and format the phone number to prevent any URI parsing errors
+        var cleanPhone = phone.replace(Regex("[^0-9+]"), "")
+        if (cleanPhone.startsWith("91") && cleanPhone.length == 12) {
+            cleanPhone = "+$cleanPhone"
+        } else if (cleanPhone.startsWith("1") && cleanPhone.length == 11) {
+            cleanPhone = "+$cleanPhone"
+        }
+
         // Dial the number
         try {
             val intent = Intent(Intent.ACTION_CALL)
-            intent.data = Uri.parse("tel:$phone")
+            intent.data = Uri.fromParts("tel", cleanPhone, null)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             
             if (ActivityCompat.checkSelfPermission(context, android.Manifest.permission.CALL_PHONE) == android.content.pm.PackageManager.PERMISSION_GRANTED) {
@@ -168,13 +176,14 @@ class CRMBridge(val context: Context) {
                     }
                 }
                 val dialIntent = Intent(Intent.ACTION_DIAL)
-                dialIntent.data = Uri.parse("tel:$phone")
+                dialIntent.data = Uri.fromParts("tel", cleanPhone, null)
                 dialIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 context.startActivity(dialIntent)
             }
         } catch (e: Exception) {
-            Log.e("CRMBridge", "Failed to initiate call", e)
+            Log.e("CRMBridge", "Failed to initiate call to $cleanPhone", e)
             Toast.makeText(context, "Failed to initiate call", Toast.LENGTH_SHORT).show()
         }
     }
+
 }

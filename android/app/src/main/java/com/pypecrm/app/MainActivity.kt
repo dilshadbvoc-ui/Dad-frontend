@@ -307,21 +307,48 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isAccessibilityServiceEnabled(): Boolean {
-        val service = "$packageName/${com.pypecrm.app.services.CallAccessibilityService::class.java.canonicalName}"
-        val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
-        if (enabled == 1) {
-            val settingValue = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
-            if (settingValue != null) {
-                val splitter = android.text.TextUtils.SimpleStringSplitter(':')
-                splitter.setString(settingValue)
-                while (splitter.hasNext()) {
-                    val accessibilityService = splitter.next()
-                    if (accessibilityService.equals(service, ignoreCase = true)) {
-                        return true
+        val targetClassName = com.pypecrm.app.services.CallAccessibilityService::class.java.name
+        val targetService = ComponentName(packageName, targetClassName)
+
+        // 1. Primary check: Query active/enabled services list from AccessibilityManager
+        try {
+            val am = getSystemService(Context.ACCESSIBILITY_SERVICE) as? android.view.accessibility.AccessibilityManager
+            if (am != null) {
+                val enabledServices = am.getEnabledAccessibilityServiceList(android.accessibilityservice.AccessibilityServiceInfo.FEEDBACK_ALL_MASK)
+                if (enabledServices != null) {
+                    for (enabledService in enabledServices) {
+                        val serviceInfo = enabledService.resolveInfo?.serviceInfo
+                        if (serviceInfo != null && serviceInfo.packageName == packageName && serviceInfo.name == targetClassName) {
+                            return true
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error checking accessibility via AccessibilityManager", e)
         }
+
+        // 2. Fallback check: Read secure settings (e.g. for custom ROMs, legacy behavior, or restricted service states)
+        try {
+            val enabled = Settings.Secure.getInt(contentResolver, Settings.Secure.ACCESSIBILITY_ENABLED, 0)
+            if (enabled == 1) {
+                val settingValue = Settings.Secure.getString(contentResolver, Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES)
+                if (settingValue != null) {
+                    val splitter = android.text.TextUtils.SimpleStringSplitter(':')
+                    splitter.setString(settingValue)
+                    while (splitter.hasNext()) {
+                        val accessibilityService = splitter.next()
+                        val cn = ComponentName.unflattenFromString(accessibilityService)
+                        if (cn != null && cn == targetService) {
+                            return true
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error checking accessibility via Secure Settings", e)
+        }
+
         return false
     }
 
