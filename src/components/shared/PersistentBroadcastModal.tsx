@@ -19,7 +19,10 @@ export function PersistentBroadcastModal() {
         const res = await getNotifications(1, 'popup', false);
         return res;
       } catch (err) {
-        console.error('Error fetching popup notifications:', err);
+        const status = (err as any).response?.status;
+        if (status !== 401) {
+          console.error('Error fetching popup notifications:', err);
+        }
         return { notifications: [] };
       }
     },

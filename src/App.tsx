@@ -178,12 +178,14 @@ function AppContent() {
       }
      }
     } catch (err) {
-     console.error('Session validation failed:', err);
-     // Only clear if it's a 401 (Not Authorized)
-     if ((err as any).response?.status === 401) {
-      localStorage.removeItem('userInfo');
-      localStorage.removeItem('autoLogin');
-     }
+      const status = (err as any).response?.status;
+      if (status === 401) {
+       console.log('Session validation: Token is expired or unauthorized.');
+       localStorage.removeItem('userInfo');
+       localStorage.removeItem('autoLogin');
+      } else {
+       console.error('Session validation failed due to network or server error:', err);
+      }
     }
    }
 
