@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeadDistributionReport } from '@/services/analyticsService';
 import { getBranches } from '@/services/settingsService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download } from 'lucide-react';
+import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download, ChevronLeft, ChevronRight } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
-import { format } from 'date-fns';
+import { 
+    format, 
+    subDays, 
+    startOfWeek, 
+    endOfWeek, 
+    startOfMonth, 
+    endOfMonth, 
+    subMonths, 
+    isSameDay, 
+    isAfter, 
+    isBefore, 
+    addMonths,
+    eachDayOfInterval
+} from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
 
@@ -94,60 +108,56 @@ export default function LeadDistributionPage() {
                     </Button>
                     <h1 className="text-3xl font-bold tracking-tight">Lead Distribution Report</h1>
                 </div>
-                <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex items-center gap-2 bg-muted/50 p-1 rounded-lg border">
-                        <div className="flex items-center px-3 py-1.5 gap-2">
-                            <Calendar className="h-4 w-4 text-muted-foreground" />
-                            <input 
-                                type="date" 
-                                value={startDate} 
-                                onChange={(e) => setStartDate(e.target.value)}
-                                className="bg-transparent border-none text-sm focus:ring-0"
-                            />
-                        </div>
-                        <div className="text-muted-foreground">to</div>
-                        <div className="flex items-center px-3 py-1.5 gap-2">
-                            <input 
-                                type="date" 
-                                value={endDate} 
-                                onChange={(e) => setEndDate(e.target.value)}
-                                className="bg-transparent border-none text-sm focus:ring-0"
-                            />
-                        </div>
+                <div className="flex flex-wrap items-end gap-4">
+                    <div className="flex flex-col gap-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">DATE RANGE</span>
+                        <PremiumDateRangePicker 
+                            startDate={startDate}
+                            endDate={endDate}
+                            onUpdate={(start, end) => {
+                                setStartDate(start);
+                                setEndDate(end);
+                            }}
+                        />
                     </div>
 
                     {isAdmin && branches && branches.length > 0 && (
-                        <div className="w-[200px]">
-                            <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
-                                <SelectTrigger className="bg-background h-10 px-4">
-                                    <div className="flex items-center gap-2">
-                                        <Building className="h-4 w-4 text-primary/60" />
-                                        <SelectValue placeholder="All Branches" />
-                                    </div>
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Branches</SelectItem>
-                                    {branches.map((b: any) => (
-                                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">BRANCH</span>
+                            <div className="w-[200px]">
+                                <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
+                                    <SelectTrigger className="bg-background h-10 px-4">
+                                        <div className="flex items-center gap-2">
+                                            <Building className="h-4 w-4 text-primary/60" />
+                                            <SelectValue placeholder="All Branches" />
+                                        </div>
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="all">All Branches</SelectItem>
+                                        {branches.map((b: any) => (
+                                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </div>
                     )}
 
-                    <Button 
-                        variant="outline" 
-                        onClick={handleExportExcel} 
-                        disabled={isExporting}
-                        className="gap-2 h-10"
-                    >
-                        {isExporting ? (
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                            <Download className="h-4 w-4" />
-                        )}
-                        Download Excel
-                    </Button>
+                    <div className="flex flex-col gap-1">
+                        <Button 
+                            variant="outline" 
+                            onClick={handleExportExcel} 
+                            disabled={isExporting}
+                            className="gap-2 h-10"
+                        >
+                            {isExporting ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Download className="h-4 w-4" />
+                            )}
+                            Download Excel
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -277,5 +287,284 @@ export default function LeadDistributionPage() {
                 </Card>
             </div>
         </div>
+    );
+}
+
+interface PremiumDateRangePickerProps {
+    startDate: string;
+    endDate: string;
+    onUpdate: (start: string, end: string) => void;
+}
+
+function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRangePickerProps) {
+    const [open, setOpen] = useState(false);
+    const [selectedStart, setSelectedStart] = useState<Date | null>(startDate ? new Date(startDate) : null);
+    const [selectedEnd, setSelectedEnd] = useState<Date | null>(endDate ? new Date(endDate) : null);
+    const [hoverDate, setHoverDate] = useState<Date | null>(null);
+    
+    // Default left calendar month view to startDate or current date
+    const [leftMonth, setLeftMonth] = useState<Date>(() => {
+        if (startDate) {
+            return startOfMonth(new Date(startDate));
+        }
+        return startOfMonth(new Date());
+    });
+    
+    const rightMonth = addMonths(leftMonth, 1);
+
+    // Sync state when props change or popover opens
+    useEffect(() => {
+        if (open) {
+            setSelectedStart(startDate ? new Date(startDate) : null);
+            setSelectedEnd(endDate ? new Date(endDate) : null);
+            if (startDate) {
+                setLeftMonth(startOfMonth(new Date(startDate)));
+            }
+        }
+    }, [open, startDate, endDate]);
+
+    const presets = [
+        { label: 'Today', getValue: () => { const t = new Date(); return { start: t, end: t }; } },
+        { label: 'Yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: y }; } },
+        { label: 'Today and yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: t }; } },
+        { label: 'Last 7 days', getValue: () => { const t = new Date(); return { start: subDays(t, 6), end: t }; } },
+        { label: 'Last 14 days', getValue: () => { const t = new Date(); return { start: subDays(t, 13), end: t }; } },
+        { label: 'Last 28 days', getValue: () => { const t = new Date(); return { start: subDays(t, 27), end: t }; } },
+        { label: 'Last 30 days', getValue: () => { const t = new Date(); return { start: subDays(t, 29), end: t }; } },
+        { label: 'This week', getValue: () => { const t = new Date(); return { start: startOfWeek(t), end: t }; } },
+        { label: 'Last week', getValue: () => { const t = new Date(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
+        { label: 'This month', getValue: () => { const t = new Date(); return { start: startOfMonth(t), end: t }; } },
+        { label: 'Last month', getValue: () => { const t = new Date(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
+        { label: 'Maximum', getValue: () => { const t = new Date(); return { start: new Date(2020, 0, 1), end: t }; } },
+        { label: 'Custom', getValue: () => null }
+    ];
+
+    const [activePreset, setActivePreset] = useState<string>('Last 30 days');
+
+    const handlePresetClick = (preset: typeof presets[0]) => {
+        setActivePreset(preset.label);
+        const val = preset.getValue();
+        if (val) {
+            setSelectedStart(val.start);
+            setSelectedEnd(val.end);
+            setLeftMonth(startOfMonth(val.start));
+        } else {
+            // Custom
+            setSelectedStart(null);
+            setSelectedEnd(null);
+        }
+    };
+
+    const handleDayClick = (day: Date) => {
+        setActivePreset('Custom');
+        if (!selectedStart || (selectedStart && selectedEnd)) {
+            setSelectedStart(day);
+            setSelectedEnd(null);
+        } else if (selectedStart && !selectedEnd) {
+            if (isBefore(day, selectedStart)) {
+                setSelectedStart(day);
+                setSelectedEnd(null);
+            } else {
+                setSelectedEnd(day);
+            }
+        }
+    };
+
+    const handleUpdate = () => {
+        if (selectedStart && selectedEnd) {
+            onUpdate(
+                format(selectedStart, 'yyyy-MM-dd'),
+                format(selectedEnd, 'yyyy-MM-dd')
+            );
+            setOpen(false);
+        } else if (selectedStart) {
+            onUpdate(
+                format(selectedStart, 'yyyy-MM-dd'),
+                format(selectedStart, 'yyyy-MM-dd')
+            );
+            setOpen(false);
+        } else {
+            toast.error("Please select a valid date range");
+        }
+    };
+
+    const renderCalendar = (monthDate: Date) => {
+        const startDay = startOfWeek(startOfMonth(monthDate));
+        const endDay = endOfWeek(endOfMonth(monthDate));
+        const days = eachDayOfInterval({ start: startDay, end: endDay });
+        
+        const monthYearStr = format(monthDate, 'MMMM yyyy');
+        const [monthName, yearStr] = monthYearStr.split(' ');
+
+        return (
+            <div className="flex-1 px-4">
+                <div className="text-center font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center justify-center gap-1">
+                    <span className="capitalize">{monthName}</span>
+                    <span>{yearStr}</span>
+                </div>
+                <div className="grid grid-cols-7 gap-y-1 text-center text-xs">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="font-semibold text-gray-400 py-1">{d}</div>
+                    ))}
+                    {days.map((day, idx) => {
+                        const isCurrentMonth = day.getMonth() === monthDate.getMonth();
+                        const isSelectedStart = selectedStart && isSameDay(day, selectedStart);
+                        const isSelectedEnd = selectedEnd && isSameDay(day, selectedEnd);
+                        
+                        let isInRange = false;
+                        if (selectedStart && selectedEnd) {
+                            isInRange = isAfter(day, selectedStart) && isBefore(day, selectedEnd);
+                        } else if (selectedStart && hoverDate) {
+                            isInRange = isAfter(day, selectedStart) && isBefore(day, hoverDate);
+                        }
+
+                        return (
+                            <button
+                                key={idx}
+                                type="button"
+                                disabled={!isCurrentMonth}
+                                onClick={() => handleDayClick(day)}
+                                onMouseEnter={() => !selectedEnd && setHoverDate(day)}
+                                className={`
+                                    h-8 w-8 mx-auto flex items-center justify-center rounded-full text-xs font-medium transition-all relative
+                                    ${!isCurrentMonth ? 'text-gray-300 dark:text-gray-700 cursor-default opacity-0' : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'}
+                                    ${isSelectedStart ? '!bg-primary !text-white z-10 shadow-md font-boldScale' : ''}
+                                    ${isSelectedEnd ? '!bg-primary !text-white z-10 shadow-md font-boldScale' : ''}
+                                    ${isInRange && isCurrentMonth ? 'bg-primary/10 !text-primary rounded-none w-full' : ''}
+                                `}
+                            >
+                                {day.getDate()}
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <Popover open={open} onOpenChange={setOpen}>
+            <PopoverTrigger asChild>
+                <Button
+                    variant="outline"
+                    className={`h-10 px-4 bg-background border-border/50 rounded-full shadow-sm hover:bg-muted/50 transition-all flex items-center gap-3 border ${open ? 'border-primary ring-2 ring-primary/20' : ''}`}
+                >
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        {startDate && endDate ? `${format(new Date(startDate), 'd MMM yyyy')} - ${format(new Date(endDate), 'd MMM yyyy')}` : 'Filter by Date'}
+                    </span>
+                </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[880px] p-0 rounded-2xl shadow-2xl border border-border/40 overflow-hidden bg-white dark:bg-gray-950" align="start">
+                <div className="flex h-[450px]">
+                    {/* Left presets panel */}
+                    <div className="w-[200px] border-r border-border/40 bg-gray-50/50 dark:bg-gray-900/30 p-2 overflow-y-auto flex flex-col gap-0.5">
+                        {presets.map(p => (
+                            <button
+                                key={p.label}
+                                type="button"
+                                onClick={() => handlePresetClick(p)}
+                                className={`
+                                    w-full text-left px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2
+                                    ${activePreset === p.label 
+                                        ? 'bg-primary/10 text-primary font-bold' 
+                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/40'}
+                                `}
+                            >
+                                <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${activePreset === p.label ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                                    {activePreset === p.label && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                </div>
+                                {p.label}
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* Right Calendars container */}
+                    <div className="flex-1 flex flex-col p-6">
+                        {/* Calendars view header/nav */}
+                        <div className="flex items-center justify-between mb-4 px-4 relative">
+                            <button
+                                type="button"
+                                onClick={() => setLeftMonth(subMonths(leftMonth, 1))}
+                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute left-0"
+                            >
+                                <ChevronLeft className="h-4 w-4 text-gray-500" />
+                            </button>
+                            <div className="flex-1" />
+                            <button
+                                type="button"
+                                onClick={() => setLeftMonth(addMonths(leftMonth, 1))}
+                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute right-0"
+                            >
+                                <ChevronRight className="h-4 w-4 text-gray-500" />
+                            </button>
+                        </div>
+
+                        {/* Double calendars side by side */}
+                        <div className="flex flex-1 gap-6 divide-x divide-border/40">
+                            {renderCalendar(leftMonth)}
+                            {renderCalendar(rightMonth)}
+                        </div>
+
+                        {/* Compare and Inputs Row */}
+                        <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between gap-4">
+                            <div className="flex items-center gap-6">
+                                <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">
+                                    <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" />
+                                    Compare
+                                </label>
+                                <div className="w-[140px]">
+                                    <Select defaultValue="previous_period">
+                                        <SelectTrigger className="h-8 text-xs bg-background">
+                                            <SelectValue placeholder="Select an item" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="previous_period">Previous period</SelectItem>
+                                            <SelectItem value="previous_year">Previous year</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <div className="border border-border/40 rounded-xl px-3 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-xs font-bold text-gray-700 dark:text-gray-300">
+                                    {selectedStart ? format(selectedStart, 'd MMM yyyy') : '-'}
+                                </div>
+                                <span className="text-gray-400 text-xs">-</span>
+                                <div className="border border-border/40 rounded-xl px-3 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-xs font-bold text-gray-700 dark:text-gray-300">
+                                    {selectedEnd ? format(selectedEnd, 'd MMM yyyy') : '-'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between">
+                            <div className="text-[10px] text-gray-400">
+                                Dates are shown in India Standard Time
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Button 
+                                    type="button" 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    onClick={() => setOpen(false)}
+                                    className="h-9 px-4 rounded-xl text-xs font-bold"
+                                >
+                                    Cancel
+                                </Button>
+                                <Button 
+                                    type="button" 
+                                    onClick={handleUpdate}
+                                    className="h-9 px-5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-primary/10"
+                                >
+                                    Update
+                                </Button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </PopoverContent>
+        </Popover>
     );
 }
