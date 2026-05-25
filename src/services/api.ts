@@ -4,7 +4,7 @@ import { API_URL } from '@/config';
 export const api = axios.create({
     baseURL: `${API_URL}/api`,
     withCredentials: true,
-    timeout: 15000,
+    timeout: 60000,
 });
 
 api.interceptors.request.use(
