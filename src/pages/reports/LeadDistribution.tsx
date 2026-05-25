@@ -5,7 +5,7 @@ import { getBranches } from '@/services/settingsService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List } from 'lucide-react';
+import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
@@ -13,6 +13,8 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { api } from '@/services/api';
+import { toast } from 'sonner';
 
 export default function LeadDistributionPage() {
     const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function LeadDistributionPage() {
         return d.toISOString().split('T')[0];
     });
     const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+    const [isExporting, setIsExporting] = useState(false);
     
     const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
@@ -30,6 +33,35 @@ export default function LeadDistributionPage() {
     });
 
     const isAdmin = checkIsAdmin(user);
+
+    const handleExportExcel = async () => {
+        try {
+            setIsExporting(true);
+            const params = new URLSearchParams();
+            if (selectedBranchId && selectedBranchId !== 'all') params.append('branchId', selectedBranchId);
+            if (startDate) params.append('startDate', startDate);
+            if (endDate) params.append('endDate', endDate);
+
+            const response = await api.get(`/reports/export/lead-distribution?${params.toString()}`, {
+                responseType: 'blob'
+            });
+
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `lead_distribution_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success("Excel report downloaded successfully");
+        } catch (error) {
+            toast.error("Failed to download report");
+            console.error("Download error:", error);
+        } finally {
+            setIsExporting(false);
+        }
+    };
 
     // Fetch Branches
     const { data: branches } = useQuery({
@@ -102,6 +134,20 @@ export default function LeadDistributionPage() {
                             </Select>
                         </div>
                     )}
+
+                    <Button 
+                        variant="outline" 
+                        onClick={handleExportExcel} 
+                        disabled={isExporting}
+                        className="gap-2 h-10"
+                    >
+                        {isExporting ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <Download className="h-4 w-4" />
+                        )}
+                        Download Excel
+                    </Button>
                 </div>
             </div>
 
