@@ -40,6 +40,8 @@ export default function FollowUpsPage() {
     const paramsString = searchParams.toString();
     if (paramsString) {
       sessionStorage.setItem('last-followups-filters', paramsString);
+    } else {
+      sessionStorage.removeItem('last-followups-filters');
     }
   }, [searchParams]);
 
@@ -158,6 +160,7 @@ export default function FollowUpsPage() {
   }, [filterParam, sortBy, statusFilter, branchFilter, userFilter, branches, users, updateSearchParams, navigate]);
 
   const handleClearAllFilters = () => {
+    sessionStorage.removeItem('last-followups-filters');
     setSearchParams(new URLSearchParams({}));
     navigate('/follow-ups');
   };
