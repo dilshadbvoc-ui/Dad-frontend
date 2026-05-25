@@ -24,6 +24,18 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Detailed console diagnostics for all API request failures
+        console.error('====== API REQUEST FAILURE ======');
+        console.error('Target URL:', `${error.config?.baseURL || ''}${error.config?.url || ''}`);
+        console.error('Request Method:', error.config?.method?.toUpperCase());
+        console.error('HTTP Status:', error.response?.status || 'No Response (Network/Connection Error)');
+        console.error('Error Code:', error.code || 'UNKNOWN');
+        console.error('Error Message:', error.message || 'No Message');
+        if (error.response?.data) {
+            console.error('Response Data:', error.response.data);
+        }
+        console.error('=================================');
+
         if (error.response && error.response.status === 401) {
             // Don't redirect if we're already on the login page or this IS a login request
             const isLoginPage = window.location.pathname === '/login';
