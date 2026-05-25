@@ -392,16 +392,48 @@ export default function LeadsPage() {
   };
 
   const backendDateFilter = useMemo(() => {
-    if (currentView === 'today-leads') {
-      const today = new Date().toISOString().split('T')[0];
-      return { from: today, to: today };
+    const todayStr = new Date().toISOString().split('T')[0];
+    
+    if (currentView === 'today-leads' || currentView === 'today') {
+      return { from: todayStr, to: todayStr };
     }
-    if (currentView === 'yesterday-leads') {
-      const yesterdayDate = new Date();
-      yesterdayDate.setDate(yesterdayDate.getDate() - 1);
-      const yesterday = yesterdayDate.toISOString().split('T')[0];
-      return { from: yesterday, to: yesterday };
+    if (currentView === 'yesterday-leads' || currentView === 'yesterday') {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yesterdayStr = d.toISOString().split('T')[0];
+      return { from: yesterdayStr, to: yesterdayStr };
     }
+    if (currentView === 'today-yesterday') {
+      const d = new Date();
+      d.setDate(d.getDate() - 1);
+      const yesterdayStr = d.toISOString().split('T')[0];
+      return { from: yesterdayStr, to: todayStr };
+    }
+    if (currentView === 'last-7-days') {
+      const d = new Date();
+      d.setDate(d.getDate() - 6);
+      const startStr = d.toISOString().split('T')[0];
+      return { from: startStr, to: todayStr };
+    }
+    if (currentView === 'last-14-days') {
+      const d = new Date();
+      d.setDate(d.getDate() - 13);
+      const startStr = d.toISOString().split('T')[0];
+      return { from: startStr, to: todayStr };
+    }
+    if (currentView === 'last-28-days') {
+      const d = new Date();
+      d.setDate(d.getDate() - 27);
+      const startStr = d.toISOString().split('T')[0];
+      return { from: startStr, to: todayStr };
+    }
+    if (currentView === 'last-30-days') {
+      const d = new Date();
+      d.setDate(d.getDate() - 29);
+      const startStr = d.toISOString().split('T')[0];
+      return { from: startStr, to: todayStr };
+    }
+    
     return dateFilter;
   }, [currentView, dateFilter]);
 
@@ -507,8 +539,13 @@ export default function LeadsPage() {
     
     if (currentView !== 'all-leads') {
       let label = currentView;
-      if (currentView === 'today-leads') label = "Today's Leads";
-      else if (currentView === 'yesterday-leads') label = "Yesterday's Leads";
+      if (currentView === 'today-leads' || currentView === 'today') label = "Today";
+      else if (currentView === 'yesterday-leads' || currentView === 'yesterday') label = "Yesterday";
+      else if (currentView === 'today-yesterday') label = "Today and yesterday";
+      else if (currentView === 'last-7-days') label = "Last 7 days";
+      else if (currentView === 'last-14-days') label = "Last 14 days";
+      else if (currentView === 'last-28-days') label = "Last 28 days";
+      else if (currentView === 'last-30-days') label = "Last 30 days";
       else if (currentView === 'no-activity-leads') label = "No Activity";
       else if (currentView.startsWith('status-')) {
         const statusId = currentView.replace('status-', '');
@@ -844,8 +881,13 @@ export default function LeadsPage() {
                   <SelectGroup>
                     <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3">Quick Views</SelectLabel>
                     <SelectItem value="all-leads" className="rounded-lg">All Leads</SelectItem>
-                    <SelectItem value="today-leads" className="rounded-lg">Today's Leads</SelectItem>
-                    <SelectItem value="yesterday-leads" className="rounded-lg">Yesterday's Leads</SelectItem>
+                    <SelectItem value="today" className="rounded-lg">Today</SelectItem>
+                    <SelectItem value="yesterday" className="rounded-lg">Yesterday</SelectItem>
+                    <SelectItem value="today-yesterday" className="rounded-lg">Today and yesterday</SelectItem>
+                    <SelectItem value="last-7-days" className="rounded-lg">Last 7 days</SelectItem>
+                    <SelectItem value="last-14-days" className="rounded-lg">Last 14 days</SelectItem>
+                    <SelectItem value="last-28-days" className="rounded-lg">Last 28 days</SelectItem>
+                    <SelectItem value="last-30-days" className="rounded-lg">Last 30 days</SelectItem>
                     <SelectItem value="no-activity-leads" className="rounded-lg">No Activity</SelectItem>
                     
                     <SelectLabel className="mt-4 text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Pipeline Stages</SelectLabel>
