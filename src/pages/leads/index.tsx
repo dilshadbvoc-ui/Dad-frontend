@@ -1183,7 +1183,7 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
-                    className={`w-full h-10 justify-start text-left font-normal bg-background border-border/50 rounded-lg shadow-sm hover:bg-muted/50 transition-colors ${open ? 'border-primary ring-2 ring-primary/20' : ''} ${startDate || endDate ? 'text-primary border-primary/30 bg-primary/5' : 'text-muted-foreground'}`}
+                    className={`w-full h-10 justify-start text-left font-normal bg-background border-border/50 rounded-full shadow-sm hover:bg-muted/50 transition-colors ${open ? 'border-primary ring-2 ring-primary/20' : ''} ${startDate || endDate ? 'text-primary border-primary/30 bg-primary/5' : 'text-muted-foreground'}`}
                 >
                     <Calendar className="mr-2 h-4 w-4 text-primary" />
                     {startDate ? (
