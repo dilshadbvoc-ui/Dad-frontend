@@ -24,6 +24,15 @@ dist-ssr
 *.sln
 *.sw?
 lint_results.txt
+.env
+.env.*
+*.pem
+*.key
+*.tar.gz
+*.zip
+*_output.txt
+*lint*.txt
+uploads/
 
 # Android build artifacts
 android/app/build/

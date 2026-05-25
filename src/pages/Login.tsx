@@ -48,22 +48,69 @@ const Login = () => {
       // Small delay for animation
       setTimeout(() => navigate('/dashboard'), 500);
     } catch (err: unknown) {
-      console.error("Login Error Full:", err);
-      console.error("Login Error Response:", (err as { response?: unknown })?.response);
-      console.error("Login Error Data:", (err as { response?: { data?: unknown } })?.response?.data);
+      // 1. Production-grade diagnostic logging
+      console.error("====== LOGIN ERROR DIAGNOSTICS ======");
+      console.error("Original Error Object:", err);
+      
+      const isAxiosError = err && typeof err === 'object' && ('isAxiosError' in err || 'config' in err);
+      console.error("Is Axios/API Error:", !!isAxiosError);
 
-      let errorMessage = 'Login failed';
-      const error = err as { response?: { data?: { message?: string }, status?: number }, request?: unknown, message?: string };
+      if (isAxiosError) {
+        const apiError = err as {
+          message?: string;
+          code?: string;
+          config?: { url?: string; method?: string; baseURL?: string; headers?: Record<string, string> };
+          response?: { status?: number; data?: unknown; headers?: Record<string, string> };
+          request?: unknown;
+        };
 
-      if (error.response) {
-        // Server responded with a status code outside 2xx
-        errorMessage = error.response.data?.message || `Server error (${error.response.status})`;
-      } else if (error.request) {
-        // Request was made but no response received
-        errorMessage = 'Network Error: Cannot reach server. Check your connection or API configuration.';
+        console.error("Error Message:", apiError.message);
+        console.error("Error Code:", apiError.code);
+        console.error("Requested Endpoint:", `${apiError.config?.baseURL || ''}${apiError.config?.url || ''}`);
+        console.error("Request Method:", apiError.config?.method?.toUpperCase());
+        
+        if (apiError.response) {
+          console.error("HTTP Response Status:", apiError.response.status);
+          console.error("HTTP Response Data:", apiError.response.data);
+          console.error("HTTP Response Headers:", apiError.response.headers);
+        } else if (apiError.request) {
+          console.error("No response received from server. Request details:", apiError.request);
+          console.error("Troubleshooting Advice: This usually happens when the backend server is crashed/offline, there is a local CORS policy mismatch, or there is a Mixed Content block (HTTPS requesting HTTP).");
+        }
       } else {
-        // Something else happened
-        errorMessage = error.message || 'Unknown Error';
+        const standardError = err as { message?: string; stack?: string };
+        console.error("Non-API Error Message:", standardError.message || String(err));
+        if (standardError.stack) {
+          console.error("Non-API Error Stack:", standardError.stack);
+        }
+      }
+      console.error("=====================================");
+
+      // 2. User-facing UI error message resolution
+      let errorMessage = 'Login failed';
+      const parsedError = err as { 
+        response?: { 
+          data?: { message?: string; error?: string }; 
+          status?: number 
+        }; 
+        request?: unknown; 
+        message?: string; 
+        code?: string 
+      };
+
+      if (parsedError.response) {
+        // Server returned an error code (4xx, 5xx)
+        errorMessage = parsedError.response.data?.message || parsedError.response.data?.error || `Server error (${parsedError.response.status})`;
+      } else if (parsedError.request) {
+        // Request made but no response returned
+        if (parsedError.code === 'ERR_NETWORK') {
+          errorMessage = 'Network Error: Cannot connect to the server. Please verify the backend service is running and CORS allows this origin.';
+        } else {
+          errorMessage = 'Network Error: Connection timed out or server unreachable. Please try again.';
+        }
+      } else {
+        // Other unexpected errors
+        errorMessage = parsedError.message || 'Unknown Error';
       }
 
       setError(errorMessage);
