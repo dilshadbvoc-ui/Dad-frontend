@@ -455,24 +455,24 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                     </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[880px] p-0 rounded-2xl shadow-2xl border border-border/40 overflow-hidden bg-white dark:bg-gray-950" align="start">
-                <div className="flex h-[450px]">
+            <PopoverContent className="w-[94vw] max-w-[360px] md:w-[880px] md:max-w-none p-0 rounded-2xl shadow-2xl border border-border/40 overflow-hidden bg-white dark:bg-gray-950" align="start">
+                <div className="flex flex-col md:flex-row h-auto md:h-[450px]">
                     {/* Left presets panel */}
-                    <div className="w-[200px] border-r border-border/40 bg-gray-50/50 dark:bg-gray-900/30 p-2 overflow-y-auto flex flex-col gap-0.5">
+                    <div className="w-full md:w-[200px] border-b md:border-b-0 md:border-r border-border/40 bg-gray-50/50 dark:bg-gray-900/30 p-2 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col gap-1.5 shrink-0 whitespace-nowrap scrollbar-none">
                         {presets.map(p => (
                             <button
                                 key={p.label}
                                 type="button"
                                 onClick={() => handlePresetClick(p)}
                                 className={`
-                                    w-full text-left px-4 py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2
+                                    text-left px-3 py-1.5 md:px-4 md:py-2 rounded-xl text-xs font-semibold transition-all flex items-center gap-2 shrink-0
                                     ${activePreset === p.label 
                                         ? 'bg-primary/10 text-primary font-bold' 
                                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100/70 dark:hover:bg-gray-800/40'}
                                 `}
                             >
-                                <div className={`h-4 w-4 rounded-full border flex items-center justify-center ${activePreset === p.label ? 'border-primary bg-primary' : 'border-gray-300'}`}>
-                                    {activePreset === p.label && <div className="h-1.5 w-1.5 rounded-full bg-white" />}
+                                <div className={`h-3.5 w-3.5 md:h-4 md:w-4 rounded-full border flex items-center justify-center ${activePreset === p.label ? 'border-primary bg-primary' : 'border-gray-300'}`}>
+                                    {activePreset === p.label && <div className="h-1 w-1 md:h-1.5 md:w-1.5 rounded-full bg-white" />}
                                 </div>
                                 {p.label}
                             </button>
@@ -480,13 +480,13 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                     </div>
 
                     {/* Right Calendars container */}
-                    <div className="flex-1 flex flex-col p-6">
+                    <div className="flex-1 flex flex-col p-4 md:p-6 min-w-0">
                         {/* Calendars view header/nav */}
-                        <div className="flex items-center justify-between mb-4 px-4 relative">
+                        <div className="flex items-center justify-between mb-4 px-2 md:px-4 relative">
                             <button
                                 type="button"
                                 onClick={() => setLeftMonth(subMonths(leftMonth, 1))}
-                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute left-0"
+                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute left-0 z-10 bg-background"
                             >
                                 <ChevronLeft className="h-4 w-4 text-gray-500" />
                             </button>
@@ -494,26 +494,28 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                             <button
                                 type="button"
                                 onClick={() => setLeftMonth(addMonths(leftMonth, 1))}
-                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute right-0"
+                                className="p-1.5 rounded-full border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all absolute right-0 z-10 bg-background"
                             >
                                 <ChevronRight className="h-4 w-4 text-gray-500" />
                             </button>
                         </div>
 
-                        {/* Double calendars side by side */}
+                        {/* Double calendars side by side (hide second calendar on mobile) */}
                         <div className="flex flex-1 gap-6 divide-x divide-border/40">
                             {renderCalendar(leftMonth)}
-                            {renderCalendar(rightMonth)}
+                            <div className="hidden md:block md:flex-1 md:pl-6">
+                                {renderCalendar(rightMonth)}
+                            </div>
                         </div>
 
                         {/* Compare and Inputs Row */}
-                        <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between gap-4">
-                            <div className="flex items-center gap-6">
+                        <div className="mt-4 md:mt-6 pt-4 border-t border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 md:gap-6">
                                 <label className="flex items-center gap-2 text-xs font-semibold text-gray-600 dark:text-gray-400 cursor-pointer">
                                     <input type="checkbox" className="rounded border-gray-300 text-primary focus:ring-primary h-4 w-4" />
                                     Compare
                                 </label>
-                                <div className="w-[140px]">
+                                <div className="w-[130px] md:w-[140px]">
                                     <Select defaultValue="previous_period">
                                         <SelectTrigger className="h-8 text-xs bg-background">
                                             <SelectValue placeholder="Select an item" />
@@ -526,36 +528,36 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2">
-                                <div className="border border-border/40 rounded-xl px-3 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-xs font-bold text-gray-700 dark:text-gray-300">
+                            <div className="flex items-center gap-1.5 md:gap-2">
+                                <div className="border border-border/40 rounded-xl px-2.5 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-[10px] md:text-xs font-bold text-gray-700 dark:text-gray-300">
                                     {selectedStart ? format(selectedStart, 'd MMM yyyy') : '-'}
                                 </div>
                                 <span className="text-gray-400 text-xs">-</span>
-                                <div className="border border-border/40 rounded-xl px-3 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-xs font-bold text-gray-700 dark:text-gray-300">
+                                <div className="border border-border/40 rounded-xl px-2.5 py-1 bg-gray-50/50 dark:bg-gray-900/30 text-[10px] md:text-xs font-bold text-gray-700 dark:text-gray-300">
                                     {selectedEnd ? format(selectedEnd, 'd MMM yyyy') : '-'}
                                 </div>
                             </div>
                         </div>
 
                         {/* Footer Buttons */}
-                        <div className="mt-4 pt-4 border-t border-border/40 flex items-center justify-between">
-                            <div className="text-[10px] text-gray-400">
+                        <div className="mt-4 pt-4 border-t border-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div className="text-[10px] text-gray-400 text-center sm:text-left">
                                 Dates are shown in India Standard Time
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center justify-center sm:justify-end gap-2 w-full sm:w-auto">
                                 <Button 
                                     type="button" 
                                     variant="ghost" 
                                     size="sm" 
                                     onClick={() => setOpen(false)}
-                                    className="h-9 px-4 rounded-xl text-xs font-bold"
+                                    className="h-9 px-4 rounded-xl text-xs font-bold flex-1 sm:flex-none"
                                 >
                                     Cancel
                                 </Button>
                                 <Button 
                                     type="button" 
                                     onClick={handleUpdate}
-                                    className="h-9 px-5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-primary/10"
+                                    className="h-9 px-5 bg-primary hover:bg-primary/90 text-white rounded-xl text-xs font-bold shadow-md shadow-primary/10 flex-1 sm:flex-none"
                                 >
                                     Update
                                 </Button>
