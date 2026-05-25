@@ -200,18 +200,22 @@ export default function LeadDistributionPage() {
                         </Button>
                     </div>
 
-                    {hasActiveFilters && (
-                        <div className="flex flex-col gap-1">
-                            <Button 
-                                variant="ghost" 
-                                onClick={handleClearAllFilters} 
-                                className="gap-2 h-10 text-destructive hover:bg-destructive/10 font-bold"
-                            >
-                                <X className="h-4 w-4" />
-                                Clear Filters
-                            </Button>
-                        </div>
-                    )}
+                    <div className="flex flex-col gap-1">
+                        <Button 
+                            variant="outline" 
+                            onClick={handleClearAllFilters} 
+                            disabled={!hasActiveFilters}
+                            className={`gap-2 h-10 transition-all font-semibold text-xs rounded-lg ${
+                                hasActiveFilters 
+                                    ? 'text-destructive border-destructive/50 hover:bg-destructive/10 bg-destructive/5' 
+                                    : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed bg-background/50'
+                            }`}
+                            title="Clear All Active Filters"
+                        >
+                            <X className="h-4 w-4" />
+                            Clear Filters
+                        </Button>
+                    </div>
                 </div>
             </div>
 

@@ -811,8 +811,23 @@ export default function LeadsPage() {
                 onClick={handleRefresh}
                 disabled={leadsFetching}
                 className="h-11 w-11 p-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm"
+                title="Refresh Data"
               >
                 <RefreshCw className={`h-5 w-5 ${leadsFetching ? 'animate-spin text-primary' : ''}`} />
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleClearAllFilters}
+                className={`h-11 px-4 rounded-xl border-dashed bg-background/50 backdrop-blur-sm gap-2 font-semibold text-xs transition-all ${
+                  hasActiveFilters 
+                    ? 'text-destructive border-destructive/50 hover:bg-destructive/10' 
+                    : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed'
+                }`}
+                disabled={!hasActiveFilters}
+                title="Clear All Active Filters"
+              >
+                <X className="h-4 w-4" />
+                Clear Filters
               </Button>
             </div>
           </div>
