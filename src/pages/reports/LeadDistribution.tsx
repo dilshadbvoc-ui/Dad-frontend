@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getLeadDistributionReport } from '@/services/analyticsService';
 import { getBranches } from '@/services/settingsService';
@@ -45,6 +45,7 @@ export default function LeadDistributionPage() {
     const [isExporting, setIsExporting] = useState(false);
 
     const hasActiveFilters = selectedBranchId !== 'all' || startDate !== getDefaultStartDate() || endDate !== getDefaultEndDate();
+
 
     const handleClearAllFilters = () => {
         setSelectedBranchId("all");
@@ -94,6 +95,35 @@ export default function LeadDistributionPage() {
         queryFn: getBranches,
         enabled: !!isAdmin
     });
+
+    const activeFiltersList = useMemo(() => {
+        const list = [];
+        
+        if (selectedBranchId !== 'all') {
+            const found = branches?.find((b: any) => b.id === selectedBranchId);
+            const label = found ? `Branch: ${found.name}` : `Branch: ${selectedBranchId}`;
+            list.push({
+                key: 'branch',
+                label,
+                clear: () => setSelectedBranchId('all')
+            });
+        }
+        
+        const defaultStart = getDefaultStartDate();
+        const defaultEnd = getDefaultEndDate();
+        if (startDate !== defaultStart || endDate !== defaultEnd) {
+            list.push({
+                key: 'date',
+                label: `Date: ${startDate} to ${endDate}`,
+                clear: () => {
+                    setStartDate(defaultStart);
+                    setEndDate(defaultEnd);
+                }
+            });
+        }
+        
+        return list;
+    }, [selectedBranchId, startDate, endDate, branches]);
 
     const { data: reportData, isLoading, refetch } = useQuery({
         queryKey: ['leadDistribution', selectedBranchId, startDate, endDate],
@@ -184,6 +214,41 @@ export default function LeadDistributionPage() {
                     )}
                 </div>
             </div>
+
+            {/* Active Filters Row */}
+            {activeFiltersList.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 bg-background/40 backdrop-blur-sm rounded-xl border border-border/40 p-2.5 shadow-sm">
+                    <span className="text-xs font-bold text-muted-foreground/80 flex items-center gap-1.5 mr-1 pl-1">
+                        <Filter className="h-3.5 w-3.5 text-primary/60" />
+                        ACTIVE FILTERS:
+                    </span>
+                    {activeFiltersList.map((filter) => (
+                        <div 
+                            key={filter.key}
+                            className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 hover:bg-primary/15 transition-all shadow-sm"
+                        >
+                            <span>{filter.label}</span>
+                            <button 
+                                onClick={filter.clear}
+                                className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                                title={`Clear ${filter.key} filter`}
+                            >
+                                <X className="h-3 w-3" />
+                            </button>
+                        </div>
+                    ))}
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleClearAllFilters}
+                        className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-full font-bold gap-1 shrink-0 ml-auto border border-destructive/20 bg-destructive/5 hover:border-destructive/30 shadow-sm transition-all"
+                        title="Clear All Filters"
+                    >
+                        <X className="h-3.5 w-3.5" />
+                        Clear All Filters
+                    </Button>
+                </div>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Summary Table */}

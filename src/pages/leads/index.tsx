@@ -34,7 +34,8 @@ import {
   Copy,
   ChevronLeft,
   ChevronRight,
-  Calendar
+  Calendar,
+  Filter
 } from "lucide-react"
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
@@ -375,6 +376,7 @@ export default function LeadsPage() {
     );
   }, [currentView, currentOwner, currentBranch, currentSource, dateFrom, dateTo]);
 
+
   const handleClearAllFilters = () => {
     setSearchParams(new URLSearchParams({
       view: 'all-leads',
@@ -499,6 +501,73 @@ export default function LeadsPage() {
   const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
   const users = userData?.users || (Array.isArray(userData) ? userData : []);
   const branches = branchData || [];
+
+  const activeFiltersList = useMemo(() => {
+    const list = [];
+    
+    if (currentView !== 'all-leads') {
+      let label = currentView;
+      if (currentView === 'today-leads') label = "Today's Leads";
+      else if (currentView === 'yesterday-leads') label = "Yesterday's Leads";
+      else if (currentView === 'no-activity-leads') label = "No Activity";
+      else if (currentView.startsWith('status-')) {
+        const statusId = currentView.replace('status-', '');
+        const found = statuses.find((s: any) => s.id === statusId);
+        label = found ? `Stage: ${found.label}` : `Stage: ${statusId}`;
+      }
+      list.push({
+        key: 'view',
+        label,
+        clear: () => updateSearchParams({ view: 'all-leads' })
+      });
+    }
+    
+    if (currentOwner !== 'all') {
+      const found = users.find((u: any) => u.id === currentOwner);
+      const label = found ? `Assigned to: ${found.firstName} ${found.lastName || ''}` : `Owner: ${currentOwner}`;
+      list.push({
+        key: 'owner',
+        label,
+        clear: () => updateSearchParams({ owner: 'all' })
+      });
+    }
+    
+    if (currentBranch !== 'all') {
+      const found = branches.find((b: any) => b.id === currentBranch);
+      const label = found ? `Branch: ${found.name}` : `Branch: ${currentBranch}`;
+      list.push({
+        key: 'branch',
+        label,
+        clear: () => updateSearchParams({ branch: 'all' })
+      });
+    }
+    
+    if (currentSource !== 'all') {
+      list.push({
+        key: 'source',
+        label: `Source: ${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)}`,
+        clear: () => updateSearchParams({ source: 'all' })
+      });
+    }
+    
+    if (dateFrom || dateTo) {
+      let label = '';
+      if (dateFrom && dateTo) {
+        label = `Date: ${dateFrom} to ${dateTo}`;
+      } else if (dateFrom) {
+        label = `Date: From ${dateFrom}`;
+      } else if (dateTo) {
+        label = `Date: To ${dateTo}`;
+      }
+      list.push({
+        key: 'date',
+        label,
+        clear: () => updateSearchParams({ dateFrom: undefined, dateTo: undefined })
+      });
+    }
+    
+    return list;
+  }, [currentView, currentOwner, currentBranch, currentSource, dateFrom, dateTo, statuses, users, branches, updateSearchParams]);
 
   // Sort function
   const sortLeads = (leadsToSort: Lead[]) => {
@@ -950,6 +1019,41 @@ export default function LeadsPage() {
               </div>
             )}
           </div>
+
+          {/* Active Filters Row */}
+          {activeFiltersList.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 bg-background/40 backdrop-blur-sm rounded-xl border border-border/40 p-2.5 shadow-sm">
+              <span className="text-xs font-bold text-muted-foreground/80 flex items-center gap-1.5 mr-1 pl-1">
+                <Filter className="h-3.5 w-3.5 text-primary/60" />
+                ACTIVE FILTERS:
+              </span>
+              {activeFiltersList.map((filter) => (
+                <div 
+                  key={filter.key}
+                  className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 hover:bg-primary/15 transition-all shadow-sm"
+                >
+                  <span>{filter.label}</span>
+                  <button 
+                    onClick={filter.clear}
+                    className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                    title={`Clear ${filter.key} filter`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleClearAllFilters}
+                className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-full font-bold gap-1 shrink-0 ml-auto border border-destructive/20 bg-destructive/5 hover:border-destructive/30 shadow-sm transition-all"
+                title="Clear All Filters"
+              >
+                <X className="h-3.5 w-3.5" />
+                Clear All Filters
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Content Area */}
