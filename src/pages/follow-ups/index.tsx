@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { useSearchParams, useNavigate } from "react-router-dom"
 import { cn } from "@/lib/utils"
@@ -7,21 +7,54 @@ import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
 import { getBranches } from "@/services/settingsService"
 import { getUsers } from "@/services/userService"
-import { Building2, Calendar, Clock, ListFilter, ArrowUpDown, User2 } from "lucide-react"
+import { Building2, Calendar, Clock, ListFilter, ArrowUpDown, User2, X, Filter } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Button } from "@/components/ui/button"
 import { isToday } from "date-fns"
 
 export default function FollowUpsPage() {
   const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const filterParam = searchParams.get('filter') // overdue, today, upcoming
-
+  const sortBy = searchParams.get('sort') || 'dueDate-asc'
+  const statusFilter = searchParams.get('status') || 'all'
+  const branchFilter = searchParams.get('branch') || 'all'
+  const userFilter = searchParams.get('user') || 'all'
   const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-  const [branchFilter, setBranchFilter] = useState("all")
-  const [userFilter, setUserFilter] = useState("all")
-  const [sortBy, setSortBy] = useState<string>("dueDate-asc")
+
+  const updateSearchParams = useCallback((newParams: Record<string, string | undefined>) => {
+    const params = new URLSearchParams(searchParams);
+    Object.entries(newParams).forEach(([key, value]) => {
+      if (value === undefined || value === 'all' || (key === 'sort' && value === 'dueDate-asc')) {
+        params.delete(key);
+      } else {
+        params.set(key, value);
+      }
+    });
+    setSearchParams(params);
+  }, [searchParams, setSearchParams]);
+
+  // Save active filters to sessionStorage whenever they change
+  useEffect(() => {
+    const paramsString = searchParams.toString();
+    if (paramsString) {
+      sessionStorage.setItem('last-followups-filters', paramsString);
+    }
+  }, [searchParams]);
+
+  // Restore filters on mount if URL has no filters
+  useEffect(() => {
+    const hasParams = Array.from(searchParams.keys()).some(k => k !== 'filter');
+    if (!hasParams) {
+      const savedFilters = sessionStorage.getItem('last-followups-filters');
+      if (savedFilters) {
+        const saved = new URLSearchParams(savedFilters);
+        if (filterParam) saved.set('filter', filterParam);
+        setSearchParams(saved);
+      }
+    }
+  }, [searchParams, setSearchParams, filterParam]);
 
   const { data: branchesData } = useQuery({
     queryKey: ['branches'],
@@ -50,6 +83,84 @@ export default function FollowUpsPage() {
 
   const followUps = data?.tasks || []
   const activeCount = followUps.filter((task: any) => task.status !== 'completed').length
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      statusFilter !== 'all' ||
+      branchFilter !== 'all' ||
+      userFilter !== 'all' ||
+      sortBy !== 'dueDate-asc' ||
+      !!filterParam
+    );
+  }, [statusFilter, branchFilter, userFilter, sortBy, filterParam]);
+
+  const activeFiltersList = useMemo(() => {
+    const list = [];
+    
+    if (filterParam) {
+      list.push({
+        key: 'filter',
+        label: `Timeframe: ${filterParam.charAt(0).toUpperCase() + filterParam.slice(1)}`,
+        clear: () => navigate('/follow-ups')
+      });
+    }
+    
+    if (sortBy !== 'dueDate-asc') {
+      let sortLabel = sortBy;
+      if (sortBy === 'dueDate-desc') sortLabel = "Due Date (Latest)";
+      else if (sortBy === 'priority-desc') sortLabel = "Priority (High to Low)";
+      else if (sortBy === 'assignedTo-asc') sortLabel = "User (A-Z)";
+      else if (sortBy === 'status-asc') sortLabel = "Status (A-Z)";
+      else if (sortBy === 'subject-asc') sortLabel = "Subject (A-Z)";
+      
+      list.push({
+        key: 'sort',
+        label: `Sorting: ${sortLabel}`,
+        clear: () => updateSearchParams({ sort: undefined })
+      });
+    }
+    
+    if (statusFilter !== 'all') {
+      let statusLabel = statusFilter;
+      if (statusFilter === 'not_started') statusLabel = "Not Started";
+      else if (statusFilter === 'in_progress') statusLabel = "In Progress";
+      else if (statusFilter === 'completed') statusLabel = "Completed";
+      else if (statusFilter === 'deferred') statusLabel = "Deferred";
+      
+      list.push({
+        key: 'status',
+        label: `Status: ${statusLabel}`,
+        clear: () => updateSearchParams({ status: undefined })
+      });
+    }
+    
+    if (branchFilter !== 'all') {
+      const found = branches.find((b: any) => b.id === branchFilter);
+      const label = found ? `Branch: ${found.name}` : `Branch: ${branchFilter}`;
+      list.push({
+        key: 'branch',
+        label,
+        clear: () => updateSearchParams({ branch: undefined })
+      });
+    }
+    
+    if (userFilter !== 'all') {
+      const found = users.find((u: any) => u.id === userFilter);
+      const label = found ? `User: ${found.firstName} ${found.lastName || ''}` : `User: ${userFilter}`;
+      list.push({
+        key: 'user',
+        label,
+        clear: () => updateSearchParams({ user: undefined })
+      });
+    }
+    
+    return list;
+  }, [filterParam, sortBy, statusFilter, branchFilter, userFilter, branches, users, updateSearchParams, navigate]);
+
+  const handleClearAllFilters = () => {
+    setSearchParams(new URLSearchParams({}));
+    navigate('/follow-ups');
+  };
 
   // Calculate stats and filter data based on URL parameter
   const today = new Date()
@@ -125,6 +236,20 @@ export default function FollowUpsPage() {
           <h1 className="text-3xl font-bold text-foreground">Follow-ups</h1>
           <p className="text-muted-foreground mt-1">Track and manage all your follow-up tasks and your team's.</p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleClearAllFilters}
+          className={`h-11 px-4 rounded-xl border-dashed bg-background/50 backdrop-blur-sm gap-2 font-semibold text-xs transition-all ${
+            hasActiveFilters 
+              ? 'text-destructive border-destructive/50 hover:bg-destructive/10' 
+              : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed'
+          }`}
+          disabled={!hasActiveFilters}
+          title="Clear All Active Filters"
+        >
+          <X className="h-4 w-4" />
+          Clear Filters
+        </Button>
       </div>
 
       {/* Stats Cards */}
@@ -206,7 +331,7 @@ export default function FollowUpsPage() {
         </div>
         
         <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-          <Select value={sortBy} onValueChange={setSortBy}>
+          <Select value={sortBy} onValueChange={(val) => updateSearchParams({ sort: val })}>
             <SelectTrigger className="w-full sm:w-[180px] h-9 shadow-sm">
               <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
               <SelectValue placeholder="Sort By" />
@@ -220,8 +345,8 @@ export default function FollowUpsPage() {
               <SelectItem value="subject-asc">Subject (A-Z)</SelectItem>
             </SelectContent>
           </Select>
-
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+ 
+          <Select value={statusFilter} onValueChange={(val) => updateSearchParams({ status: val })}>
             <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -233,9 +358,9 @@ export default function FollowUpsPage() {
               <SelectItem value="deferred">Deferred</SelectItem>
             </SelectContent>
           </Select>
-
+ 
           {branches.length > 0 && (
-            <Select value={branchFilter} onValueChange={setBranchFilter}>
+            <Select value={branchFilter} onValueChange={(val) => updateSearchParams({ branch: val })}>
               <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
                 <div className="flex items-center gap-2">
                   <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -250,9 +375,9 @@ export default function FollowUpsPage() {
               </SelectContent>
             </Select>
           )}
-
+ 
           {users.length > 0 && (
-            <Select value={userFilter} onValueChange={setUserFilter}>
+            <Select value={userFilter} onValueChange={(val) => updateSearchParams({ user: val })}>
               <SelectTrigger className="w-full sm:w-[150px] h-9 shadow-sm">
                 <div className="flex items-center gap-2">
                   <User2 className="h-3.5 w-3.5 text-muted-foreground" />
@@ -269,6 +394,41 @@ export default function FollowUpsPage() {
           )}
         </div>
       </div>
+
+      {/* Active Filters Row */}
+      {activeFiltersList.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2 bg-background/40 backdrop-blur-sm rounded-xl border border-border/40 p-2.5 shadow-sm">
+          <span className="text-xs font-bold text-muted-foreground/80 flex items-center gap-1.5 mr-1 pl-1">
+            <Filter className="h-3.5 w-3.5 text-primary/60" />
+            ACTIVE FILTERS:
+          </span>
+          {activeFiltersList.map((filter) => (
+            <div 
+              key={filter.key}
+              className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold border border-primary/20 hover:bg-primary/15 transition-all shadow-sm"
+            >
+              <span>{filter.label}</span>
+              <button 
+                onClick={filter.clear}
+                className="hover:bg-primary/20 rounded-full p-0.5 transition-colors"
+                title={`Clear ${filter.key} filter`}
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleClearAllFilters}
+            className="h-8 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-full font-bold gap-1 shrink-0 ml-auto border border-destructive/20 bg-destructive/5 hover:border-destructive/30 shadow-sm transition-all"
+            title="Clear All Filters"
+          >
+            <X className="h-3.5 w-3.5" />
+            Clear All Filters
+          </Button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex items-center justify-center p-8">
