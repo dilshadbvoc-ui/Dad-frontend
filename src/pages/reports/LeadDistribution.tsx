@@ -5,7 +5,7 @@ import { getBranches } from '@/services/settingsService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Building, Filter, ArrowLeft, Loader2, Calendar, User as UserIcon, List, Download, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
@@ -30,16 +30,27 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { api } from '@/services/api';
 import { toast } from 'sonner';
 
+const getDefaultStartDate = () => {
+    const d = new Date();
+    d.setDate(d.getDate() - 30);
+    return d.toISOString().split('T')[0];
+};
+const getDefaultEndDate = () => new Date().toISOString().split('T')[0];
+
 export default function LeadDistributionPage() {
     const navigate = useNavigate();
     const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
-    const [startDate, setStartDate] = useState<string>(() => {
-        const d = new Date();
-        d.setDate(d.getDate() - 30);
-        return d.toISOString().split('T')[0];
-    });
-    const [endDate, setEndDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+    const [startDate, setStartDate] = useState<string>(getDefaultStartDate);
+    const [endDate, setEndDate] = useState<string>(getDefaultEndDate);
     const [isExporting, setIsExporting] = useState(false);
+
+    const hasActiveFilters = selectedBranchId !== 'all' || startDate !== getDefaultStartDate() || endDate !== getDefaultEndDate();
+
+    const handleClearAllFilters = () => {
+        setSelectedBranchId("all");
+        setStartDate(getDefaultStartDate());
+        setEndDate(getDefaultEndDate());
+    };
     
     const [user] = useState<{ role: string } | null>(() => {
         const userInfo = localStorage.getItem('userInfo');
@@ -158,6 +169,19 @@ export default function LeadDistributionPage() {
                             Download Excel
                         </Button>
                     </div>
+
+                    {hasActiveFilters && (
+                        <div className="flex flex-col gap-1">
+                            <Button 
+                                variant="ghost" 
+                                onClick={handleClearAllFilters} 
+                                className="gap-2 h-10 text-destructive hover:bg-destructive/10 font-bold"
+                            >
+                                <X className="h-4 w-4" />
+                                Clear Filters
+                            </Button>
+                        </div>
+                    )}
                 </div>
             </div>
 

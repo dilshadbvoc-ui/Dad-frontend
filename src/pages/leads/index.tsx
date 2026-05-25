@@ -363,6 +363,27 @@ export default function LeadsPage() {
   const dateFrom = searchParams.get('dateFrom') || '';
   const dateTo = searchParams.get('dateTo') || '';
   const dateFilter = useMemo(() => ({ from: dateFrom, to: dateTo }), [dateFrom, dateTo]);
+
+  const hasActiveFilters = useMemo(() => {
+    return (
+      currentView !== 'all-leads' ||
+      currentOwner !== 'all' ||
+      currentBranch !== 'all' ||
+      currentSource !== 'all' ||
+      dateFrom !== '' ||
+      dateTo !== ''
+    );
+  }, [currentView, currentOwner, currentBranch, currentSource, dateFrom, dateTo]);
+
+  const handleClearAllFilters = () => {
+    setSearchParams(new URLSearchParams({
+      view: 'all-leads',
+      sort: 'newest',
+      owner: 'all',
+      branch: 'all',
+      source: 'all'
+    }));
+  };
   const setDateFilter = (val: { from: string; to: string } | ((prev: { from: string; to: string }) => { from: string; to: string })) => {
     const next = typeof val === 'function' ? val({ from: dateFrom, to: dateTo }) : val;
     updateSearchParams({ dateFrom: next.from || undefined, dateTo: next.to || undefined });
@@ -914,6 +935,17 @@ export default function LeadsPage() {
                   >
                     <Download className="h-4 w-4" />
                   </Button>
+                  {hasActiveFilters && (
+                    <Button
+                      variant="ghost"
+                      onClick={handleClearAllFilters}
+                      className="h-10 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-lg font-bold gap-1 shrink-0"
+                      title="Clear All Filters"
+                    >
+                      <X className="h-4 w-4" />
+                      Clear Filters
+                    </Button>
+                  )}
                 </div>
               </div>
             )}
