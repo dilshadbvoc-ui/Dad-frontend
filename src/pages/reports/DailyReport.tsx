@@ -5,17 +5,19 @@ import { getBranches, getOrganisation } from '@/services/settingsService';
 import { Card } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { FileDown, RefreshCw, Printer, Building } from 'lucide-react';
+import { FileDown, RefreshCw, Printer, Building, Calendar } from 'lucide-react';
 import { PageLoader } from '@/components/ui/page-loader';
 import { toast } from 'sonner';
 import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { subDays, format } from 'date-fns';
 
 export default function DailyReportPage() {
   const reportRef = useRef<HTMLDivElement>(null);
   const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [period, setPeriod] = useState<string>("today");
   const [user] = useState<{ role: string } | null>(() => {
     const userInfo = localStorage.getItem('userInfo');
     return userInfo ? JSON.parse(userInfo) : null;
@@ -36,9 +38,50 @@ export default function DailyReportPage() {
     enabled: !!isAdmin
   });
 
+  const getDateRange = (selectedPeriod: string) => {
+    const today = new Date();
+    switch (selectedPeriod) {
+      case 'today':
+        return { startDate: format(today, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      case 'yesterday': {
+        const yesterday = subDays(today, 1);
+        return { startDate: format(yesterday, 'yyyy-MM-dd'), endDate: format(yesterday, 'yyyy-MM-dd') };
+      }
+      case 'today-yesterday': {
+        const yesterday = subDays(today, 1);
+        return { startDate: format(yesterday, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      }
+      case 'last-7-days': {
+        const start = subDays(today, 6);
+        return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      }
+      case 'last-14-days': {
+        const start = subDays(today, 13);
+        return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      }
+      case 'last-28-days': {
+        const start = subDays(today, 27);
+        return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      }
+      case 'last-30-days': {
+        const start = subDays(today, 29);
+        return { startDate: format(start, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+      }
+      default:
+        return { startDate: format(today, 'yyyy-MM-dd'), endDate: format(today, 'yyyy-MM-dd') };
+    }
+  };
+
   const { data: reportData, isLoading, error, refetch, isFetching } = useQuery({
-    queryKey: ['dailyReport', selectedBranchId],
-    queryFn: () => getDailyReport(selectedBranchId === "all" ? undefined : selectedBranchId),
+    queryKey: ['dailyReport', selectedBranchId, period],
+    queryFn: () => {
+      const { startDate, endDate } = getDateRange(period);
+      return getDailyReport({
+        branchId: selectedBranchId === "all" ? undefined : selectedBranchId,
+        startDate,
+        endDate
+      });
+    },
     refetchInterval: 1000 * 60 * 5, // Refresh every 5 mins
   });
 
@@ -110,7 +153,7 @@ export default function DailyReportPage() {
         firstPage = false;
       }
       
-      pdf.save(`Daily_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);
+      pdf.save(`Daily_Report_${getPeriodLabel().replace(/[\s,]+/g, '_')}.pdf`);
       toast.success('Report saved successfully', { id: 'pdf-export' });
     } catch (err) {
       console.error('Export failed:', err);
@@ -125,11 +168,20 @@ export default function DailyReportPage() {
   if (isLoading) return <PageLoader text="Loading daily report..." />;
   if (error) return <div className="p-8 text-center text-destructive font-medium">Error loading report data. Please try again.</div>;
 
-  const today = new Date().toLocaleDateString('en-IN', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  });
+  const getPeriodLabel = () => {
+    const { startDate, endDate } = getDateRange(period);
+    const parseLocalDate = (dateStr: string) => {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    };
+
+    if (startDate === endDate) {
+      return format(parseLocalDate(startDate), 'MMMM d, yyyy');
+    }
+    return `${format(parseLocalDate(startDate), 'MMM d, yyyy')} - ${format(parseLocalDate(endDate), 'MMM d, yyyy')}`;
+  };
+
+  const dateLabel = getPeriodLabel();
 
   return (
     <div className="p-4 sm:p-8 space-y-6 max-w-7xl mx-auto min-h-screen animate-in fade-in duration-500">
@@ -139,10 +191,44 @@ export default function DailyReportPage() {
           <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Daily Performance Report</h1>
           <p className="text-muted-foreground flex items-center gap-2">
             <span className="inline-block w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            Live metrics for {today}
+            Performance metrics for {dateLabel}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          {(selectedBranchId !== "all" || period !== "today") && (
+            <Button
+              onClick={() => {
+                setSelectedBranchId("all");
+                setPeriod("today");
+              }}
+              variant="ghost"
+              size="sm"
+              className="text-muted-foreground hover:text-foreground h-10 px-3 border border-border/40 hover:bg-muted/50 rounded-lg"
+            >
+              Clear Filters
+            </Button>
+          )}
+
+          <div className="w-[180px]">
+            <Select value={period} onValueChange={setPeriod}>
+              <SelectTrigger className="bg-background border-primary/20 h-10 px-4">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-primary/60" />
+                  <SelectValue placeholder="Select period" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="yesterday">Yesterday</SelectItem>
+                <SelectItem value="today-yesterday">Today & Yesterday</SelectItem>
+                <SelectItem value="last-7-days">Last 7 days</SelectItem>
+                <SelectItem value="last-14-days">Last 14 days</SelectItem>
+                <SelectItem value="last-28-days">Last 28 days</SelectItem>
+                <SelectItem value="last-30-days">Last 30 days</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           {isAdmin && branches && branches.length > 0 && (
             <div className="w-[200px]">
               <Select value={selectedBranchId} onValueChange={setSelectedBranchId}>
@@ -205,7 +291,7 @@ export default function DailyReportPage() {
             </div>
             <div className="text-right">
               <h1 className="text-xl font-bold text-foreground">Daily Performance Report</h1>
-              <p className="text-sm font-medium text-muted-foreground">{today}</p>
+              <p className="text-sm font-medium text-muted-foreground">{dateLabel}</p>
             </div>
           </div>
 

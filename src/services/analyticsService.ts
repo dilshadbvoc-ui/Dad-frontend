@@ -101,10 +101,9 @@ export const getUserPerformanceDetails = async (filters?: { startDate?: string; 
     }
 };
 
-export const getDailyReport = async (branchId?: string) => {
+export const getDailyReport = async (filters?: { branchId?: string; startDate?: string; endDate?: string }) => {
     try {
-        const params = branchId ? { branchId } : {};
-        const response = await api.get('/reports/daily-report', { params });
+        const response = await api.get('/reports/daily-report', { params: filters });
         return response.data || { table: [], summary: null };
     } catch (error) {
         console.error('Error fetching daily report:', error);
