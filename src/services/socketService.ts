@@ -26,6 +26,7 @@ class SocketService {
 
 
             this.socket = io(SOCKET_URL, {
+                transports: ['websocket'],
                 withCredentials: true,
                 autoConnect: true,
                 // Defaulting to auto-upgrade from polling is more reliable in complex network environments
