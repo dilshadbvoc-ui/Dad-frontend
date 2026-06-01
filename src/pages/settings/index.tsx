@@ -194,7 +194,7 @@ const ALL_SETTINGS_SECTIONS = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const [user] = useState<{ role?: string } | null>(() => {
+  const [user] = useState<{ role?: string; permissions?: string[] } | null>(() => {
     const userStr = localStorage.getItem('userInfo');
     if (userStr) {
       try {
