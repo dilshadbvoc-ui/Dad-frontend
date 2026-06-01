@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { useEffect, useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
-import { getUsers } from "@/services/settingsService"
+import { getUsers, getProfile } from "@/services/settingsService"
 import { isAdmin, canAccessSettings, isBranchManager } from "@/lib/utils"
 
 import {
@@ -194,7 +194,7 @@ const ALL_SETTINGS_SECTIONS = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
-  const [user] = useState<{ role?: string; permissions?: string[] } | null>(() => {
+  const [user, setUser] = useState<{ role?: string; permissions?: string[] } | null>(() => {
     const userStr = localStorage.getItem('userInfo');
     if (userStr) {
       try {
@@ -248,9 +248,29 @@ export default function SettingsPage() {
       navigate('/login');
       return;
     }
-    // All authenticated users can access settings now
-    // They'll see filtered sections based on their role
-  }, [user, navigate]);
+
+    // Dynamic profile sync to pull updated permissions/roles from the server
+    getProfile()
+      .then((freshUser) => {
+        if (freshUser) {
+          const userStr = localStorage.getItem('userInfo');
+          const currentUserInfo = userStr ? JSON.parse(userStr) : {};
+          
+          const updatedUserInfo = {
+            ...currentUserInfo,
+            ...freshUser,
+            role: typeof freshUser.role === 'object' ? (freshUser.role.id || freshUser.role.name || currentUserInfo.role) : freshUser.role,
+            permissions: freshUser.permissions || []
+          };
+
+          localStorage.setItem('userInfo', JSON.stringify(updatedUserInfo));
+          setUser(updatedUserInfo);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to sync user profile", err);
+      });
+  }, [navigate]);
 
   if (!user) {
     return null; // Or a loading spinner
