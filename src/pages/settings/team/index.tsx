@@ -39,7 +39,7 @@ import { toast } from "sonner"
 import { Plus, Pencil, Mail, Shield, Search, Building, LayoutList, Network, ChevronRight, ChevronDown, User as UserIcon, MoreVertical, UserX, UserCheck, Download, FileSpreadsheet, Trash2, Key } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { isSuperAdmin, getUserInfo } from "@/lib/utils"
+import { isSuperAdmin, getUserInfo, isAdmin } from "@/lib/utils"
 
 interface TeamMember {
   id: string
@@ -55,6 +55,7 @@ interface TeamMember {
   avatar?: string
   isActive: boolean
   dailyLeadQuota?: number
+  permissions?: string[]
   reportsTo?: {
     id: string
     firstName: string
@@ -238,6 +239,7 @@ export default function TeamSettings() {
   
   const [isInviteOpen, setIsInviteOpen] = useState(false)
   const [editingMember, setEditingMember] = useState<TeamMember | null>(null)
+  const [canCreateSubordinates, setCanCreateSubordinates] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const [viewMode, setViewMode] = useState<'table' | 'tree'>('tree')
   const [suspendingUser, setSuspendingUser] = useState<TeamMember | null>(null)
@@ -386,6 +388,7 @@ export default function TeamSettings() {
       branchId: formData.get('branchId') === 'none' ? null : formData.get('branchId'),
       reportsTo: formData.get('reportsTo') === 'none' ? null : formData.get('reportsTo'),
       dailyLeadQuota: formData.get('dailyLeadQuota') ? parseInt(formData.get('dailyLeadQuota') as string) : null,
+      permissions: canCreateSubordinates ? ['users:create:subordinates'] : []
     }
 
     const email = formData.get('email')
@@ -402,11 +405,13 @@ export default function TeamSettings() {
 
   const openEdit = (member: TeamMember) => {
     setEditingMember(member)
+    setCanCreateSubordinates(member.permissions?.includes('users:create:subordinates') || false)
     setIsInviteOpen(true)
   }
 
   const openInvite = () => {
     setEditingMember(null)
+    setCanCreateSubordinates(false)
     setIsInviteOpen(true)
   }
 
@@ -479,10 +484,12 @@ export default function TeamSettings() {
             <Download className="h-4 w-4" />
             Download List
           </Button>
-          <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
-            <Plus className="h-4 w-4 mr-2" />
-            Invite Member
-          </Button>
+          {(userIsSuperAdmin || isAdmin(currentUser) || currentUser?.permissions?.includes('users:create:subordinates')) && (
+            <Button onClick={openInvite} className="bg-primary hover:bg-primary/90">
+              <Plus className="h-4 w-4 mr-2" />
+              Invite Member
+            </Button>
+          )}
         </div>
       </div>
 
@@ -838,6 +845,23 @@ export default function TeamSettings() {
             <p className="text-xs text-muted-foreground">
               Assigning a manager creates a reporting hierarchy.
             </p>
+
+            {/* Permission Control (Admin/Super Admin only) */}
+            {(userIsSuperAdmin || isAdmin(currentUser)) && (
+              <div className="flex items-center justify-between p-4 rounded-xl border border-border bg-muted/20">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-medium">Add Subordinates Permission</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Allow this user to invite and create new team members below them in the hierarchy.
+                  </p>
+                </div>
+                <Switch 
+                  id="canCreateSubordinates"
+                  checked={canCreateSubordinates}
+                  onCheckedChange={setCanCreateSubordinates}
+                />
+              </div>
+            )}
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setIsInviteOpen(false)}>

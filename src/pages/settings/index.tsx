@@ -215,6 +215,12 @@ export default function SettingsPage() {
     return ALL_SETTINGS_SECTIONS.filter(section => {
       // If section has role requirements
       if (section.roles && section.roles.length > 0) {
+        // Special case for Team & Users to allow hierarchical user creators
+        if (section.href === '/settings/team') {
+          const hasHierarchyCreatePermission = user.permissions?.includes('users:create:subordinates') || user.permissions?.includes('*');
+          if (hasHierarchyCreatePermission) return true;
+        }
+
         // Check if user has any of the required roles
         const hasRequiredRole = section.roles.some((role: string) => {
           if (role === 'admin') return userIsAdmin;
