@@ -60,7 +60,6 @@ const menuGroups = [
       { title: "Duplicates", href: "/duplicates", icon: AlertTriangle, role: "admin" },
       { title: "Accounts", href: "/accounts", icon: Building },
       { title: "Opportunities", href: "/opportunities", icon: Target },
-      { title: "Quotes", href: "/quotes", icon: FileText },
       { title: "Products", href: "/products", icon: Package },
       { title: "EMI Schedules", href: "/emi-schedules", icon: CreditCard },
       { title: "Commissions", href: "/sales/commissions", icon: Percent, role: "admin" },
