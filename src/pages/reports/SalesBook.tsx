@@ -168,30 +168,79 @@ export default function SalesBookPage() {
                 <TableHead>Opportunity</TableHead>
                 <TableHead>Customer</TableHead>
                 <TableHead>Owner</TableHead>
+                <TableHead>Payment Status</TableHead>
                 <TableHead className="text-right">Amount</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24">Loading...</TableCell>
+                  <TableCell colSpan={7} className="text-center h-24">Loading...</TableCell>
                 </TableRow>
               ) : sales && sales.length > 0 ? (
-                sales.map((sale: { id: string, closeDate: string, opportunityName: string, customerName: string, ownerName: string, branchName: string, amount: number }) => (
+                sales.map((sale: { 
+                  id: string; 
+                  closeDate: string; 
+                  opportunityName: string; 
+                  customerName: string; 
+                  ownerName: string; 
+                  branchName: string; 
+                  amount: number; 
+                  paymentStatus: string; 
+                  totalPaid: number; 
+                  hasEmi: boolean; 
+                  emiDetails: { 
+                    totalAmount: number; 
+                    paidAmount: number; 
+                    remainingAmount: number; 
+                    status: string; 
+                  } | null; 
+                }) => (
                   <TableRow key={sale.id}>
                     <TableCell>{format(new Date(sale.closeDate), "MMM dd, yyyy")}</TableCell>
                     <TableCell>{sale.branchName || '-'}</TableCell>
                     <TableCell className="font-medium">{sale.opportunityName}</TableCell>
                     <TableCell>{sale.customerName}</TableCell>
                     <TableCell>{sale.ownerName}</TableCell>
-                    <TableCell className="text-right font-semibold text-green-600">
-                      {formatCurrency(sale.amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                    <TableCell>
+                      {sale.paymentStatus === 'paid' ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
+                          Paid
+                        </span>
+                      ) : sale.paymentStatus === 'partial' ? (
+                        sale.hasEmi ? (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300">
+                            EMI ({sale.emiDetails?.status || 'active'})
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+                            Partial
+                          </span>
+                        )
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300">
+                          Pending
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="font-semibold text-foreground">
+                        {formatCurrency(sale.amount, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                      </div>
+                      {(sale.paymentStatus === 'partial' || sale.hasEmi || sale.totalPaid > 0) && (
+                        <div className="text-[10px] text-muted-foreground mt-0.5 space-y-0.5">
+                          <div>Paid: <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(sale.totalPaid, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>
+                          {sale.amount - sale.totalPaid > 0 && (
+                            <div>Due: <span className="font-medium text-amber-600 dark:text-amber-400">{formatCurrency(sale.amount - sale.totalPaid, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>
+                          )}
+                        </div>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center h-24 text-muted-foreground">
                     No sales found for the selected criteria.
                   </TableCell>
                 </TableRow>
