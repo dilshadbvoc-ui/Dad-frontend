@@ -141,7 +141,15 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
           </div>
           <div className="flex items-center gap-4">
             <div className="text-right">
-              <p className="font-bold text-lg text-foreground">{formatCurrency(node.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} <span className="text-muted-foreground font-normal">/</span> {formatCurrency(node.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+              <p className="font-bold text-lg text-foreground">
+                {node.metric === 'units' 
+                  ? node.achievedValue.toLocaleString() 
+                  : formatCurrency(node.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
+                <span className="text-muted-foreground font-normal">/</span> 
+                {node.metric === 'units' 
+                  ? ` ${node.targetValue.toLocaleString()} units` 
+                  : ` ${formatCurrency(node.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+              </p>
               <p className="text-sm text-muted-foreground">{achievementPercent}% achieved</p>
             </div>
             <DropdownMenu>
@@ -311,9 +319,10 @@ export default function SalesTargetsPage() {
     setIsEditOpen(true)
   }
 
-  // Stats
-  const totalTargetValue = myTargets.reduce((sum, t) => sum + t.targetValue, 0)
-  const totalAchieved = myTargets.reduce((sum, t) => sum + t.achievedValue, 0)
+  // Stats (Summing only revenue targets to prevent mixing metrics)
+  const revenueTargets = myTargets.filter(t => t.metric !== 'units')
+  const totalTargetValue = revenueTargets.reduce((sum, t) => sum + t.targetValue, 0)
+  const totalAchieved = revenueTargets.reduce((sum, t) => sum + t.achievedValue, 0)
   const completedCount = teamTargets.filter(t => t.status === 'completed').length
   const activeCount = teamTargets.filter(t => t.status === 'active').length
 
@@ -612,7 +621,15 @@ export default function SalesTargetsPage() {
                                 </div>
                                 <div className="flex items-center gap-4">
                                   <div className="text-right">
-                                    <p className="font-bold text-lg text-foreground">{formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} / {formatCurrency(target.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
+                                    <p className="font-bold text-lg text-foreground">
+                                      {target.metric === 'units' 
+                                        ? target.achievedValue.toLocaleString() 
+                                        : formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
+                                      <span className="text-muted-foreground font-normal"> / </span> 
+                                      {target.metric === 'units' 
+                                        ? `${target.targetValue.toLocaleString()} units` 
+                                        : formatCurrency(target.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                    </p>
                                     <p className="text-sm text-muted-foreground">{percent}% achieved</p>
                                   </div>
                                   {/* Note: Employees can't usually edit their own targets assigned by managers, blocking edit here for 'My Targets' view unless we want self-assigned targets logic. Assuming 'Team' view is where management happens. */}
