@@ -2,8 +2,11 @@ import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/ca
 import { Link } from "react-router-dom";
 import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp, FileText, PhoneCall, Trophy } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { isAdmin, isManager } from "@/lib/utils";
 
 export default function ReportsPage() {
+  const user = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const showAuditLogs = isAdmin(user) || isManager(user);
   return (
     <div className="p-8 space-y-8">
       <div>
@@ -109,17 +112,19 @@ export default function ReportsPage() {
           </Card>
         </Link>
 
-        <Link to="/reports/audit-logs">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-            <CardHeader>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
-                <FileText className="text-primary h-5 w-5" />
-              </div>
-              <CardTitle>Audit Logs</CardTitle>
-              <CardDescription>System activity and user actions.</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
+        {showAuditLogs && (
+          <Link to="/reports/audit-logs">
+            <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+              <CardHeader>
+                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                  <FileText className="text-primary h-5 w-5" />
+                </div>
+                <CardTitle>Audit Logs</CardTitle>
+                <CardDescription>System activity and user actions.</CardDescription>
+              </CardHeader>
+            </Card>
+          </Link>
+        )}
 
         <Link to="/reports/call-analytics">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-primary/20 bg-primary/5">

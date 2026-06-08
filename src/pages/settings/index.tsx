@@ -3,7 +3,7 @@ import { useEffect, useState, useMemo } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent } from "@/components/ui/card"
 import { getUsers, getProfile } from "@/services/settingsService"
-import { isAdmin, canAccessSettings, isBranchManager } from "@/lib/utils"
+import { isAdmin, canAccessSettings, isBranchManager, isManager } from "@/lib/utils"
 
 import {
   User,
@@ -172,7 +172,7 @@ const ALL_SETTINGS_SECTIONS = [
     href: "/settings/audit-logs",
     icon: FileText,
     gradient: "from-indigo-600 to-violet-600",
-    roles: ['admin']
+    roles: ['admin', 'manager']
   },
   {
     title: "Sales Pipelines",
@@ -225,6 +225,7 @@ export default function SettingsPage() {
         const hasRequiredRole = section.roles.some((role: string) => {
           if (role === 'admin') return userIsAdmin;
           if (role === 'branch_manager') return userIsBranchManager;
+          if (role === 'manager') return isManager(user);
           return false;
         });
 
