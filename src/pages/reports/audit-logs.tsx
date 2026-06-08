@@ -85,6 +85,26 @@ export default function AuditLogsReport() {
       return `Logged a quick ${type} for "${name}"`;
     }
 
+    if (action === "CONVERT_LEAD") {
+      return `Converted lead "${name}" to Account, Contact, and Opportunity`;
+    }
+
+    if (action === "OPPORTUNITY_STAGE_CHANGE") {
+      return `Changed stage of opportunity "${name}" from ${d.oldStage || "unknown"} to ${d.newStage || "unknown"}`;
+    }
+
+    if (action === "REGISTER_ORGANISATION") {
+      return `Registered new organisation: "${d.companyName || name}"`;
+    }
+
+    if (action === "AUTH_FORGOT_PASSWORD_REQUESTED") {
+      return `Requested password reset link for user: "${d.email || name}"`;
+    }
+
+    if (action === "AUTH_PASSWORD_RESET_SUCCESS") {
+      return `Successfully reset password for user: "${d.email || name}"`;
+    }
+
     if (action.includes("CREATED") || action === "CREATE" || action.includes("CREATE_")) {
       return `Created new ${entityLabel}: "${name}"`;
     }
