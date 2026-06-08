@@ -1,8 +1,10 @@
 import { api } from './api';
 
-export const getDashboardStats = async (branchId?: string) => {
+export const getDashboardStats = async (branchId?: string, month?: string) => {
     try {
-        const params = branchId ? { branchId } : {};
+        const params: any = {};
+        if (branchId) params.branchId = branchId;
+        if (month) params.month = month;
         const response = await api.get('/analytics/dashboard', { params });
         return response.data || {};
     } catch (error) {
@@ -38,9 +40,11 @@ export const getTopLeads = async (branchId?: string) => {
     }
 };
 
-export const getSalesForecast = async (branchId?: string) => {
+export const getSalesForecast = async (branchId?: string, month?: string) => {
     try {
-        const params = branchId ? { branchId } : {};
+        const params: any = {};
+        if (branchId) params.branchId = branchId;
+        if (month) params.month = month;
         const response = await api.get('/analytics/forecast', { params });
         return response.data || {};
     } catch (error) {

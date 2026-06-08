@@ -73,6 +73,28 @@ export default function Dashboard() {
   const [isExporting, setIsExporting] = useState(false);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
+  // Generate the last 12 months dynamically starting from current month, plus "All Time"
+  const monthOptions = (() => {
+    const options = [{ value: 'all', label: 'All Time' }];
+    const current = new Date();
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(current.getFullYear(), current.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const monthIndex = d.getMonth();
+      const monthVal = `${year}-${String(monthIndex + 1).padStart(2, '0')}`;
+      const label = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+      options.push({ value: monthVal, label });
+    }
+    return options;
+  })();
+
+  const getCurrentMonthVal = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  };
+
+  const [selectedMonth, setSelectedMonth] = useState<string>(getCurrentMonthVal());
+
   const isAdminUser = checkIsAdmin(user);
 
   useEffect(() => {
@@ -98,13 +120,13 @@ export default function Dashboard() {
   }, [user, isAdminUser]);
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStats>({
-    queryKey: ['dashboardStats', selectedBranchId],
-    queryFn: () => getDashboardStats(selectedBranchId || undefined)
+    queryKey: ['dashboardStats', selectedBranchId, selectedMonth],
+    queryFn: () => getDashboardStats(selectedBranchId || undefined, selectedMonth === 'all' ? undefined : selectedMonth)
   });
 
   const { data: forecast, isLoading: forecastLoading } = useQuery<SalesForecast>({
-    queryKey: ['forecast', selectedBranchId],
-    queryFn: () => getSalesForecast(selectedBranchId || undefined)
+    queryKey: ['forecast', selectedBranchId, selectedMonth],
+    queryFn: () => getSalesForecast(selectedBranchId || undefined, selectedMonth === 'all' ? undefined : selectedMonth)
   });
 
   const handleExportPDF = async () => {
@@ -204,6 +226,27 @@ export default function Dashboard() {
               </Select>
             </div>
           )}
+
+          <div className="w-full sm:w-[200px]">
+            <Select
+              value={selectedMonth}
+              onValueChange={setSelectedMonth}
+            >
+              <SelectTrigger className="h-10 w-full bg-background border-input rounded-xl">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <SelectValue placeholder="Select Month" />
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                {monthOptions.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
             <ErrorBoundary name="DailyBriefingDialog">
