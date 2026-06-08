@@ -7,10 +7,11 @@ import { columns } from "./columns"
 import { getFollowUps } from "@/services/followUpService"
 import { getBranches } from "@/services/settingsService"
 import { getUsers } from "@/services/userService"
-import { Building2, Calendar, Clock, ListFilter, ArrowUpDown, User2, X, Filter } from "lucide-react"
+import { Building2, Calendar, Clock, ListFilter, ArrowUpDown, User2, X, Filter, Search } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { isToday } from "date-fns"
 
 export default function FollowUpsPage() {
@@ -92,9 +93,10 @@ export default function FollowUpsPage() {
       branchFilter !== 'all' ||
       userFilter !== 'all' ||
       sortBy !== 'dueDate-asc' ||
-      !!filterParam
+      !!filterParam ||
+      !!searchQuery
     );
-  }, [statusFilter, branchFilter, userFilter, sortBy, filterParam]);
+  }, [statusFilter, branchFilter, userFilter, sortBy, filterParam, searchQuery]);
 
   const activeFiltersList = useMemo(() => {
     const list = [];
@@ -161,6 +163,7 @@ export default function FollowUpsPage() {
 
   const handleClearAllFilters = () => {
     sessionStorage.removeItem('last-followups-filters');
+    setSearchQuery("");
     setSearchParams(new URLSearchParams({}));
     navigate('/follow-ups');
   };
@@ -327,13 +330,18 @@ export default function FollowUpsPage() {
       </div>
 
       {/* Filters and Sorting */}
-      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <ListFilter className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Sort & Filter</span>
+      <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-card p-4 rounded-xl border shadow-sm">
+        <div className="flex items-center gap-3 w-full md:w-auto flex-1 max-w-md relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input 
+            placeholder="Search follow-ups..." 
+            value={searchQuery} 
+            onChange={(e) => setSearchQuery(e.target.value)} 
+            className="pl-10 h-9 w-full bg-background"
+          />
         </div>
         
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto justify-end">
           <Select value={sortBy} onValueChange={(val) => updateSearchParams({ sort: val })}>
             <SelectTrigger className="w-full sm:w-[180px] h-9 shadow-sm">
               <ArrowUpDown className="h-3.5 w-3.5 mr-2" />
@@ -441,7 +449,6 @@ export default function FollowUpsPage() {
         <DataTable
           columns={columns}
           data={filteredFollowUps}
-          searchKeys={["subject", "description", "status", "priority"]}
           initialPageSize={100}
         />
       )}

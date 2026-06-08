@@ -211,7 +211,7 @@ export const columns: ColumnDef<Lead>[] = [
       )
     },
     cell: ({ row }) => {
-      return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+      return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy, h:mm a")}</div>
     }
   },
   {

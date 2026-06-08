@@ -58,6 +58,7 @@ interface DashboardStats {
 
 interface SalesForecast {
   weightedForecast: number;
+  totalPipeline: number;
   // Add other forecast properties as needed
 }
 
@@ -251,7 +252,7 @@ export default function Dashboard() {
             </div>
             <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">Exp. Revenue</h3>
             <div className="text-lg sm:text-2xl font-extrabold text-card-foreground">
-              {formatCurrencyCompact(forecast?.weightedForecast || 0)}
+              {formatCurrencyCompact(forecast?.totalPipeline || 0)}
             </div>
           </div>
         </Link>
