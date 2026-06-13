@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
 import { Settings, Zap, Sun, Moon } from "lucide-react"
@@ -13,6 +14,9 @@ import { NotificationPopover } from "./NotificationPopover"
 import { QuickAddLeadDialog } from "./QuickAddLeadDialog"
 import { cn, getAssetUrl } from "@/lib/utils"
 import { useTheme } from "@/contexts/theme-context"
+import { Switch } from "@/components/ui/switch"
+import { api } from "@/services/api"
+import { toast } from "sonner"
 
 import {
   DropdownMenu,
@@ -30,7 +34,44 @@ export function Header({ className }: { className?: string }) {
   const navigate = useNavigate()
   const { setTheme, resolvedTheme } = useTheme()
 
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const [userInfo, setUserInfo] = useState(() => {
+    try {
+      return JSON.parse(localStorage.getItem('userInfo') || '{}');
+    } catch {
+      return {};
+    }
+  });
+
+  useEffect(() => {
+    const handleAuthRefresh = (e: Event) => {
+      const detail = (e as CustomEvent).detail;
+      if (detail) {
+        setUserInfo(detail);
+      }
+    };
+    window.addEventListener('auth-refresh', handleAuthRefresh);
+    return () => window.removeEventListener('auth-refresh', handleAuthRefresh);
+  }, []);
+
+  const isOffDuty = !!userInfo.isOffDuty;
+
+  const handleToggleDuty = async (checked: boolean) => {
+    try {
+      const newOffDuty = !checked;
+      const res = await api.put('/profile', { isOffDuty: newOffDuty });
+      if (res.data) {
+        const updated = { ...userInfo, ...res.data };
+        localStorage.setItem('userInfo', JSON.stringify(updated));
+        setUserInfo(updated);
+        window.dispatchEvent(new CustomEvent('auth-refresh', { detail: updated }));
+        toast.success(newOffDuty ? "You are now Off Duty. Leads will route to admin." : "You are now On Duty.");
+      }
+    } catch (error) {
+      console.error("Failed to toggle duty status:", error);
+      toast.error("Failed to update duty status");
+    }
+  };
+
   const userInitials = userInfo.name
     ? userInfo.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
     : userInfo.email ? userInfo.email[0].toUpperCase() : 'U';
@@ -136,6 +177,22 @@ export function Header({ className }: { className?: string }) {
                 <p className="text-xs leading-none text-muted-foreground truncate">{userInfo.email}</p>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator className="bg-border" />
+            <div 
+              className="flex items-center justify-between px-3 py-2 text-sm text-foreground focus-visible:outline-none"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <span className="font-medium text-xs text-muted-foreground uppercase tracking-wider">Duty Status</span>
+              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full transition-all", isOffDuty ? "bg-destructive/15 text-destructive" : "bg-emerald-500/15 text-emerald-500")}>
+                  {isOffDuty ? "Off Duty" : "On Duty"}
+                </span>
+                <Switch
+                  checked={!isOffDuty}
+                  onCheckedChange={handleToggleDuty}
+                />
+              </div>
+            </div>
             <DropdownMenuSeparator className="bg-border" />
             <DropdownMenuItem
               className="focus:bg-accent focus:text-accent-foreground cursor-pointer"
