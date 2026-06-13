@@ -126,18 +126,6 @@ export default function ReportsPage() {
           </Link>
         )}
 
-        <Link to="/reports/call-analytics">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-primary/20 bg-primary/5">
-            <CardHeader>
-              <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center mb-2">
-                <PhoneCall className="text-primary h-5 w-5" />
-              </div>
-              <CardTitle>Detailed Call Report</CardTitle>
-              <CardDescription>Per-user call performance and talk time.</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-
         <Link to="/reports/user-total">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-blue-500/20 bg-blue-500/5 ring-1 ring-blue-500/10">
             <CardHeader>
