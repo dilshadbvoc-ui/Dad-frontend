@@ -99,7 +99,7 @@ export function PersistentBroadcastModal() {
           className={cn(
             "relative w-full max-w-lg overflow-hidden rounded-2xl border bg-slate-900/90 shadow-2xl backdrop-blur-xl",
             "border-slate-800 text-slate-100",
-            "before:absolute before:inset-0 before:rounded-2xl before:border before:border-white/5 before:bg-gradient-to-b before:from-white/10 before:to-transparent"
+            "before:absolute before:inset-0 before:pointer-events-none before:rounded-2xl before:border before:border-white/5 before:bg-gradient-to-b before:from-white/10 before:to-transparent"
           )}
         >
           {/* Top glow border */}
