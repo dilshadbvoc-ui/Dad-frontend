@@ -127,13 +127,25 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     }
   },
   {
-    accessorKey: "lead.status",
-    header: "Lead Status",
+    accessorKey: "leadStatus",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="hover:bg-transparent p-0"
+        >
+          Lead Status
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
     cell: ({ row }) => {
-      const lead = row.original.lead
-      return lead?.status ? (
+      const opp = row.original
+      const statusValue = opp.leadStatus || opp.lead?.status
+      return statusValue ? (
         <Badge variant="outline" className="capitalize bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-medium">
-          {lead.status.replace(/_/g, ' ')}
+          {statusValue.replace(/_/g, ' ')}
         </Badge>
       ) : <span className="text-muted-foreground">-</span>
     }

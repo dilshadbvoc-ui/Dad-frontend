@@ -314,35 +314,32 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                             )}
                           </div>
 
-                          {opp.lead && (
-                            <div className="flex items-center gap-1.5 w-full mt-1 pt-1.5 border-t border-dashed border-border/60" onClick={(e) => e.stopPropagation()}>
-                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lead Status:</span>
-                              <Select
-                                value={opp.lead.status || ""}
-                                onValueChange={async (newStatus) => {
-                                  if (!opp.lead) return;
-                                  try {
-                                    await api.put(`/leads/${opp.lead.id}`, { status: newStatus });
-                                    queryClient.invalidateQueries({ queryKey: ["opportunities"] });
-                                    toast.success("Lead status updated successfully");
-                                  } catch (error) {
-                                    toast.error("Failed to update lead status");
-                                  }
-                                }}
-                              >
-                                <SelectTrigger className="h-6 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate">
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent className="rounded-lg">
-                                  {leadStatuses.map((ls) => (
-                                    <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
-                                      {ls.label || ls.id}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1.5 w-full mt-1 pt-1.5 border-t border-dashed border-border/60" onClick={(e) => e.stopPropagation()}>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lead Status:</span>
+                            <Select
+                              value={opp.leadStatus || opp.lead?.status || ""}
+                              onValueChange={async (newStatus) => {
+                                try {
+                                  await api.put(`/opportunities/${opp.id}`, { leadStatus: newStatus });
+                                  queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+                                  toast.success("Lead status updated successfully");
+                                } catch (error) {
+                                  toast.error("Failed to update lead status");
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="h-6 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-lg">
+                                {leadStatuses.map((ls) => (
+                                  <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
+                                    {ls.label || ls.id}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
 
                           <div className="flex items-end justify-between pt-2 border-t border-border mt-1">
                             <div className="space-y-1">

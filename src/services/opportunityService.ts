@@ -44,6 +44,7 @@ export interface Opportunity {
         lastName?: string;
         status?: string;
     };
+    leadStatus?: string;
 }
 
 export interface OpportunityQueryParams {
@@ -71,6 +72,7 @@ export interface CreateOpportunityData {
     paymentStatus?: 'pending' | 'partial' | 'paid';
     paymentDate?: string;
     type?: 'NEW_BUSINESS' | 'UPSALE';
+    leadStatus?: string;
 }
 
 export type UpdateOpportunityData = Partial<CreateOpportunityData>;

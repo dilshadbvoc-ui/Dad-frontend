@@ -78,6 +78,7 @@ export interface Opportunity {
     }
   }
   paymentStatus?: string
+  leadStatus?: string
 }
 
 interface AccountProduct {
@@ -299,10 +300,10 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-gray-500">Status:</span>
                     <Select
-                      value={displayOpportunity.lead.status}
+                      value={displayOpportunity.leadStatus || displayOpportunity.lead?.status || ""}
                       onValueChange={async (newStatus) => {
                         try {
-                          await api.put(`/leads/${displayOpportunity.lead.id}`, { status: newStatus })
+                          await api.put(`/opportunities/${displayOpportunity.id}`, { leadStatus: newStatus })
                           queryClient.invalidateQueries({ queryKey: ['opportunity', displayOpportunity.id] })
                           queryClient.invalidateQueries({ queryKey: ['opportunities'] })
                           toast.success("Lead status updated successfully")
