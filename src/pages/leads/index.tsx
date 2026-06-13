@@ -330,7 +330,7 @@ export default function LeadsPage() {
   const currentOwner = searchParams.get('owner') || 'all';
   const currentBranch = searchParams.get('branch') || 'all';
   const currentSource = searchParams.get('source') || 'all';
-  const currentStatus = currentView.startsWith('status-') ? currentView.replace('status-', '') : undefined;
+  const currentStatus = searchParams.get('status') || 'all';
 
   // Save active filters to sessionStorage whenever they change
   useEffect(() => {
@@ -368,18 +368,20 @@ export default function LeadsPage() {
   const hasActiveFilters = useMemo(() => {
     return (
       currentView !== 'all-leads' ||
+      currentStatus !== 'all' ||
       currentOwner !== 'all' ||
       currentBranch !== 'all' ||
       currentSource !== 'all' ||
       dateFrom !== '' ||
       dateTo !== ''
     );
-  }, [currentView, currentOwner, currentBranch, currentSource, dateFrom, dateTo]);
+  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, dateFrom, dateTo]);
 
 
   const handleClearAllFilters = () => {
     setSearchParams(new URLSearchParams({
       view: 'all-leads',
+      status: 'all',
       sort: 'newest',
       owner: 'all',
       branch: 'all',
@@ -459,7 +461,7 @@ export default function LeadsPage() {
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
       branchId: currentBranch === 'all' ? undefined : currentBranch,
       source: currentSource === 'all' ? undefined : currentSource,
-      status: currentStatus,
+      status: currentStatus === 'all' ? undefined : currentStatus,
       startDate: backendDateFilter.from || undefined,
       endDate: backendDateFilter.to || undefined
     }),
@@ -547,15 +549,20 @@ export default function LeadsPage() {
       else if (currentView === 'last-28-days') label = "Last 28 days";
       else if (currentView === 'last-30-days') label = "Last 30 days";
       else if (currentView === 'no-activity-leads') label = "No Activity";
-      else if (currentView.startsWith('status-')) {
-        const statusId = currentView.replace('status-', '');
-        const found = statuses.find((s: any) => s.id === statusId);
-        label = found ? `Stage: ${found.label}` : `Stage: ${statusId}`;
-      }
       list.push({
         key: 'view',
         label,
         clear: () => updateSearchParams({ view: 'all-leads' })
+      });
+    }
+    
+    if (currentStatus !== 'all') {
+      const found = statuses.find((s: any) => s.id === currentStatus);
+      const label = found ? `Stage: ${found.label}` : `Stage: ${currentStatus}`;
+      list.push({
+        key: 'status',
+        label,
+        clear: () => updateSearchParams({ status: 'all' })
       });
     }
     
@@ -604,7 +611,7 @@ export default function LeadsPage() {
     }
     
     return list;
-  }, [currentView, currentOwner, currentBranch, currentSource, dateFrom, dateTo, statuses, users, branches, updateSearchParams]);
+  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, dateFrom, dateTo, statuses, users, branches, updateSearchParams]);
 
   // Sort function
   const sortLeads = (leadsToSort: Lead[]) => {
@@ -749,6 +756,10 @@ export default function LeadsPage() {
     updateSearchParams({ view });
   };
 
+  const handleStatusChange = (status: string) => {
+    updateSearchParams({ status: status === 'all' ? undefined : status });
+  };
+
   const handleSortChange = (sort: string) => {
     updateSearchParams({ sort });
   };
@@ -869,7 +880,7 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
+          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
             {/* View Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>
@@ -889,17 +900,33 @@ export default function LeadsPage() {
                     <SelectItem value="last-28-days" className="rounded-lg">Last 28 days</SelectItem>
                     <SelectItem value="last-30-days" className="rounded-lg">Last 30 days</SelectItem>
                     <SelectItem value="no-activity-leads" className="rounded-lg">No Activity</SelectItem>
-                    
-                    <SelectLabel className="mt-4 text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Pipeline Stages</SelectLabel>
-                    {statuses.map(status => (
-                      <SelectItem key={status.id} value={`status-${status.id}`} className="rounded-lg">
-                        {status.label}
-                      </SelectItem>
-                    ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Stage Filter */}
+            {!isTaskView && !isChartView && (
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Pipeline Stage</label>
+                <Select value={currentStatus} onValueChange={handleStatusChange}>
+                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                    <SelectValue placeholder="All Stages" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                    <SelectItem value="all" className="rounded-lg font-medium italic">All Stages</SelectItem>
+                    <SelectGroup>
+                      <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Stages</SelectLabel>
+                      {statuses.map(status => (
+                        <SelectItem key={status.id} value={status.id} className="rounded-lg">
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Owner Filter */}
             {!isTaskView && !isChartView && (
