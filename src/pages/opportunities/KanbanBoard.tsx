@@ -29,6 +29,15 @@ import { EditOpportunityDialog } from "@/components/EditOpportunityDialog";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteOpportunity } from "@/services/opportunityService";
+import { useLeadStatuses } from "@/hooks/useLeadStatuses";
+import { api } from "@/services/api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
 
 interface KanbanBoardProps {
   opportunities: Opportunity[];
@@ -58,6 +67,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   const [deleteOpp, setDeleteOpp] = useState<Opportunity | null>(null);
 
   const queryClient = useQueryClient();
+  const { statuses: leadStatuses } = useLeadStatuses();
   const user = getUserInfo();
   const canDelete = isOrgAdmin(user);
 
@@ -283,9 +293,12 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                             </DropdownMenu>
                           </div>
 
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <Badge variant="outline" className="text-[10px] h-5 px-1.5 font-normal border-border text-muted-foreground">
                               {opp.leadSource || 'Direct'}
+                            </Badge>
+                            <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20 capitalize">
+                              {opp.stage.replace(/_/g, ' ')}
                             </Badge>
                             {(isStagnant || isWarning) && (
                               <Tooltip>
@@ -300,6 +313,35 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                               </Tooltip>
                             )}
                           </div>
+
+                          {opp.lead && (
+                            <div className="flex items-center gap-1.5 w-full mt-1 pt-1.5 border-t border-dashed border-border/60" onClick={(e) => e.stopPropagation()}>
+                              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lead Status:</span>
+                              <Select
+                                value={opp.lead.status}
+                                onValueChange={async (newStatus) => {
+                                  try {
+                                    await api.put(`/leads/${opp.lead.id}`, { status: newStatus });
+                                    queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+                                    toast.success("Lead status updated successfully");
+                                  } catch (error) {
+                                    toast.error("Failed to update lead status");
+                                  }
+                                }}
+                              >
+                                <SelectTrigger className="h-6 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent className="rounded-lg">
+                                  {leadStatuses.map((ls) => (
+                                    <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
+                                      {ls.name || ls.label || ls.id}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )}
 
                           <div className="flex items-end justify-between pt-2 border-t border-border mt-1">
                             <div className="space-y-1">

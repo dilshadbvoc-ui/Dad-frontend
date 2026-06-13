@@ -127,6 +127,18 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     }
   },
   {
+    accessorKey: "lead.status",
+    header: "Lead Status",
+    cell: ({ row }) => {
+      const lead = row.original.lead
+      return lead?.status ? (
+        <Badge variant="outline" className="capitalize bg-emerald-500/10 text-emerald-500 border-emerald-500/20 font-medium">
+          {lead.status.replace(/_/g, ' ')}
+        </Badge>
+      ) : <span className="text-muted-foreground">-</span>
+    }
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
       const opportunity = row.original
