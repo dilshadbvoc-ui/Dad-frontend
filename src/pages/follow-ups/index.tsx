@@ -85,7 +85,7 @@ export default function FollowUpsPage() {
   })
 
   const followUps = data?.tasks || []
-  const activeCount = followUps.filter((task: any) => task.status !== 'completed').length
+  const activeCount = data?.counts?.active || 0
 
   const hasActiveFilters = useMemo(() => {
     return (
@@ -215,17 +215,9 @@ export default function FollowUpsPage() {
     return result
   }, [followUps, filterParam, today, sortBy, statusFilter])
 
-  const overdueCount = followUps.filter((task: any) => {
-    return new Date(task.dueDate) < new Date() && task.status !== 'completed'
-  }).length
-  
-  const todayCount = followUps.filter((task: any) => {
-    return isToday(new Date(task.dueDate)) && task.status !== 'completed'
-  }).length
-
-  const upcomingCount = followUps.filter((task: any) => {
-    return new Date(task.dueDate) > new Date() && !isToday(new Date(task.dueDate)) && task.status !== 'completed'
-  }).length
+  const overdueCount = data?.counts?.overdue || 0
+  const todayCount = data?.counts?.today || 0
+  const upcomingCount = data?.counts?.upcoming || 0
 
   if (isError) {
     return (
