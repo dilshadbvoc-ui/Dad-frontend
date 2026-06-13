@@ -103,6 +103,7 @@ export interface OrganisationUpdateData {
     ssoConfig?: IntegrationSettings;
     leadScoringConfig?: LeadScoringConfig;
     leadStatuses?: LeadStatus[];
+    opportunityLeadStatuses?: LeadStatus[];
 }
 
 export const getUsers = async () => {

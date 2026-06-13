@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { getOrganisation, updateOrganisation } from "@/services/settingsService";
 import type { LeadStatus } from "@/services/settingsService";
+import { DEFAULT_LEAD_STATUSES, DEFAULT_OPPORTUNITY_LEAD_STATUSES } from "@/hooks/useLeadStatuses";
 import { toast } from "sonner";
 import { 
   Dialog, 
@@ -31,6 +32,7 @@ import { Label } from "@/components/ui/label";
 import { Reorder, useDragControls } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function LeadStatusesSettingsPage() {
   const queryClient = useQueryClient();
@@ -39,33 +41,44 @@ export default function LeadStatusesSettingsPage() {
     queryFn: getOrganisation
   });
 
-  const [statuses, setStatuses] = useState<LeadStatus[]>([]);
+  const [activeTab, setActiveTab] = useState<"leads" | "opportunities">("leads");
+  
+  // States for lead statuses
+  const [leadStatuses, setLeadStatuses] = useState<LeadStatus[]>([]);
+  // States for opportunity lead statuses
+  const [oppStatuses, setOppStatuses] = useState<LeadStatus[]>([]);
+
   const [isEditing, setIsEditing] = useState(false);
   const [editingStatus, setEditingStatus] = useState<LeadStatus | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
 
-  // Initialize local state when data is loaded
+  // Initialize local states when data is loaded
   useEffect(() => {
-    if (orgData?.leadStatuses) {
-      setStatuses([...orgData.leadStatuses].sort((a, b) => a.order - b.order));
+    if (orgData) {
+      setLeadStatuses([...(orgData.leadStatuses || DEFAULT_LEAD_STATUSES)].sort((a, b) => a.order - b.order));
+      setOppStatuses([...(orgData.opportunityLeadStatuses || DEFAULT_OPPORTUNITY_LEAD_STATUSES)].sort((a, b) => a.order - b.order));
     }
   }, [orgData]);
 
   const mutation = useMutation({
-    mutationFn: (newStatuses: LeadStatus[]) => updateOrganisation({ leadStatuses: newStatuses }),
+    mutationFn: (updates: { leadStatuses?: LeadStatus[]; opportunityLeadStatuses?: LeadStatus[] }) => 
+      updateOrganisation(updates),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organisation'] });
-      toast.success("Lead statuses updated successfully");
+      toast.success("Settings updated successfully");
       setIsEditing(false);
     },
     onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to update statuses");
+      toast.error(error.response?.data?.message || "Failed to update settings");
     }
   });
 
+  const currentStatuses = activeTab === "leads" ? leadStatuses : oppStatuses;
+  const setCurrentStatuses = activeTab === "leads" ? setLeadStatuses : setOppStatuses;
+
   const handleReorder = (newOrder: LeadStatus[]) => {
     const reordered = newOrder.map((s, index) => ({ ...s, order: index }));
-    setStatuses(reordered);
+    setCurrentStatuses(reordered);
     setIsEditing(true);
   };
 
@@ -82,10 +95,10 @@ export default function LeadStatusesSettingsPage() {
       label,
       color,
       isSystem: false,
-      order: statuses.length
+      order: currentStatuses.length
     };
 
-    setStatuses([...statuses, newStatus]);
+    setCurrentStatuses([...currentStatuses, newStatus]);
     setIsAddDialogOpen(false);
     setIsEditing(true);
   };
@@ -98,17 +111,17 @@ export default function LeadStatusesSettingsPage() {
     const label = formData.get('label') as string;
     const color = formData.get('color') as string;
 
-    const updated = statuses.map(s => 
+    const updated = currentStatuses.map(s => 
       s.id === editingStatus.id ? { ...s, label, color } : s
     );
 
-    setStatuses(updated);
+    setCurrentStatuses(updated);
     setEditingStatus(null);
     setIsEditing(true);
   };
 
   const handleDeleteStatus = (id: string) => {
-    const statusToDelete = statuses.find(s => s.id === id);
+    const statusToDelete = currentStatuses.find(s => s.id === id);
     if (statusToDelete?.isSystem) {
       toast.error("System statuses cannot be deleted");
       return;
@@ -118,39 +131,43 @@ export default function LeadStatusesSettingsPage() {
       return;
     }
 
-    setStatuses(statuses.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i })));
+    setCurrentStatuses(currentStatuses.filter(s => s.id !== id).map((s, i) => ({ ...s, order: i })));
     setIsEditing(true);
   };
 
   const handleSetDefault = (id: string) => {
-    const updated = statuses.map(s => ({
+    const updated = currentStatuses.map(s => ({
       ...s,
       isDefault: s.id === id
     }));
-    setStatuses(updated);
+    setCurrentStatuses(updated);
     setIsEditing(true);
-    toast.info(`Default status set to "${statuses.find(s => s.id === id)?.label}"`);
+    toast.info(`Default status set to "${currentStatuses.find(s => s.id === id)?.label}"`);
   };
 
   const handleSave = () => {
-    mutation.mutate(statuses);
+    mutation.mutate({
+      leadStatuses,
+      opportunityLeadStatuses: oppStatuses
+    });
   };
 
   const handleReset = () => {
-    if (orgData?.leadStatuses) {
-      setStatuses([...orgData.leadStatuses].sort((a, b) => a.order - b.order));
+    if (orgData) {
+      setLeadStatuses([...(orgData.leadStatuses || DEFAULT_LEAD_STATUSES)].sort((a, b) => a.order - b.order));
+      setOppStatuses([...(orgData.opportunityLeadStatuses || DEFAULT_OPPORTUNITY_LEAD_STATUSES)].sort((a, b) => a.order - b.order));
       setIsEditing(false);
     }
   };
 
-  if (isLoading) return <div className="p-8">Loading settings...</div>;
+  if (isLoading) return <div className="p-8 text-center text-muted-foreground">Loading settings...</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 p-6 lg:p-8">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Lead Statuses</h1>
-          <p className="text-gray-500">Define the stages of your sales pipeline.</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">Pipeline Stages</h1>
+          <p className="text-gray-500">Define the stages of your sales pipelines.</p>
         </div>
         {isEditing && (
           <div className="flex gap-2">
@@ -158,13 +175,20 @@ export default function LeadStatusesSettingsPage() {
               <Undo2 className="h-4 w-4 mr-2" />
               Discard
             </Button>
-            <Button size="sm" onClick={handleSave} disabled={mutation.isPending}>
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={handleSave} disabled={mutation.isPending}>
               <Save className="h-4 w-4 mr-2" />
               {mutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         )}
       </div>
+
+      <Tabs defaultValue="leads" value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full">
+        <TabsList className="grid w-full grid-cols-2 max-w-[400px]">
+          <TabsTrigger value="leads">Lead Statuses</TabsTrigger>
+          <TabsTrigger value="opportunities">Deals Lead Stages</TabsTrigger>
+        </TabsList>
+      </Tabs>
 
       <Alert className="bg-blue-50 dark:bg-blue-900/10 border-blue-100 dark:border-blue-900">
         <Info className="h-4 w-4 text-blue-600" />
@@ -178,7 +202,8 @@ export default function LeadStatusesSettingsPage() {
         <CardHeader className="border-b border-gray-100 dark:border-gray-800 flex flex-row items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <GitBranch className="h-5 w-5 text-indigo-500" /> Pipeline Stages
+              <GitBranch className="h-5 w-5 text-indigo-500" /> 
+              {activeTab === "leads" ? "Lead Status Pipeline" : "Deals Lead Pipeline"}
             </CardTitle>
           </div>
           <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700" onClick={() => setIsAddDialogOpen(true)}>
@@ -188,11 +213,11 @@ export default function LeadStatusesSettingsPage() {
         <CardContent className="p-0">
           <Reorder.Group 
             axis="y" 
-            values={statuses} 
+            values={currentStatuses} 
             onReorder={handleReorder}
             className="divide-y divide-gray-100 dark:divide-gray-800"
           >
-            {statuses.map((status) => (
+            {currentStatuses.map((status) => (
               <StatusItem 
                 key={status.id} 
                 status={status} 
@@ -202,6 +227,11 @@ export default function LeadStatusesSettingsPage() {
               />
             ))}
           </Reorder.Group>
+          {currentStatuses.length === 0 && (
+            <div className="p-8 text-center text-muted-foreground">
+              No custom statuses added yet. Click Add Status to create one.
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -210,12 +240,12 @@ export default function LeadStatusesSettingsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Add Custom Status</DialogTitle>
-            <DialogDescription>Create a new stage for your lead workflow.</DialogDescription>
+            <DialogDescription>Create a new stage for your pipeline workflow.</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAddStatus} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="label">Status Label</Label>
-              <Input id="label" name="label" placeholder="e.g. Meeting Fixed" required />
+              <Input id="label" name="label" placeholder="e.g. Demo Scheduled" required />
             </div>
             <div className="space-y-2">
               <Label htmlFor="color">Badge Color</Label>

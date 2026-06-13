@@ -34,6 +34,8 @@ model Organisation {
   createdBy         String?
   upsellConfig      Json?
   ssoConfig         Json?
+  leadStatuses      Json?
+  opportunityLeadStatuses Json?
   accounts          Account[]
   apiKeys           ApiKey[]
   assignmentRules   AssignmentRule[]

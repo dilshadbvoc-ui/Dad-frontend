@@ -29,7 +29,7 @@ import { EditOpportunityDialog } from "@/components/EditOpportunityDialog";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteOpportunity } from "@/services/opportunityService";
-import { useLeadStatuses } from "@/hooks/useLeadStatuses";
+import { useOpportunityLeadStatuses } from "@/hooks/useLeadStatuses";
 import { api } from "@/services/api";
 import {
   Select,
@@ -67,7 +67,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   const [deleteOpp, setDeleteOpp] = useState<Opportunity | null>(null);
 
   const queryClient = useQueryClient();
-  const { statuses: leadStatuses } = useLeadStatuses();
+  const { statuses: leadStatuses } = useOpportunityLeadStatuses();
   const user = getUserInfo();
   const canDelete = isOrgAdmin(user);
 

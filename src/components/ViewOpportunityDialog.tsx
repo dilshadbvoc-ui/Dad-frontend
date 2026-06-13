@@ -21,7 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { getAssetUrl } from "@/lib/utils"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import TimelineFeed from "@/components/shared/TimelineFeed"
-import { useLeadStatuses } from "@/hooks/useLeadStatuses"
+import { useOpportunityLeadStatuses } from "@/hooks/useLeadStatuses"
 import {
   Select,
   SelectContent,
@@ -105,7 +105,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
   const navigate = useNavigate()
   const { formatCurrency } = useCurrency()
   const queryClient = useQueryClient()
-  const { statuses: leadStatuses } = useLeadStatuses()
+  const { statuses: leadStatuses } = useOpportunityLeadStatuses()
   const [noteText, setNoteText] = useState('')
   const [isAddingNote, setIsAddingNote] = useState(false)
 
