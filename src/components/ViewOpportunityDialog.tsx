@@ -66,8 +66,9 @@ export interface Opportunity {
   }
   lead?: {
     id: string
-    firstName: string
-    lastName: string
+    firstName?: string
+    lastName?: string
+    status?: string
     assignedTo?: {
       id: string
       firstName: string
@@ -316,7 +317,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                       <SelectContent className="rounded-lg">
                         {leadStatuses.map((ls) => (
                           <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
-                            {ls.name || ls.label || ls.id}
+                            {ls.label || ls.id}
                           </SelectItem>
                         ))}
                       </SelectContent>

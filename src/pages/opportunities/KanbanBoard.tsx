@@ -318,8 +318,9 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                             <div className="flex items-center gap-1.5 w-full mt-1 pt-1.5 border-t border-dashed border-border/60" onClick={(e) => e.stopPropagation()}>
                               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lead Status:</span>
                               <Select
-                                value={opp.lead.status}
+                                value={opp.lead.status || ""}
                                 onValueChange={async (newStatus) => {
+                                  if (!opp.lead) return;
                                   try {
                                     await api.put(`/leads/${opp.lead.id}`, { status: newStatus });
                                     queryClient.invalidateQueries({ queryKey: ["opportunities"] });
@@ -335,7 +336,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                 <SelectContent className="rounded-lg">
                                   {leadStatuses.map((ls) => (
                                     <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
-                                      {ls.name || ls.label || ls.id}
+                                      {ls.label || ls.id}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>

@@ -38,6 +38,12 @@ export interface Opportunity {
         name: string;
     };
     paymentRecords?: any[];
+    lead?: {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        status?: string;
+    };
 }
 
 export interface OpportunityQueryParams {
