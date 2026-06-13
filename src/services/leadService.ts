@@ -127,7 +127,7 @@ export const deleteLead = async (id: string) => {
     return response.data;
 };
 
-export const importLeads = async (leads: CreateLeadData[], options?: { assignmentRuleId?: string, applyAssignmentRules?: boolean, splitUserIds?: string[] }) => {
+export const importLeads = async (leads: CreateLeadData[], options?: { assignmentRuleId?: string, applyAssignmentRules?: boolean, splitUserIds?: string[], flagAsReEnquiry?: boolean }) => {
     const payload = options ? { leads, ...options } : leads;
     const response = await api.post('/leads/bulk', payload);
     return response.data;
