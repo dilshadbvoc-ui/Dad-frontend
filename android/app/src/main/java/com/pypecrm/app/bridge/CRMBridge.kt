@@ -15,6 +15,9 @@ import com.pypecrm.app.data.LeadEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import android.provider.Settings
+import android.text.TextUtils
+import com.pypecrm.app.services.CallRecordingAccessibilityService
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -168,5 +171,51 @@ class CRMBridge(val context: Context) {
         }
     }
 
+    }
+
+    @JavascriptInterface
+    fun checkAccessibilityService(): Boolean {
+        Log.d("CRMBridge", "Checking Accessibility Service status")
+        var accessibilityEnabled = 0
+        try {
+            accessibilityEnabled = Settings.Secure.getInt(
+                context.applicationContext.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED
+            )
+        } catch (e: Settings.SettingNotFoundException) {
+            Log.e("CRMBridge", "Accessibility setting not found", e)
+        }
+
+        if (accessibilityEnabled == 1) {
+            val settingValue = Settings.Secure.getString(
+                context.applicationContext.contentResolver,
+                Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+            )
+            if (settingValue != null) {
+                val colonSplitter = TextUtils.SimpleStringSplitter(':')
+                colonSplitter.setString(settingValue)
+                while (colonSplitter.hasNext()) {
+                    val accessibilityService = colonSplitter.next()
+                    if (accessibilityService.equals("${context.packageName}/${CallRecordingAccessibilityService::class.java.name}", ignoreCase = true)) {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+
+    @JavascriptInterface
+    fun requestAccessibilityService() {
+        Log.d("CRMBridge", "Requesting user to enable Accessibility Service")
+        try {
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(intent)
+            Toast.makeText(context, "Please enable the Pype CRM Call Recording Service", Toast.LENGTH_LONG).show()
+        } catch (e: Exception) {
+            Log.e("CRMBridge", "Failed to open accessibility settings", e)
+        }
+    }
 
 }

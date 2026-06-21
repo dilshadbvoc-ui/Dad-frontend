@@ -28,8 +28,8 @@ class AudioRecorderService(private val context: Context) {
 
             // Revert to standard hardware-friendly mode
             audioManager.mode = AudioManager.MODE_NORMAL
-            audioManager.isSpeakerphoneOn = false // User requested no loudspeaker
-            
+            // We keep speakerphone state unmodified here to avoid disrupting the call flow.
+            // If the accessibility service workaround fails, we will force speakerphone ON in the fallback.
             val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
@@ -39,8 +39,8 @@ class AudioRecorderService(private val context: Context) {
 
             try {
                 recorder = mediaRecorder.apply {
-                    // Use MIC - most reliable for user's own voice
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                    // Use VOICE_RECOGNITION - works with Accessibility Service workaround to capture both sides
+                    setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                     setAudioSamplingRate(44100)
@@ -55,11 +55,14 @@ class AudioRecorderService(private val context: Context) {
                 Log.d("AudioRecorder", "Started standard recording: ${currentRecordingFile!!.absolutePath}")
                 return currentRecordingFile
             } catch (e: Exception) {
-                Log.e("AudioRecorder", "Failed to start with MIC, trying VOICE_COMMUNICATION", e)
+                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, trying MIC with speakerphone", e)
                 // Single fallback for communication
                 try {
+                    // Force speakerphone ON so the MIC can pick up the other person's voice
+                    audioManager.isSpeakerphoneOn = true
+                    
                     mediaRecorder.reset()
-                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
                     mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                     mediaRecorder.setOutputFile(currentRecordingFile!!.absolutePath)

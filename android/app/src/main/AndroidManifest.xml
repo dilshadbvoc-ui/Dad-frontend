@@ -27,6 +27,7 @@
     
     <!-- Permissions required for call recording -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- To force speakerphone -->
     
     <!-- Optional: Read phone state to know caller ID natively if needed in future -->
@@ -71,6 +72,19 @@
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
+        </service>
+
+        <!-- Accessibility Service for Call Recording Workaround on Android 10+ -->
+        <service android:name=".services.CallRecordingAccessibilityService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:label="Pype CRM Call Recording Service"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_config" />
         </service>
 
 
