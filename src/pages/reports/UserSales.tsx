@@ -335,7 +335,7 @@ export default function UserSalesPage() {
             </CardHeader>
             <CardContent className="h-[350px]">
               {isTrendLoading ? <Skeleton className="w-full h-full" /> : (
-                <ResponsiveContainer minWidth={0} minHeight={0}  width="100%" height="100%" >
+                <ResponsiveContainer minWidth={1} minHeight={1}  width="100%" height="100%" >
                   <AreaChart data={trendData}>
                     <defs>
                       <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
@@ -393,7 +393,7 @@ export default function UserSalesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <ResponsiveContainer minWidth={0} minHeight={300} width="100%" height="100%">
+              <ResponsiveContainer minWidth={1} minHeight={300} width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={userStats || []}
@@ -425,7 +425,7 @@ export default function UserSalesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="h-[300px]">
-              <ResponsiveContainer minWidth={0} minHeight={300} width="100%" height="100%">
+              <ResponsiveContainer minWidth={1} minHeight={300} width="100%" height="100%">
                 <BarChart data={userStats?.slice(0, 8)}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
@@ -444,7 +444,7 @@ export default function UserSalesPage() {
             <CardTitle className="text-sm font-semibold uppercase tracking-wider">Historical Comparison</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
-            <ResponsiveContainer minWidth={0} minHeight={300} width="100%" height="100%">
+            <ResponsiveContainer minWidth={1} minHeight={300} width="100%" height="100%">
               <BarChart data={userStats?.slice(0, 8)}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fontSize: 10}} />
