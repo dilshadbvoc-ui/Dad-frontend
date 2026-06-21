@@ -54,6 +54,7 @@ interface TeamMember {
   phone?: string
   avatar?: string
   isActive: boolean
+  isOffDuty?: boolean
   dailyLeadQuota?: number
   permissions?: string[]
   reportsTo?: {
@@ -98,6 +99,7 @@ function HierarchyNode({
   onSuspend,
   onActivate,
   onDelete,
+  onToggleDuty,
   onResetPassword,
 }: {
   node: TreeNode
@@ -106,6 +108,7 @@ function HierarchyNode({
   onSuspend: (m: TeamMember) => void
   onActivate: (m: TeamMember) => void
   onDelete: (m: TeamMember) => void
+  onToggleDuty?: (m: TeamMember, isOffDuty: boolean) => void
   onResetPassword?: (m: TeamMember) => void
 }) {
   const [expanded, setExpanded] = useState(true)
@@ -159,6 +162,20 @@ function HierarchyNode({
             )}
           </div>
         </div>
+
+        {/* Duty Toggle (Admin only) */}
+        {onToggleDuty && m.isActive && (
+          <div className="flex items-center gap-2 mr-4" onClick={e => e.stopPropagation()}>
+            <span className={m.isOffDuty ? "text-[10px] text-destructive font-semibold" : "text-[10px] text-emerald-500 font-semibold"}>
+              {m.isOffDuty ? "Off Duty" : "On Duty"}
+            </span>
+            <Switch
+              checked={!m.isOffDuty}
+              onCheckedChange={(checked) => onToggleDuty(m, !checked)}
+              className="scale-75 data-[state=checked]:bg-emerald-500"
+            />
+          </div>
+        )}
 
         {/* Actions */}
         <DropdownMenu>
@@ -224,7 +241,7 @@ function HierarchyNode({
             style={{ left: `${26 + depth * 28}px` }}
           />
           {node.children.map(child => (
-            <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} onResetPassword={onResetPassword} />
+            <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} onToggleDuty={onToggleDuty} onResetPassword={onResetPassword} />
           ))}
         </div>
       )}
@@ -375,6 +392,20 @@ export default function TeamSettings() {
     }
   });
 
+  const toggleDutyMutation = useMutation({
+    mutationFn: async ({ userId, isOffDuty }: { userId: string, isOffDuty: boolean }) => {
+      const res = await api.put(`/users/${userId}`, { isOffDuty })
+      return res.data
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success(variables.isOffDuty ? "User marked as Off Duty" : "User marked as On Duty")
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update duty status")
+    }
+  });
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
@@ -516,6 +547,7 @@ export default function TeamSettings() {
                 <TableHead>Branch</TableHead>
                 <TableHead>Reports To</TableHead>
                 <TableHead>Daily Quota</TableHead>
+                {(userIsSuperAdmin || isAdmin(currentUser)) && <TableHead>Duty Status</TableHead>}
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -598,6 +630,24 @@ export default function TeamSettings() {
                         <span className="text-muted-foreground text-sm">No limit</span>
                       )}
                     </TableCell>
+                    {(userIsSuperAdmin || isAdmin(currentUser)) && (
+                      <TableCell>
+                        {member.isActive ? (
+                          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                            <Switch
+                              checked={!member.isOffDuty}
+                              onCheckedChange={(checked) => toggleDutyMutation.mutate({ userId: member.id, isOffDuty: !checked })}
+                              className="scale-75 data-[state=checked]:bg-emerald-500"
+                            />
+                            <span className={member.isOffDuty ? "text-[10px] text-destructive font-semibold" : "text-[10px] text-emerald-500 font-semibold"}>
+                              {member.isOffDuty ? "Off Duty" : "On Duty"}
+                            </span>
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground text-sm">-</span>
+                        )}
+                      </TableCell>
+                    )}
                     <TableCell>
                       <Badge 
                         variant={member.isActive ? "default" : "secondary"} 
@@ -691,6 +741,7 @@ export default function TeamSettings() {
                   onSuspend={(m) => setSuspendingUser(m)}
                   onActivate={(m) => setActivatingUser(m)}
                   onDelete={(m) => setDeletingUser(m)}
+                  onToggleDuty={(userIsSuperAdmin || isAdmin(currentUser)) ? ((m, isOffDuty) => toggleDutyMutation.mutate({ userId: m.id, isOffDuty })) : undefined}
                   onResetPassword={userIsSuperAdmin ? (m) => setResettingUser(m) : undefined}
                 />
               ))}
