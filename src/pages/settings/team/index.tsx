@@ -92,6 +92,18 @@ function buildHierarchyTree(members: TeamMember[]): TreeNode[] {
 }
 
 // ─── Tree Row Component ──────────────────────────────────────────────
+interface HierarchyNodeProps {
+  node: TreeNode
+  depth: number
+  onEdit: (m: TeamMember) => void
+  onSuspend: (m: TeamMember) => void
+  onActivate: (m: TeamMember) => void
+  onDelete: (m: TeamMember) => void
+  onToggleDuty?: (m: TeamMember, isOffDuty: boolean) => void
+  onSaveQuota?: (m: TeamMember, quota: number | null) => void
+  onResetPassword?: (m: TeamMember) => void
+}
+
 function HierarchyNode({
   node,
   depth,
@@ -100,17 +112,9 @@ function HierarchyNode({
   onActivate,
   onDelete,
   onToggleDuty,
+  onSaveQuota,
   onResetPassword,
-}: {
-  node: TreeNode
-  depth: number
-  onEdit: (m: TeamMember) => void
-  onSuspend: (m: TeamMember) => void
-  onActivate: (m: TeamMember) => void
-  onDelete: (m: TeamMember) => void
-  onToggleDuty?: (m: TeamMember, isOffDuty: boolean) => void
-  onResetPassword?: (m: TeamMember) => void
-}) {
+}: HierarchyNodeProps) {
   const [expanded, setExpanded] = useState(true)
   const m = node.user
   const hasChildren = node.children.length > 0
@@ -163,19 +167,28 @@ function HierarchyNode({
           </div>
         </div>
 
-        {/* Duty Toggle (Admin only) */}
-        {onToggleDuty && m.isActive && (
-          <div className="flex items-center gap-2 mr-4" onClick={e => e.stopPropagation()}>
-            <span className={m.isOffDuty ? "text-[10px] text-destructive font-semibold" : "text-[10px] text-emerald-500 font-semibold"}>
-              {m.isOffDuty ? "Off Duty" : "On Duty"}
-            </span>
-            <Switch
-              checked={!m.isOffDuty}
-              onCheckedChange={(checked) => onToggleDuty(m, !checked)}
-              className="scale-75 data-[state=checked]:bg-emerald-500"
-            />
-          </div>
-        )}
+        {/* Quota Editor & Duty Toggle */}
+        <div className="flex items-center gap-4 mr-4">
+          {onSaveQuota && m.isActive && (
+            <div onClick={e => e.stopPropagation()}>
+              <QuotaEditor member={m} onSave={(val) => onSaveQuota(m, val)} />
+            </div>
+          )}
+
+          {/* Duty Toggle (Admin only) */}
+          {onToggleDuty && m.isActive && (
+            <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+              <span className={m.isOffDuty ? "text-[10px] text-destructive font-semibold" : "text-[10px] text-emerald-500 font-semibold"}>
+                {m.isOffDuty ? "Off Duty" : "On Duty"}
+              </span>
+              <Switch
+                checked={!m.isOffDuty}
+                onCheckedChange={(checked) => onToggleDuty(m, !checked)}
+                className="scale-75 data-[state=checked]:bg-emerald-500"
+              />
+            </div>
+          )}
+        </div>
 
         {/* Actions */}
         <DropdownMenu>
@@ -241,13 +254,60 @@ function HierarchyNode({
             style={{ left: `${26 + depth * 28}px` }}
           />
           {node.children.map(child => (
-            <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} onToggleDuty={onToggleDuty} onResetPassword={onResetPassword} />
+            <HierarchyNode key={child.user.id} node={child} depth={depth + 1} onEdit={onEdit} onSuspend={onSuspend} onActivate={onActivate} onDelete={onDelete} onToggleDuty={onToggleDuty} onSaveQuota={onSaveQuota} onResetPassword={onResetPassword} />
           ))}
         </div>
       )}
     </>
   )
 }
+
+// ─── Inline Quota Editor ──────────────────────────────────────────────
+const QuotaEditor = ({ member, onSave }: { member: TeamMember, onSave: (val: number | null) => void }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [val, setVal] = useState(member.dailyLeadQuota?.toString() || '');
+
+  const save = () => {
+    setIsEditing(false);
+    const num = parseInt(val);
+    const newVal = isNaN(num) || num <= 0 ? null : num;
+    if (newVal !== member.dailyLeadQuota) {
+      onSave(newVal);
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <Input
+        autoFocus
+        type="number"
+        className="w-24 h-7 text-xs px-2"
+        value={val}
+        onChange={e => setVal(e.target.value)}
+        onBlur={save}
+        onKeyDown={e => e.key === 'Enter' && save()}
+        placeholder="No limit"
+      />
+    );
+  }
+
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); setIsEditing(true); }}
+      className="group cursor-pointer hover:opacity-80 transition-opacity flex items-center gap-1.5 w-fit"
+      title="Click to edit quota"
+    >
+      {member.dailyLeadQuota ? (
+        <Badge variant="outline" className="font-normal capitalize whitespace-nowrap bg-muted/20 hover:bg-muted/40 transition-colors">
+          {member.dailyLeadQuota} leads/day
+        </Badge>
+      ) : (
+        <span className="text-muted-foreground text-xs underline decoration-dashed underline-offset-2 hover:text-foreground transition-colors">No limit</span>
+      )}
+      <Pencil className="h-3 w-3 text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-colors" />
+    </div>
+  );
+};
 
 // ─── Main Component ──────────────────────────────────────────────────
 export default function TeamSettings() {
@@ -403,6 +463,20 @@ export default function TeamSettings() {
     },
     onError: (error: any) => {
       toast.error(error.response?.data?.message || "Failed to update duty status")
+    }
+  });
+
+  const updateQuotaMutation = useMutation({
+    mutationFn: async ({ userId, dailyLeadQuota }: { userId: string, dailyLeadQuota: number | null }) => {
+      const res = await api.put(`/users/${userId}`, { dailyLeadQuota })
+      return res.data
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] })
+      toast.success("Daily quota updated successfully")
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.message || "Failed to update daily quota")
     }
   });
 
@@ -622,7 +696,9 @@ export default function TeamSettings() {
                       )}
                     </TableCell>
                     <TableCell>
-                      {member.dailyLeadQuota ? (
+                      {(userIsSuperAdmin || isAdmin(currentUser)) ? (
+                        <QuotaEditor member={member} onSave={(val) => updateQuotaMutation.mutate({ userId: member.id, dailyLeadQuota: val })} />
+                      ) : member.dailyLeadQuota ? (
                         <Badge variant="outline" className="font-normal capitalize whitespace-nowrap">
                           {member.dailyLeadQuota} leads/day
                         </Badge>
@@ -742,6 +818,7 @@ export default function TeamSettings() {
                   onActivate={(m) => setActivatingUser(m)}
                   onDelete={(m) => setDeletingUser(m)}
                   onToggleDuty={(userIsSuperAdmin || isAdmin(currentUser)) ? ((m, isOffDuty) => toggleDutyMutation.mutate({ userId: m.id, isOffDuty })) : undefined}
+                  onSaveQuota={(userIsSuperAdmin || isAdmin(currentUser)) ? ((m, val) => updateQuotaMutation.mutate({ userId: m.id, dailyLeadQuota: val })) : undefined}
                   onResetPassword={userIsSuperAdmin ? (m) => setResettingUser(m) : undefined}
                 />
               ))}
