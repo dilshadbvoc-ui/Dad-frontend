@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { getUsers, getBranches } from "@/services/settingsService"
+import { Input } from "@/components/ui/input"
 
 export default function OpportunitiesPage() {
   const { formatCurrency } = useCurrency()
@@ -297,20 +298,20 @@ export default function OpportunitiesPage() {
                   <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Start Date</label>
-                      <input
+                      <Input
                         type="date"
                         value={queryParams.startDate}
                         onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                        className="w-full h-9 rounded-lg bg-muted/50 border-0 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="h-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
                       />
                     </div>
                     <div className="space-y-1">
                       <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">End Date</label>
-                      <input
+                      <Input
                         type="date"
                         value={queryParams.endDate}
                         onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                        className="w-full h-9 rounded-lg bg-muted/50 border-0 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        className="h-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
                       />
                     </div>
                   </div>
