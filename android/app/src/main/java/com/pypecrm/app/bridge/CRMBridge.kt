@@ -33,7 +33,9 @@ class CRMBridge(val context: Context) {
         prefs.edit().putString("jwt_token", token).apply()
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300, TimeUnit.SECONDS)
             .build()
         
         val apiBase = prefs.getString("api_url", "https://www.pypecrm.com")?.trimEnd('/')

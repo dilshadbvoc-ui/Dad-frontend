@@ -53,7 +53,9 @@ export default function OpportunitiesPage() {
     type: 'all',
     branchId: 'all',
     leadSource: 'all',
-    search: ''
+    search: '',
+    startDate: '',
+    endDate: ''
   })
 
   // Get current user
@@ -86,6 +88,8 @@ export default function OpportunitiesPage() {
       if (params.branchId === 'all') delete params.branchId;
       if (params.leadSource === 'all') delete params.leadSource;
       if (params.ownerId === '') delete params.ownerId;
+      if (!params.startDate) delete params.startDate;
+      if (!params.endDate) delete params.endDate;
       
       return getOpportunities(params);
     },
@@ -108,7 +112,9 @@ export default function OpportunitiesPage() {
       type: 'all',
       branchId: 'all',
       leadSource: 'all',
-      search: ''
+      search: '',
+      startDate: '',
+      endDate: ''
     });
     setFilterMode('all');
   };
@@ -184,10 +190,10 @@ export default function OpportunitiesPage() {
 
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all') ? 'border-primary text-primary bg-primary/5' : '')}>
+                <Button variant="outline" size="sm" className={cn("rounded-xl transition-all", (queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all' || queryParams.startDate || queryParams.endDate) ? 'border-primary text-primary bg-primary/5' : '')}>
                   <Filter className="h-4 w-4" />
                   <span className="ml-2 hidden xs:inline">Filter</span>
-                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all' || queryParams.leadSource !== 'all') && (
+                  {(queryParams.ownerId || queryParams.stage !== 'all' || queryParams.type !== 'all' || queryParams.branchId !== 'all' || queryParams.leadSource !== 'all' || queryParams.startDate || queryParams.endDate) && (
                     <Badge className="ml-2 h-4 w-4 p-0 flex items-center justify-center bg-primary text-white text-[10px] rounded-full">
                       !
                     </Badge>
@@ -286,6 +292,27 @@ export default function OpportunitiesPage() {
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Start Date</label>
+                      <input
+                        type="date"
+                        value={queryParams.startDate}
+                        onChange={(e) => handleFilterChange('startDate', e.target.value)}
+                        className="w-full h-9 rounded-lg bg-muted/50 border-0 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">End Date</label>
+                      <input
+                        type="date"
+                        value={queryParams.endDate}
+                        onChange={(e) => handleFilterChange('endDate', e.target.value)}
+                        className="w-full h-9 rounded-lg bg-muted/50 border-0 px-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                      />
+                    </div>
                   </div>
                 </div>
               </PopoverContent>

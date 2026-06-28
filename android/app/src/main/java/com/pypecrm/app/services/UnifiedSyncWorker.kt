@@ -154,7 +154,9 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
 
     private fun executeRequest(request: Request): Boolean {
         val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300, TimeUnit.SECONDS)
             .build()
         return try {
             client.newCall(request).execute().use { it.isSuccessful }

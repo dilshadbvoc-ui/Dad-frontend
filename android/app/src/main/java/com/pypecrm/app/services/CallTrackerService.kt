@@ -300,8 +300,9 @@ class CallTrackerService : Service() {
         }
 
         val client = OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(300, TimeUnit.SECONDS)
             .build()
             
         val finalTimestamp = officialTimestamp ?: System.currentTimeMillis()
