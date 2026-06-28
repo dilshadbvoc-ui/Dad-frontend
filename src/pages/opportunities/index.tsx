@@ -201,7 +201,7 @@ export default function OpportunitiesPage() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-80 p-4 rounded-2xl shadow-2xl border-border/50" align="end">
+              <PopoverContent className="w-80 max-h-[85vh] overflow-y-auto p-4 rounded-2xl shadow-2xl border-border/50" align="end">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-bold text-sm">Filters</h4>
