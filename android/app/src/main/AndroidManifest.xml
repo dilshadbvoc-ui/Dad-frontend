@@ -126,12 +126,7 @@
 
         <service
             android:name=".services.CallTrackerService"
-            android:foregroundServiceType="phoneCall|microphone"
-            android:exported="false" />
-
-        <service
-            android:name=".services.CallCaptureService"
-            android:foregroundServiceType="mediaProjection"
+            android:foregroundServiceType="phoneCall|microphone|mediaProjection"
             android:exported="false" />
 
         <service

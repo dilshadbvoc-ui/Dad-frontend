@@ -10,6 +10,18 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.pypecrm.app.MainActivity
+import android.media.AudioAttributes
+import android.media.AudioFormat
+import android.media.AudioRecord
+import android.media.AudioPlaybackCaptureConfiguration
+import android.media.projection.MediaProjection
+import android.media.projection.MediaProjectionManager
+import java.io.FileOutputStream
+import java.io.RandomAccessFile
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import kotlin.concurrent.thread
 import com.pypecrm.app.data.AppDatabase
 import com.pypecrm.app.data.CallBufferEntity
 import com.pypecrm.app.data.SyncQueueEntry
@@ -36,6 +48,13 @@ class CallTrackerService : Service() {
     private var currentSessionId: String? = null
     private lateinit var recorderService: AudioRecorderService
     private var currentCallFile: java.io.File? = null
+
+    // MediaProjection audio capture variables
+    private var mediaProjection: MediaProjection? = null
+    private var audioRecord: AudioRecord? = null
+    private var isProjectionRecording = false
+    private var projectionRecordThread: Thread? = null
+    private var projectionOutputFile: java.io.File? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -108,20 +127,8 @@ class CallTrackerService : Service() {
 
         if (number != null) {
             if (MainActivity.hasProjectionPermission()) {
-                Log.d("CallTrackerService", "Using MediaProjection AudioPlaybackCapture for call recording")
-                val captureIntent = Intent(applicationContext, CallCaptureService::class.java).apply {
-                    action = CallCaptureService.ACTION_START
-                    putExtra(CallCaptureService.EXTRA_RESULT_CODE, MainActivity.projectionResultCode)
-                    putExtra(CallCaptureService.EXTRA_RESULT_DATA, MainActivity.projectionResultData)
-                    putExtra(CallCaptureService.EXTRA_LEAD_ID, "lead")
-                    putExtra(CallCaptureService.EXTRA_PHONE_NUM, number)
-                }
-                try {
-                    ContextCompat.startForegroundService(applicationContext, captureIntent)
-                } catch (e: Exception) {
-                    Log.e("CallTrackerService", "Failed to start CallCaptureService, falling back to standard recorder", e)
-                    currentCallFile = recorderService.startRecording("lead", number)
-                }
+                Log.d("CallTrackerService", "Using MediaProjection AudioPlaybackCapture directly inside CallTrackerService")
+                startProjectionCapture(number)
             } else {
                 Log.d("CallTrackerService", "MediaProjection not active, using standard AudioRecorderService fallback")
                 currentCallFile = recorderService.startRecording("lead", number)
@@ -142,15 +149,12 @@ class CallTrackerService : Service() {
 
             var recordingFile: java.io.File? = null
             
-            if (CallCaptureService.isServiceRunning) {
-                Log.d("CallTrackerService", "Stopping MediaProjection CallCaptureService")
-                val stopIntent = Intent(applicationContext, CallCaptureService::class.java).apply {
-                    action = CallCaptureService.ACTION_STOP
-                }
-                startService(stopIntent)
+            if (isProjectionRecording) {
+                Log.d("CallTrackerService", "Stopping direct MediaProjection capture")
+                stopProjectionCapture()
                 // Sleep briefly to allow wav header writing task to complete before copying
                 try { Thread.sleep(300) } catch (e: Exception) {}
-                recordingFile = CallCaptureService.currentFile
+                recordingFile = projectionOutputFile
             } else {
                 recorderService.stopRecording()
                 recordingFile = currentCallFile
@@ -473,4 +477,171 @@ class CallTrackerService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    private fun startProjectionCapture(number: String) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
+        if (isProjectionRecording) return
+
+        try {
+            val resultCode = MainActivity.projectionResultCode
+            val resultData = MainActivity.projectionResultData ?: return
+
+            val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            mediaProjection = mpManager.getMediaProjection(resultCode, resultData)
+
+            if (mediaProjection == null) {
+                Log.e("CallTrackerService", "MediaProjection token could not be obtained")
+                return
+            }
+
+            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
+            val fileName = "CRM_Call_lead_${number}_${timestamp}.wav"
+            val file = java.io.File(cacheDir, fileName)
+            projectionOutputFile = file
+
+            val config = AudioPlaybackCaptureConfiguration.Builder(mediaProjection!!)
+                .addMatchingUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
+                .addMatchingUsage(AudioAttributes.USAGE_MEDIA)
+                .build()
+
+            val sampleRate = 16000
+            val channelConfig = AudioFormat.CHANNEL_IN_MONO
+            val audioEncoding = AudioFormat.ENCODING_PCM_16BIT
+            val minBufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioEncoding)
+
+            audioRecord = AudioRecord.Builder()
+                .setAudioFormat(AudioFormat.Builder()
+                    .setEncoding(audioEncoding)
+                    .setSampleRate(sampleRate)
+                    .setChannelMask(channelConfig)
+                    .build())
+                .setAudioPlaybackCaptureConfig(config)
+                .setBufferSizeInBytes(minBufferSize * 2)
+                .build()
+
+            audioRecord?.startRecording()
+            isProjectionRecording = true
+
+            projectionRecordThread = thread(start = true) {
+                writeAudioDataToFile(file, minBufferSize)
+            }
+            Log.d("CallTrackerService", "Started MediaProjection AudioPlaybackCapture: ${file.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Failed to start MediaProjection recording", e)
+        }
+    }
+
+    private fun writeAudioDataToFile(file: java.io.File, bufferSize: Int) {
+        val data = ByteArray(bufferSize)
+        val out = FileOutputStream(file)
+        out.write(ByteArray(44)) // WAV header placeholder
+
+        try {
+            while (isProjectionRecording) {
+                val read = audioRecord?.read(data, 0, bufferSize) ?: 0
+                if (read > 0) {
+                    out.write(data, 0, read)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Error writing audio bytes to file", e)
+        } finally {
+            out.close()
+            if (file.exists() && file.length() > 44) {
+                writeWavHeader(file)
+            }
+        }
+    }
+
+    private fun writeWavHeader(file: java.io.File) {
+        try {
+            val randomAccessFile = RandomAccessFile(file, "rw")
+            val totalAudioLen = file.length() - 44
+            val totalDataLen = totalAudioLen + 36
+            val longSampleRate = 16000L
+            val channels = 1
+            val byteRate = longSampleRate * channels * 2
+
+            val header = ByteArray(44)
+            header[0] = 'R'.code.toByte() // RIFF
+            header[1] = 'I'.code.toByte()
+            header[2] = 'F'.code.toByte()
+            header[3] = 'F'.code.toByte()
+            header[4] = (totalDataLen and 0xff).toByte()
+            header[5] = ((totalDataLen shr 8) and 0xff).toByte()
+            header[6] = ((totalDataLen shr 16) and 0xff).toByte()
+            header[7] = ((totalDataLen shr 24) and 0xff).toByte()
+            header[8] = 'W'.code.toByte() // WAVE
+            header[9] = 'A'.code.toByte()
+            header[10] = 'V'.code.toByte()
+            header[11] = 'E'.code.toByte()
+            header[12] = 'f'.code.toByte() // fmt
+            header[13] = 'm'.code.toByte()
+            header[14] = 't'.code.toByte()
+            header[15] = ' '.code.toByte()
+            header[16] = 16
+            header[17] = 0
+            header[18] = 0
+            header[19] = 0
+            header[20] = 1 // PCM
+            header[21] = 0
+            header[22] = channels.toByte()
+            header[23] = 0
+            header[24] = (longSampleRate and 0xff).toByte()
+            header[25] = ((longSampleRate shr 8) and 0xff).toByte()
+            header[26] = ((longSampleRate shr 16) and 0xff).toByte()
+            header[27] = ((longSampleRate shr 24) and 0xff).toByte()
+            header[28] = (byteRate and 0xff).toByte()
+            header[29] = ((byteRate shr 8) and 0xff).toByte()
+            header[30] = ((byteRate shr 16) and 0xff).toByte()
+            header[31] = ((byteRate shr 24) and 0xff).toByte()
+            header[32] = (channels * 2).toByte()
+            header[33] = 0
+            header[34] = 16
+            header[35] = 0
+            header[36] = 'd'.code.toByte() // data
+            header[37] = 'a'.code.toByte()
+            header[38] = 't'.code.toByte()
+            header[39] = 'a'.code.toByte()
+            header[40] = (totalAudioLen and 0xff).toByte()
+            header[41] = ((totalAudioLen shr 8) and 0xff).toByte()
+            header[42] = ((totalAudioLen shr 16) and 0xff).toByte()
+            header[43] = ((totalAudioLen shr 24) and 0xff).toByte()
+
+            randomAccessFile.seek(0)
+            randomAccessFile.write(header)
+            randomAccessFile.close()
+            Log.d("CallTrackerService", "WAV header correctly written")
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Failed writing WAV header", e)
+        }
+    }
+
+    private fun stopProjectionCapture() {
+        if (!isProjectionRecording) return
+        isProjectionRecording = false
+
+        try {
+            audioRecord?.stop()
+            audioRecord?.release()
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Failed to release AudioRecord", e)
+        } finally {
+            audioRecord = null
+        }
+
+        try {
+            mediaProjection?.stop()
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Failed to stop MediaProjection token", e)
+        } finally {
+            mediaProjection = null
+        }
+        Log.d("CallTrackerService", "Released projection recording resources")
+    }
+
+    override fun onDestroy() {
+        stopProjectionCapture()
+        super.onDestroy()
+    }
 }
