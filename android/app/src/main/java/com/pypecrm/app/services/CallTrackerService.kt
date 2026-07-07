@@ -65,7 +65,13 @@ class CallTrackerService : Service() {
         val initialNotification = createNotification("Call Tracker Active", "Waiting for calls...")
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(NOTIFICATION_ID, initialNotification, ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
+                startForeground(
+                    NOTIFICATION_ID, 
+                    initialNotification, 
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL or 
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE or 
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+                )
             } else {
                 startForeground(NOTIFICATION_ID, initialNotification)
             }
