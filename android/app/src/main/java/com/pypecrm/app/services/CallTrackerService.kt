@@ -220,10 +220,10 @@ class CallTrackerService : Service() {
                 }
                 // Schedule worker for any remaining queued items (WhatsApp, failed calls, etc.)
                 com.pypecrm.app.services.UnifiedSyncWorker.schedule(applicationContext)
-                isCallActive = false
-                currentCallFile = null
-                updateNotification("Call Tracker Active", "Waiting for calls...")
             }
+            isCallActive = false
+            currentCallFile = null
+            updateNotification("Call Tracker Active", "Waiting for calls...")
         } else {
             updateNotification("Call Tracker Active", "Waiting for calls...")
         }

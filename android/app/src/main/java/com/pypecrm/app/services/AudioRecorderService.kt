@@ -16,9 +16,19 @@ class AudioRecorderService(private val context: Context) {
     private var currentRecordingFile: File? = null
 
     private fun isDefaultAssistant(): Boolean {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            try {
+                val roleManager = context.getSystemService(Context.ROLE_SERVICE) as android.app.role.RoleManager
+                return roleManager.isRoleHeld(android.app.role.RoleManager.ROLE_ASSISTANT)
+            } catch (e: Exception) {
+                Log.e("AudioRecorder", "RoleManager error", e)
+            }
+        }
         try {
             val assistant = android.provider.Settings.Secure.getString(context.contentResolver, "assistant")
-            return assistant != null && assistant.contains(context.packageName)
+            val voiceInteraction = android.provider.Settings.Secure.getString(context.contentResolver, "voice_interaction_service")
+            return (assistant != null && assistant.contains(context.packageName)) ||
+                   (voiceInteraction != null && voiceInteraction.contains(context.packageName))
         } catch (e: Exception) {
             return false
         }
