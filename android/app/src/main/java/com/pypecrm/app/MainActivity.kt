@@ -96,13 +96,16 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupWebView() {
+        // Clear WebView cache on startup to bust old cached Javascript bundles
+        webView.clearCache(true)
+
         webView.settings.apply {
             javaScriptEnabled = true
             domStorageEnabled = true
             databaseEnabled = true
             setGeolocationEnabled(true)
             setGeolocationDatabasePath(filesDir.path)
-            cacheMode = WebSettings.LOAD_DEFAULT
+            cacheMode = WebSettings.LOAD_NO_CACHE
             allowFileAccess = true
             allowContentAccess = true
             setSupportMultipleWindows(true)
