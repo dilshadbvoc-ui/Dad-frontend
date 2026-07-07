@@ -1,76 +1,71 @@
 package com.pypecrm.app.utils
 
+import android.content.ContentUris
 import android.content.Context
-import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import java.io.File
 
 object NativeRecordingScanner {
-    private val NATIVE_PATHS = arrayOf(
-        "/Recordings/Call",                       // Samsung
-        "/Recordings",                            // Generic Recordings
-        "/MIUI/sound_recorder/call_rec",          // Xiaomi / MIUI
-        "/Record/Call",                           // OnePlus / Oppo / ColorOS
-        "/Music/Recordings/Call Recordings",       // Realme / Oppo
-        "/Internal shared storage/Recordings/Call"// Emulated path variations
-    )
 
     fun scanForCallFile(context: Context, phoneNumber: String, callTime: Long): File? {
         val cleanNumber = phoneNumber.replace(Regex("[^0-9]"), "")
         if (cleanNumber.length < 10) return null
         val suffix = cleanNumber.takeLast(10)
 
-        // Try public external storage roots
-        val storageRoot = Environment.getExternalStorageDirectory()
-        for (relativePath in NATIVE_PATHS) {
-            val dir = File(storageRoot, relativePath)
-            if (dir.exists() && dir.isDirectory) {
-                val matchedFile = findMatchInDir(dir, suffix, callTime)
-                if (matchedFile != null) {
-                    Log.d("NativeScanner", "Found native recording match: ${matchedFile.absolutePath}")
-                    return matchedFile
-                }
-            }
-        }
+        val resolver = context.contentResolver
+        val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
 
-        // Try standard emulated storage roots directly (fallback)
-        val fallbackDirs = arrayOf(
-            File("/sdcard"),
-            File("/storage/emulated/0")
+        val projection = arrayOf(
+            MediaStore.Audio.Media._ID,
+            MediaStore.Audio.Media.DISPLAY_NAME,
+            MediaStore.Audio.Media.DATE_MODIFIED,
+            MediaStore.Audio.Media.SIZE
         )
-        for (root in fallbackDirs) {
-            for (relativePath in NATIVE_PATHS) {
-                val dir = File(root, relativePath)
-                if (dir.exists() && dir.isDirectory) {
-                    val matchedFile = findMatchInDir(dir, suffix, callTime)
-                    if (matchedFile != null) {
-                        return matchedFile
-                    }
-                }
-            }
-        }
-        
-        Log.d("NativeScanner", "No native call recording found for suffix $suffix near timestamp $callTime")
-        return null
-    }
 
-    private fun findMatchInDir(dir: File, suffix: String, callTime: Long): File? {
-        val files = dir.listFiles() ?: return null
-        // 5 minute matching window
-        val windowMs = 5 * 60 * 1000
+        // Find files containing the phone number suffix
+        val selection = "${MediaStore.Audio.Media.DISPLAY_NAME} LIKE ?"
+        val selectionArgs = arrayOf("%$suffix%")
+        val sortOrder = "${MediaStore.Audio.Media.DATE_MODIFIED} DESC"
 
-        for (file in files) {
-            if (file.isFile) {
-                val name = file.name
-                if (name.contains(suffix)) {
-                    val lastModified = file.lastModified()
+        try {
+            val cursor = resolver.query(uri, projection, selection, selectionArgs, sortOrder)
+            cursor?.use {
+                val idCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val nameCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
+                val dateCol = it.getColumnIndexOrThrow(MediaStore.Audio.Media.DATE_MODIFIED)
+
+                val windowMs = 5 * 60 * 1000 // 5 minute window
+
+                while (it.moveToNext()) {
+                    val id = it.getLong(idCol)
+                    val name = it.getString(nameCol)
+                    val dateSecs = it.getLong(dateCol)
+                    val lastModified = dateSecs * 1000
+
                     val diff = Math.abs(lastModified - callTime)
                     if (diff < windowMs) {
-                        return file
+                        Log.d("NativeScanner", "Found MediaStore match: $name, modified date = $lastModified")
+                        val contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+
+                        val cacheFile = File(context.cacheDir, "CRM_Native_Call_$id.mp3")
+                        resolver.openInputStream(contentUri)?.use { input ->
+                            cacheFile.outputStream().use { output ->
+                                input.copyTo(output)
+                            }
+                        }
+                        if (cacheFile.exists() && cacheFile.length() > 0) {
+                            Log.d("NativeScanner", "Copied matched recording from MediaStore: ${cacheFile.absolutePath}")
+                            return cacheFile
+                        }
                     }
                 }
             }
+        } catch (e: Exception) {
+            Log.e("NativeScanner", "Failed to query MediaStore for call recordings", e)
         }
+
+        Log.d("NativeScanner", "No native call recording found in MediaStore for suffix $suffix near timestamp $callTime")
         return null
     }
 }
