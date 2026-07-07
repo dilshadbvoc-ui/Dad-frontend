@@ -41,7 +41,7 @@ class AudioRecorderService(private val context: Context) {
         }
 
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
-        val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.mp4"
+        val fileName = "CRM_Call_${leadId}_${currentPhoneNum}_${timestamp}.amr"
         currentRecordingFile = File(context.cacheDir, fileName)
 
         // Set audio mode to communication and toggle speakerphone ON
@@ -62,11 +62,10 @@ class AudioRecorderService(private val context: Context) {
             }
 
             recorder = mediaRecorder.apply {
-                setAudioSource(MediaRecorder.AudioSource.MIC)
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setAudioSamplingRate(44100)
-                setAudioEncodingBitRate(96000)
+                setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                setOutputFormat(MediaRecorder.OutputFormat.AMR_WB)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AMR_WB)
+                setAudioSamplingRate(16000)
                 setOutputFile(currentRecordingFile!!.absolutePath)
                 
                 prepare()
