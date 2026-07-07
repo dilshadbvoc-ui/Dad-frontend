@@ -57,6 +57,16 @@ class AudioRecorderService(private val context: Context) {
 
         for (source in sources) {
             try {
+                // Force speakerphone ON only if falling back to the physical MIC source
+                if (source == MediaRecorder.AudioSource.MIC) {
+                    try {
+                        audioManager.isSpeakerphoneOn = true
+                        Log.d("AudioRecorder", "Toggled speakerphone ON for MIC source fallback")
+                    } catch (ex: Exception) {
+                        Log.e("AudioRecorder", "Failed to toggle speakerphone ON", ex)
+                    }
+                }
+
                 val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     MediaRecorder(context)
                 } else {

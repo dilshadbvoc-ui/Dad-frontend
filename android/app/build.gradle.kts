@@ -11,7 +11,7 @@ android {
     defaultConfig {
         applicationId = "com.pypecrm.app"
         minSdk = 21
-        targetSdk = 28
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
     }
