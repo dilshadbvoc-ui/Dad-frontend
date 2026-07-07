@@ -38,11 +38,13 @@ const Login = () => {
 
       if (autoLogin) {
         localStorage.setItem('autoLogin', 'true');
-        saveAndroidToken(sanitizedData.token);
-        saveAndroidApiUrl(API_URL);
       } else {
         localStorage.removeItem('autoLogin');
       }
+      
+      // Always sync the session token to Android native SharedPreferences
+      saveAndroidToken(sanitizedData.token);
+      saveAndroidApiUrl(API_URL);
 
       window.dispatchEvent(new CustomEvent('auth-refresh', { detail: sanitizedData }));
       // Small delay for animation

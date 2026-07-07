@@ -168,6 +168,20 @@ function AppContent() {
      if (parsed.token) {
       await syncWithAndroid(parsed.token);
 
+      // Failsafe: Double check if Android SharedPreferences holds the correct token
+      try {
+       const { getAndroidToken, saveAndroidToken, saveAndroidApiUrl } = await import('./utils/androidBridge');
+       const { API_URL } = await import('./config');
+       const nativeToken = getAndroidToken();
+       if (nativeToken !== parsed.token) {
+        console.warn("[SessionFailsafe] Token mismatch detected. Forcing native SharedPreferences sync.");
+        saveAndroidToken(parsed.token);
+        saveAndroidApiUrl(API_URL);
+       }
+      } catch (err) {
+       console.error("Failsafe native token sync failed", err);
+      }
+
       // 3. Fresh verification from API
       const { api } = await import('./services/api');
       const res = await api.get('/auth/me');
