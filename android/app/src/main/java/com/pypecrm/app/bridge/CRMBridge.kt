@@ -173,8 +173,6 @@ class CRMBridge(val context: Context) {
         }
     }
 
-    }
-
     @JavascriptInterface
     fun checkAccessibilityService(): Boolean {
         Log.d("CRMBridge", "Checking Accessibility Service status")

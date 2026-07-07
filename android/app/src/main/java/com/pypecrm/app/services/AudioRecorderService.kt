@@ -15,6 +15,15 @@ class AudioRecorderService(private val context: Context) {
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as AudioManager
     private var currentRecordingFile: File? = null
 
+    private fun isDefaultAssistant(): Boolean {
+        try {
+            val assistant = android.provider.Settings.Secure.getString(context.contentResolver, "assistant")
+            return assistant != null && assistant.contains(context.packageName)
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
     fun startRecording(leadId: String, currentPhoneNum: String): File? {
         if (isRecording) {
             Log.w("AudioRecorder", "Already recording.")
@@ -29,6 +38,17 @@ class AudioRecorderService(private val context: Context) {
             // Revert to standard hardware-friendly mode
             audioManager.mode = AudioManager.MODE_NORMAL
             
+            // Check if app has voice assistant privileges to record call streams.
+            // If not, we must force speakerphone ON so the physical MIC can record earpiece audio.
+            val useVoiceRec = isDefaultAssistant()
+            if (!useVoiceRec) {
+                try {
+                    audioManager.isSpeakerphoneOn = true
+                } catch (ex: Exception) {
+                    Log.e("AudioRecorder", "Failed to set speakerphone on for MIC path", ex)
+                }
+            }
+
             val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
@@ -38,8 +58,13 @@ class AudioRecorderService(private val context: Context) {
 
             try {
                 recorder = mediaRecorder.apply {
-                    // Try VOICE_RECOGNITION first - works with Assistant/Accessibility Service workaround to capture both sides without speakerphone
-                    setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                    if (useVoiceRec) {
+                        // Use VOICE_RECOGNITION - captures both sides without speakerphone when authorized as Assistant
+                        setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+                    } else {
+                        // Fallback to MIC with speakerphone enabled
+                        setAudioSource(MediaRecorder.AudioSource.MIC)
+                    }
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
                     setAudioSamplingRate(44100)
@@ -51,12 +76,11 @@ class AudioRecorderService(private val context: Context) {
                 }
                 
                 isRecording = true
-                Log.d("AudioRecorder", "Started VOICE_RECOGNITION recording: ${currentRecordingFile!!.absolutePath}")
+                Log.d("AudioRecorder", "Started recording using ${if (useVoiceRec) "VOICE_RECOGNITION" else "MIC"}: ${currentRecordingFile!!.absolutePath}")
                 return currentRecordingFile
             } catch (e: Exception) {
-                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, falling back to MIC with speakerphone", e)
+                Log.e("AudioRecorder", "Failed primary recording setup, falling back to MIC with speakerphone", e)
                 try {
-                    // Force speakerphone ON so the MIC can pick up the other person's voice as a final fallback
                     try {
                         audioManager.isSpeakerphoneOn = true
                     } catch (ex: Exception) {
