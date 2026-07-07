@@ -16,6 +16,8 @@ import java.util.concurrent.TimeUnit
 
 class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : CoroutineWorker(context, workerParams) {
 
+    private var hasAuthFailure = false
+
     override suspend fun doWork(): Result {
         Log.d("UnifiedSync", "Starting sync cycle...")
         val db = AppDatabase.getDatabase(applicationContext)
@@ -25,6 +27,11 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
         
         var allSuccess = true
         for (item in pendingItems) {
+            if (hasAuthFailure) {
+                Log.w("UnifiedSync", "Pre-empting sync item due to auth failure.")
+                allSuccess = false
+                break
+            }
             val success = processSyncItem(item)
             if (success) {
                 db.syncQueueDao().delete(item)
@@ -36,16 +43,27 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             }
         }
 
-        // Perform "Consolidated Truth" reconciliation for calls
-        consolidateCallBuffer()
+        // Perform "Consolidated Truth" reconciliation for calls (if token valid)
+        if (!hasAuthFailure) {
+            consolidateCallBuffer()
+        }
 
-        // Also perform a "Self-Healing" scan of the system CallLog to catch anything missed
-        performSelfHealingCallLogSync()
+        // Also perform a "Self-Healing" scan of the system CallLog to catch anything missed (if token valid)
+        if (!hasAuthFailure) {
+            performSelfHealingCallLogSync()
+        }
         
         // Recover WhatsApp messages from SharedPreferences fallback
         recoverWhatsAppFallbackQueue(db)
 
-        return if (allSuccess) Result.success() else Result.retry()
+        return if (hasAuthFailure) {
+            Log.e("UnifiedSync", "Worker finished with JWT auth failure. Halting WorkManager retries.")
+            Result.failure()
+        } else if (allSuccess) {
+            Result.success()
+        } else {
+            Result.retry()
+        }
     }
 
     private suspend fun processSyncItem(item: SyncQueueEntry): Boolean {
@@ -159,7 +177,13 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             .writeTimeout(300, TimeUnit.SECONDS)
             .build()
         return try {
-            client.newCall(request).execute().use { it.isSuccessful }
+            client.newCall(request).execute().use { response ->
+                if (response.code == 401) {
+                    hasAuthFailure = true
+                    Log.e("UnifiedSync", "Auth failure (401) during network request")
+                }
+                response.isSuccessful
+            }
         } catch (e: Exception) {
             false
         }

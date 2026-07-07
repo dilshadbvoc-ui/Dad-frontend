@@ -67,7 +67,7 @@ class WhatsAppNotificationListener : NotificationListenerService() {
     private fun syncWhatsAppToCrm(contact: String, message: String) {
         val authData = getAuthData()
         if (authData == null) {
-            queueWhatsAppForSync(contact, message)
+            queueWhatsAppForSync(contact, message, shouldScheduleWorker = false)
             return
         }
 
@@ -98,7 +98,8 @@ class WhatsAppNotificationListener : NotificationListenerService() {
                 
                 if (!response.isSuccessful) {
                     Log.e("WhatsAppListener", "Sync failed: ${response.code}, queuing")
-                    queueWhatsAppForSync(contact, message)
+                    // Do not trigger worker retries immediately on 401 auth failures
+                    queueWhatsAppForSync(contact, message, shouldScheduleWorker = (response.code != 401))
                 } else {
                     Log.d("WhatsAppListener", "Successfully synced background message for $contact")
                 }
@@ -106,12 +107,12 @@ class WhatsAppNotificationListener : NotificationListenerService() {
                 
             } catch (e: Exception) {
                 Log.e("WhatsAppListener", "Network error, queuing for offline sync", e)
-                queueWhatsAppForSync(contact, message)
+                queueWhatsAppForSync(contact, message, shouldScheduleWorker = true)
             }
         }
     }
 
-    private fun queueWhatsAppForSync(contact: String, message: String) {
+    private fun queueWhatsAppForSync(contact: String, message: String, shouldScheduleWorker: Boolean = true) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val json = JSONObject().apply {
@@ -126,8 +127,10 @@ class WhatsAppNotificationListener : NotificationListenerService() {
                 )
                 Log.d("WhatsAppListener", "Queued background message from $contact for later sync")
                 
-                // Trigger worker
-                UnifiedSyncWorker.schedule(applicationContext)
+                // Trigger worker only if authorized
+                if (shouldScheduleWorker) {
+                    UnifiedSyncWorker.schedule(applicationContext)
+                }
             } catch (e: Exception) {
                 Log.e("WhatsAppListener", "Failed to queue message to SQLite, falling back to SharedPreferences", e)
                 try {
