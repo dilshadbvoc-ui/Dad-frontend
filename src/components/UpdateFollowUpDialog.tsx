@@ -35,13 +35,27 @@ export function UpdateFollowUpDialog({ open, onOpenChange, task, onSuccess }: Up
   const [isLoading, setIsLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  // Reschedule date/time
-  const initialDate = new Date(task.dueDate);
+  // Reschedule date/time safely
+  const parseInitialDate = () => {
+    try {
+      const d = task.dueDate ? new Date(task.dueDate) : new Date();
+      return isNaN(d.getTime()) ? new Date() : d;
+    } catch {
+      return new Date();
+    }
+  };
+  const initialDate = parseInitialDate();
   const [date, setDate] = useState(initialDate.toISOString().split('T')[0]);
   const [time, setTime] = useState(initialDate.toTimeString().slice(0, 5));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!date || !time) {
+      toast.error('Please specify both date and time for rescheduling');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
