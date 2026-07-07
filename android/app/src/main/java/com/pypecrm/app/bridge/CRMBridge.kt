@@ -220,4 +220,12 @@ class CRMBridge(val context: Context) {
         }
     }
 
+    @JavascriptInterface
+    fun retryConnection() {
+        Log.d("CRMBridge", "User requested connection retry from offline page")
+        (context as? MainActivity)?.runOnUiThread {
+            (context as? MainActivity)?.reloadWebView()
+        }
+    }
+
 }

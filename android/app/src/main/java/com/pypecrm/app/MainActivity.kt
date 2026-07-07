@@ -224,13 +224,20 @@ class MainActivity : AppCompatActivity() {
 
 
             override fun onReceivedError(view: WebView?, errorCode: Int, description: String?, failingUrl: String?) {
-                Toast.makeText(this@MainActivity, "Failed loading CRM: $description", Toast.LENGTH_LONG).show()
-                super.onReceivedError(view, errorCode, description, failingUrl)
+                Log.e("MainActivity", "WebView Error ($errorCode): $description")
+                // Load local offline page instead of showing raw net::ERR browser layout
+                view?.loadUrl("file:///android_asset/offline.html")
             }
         }
         val prefs = getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
         val apiBase = prefs.getString("api_url", "https://www.pypecrm.com")?.trimEnd('/')
         webView.loadUrl("$apiBase/login") 
+    }
+
+    fun reloadWebView() {
+        val prefs = getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
+        val apiBase = prefs.getString("api_url", "https://www.pypecrm.com")?.trimEnd('/')
+        webView.loadUrl("$apiBase/login")
     }
 
     override fun onResume() {
