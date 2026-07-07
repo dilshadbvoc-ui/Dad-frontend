@@ -105,6 +105,7 @@ class CallTrackerService : Service() {
                     this.storedProjectionResultCode = resultCode
                     this.storedProjectionResultData = resultData
                     Log.d("CallTrackerService", "Updated stored MediaProjection token in running service")
+                    initMediaProjection()
                 }
             }
         }
@@ -244,9 +245,8 @@ class CallTrackerService : Service() {
         // Retry logic: System log may take time to update
         for (i in 1..20) {
             try {
-                val twoMinsAgo = System.currentTimeMillis() - 120_000
-                val selection = "${android.provider.CallLog.Calls.NUMBER} LIKE ? AND ${android.provider.CallLog.Calls.DATE} >= ?"
-                val selectionArgs = arrayOf("%$suffix", twoMinsAgo.toString())
+                val selection = "${android.provider.CallLog.Calls.NUMBER} LIKE ?"
+                val selectionArgs = arrayOf("%$suffix")
 
                 val cursor = contentResolver.query(
                     android.provider.CallLog.Calls.CONTENT_URI,
@@ -495,19 +495,30 @@ class CallTrackerService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    private fun initMediaProjection() {
+        if (mediaProjection != null) return
+        try {
+            val resultCode = storedProjectionCode()
+            val resultData = storedProjectionData() ?: return
+            val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
+            mediaProjection = mpManager.getMediaProjection(resultCode, resultData)
+            Log.d("CallTrackerService", "Initialized persistent MediaProjection session successfully")
+        } catch (e: Exception) {
+            Log.e("CallTrackerService", "Failed to initialize persistent MediaProjection", e)
+        }
+    }
+
     private fun startProjectionCapture(number: String) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return
         if (isProjectionRecording) return
 
         try {
-            val resultCode = storedProjectionCode()
-            val resultData = storedProjectionData() ?: return
-
-            val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
-            mediaProjection = mpManager.getMediaProjection(resultCode, resultData)
+            if (mediaProjection == null) {
+                initMediaProjection()
+            }
 
             if (mediaProjection == null) {
-                Log.e("CallTrackerService", "MediaProjection token could not be obtained")
+                Log.e("CallTrackerService", "Cannot start capture: MediaProjection is null")
                 return
             }
 
@@ -646,15 +657,7 @@ class CallTrackerService : Service() {
         } finally {
             audioRecord = null
         }
-
-        try {
-            mediaProjection?.stop()
-        } catch (e: Exception) {
-            Log.e("CallTrackerService", "Failed to stop MediaProjection token", e)
-        } finally {
-            mediaProjection = null
-        }
-        Log.d("CallTrackerService", "Released projection recording resources")
+        Log.d("CallTrackerService", "Stopped AudioRecord capture stream, keeping MediaProjection active")
     }
 
     private fun storedProjectionCode(): Int {
