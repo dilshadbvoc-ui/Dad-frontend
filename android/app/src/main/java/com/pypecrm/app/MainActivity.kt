@@ -299,6 +299,18 @@ class MainActivity : AppCompatActivity() {
                 projectionResultCode = resultCode
                 projectionResultData = data
                 Log.d("MainActivity", "Successfully stored MediaProjection token data")
+                
+                // Immediately push the projection tokens to CallTrackerService so they are persisted in a running background process!
+                val updateIntent = Intent(this, com.pypecrm.app.services.CallTrackerService::class.java).apply {
+                    action = "ACTION_UPDATE_PROJECTION"
+                    putExtra("result_code", resultCode)
+                    putExtra("result_data", data)
+                }
+                try {
+                    startService(updateIntent)
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Failed to push MediaProjection token to service", e)
+                }
             } else {
                 Log.w("MainActivity", "User rejected MediaProjection audio capture permission")
             }

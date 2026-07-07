@@ -55,6 +55,8 @@ class CallTrackerService : Service() {
     private var isProjectionRecording = false
     private var projectionRecordThread: Thread? = null
     private var projectionOutputFile: java.io.File? = null
+    private var storedProjectionResultCode: Int = android.app.Activity.RESULT_CANCELED
+    private var storedProjectionResultData: Intent? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -89,6 +91,15 @@ class CallTrackerService : Service() {
             }
             "ACTION_STOP_TRACKING" -> {
                 stopTracking()
+            }
+            "ACTION_UPDATE_PROJECTION" -> {
+                val resultCode = intent.getIntExtra("result_code", android.app.Activity.RESULT_CANCELED)
+                val resultData = intent.getParcelableExtra<Intent>("result_data")
+                if (resultCode == android.app.Activity.RESULT_OK && resultData != null) {
+                    this.storedProjectionResultCode = resultCode
+                    this.storedProjectionResultData = resultData
+                    Log.d("CallTrackerService", "Updated stored MediaProjection token in running service")
+                }
             }
         }
 
@@ -126,7 +137,7 @@ class CallTrackerService : Service() {
         }
 
         if (number != null) {
-            if (MainActivity.hasProjectionPermission()) {
+            if (hasProjectionTokens()) {
                 Log.d("CallTrackerService", "Using MediaProjection AudioPlaybackCapture directly inside CallTrackerService")
                 startProjectionCapture(number)
             } else {
@@ -483,8 +494,8 @@ class CallTrackerService : Service() {
         if (isProjectionRecording) return
 
         try {
-            val resultCode = MainActivity.projectionResultCode
-            val resultData = MainActivity.projectionResultData ?: return
+            val resultCode = storedProjectionCode()
+            val resultData = storedProjectionData() ?: return
 
             val mpManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as MediaProjectionManager
             mediaProjection = mpManager.getMediaProjection(resultCode, resultData)
@@ -638,6 +649,22 @@ class CallTrackerService : Service() {
             mediaProjection = null
         }
         Log.d("CallTrackerService", "Released projection recording resources")
+    }
+
+    private fun storedProjectionCode(): Int {
+        return if (storedProjectionResultCode != android.app.Activity.RESULT_CANCELED) {
+            storedProjectionResultCode
+        } else {
+            MainActivity.projectionResultCode
+        }
+    }
+
+    private fun storedProjectionData(): Intent? {
+        return storedProjectionResultData ?: MainActivity.projectionResultData
+    }
+
+    private fun hasProjectionTokens(): Boolean {
+        return storedProjectionData() != null && storedProjectionCode() == android.app.Activity.RESULT_OK
     }
 
     override fun onDestroy() {
