@@ -30,9 +30,19 @@ class MainActivity : AppCompatActivity() {
     private lateinit var webView: WebView
     private val PERMISSION_REQUEST_CODE = 200
     private val FILE_CHOOSER_REQUEST_CODE = 1
+    private val PROJECTION_REQUEST_CODE = 3001
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var geolocationCallback: GeolocationPermissions.Callback? = null
     private var geolocationOrigin: String? = null
+
+    companion object {
+        var projectionResultCode: Int = 0
+        var projectionResultData: Intent? = null
+        
+        fun hasProjectionPermission(): Boolean {
+            return projectionResultData != null && projectionResultCode == AppCompatActivity.RESULT_OK
+        }
+    }
 
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +59,31 @@ class MainActivity : AppCompatActivity() {
         checkPermissions()
         startSyncService()
         com.pypecrm.app.services.UnifiedSyncWorker.schedule(this)
+        
+        // Trigger media projection dialog if we don't have it yet
+        if (!hasProjectionPermission()) {
+            webView.postDelayed({
+                showProjectionExplanation()
+            }, 3000) // Delay slightly to avoid overlapping standard runtime permissions popup
+        }
+    }
+
+    private fun showProjectionExplanation() {
+        android.app.AlertDialog.Builder(this)
+            .setTitle("Clear Call Recording Setup")
+            .setMessage("To record high-quality call audio from the earpiece without requiring speakerphone, please grant Audio Capture access in the next prompt. Note: We only record call audio, never your screen.")
+            .setPositiveButton("Proceed") { _, _ ->
+                requestMediaProjection()
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun requestMediaProjection() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val projectionManager = getSystemService(Context.MEDIA_PROJECTION_SERVICE) as android.media.projection.MediaProjectionManager
+            startActivityForResult(projectionManager.createScreenCaptureIntent(), PROJECTION_REQUEST_CODE)
+        }
     }
 
     private fun startSyncService() {
@@ -256,6 +291,14 @@ class MainActivity : AppCompatActivity() {
             } else null
             filePathCallback!!.onReceiveValue(results)
             filePathCallback = null
+        } else if (requestCode == PROJECTION_REQUEST_CODE) {
+            if (resultCode == RESULT_OK && data != null) {
+                projectionResultCode = resultCode
+                projectionResultData = data
+                Log.d("MainActivity", "Successfully stored MediaProjection token data")
+            } else {
+                Log.w("MainActivity", "User rejected MediaProjection audio capture permission")
+            }
         }
     }
 

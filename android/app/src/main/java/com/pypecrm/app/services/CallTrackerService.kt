@@ -8,6 +8,7 @@ import android.os.IBinder
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.pypecrm.app.MainActivity
 import com.pypecrm.app.data.AppDatabase
 import com.pypecrm.app.data.CallBufferEntity
@@ -106,7 +107,25 @@ class CallTrackerService : Service() {
         }
 
         if (number != null) {
-            currentCallFile = recorderService.startRecording("lead", number)
+            if (MainActivity.hasProjectionPermission()) {
+                Log.d("CallTrackerService", "Using MediaProjection AudioPlaybackCapture for call recording")
+                val captureIntent = Intent(applicationContext, CallCaptureService::class.java).apply {
+                    action = CallCaptureService.ACTION_START
+                    putExtra(CallCaptureService.EXTRA_RESULT_CODE, MainActivity.projectionResultCode)
+                    putExtra(CallCaptureService.EXTRA_RESULT_DATA, MainActivity.projectionResultData)
+                    putExtra(CallCaptureService.EXTRA_LEAD_ID, "lead")
+                    putExtra(CallCaptureService.EXTRA_PHONE_NUM, number)
+                }
+                try {
+                    ContextCompat.startForegroundService(applicationContext, captureIntent)
+                } catch (e: Exception) {
+                    Log.e("CallTrackerService", "Failed to start CallCaptureService, falling back to standard recorder", e)
+                    currentCallFile = recorderService.startRecording("lead", number)
+                }
+            } else {
+                Log.d("CallTrackerService", "MediaProjection not active, using standard AudioRecorderService fallback")
+                currentCallFile = recorderService.startRecording("lead", number)
+            }
         }
 
         updateNotification("Call Tracking Active", "Monitoring call with ${number ?: "Unknown"}")
@@ -121,10 +140,23 @@ class CallTrackerService : Service() {
             val capturedStartTime = callStartTime
             val duration = (System.currentTimeMillis() - capturedStartTime) / 1000
 
-            recorderService.stopRecording()
+            var recordingFile: java.io.File? = null
+            
+            if (CallCaptureService.isServiceRunning) {
+                Log.d("CallTrackerService", "Stopping MediaProjection CallCaptureService")
+                val stopIntent = Intent(applicationContext, CallCaptureService::class.java).apply {
+                    action = CallCaptureService.ACTION_STOP
+                }
+                startService(stopIntent)
+                // Sleep briefly to allow wav header writing task to complete before copying
+                try { Thread.sleep(300) } catch (e: Exception) {}
+                recordingFile = CallCaptureService.currentFile
+            } else {
+                recorderService.stopRecording()
+                recordingFile = currentCallFile
+            }
             
             // Scan for native call recording (Samsung/Xiaomi/OnePlus/Realme)
-            var recordingFile = currentCallFile
             if (finalNumber != null) {
                 val nativeFile = com.pypecrm.app.utils.NativeRecordingScanner.scanForCallFile(
                     applicationContext, finalNumber, System.currentTimeMillis()
