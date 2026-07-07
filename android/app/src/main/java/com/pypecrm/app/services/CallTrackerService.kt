@@ -144,8 +144,13 @@ class CallTrackerService : Service() {
         }
 
         if (number != null) {
-            Log.d("CallTrackerService", "Using standard AudioRecorderService for call recording")
-            currentCallFile = recorderService.startRecording("lead", number)
+            if (hasProjectionTokens()) {
+                Log.d("CallTrackerService", "Using MediaProjection AudioPlaybackCapture directly inside CallTrackerService")
+                startProjectionCapture(number)
+            } else {
+                Log.d("CallTrackerService", "MediaProjection not active, using standard AudioRecorderService fallback")
+                currentCallFile = recorderService.startRecording("lead", number)
+            }
         }
 
         updateNotification("Call Tracking Active", "Monitoring call with ${number ?: "Unknown"}")
