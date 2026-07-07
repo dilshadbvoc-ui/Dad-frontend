@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<voice-interaction-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:sessionService="com.pypecrm.app.services.CrmVoiceInteractionSessionService"
+    android:recognitionService="com.pypecrm.app.services.CrmRecognitionService"
+    android:supportsAssist="true"
+    android:supportsLocalInteraction="true" />

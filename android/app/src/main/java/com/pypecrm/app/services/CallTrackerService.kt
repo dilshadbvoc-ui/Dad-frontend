@@ -122,7 +122,24 @@ class CallTrackerService : Service() {
             val duration = (System.currentTimeMillis() - capturedStartTime) / 1000
 
             recorderService.stopRecording()
-            val recordingFile = currentCallFile
+            
+            // Scan for native call recording (Samsung/Xiaomi/OnePlus/Realme)
+            var recordingFile = currentCallFile
+            if (finalNumber != null) {
+                val nativeFile = com.pypecrm.app.utils.NativeRecordingScanner.scanForCallFile(
+                    applicationContext, finalNumber, System.currentTimeMillis()
+                )
+                if (nativeFile != null && nativeFile.exists()) {
+                    Log.d("CallTrackerService", "Overriding with native call recording file: ${nativeFile.absolutePath}")
+                    try {
+                        val cacheFile = java.io.File(cacheDir, "CRM_Native_Call_${sessionId}.mp4")
+                        nativeFile.copyTo(cacheFile, overwrite = true)
+                        recordingFile = cacheFile
+                    } catch (e: Exception) {
+                        Log.e("CallTrackerService", "Failed to copy native recording to cache", e)
+                    }
+                }
+            }
             
             CoroutineScope(Dispatchers.IO).launch {
                 if (finalNumber != null) {

@@ -29,14 +29,6 @@ class AudioRecorderService(private val context: Context) {
             // Revert to standard hardware-friendly mode
             audioManager.mode = AudioManager.MODE_NORMAL
             
-            // Modern Android (10+) blocks direct call stream recording.
-            // The speakerphone must be ON to allow the microphone to physical capture earpiece output.
-            try {
-                audioManager.isSpeakerphoneOn = true
-            } catch (ex: Exception) {
-                Log.e("AudioRecorder", "Failed to set speakerphone on", ex)
-            }
-
             val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
@@ -46,7 +38,7 @@ class AudioRecorderService(private val context: Context) {
 
             try {
                 recorder = mediaRecorder.apply {
-                    // Try VOICE_RECOGNITION first with speakerphone enabled
+                    // Try VOICE_RECOGNITION first - works with Assistant/Accessibility Service workaround to capture both sides without speakerphone
                     setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
@@ -62,8 +54,15 @@ class AudioRecorderService(private val context: Context) {
                 Log.d("AudioRecorder", "Started VOICE_RECOGNITION recording: ${currentRecordingFile!!.absolutePath}")
                 return currentRecordingFile
             } catch (e: Exception) {
-                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, falling back to MIC", e)
+                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, falling back to MIC with speakerphone", e)
                 try {
+                    // Force speakerphone ON so the MIC can pick up the other person's voice as a final fallback
+                    try {
+                        audioManager.isSpeakerphoneOn = true
+                    } catch (ex: Exception) {
+                        Log.e("AudioRecorder", "Failed to set speakerphone on for fallback", ex)
+                    }
+
                     mediaRecorder.reset()
                     mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
                     mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
