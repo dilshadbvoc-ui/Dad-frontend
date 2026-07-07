@@ -28,8 +28,15 @@ class AudioRecorderService(private val context: Context) {
 
             // Revert to standard hardware-friendly mode
             audioManager.mode = AudioManager.MODE_NORMAL
-            // We keep speakerphone state unmodified here to avoid disrupting the call flow.
-            // If the accessibility service workaround fails, we will force speakerphone ON in the fallback.
+            
+            // Modern Android (10+) blocks direct call stream recording.
+            // The speakerphone must be ON to allow the microphone to physical capture earpiece output.
+            try {
+                audioManager.isSpeakerphoneOn = true
+            } catch (ex: Exception) {
+                Log.e("AudioRecorder", "Failed to set speakerphone on", ex)
+            }
+
             val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 MediaRecorder(context)
             } else {
@@ -39,7 +46,7 @@ class AudioRecorderService(private val context: Context) {
 
             try {
                 recorder = mediaRecorder.apply {
-                    // Use VOICE_RECOGNITION - works with Accessibility Service workaround to capture both sides
+                    // Try VOICE_RECOGNITION first with speakerphone enabled
                     setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
                     setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                     setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
@@ -52,15 +59,11 @@ class AudioRecorderService(private val context: Context) {
                 }
                 
                 isRecording = true
-                Log.d("AudioRecorder", "Started standard recording: ${currentRecordingFile!!.absolutePath}")
+                Log.d("AudioRecorder", "Started VOICE_RECOGNITION recording: ${currentRecordingFile!!.absolutePath}")
                 return currentRecordingFile
             } catch (e: Exception) {
-                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, trying MIC with speakerphone", e)
-                // Single fallback for communication
+                Log.e("AudioRecorder", "Failed to start with VOICE_RECOGNITION, falling back to MIC", e)
                 try {
-                    // Force speakerphone ON so the MIC can pick up the other person's voice
-                    audioManager.isSpeakerphoneOn = true
-                    
                     mediaRecorder.reset()
                     mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC)
                     mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
@@ -69,6 +72,7 @@ class AudioRecorderService(private val context: Context) {
                     mediaRecorder.prepare()
                     mediaRecorder.start()
                     isRecording = true
+                    Log.d("AudioRecorder", "Started fallback MIC recording: ${currentRecordingFile!!.absolutePath}")
                     return currentRecordingFile
                 } catch (e2: Exception) {
                     Log.e("AudioRecorder", "All recording attempts failed", e2)
