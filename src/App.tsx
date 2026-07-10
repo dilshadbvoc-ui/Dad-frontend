@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -12,8 +12,8 @@ import Terms from './pages/Terms';
 import SharedProductPage from './pages/public/SharedProductPage';
 import LandingPageView from './pages/public/LandingPageView';
 import { PageLoader } from './components/ui/page-loader';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
+import { Toaster } from 'sonner'; 
 import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
@@ -115,12 +115,26 @@ const queryClient = new QueryClient({
   queries: {
    staleTime: 1000 * 60 * 5,
    gcTime: 1000 * 60 * 30,
-   refetchOnWindowFocus: true,
+   refetchOnWindowFocus: false,
    refetchOnMount: true,
    retry: 1
   },
  },
 });
+
+function AuthListener() {
+ const navigate = useNavigate();
+ const queryClient = useQueryClient();
+ useEffect(() => {
+  const handleLogout = () => {
+   queryClient.clear();
+   navigate('/login', { replace: true });
+  };
+  window.addEventListener('auth-logout' as any, handleLogout);
+  return () => window.removeEventListener('auth-logout' as any, handleLogout);
+ }, [navigate, queryClient]);
+ return null;
+}
 
 function AppContent() {
  const [isAuthInitialized, setIsAuthInitialized] = useState(false);
@@ -184,7 +198,7 @@ function AppContent() {
 
       // 3. Fresh verification from API
       const { api } = await import('./services/api');
-      const res = await api.get('/auth/me');
+      const res = await api.get('/auth/me', { timeout: 5000 });
       if (res.data) {
        const updatedUser = { ...parsed, ...res.data };
        localStorage.setItem('userInfo', JSON.stringify(updatedUser));
@@ -206,10 +220,14 @@ function AppContent() {
    setIsAuthInitialized(true);
   };
 
-  // Failsafe: if initializeAuth hangs (e.g. network timeout), drop the loading screen after 15s
+  // Failsafe: if initializeAuth hangs (e.g. network timeout), drop the loading screen
+  // 4s for mobile WebView, 10s for desktop
+  const isMobileWebView = !!(window as any).AndroidBridge;
+  const FALLBACK_MS = isMobileWebView ? 4000 : 10000;
   const fallbackTimer = setTimeout(() => {
+   console.warn('[Auth] Session check timed out — unblocking app');
    setIsAuthInitialized(true);
-  }, 15000);
+  }, FALLBACK_MS);
 
   initializeAuth().finally(() => {
    clearTimeout(fallbackTimer);
@@ -230,17 +248,11 @@ function AppContent() {
   };
   window.addEventListener('storage', handleStorageChange);
 
-  const handleVisibilityChange = () => {
-   if (document.visibilityState === 'visible') {
-    queryClient.invalidateQueries();
-   }
-  };
-  window.addEventListener('visibilitychange', handleVisibilityChange);
+
 
   return () => {
    window.removeEventListener('auth-refresh' as any, handleAuthRefresh);
    window.removeEventListener('storage', handleStorageChange);
-   window.removeEventListener('visibilitychange', handleVisibilityChange);
   };
  }, []);
 
@@ -264,6 +276,7 @@ function AppContent() {
  return (
   <SocketProvider>
    <Router>
+    <AuthListener />
     <Suspense fallback={<PageLoader text="Loading..." />}>
      <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />

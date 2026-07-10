@@ -43,7 +43,7 @@ api.interceptors.response.use(
 
             if (!isLoginPage && !isLoginRequest) {
                 localStorage.removeItem('userInfo');
-                window.location.href = '/login';
+                window.dispatchEvent(new CustomEvent('auth-logout'));
             }
         }
         
