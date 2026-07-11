@@ -119,6 +119,13 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
     const id = e.dataTransfer.getData("text/plain");
     const opportunity = opportunities.find(o => o.id === id);
 
+    if (!opportunity) return;
+
+    if (opportunity.stage === 'closed_won' || opportunity.stage === 'closed_lost') {
+      toast.error(`Cannot move opportunity that is already ${opportunity.stage === 'closed_won' ? 'Won' : 'Lost'}`);
+      return;
+    }
+
     if (stageId === 'closed_won' && opportunity && opportunity.stage !== 'closed_won') {
       setCloseWonOpp(opportunity);
       return;
@@ -180,12 +187,14 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                     const isStagnant = daysInStage > 30;
                     const isWarning = daysInStage > 14 && daysInStage <= 30;
 
+                    const isTerminal = opp.stage === 'closed_won' || opp.stage === 'closed_lost';
+
                     return (
                       <Card
                         key={opp.id}
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, opp.id)}
-                        className={`cursor-move hover:shadow-md transition-all duration-200 border-border bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
+                        draggable={!isTerminal}
+                        onDragStart={(e) => !isTerminal && handleDragStart(e, opp.id)}
+                        className={`${!isTerminal ? 'cursor-move hover:shadow-md' : 'cursor-not-allowed opacity-90'} transition-all duration-200 border-border bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
                           }`}
                       >
                         <CardContent className="p-3 space-y-3">
@@ -244,31 +253,33 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                   Edit
                                 </DropdownMenuItem>
 
-                                <DropdownMenuSub>
-                                  <DropdownMenuSubTrigger>Move to Stage</DropdownMenuSubTrigger>
-                                  <DropdownMenuPortal>
-                                    <DropdownMenuSubContent>
-                                      {STAGES.map((s) => (
-                                        <DropdownMenuItem
-                                          key={s.id}
-                                          disabled={s.id === opp.stage || (s.id === 'expected' && STAGES[0].mergedFrom?.includes(opp.stage))}
-                                          onClick={() => {
-                                            const mockEvent = {
-                                              preventDefault: () => { },
-                                              dataTransfer: {
-                                                getData: () => opp.id
-                                              }
-                                            } as unknown as React.DragEvent;
-                                            handleDrop(mockEvent, s.id);
-                                            toast.success(`Moved to ${s.label}`);
-                                          }}
-                                        >
-                                          {s.label}
-                                        </DropdownMenuItem>
-                                      ))}
-                                    </DropdownMenuSubContent>
-                                  </DropdownMenuPortal>
-                                </DropdownMenuSub>
+                                {!isTerminal && (
+                                  <DropdownMenuSub>
+                                    <DropdownMenuSubTrigger>Move to Stage</DropdownMenuSubTrigger>
+                                    <DropdownMenuPortal>
+                                      <DropdownMenuSubContent>
+                                        {STAGES.map((s) => (
+                                          <DropdownMenuItem
+                                            key={s.id}
+                                            disabled={s.id === opp.stage || (s.id === 'expected' && STAGES[0].mergedFrom?.includes(opp.stage))}
+                                            onClick={() => {
+                                              const mockEvent = {
+                                                preventDefault: () => { },
+                                                dataTransfer: {
+                                                  getData: () => opp.id
+                                                }
+                                              } as unknown as React.DragEvent;
+                                              handleDrop(mockEvent, s.id);
+                                              toast.success(`Moved to ${s.label}`);
+                                            }}
+                                          >
+                                            {s.label}
+                                          </DropdownMenuItem>
+                                        ))}
+                                      </DropdownMenuSubContent>
+                                    </DropdownMenuPortal>
+                                  </DropdownMenuSub>
+                                )}
 
                                 {opp.stage === 'closed_won' && opp.paymentStatus !== 'paid' && (
                                   <DropdownMenuItem
