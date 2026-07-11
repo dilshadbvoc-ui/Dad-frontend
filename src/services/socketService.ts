@@ -19,31 +19,37 @@ class SocketService {
     private socket: Socket | null = null;
 
     connect(userId: string) {
-        if (!this.socket) {
-            const userInfo = localStorage.getItem('userInfo');
-            const token = userInfo ? JSON.parse(userInfo).token : null;
-
-
-
-            this.socket = io(SOCKET_URL, {
-                transports: ['websocket'],
-                withCredentials: true,
-                autoConnect: true,
-                // Defaulting to auto-upgrade from polling is more reliable in complex network environments
-                reconnection: true,
-                reconnectionAttempts: 10,
-                reconnectionDelay: 1000,
-                auth: {
-                    token
-                }
-            });
-
-            this.socket.on('connect', () => {
-
-                this.socket?.emit('join_room', userId);
-            });
+        // If a socket already exists (e.g. from a previous user session), tear it down
+        // completely before creating a new one. Without this, the old socket stays
+        // joined to the previous user's personal room and receives their notifications.
+        if (this.socket) {
+            this.socket.removeAllListeners();
+            this.socket.disconnect();
+            this.socket = null;
         }
+
+        const userInfo = localStorage.getItem('userInfo');
+        const token = userInfo ? JSON.parse(userInfo).token : null;
+
+        this.socket = io(SOCKET_URL, {
+            transports: ['websocket'],
+            withCredentials: true,
+            autoConnect: true,
+            // Defaulting to auto-upgrade from polling is more reliable in complex network environments
+            reconnection: true,
+            reconnectionAttempts: 10,
+            reconnectionDelay: 1000,
+            auth: {
+                token
+            }
+        });
+
+        this.socket.on('connect', () => {
+
+            this.socket?.emit('join_room', userId);
+        });
     }
+
 
     disconnect() {
         if (this.socket) {

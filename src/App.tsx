@@ -18,6 +18,8 @@ import { SocketProvider } from './contexts/SocketContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import SSOCallback from './pages/SSOCallback';
+import { socketService } from './services/socketService';
+
 
 // Lazy load secondary pages
 const LeadsPage = lazy(() => import('./pages/leads'));
@@ -128,6 +130,8 @@ function AuthListener() {
  useEffect(() => {
   const handleLogout = () => {
    queryClient.clear();
+   // Disconnect socket so old user's room subscriptions are torn down immediately
+   socketService.disconnect();
    navigate('/login', { replace: true });
   };
   window.addEventListener('auth-logout' as any, handleLogout);
@@ -135,6 +139,7 @@ function AuthListener() {
  }, [navigate, queryClient]);
  return null;
 }
+
 
 function AppContent() {
  const [isAuthInitialized, setIsAuthInitialized] = useState(false);

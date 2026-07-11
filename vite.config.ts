@@ -12,6 +12,8 @@ const __dirname = path.dirname(__filename)
 // const __dirname = path.dirname(__filename)
 
 
+const buildTimestamp = Date.now().toString();
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
@@ -20,7 +22,7 @@ export default defineConfig({
     {
       name: 'html-transform-timestamp',
       transformIndexHtml(html) {
-        return html.replace(/__BUILD_TIMESTAMP__/g, Date.now().toString());
+        return html.replace(/__BUILD_TIMESTAMP__/g, buildTimestamp);
       }
     },
     VitePWA({

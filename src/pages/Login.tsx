@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/services/api';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +48,8 @@ const Login = () => {
       saveAndroidToken(sanitizedData.token);
       saveAndroidApiUrl(API_URL);
 
+      // Clear previous user's cached data before navigating to prevent cross-user data leakage
+      queryClient.clear();
       window.dispatchEvent(new CustomEvent('auth-refresh', { detail: sanitizedData }));
       // Small delay for animation
       setTimeout(() => navigate('/dashboard'), 500);
