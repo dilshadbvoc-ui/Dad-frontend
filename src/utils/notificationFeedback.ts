@@ -156,7 +156,11 @@ export const showSystemNotification = async (title: string, message: string, ico
         const notification = new Notification(title, {
             body: message,
             icon,
-            silent: true // We handle our own audio for consistency
+            silent: true, // We handle our own audio for consistency
+            // tag deduplicates: if a notification with the same tag already exists,
+            // the OS replaces it instead of stacking a new one. This stops notification
+            // flooding when the same follow-up reminder fires repeatedly.
+            tag: `crm-${title.replace(/\s+/g, '-').toLowerCase()}`
         });
 
         notification.onclick = () => {

@@ -177,19 +177,18 @@ export default function Layout() {
     });
     socketService.on('lead_updated', () => {
       handleRealtimeSync('lead_updated');
-      
-      // Rich alert for re-enquiries or updates
-      triggerRichNotification('Lead Activity', 'A lead has been updated or a re-enquiry was received.');
-
+      // NOTE: No triggerRichNotification or triggerAndroidNotification here.
+      // Generic lead edits (field changes, notes, status updates) are too noisy to push to the user.
+      // Targeted follow-up/task notifications come through the `notification` socket event from the backend.
       const userInfo = localStorage.getItem('userInfo');
       if (userInfo) {
         const { token } = JSON.parse(userInfo);
         if (token) {
-          triggerAndroidLeadSync(token);
-          triggerAndroidNotification('CRM Alert', 'Lead activity detected.');
+          triggerAndroidLeadSync(token); // Keep: silently syncs lead data on Android
         }
       }
     });
+
     socketService.on('lead_deleted', () => handleRealtimeSync('lead_deleted'));
 
     // Initial sync on mount if on Android
