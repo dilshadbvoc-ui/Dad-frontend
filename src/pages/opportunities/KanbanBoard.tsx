@@ -126,12 +126,12 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
       return;
     }
 
-    if (stageId === 'closed_won' && opportunity && opportunity.stage !== 'closed_won') {
+    if (stageId === 'closed_won' && opportunity) {
       setCloseWonOpp(opportunity);
       return;
     }
 
-    if (stageId === 'closed_lost' && opportunity && opportunity.stage !== 'closed_lost') {
+    if (stageId === 'closed_lost' && opportunity) {
       setCloseLostOpp(opportunity);
       return;
     }
