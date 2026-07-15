@@ -109,7 +109,11 @@ export const getDailyReport = async (filters?: { branchId?: string; startDate?: 
     try {
         const response = await api.get('/reports/daily-report', { params: filters });
         return response.data || { table: [], summary: null };
-    } catch (error) {
+    } catch (error: any) {
+        // On 401 (auth not yet ready on mobile cold start), throw a clean retriable error
+        if (error?.response?.status === 401) {
+            throw new Error('AUTH_NOT_READY');
+        }
         console.error('Error fetching daily report:', error);
         throw error;
     }

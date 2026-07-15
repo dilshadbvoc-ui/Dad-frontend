@@ -112,8 +112,7 @@ export default function CallAnalyticsPage() {
     }
   };
 
-  if (isLoading) return <PageLoader text="Loading analytics..." />;
-  if (error) return <div className="p-8 text-center text-destructive">Error loading report data.</div>;
+  if (isLoading || error) return <PageLoader text="Preparing your report..." />;
 
   const reportData = data?.reportData || [];
 

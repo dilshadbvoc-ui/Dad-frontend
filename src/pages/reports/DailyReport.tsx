@@ -83,6 +83,8 @@ export default function DailyReportPage() {
       });
     },
     refetchInterval: 1000 * 60 * 5, // Refresh every 5 mins
+    retry: 2,              // Retry up to 2x on failure (handles cold-start 401 on mobile)
+    retryDelay: 1500,      // Wait 1.5s between retries (gives auth token time to load)
   });
 
   const tableData = reportData?.table || [];
@@ -165,8 +167,7 @@ export default function DailyReportPage() {
     window.print();
   };
 
-  if (isLoading) return <PageLoader text="Loading daily report..." />;
-  if (error) return <div className="p-8 text-center text-destructive font-medium">Error loading report data. Please try again.</div>;
+  if (isLoading || error) return <PageLoader text="Preparing your report..." />;
 
   const getPeriodLabel = () => {
     const { startDate, endDate } = getDateRange(period);
