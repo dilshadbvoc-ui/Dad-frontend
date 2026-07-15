@@ -12,7 +12,7 @@ import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
 import { toast } from "sonner"
-import { formatWhatsAppNumber } from "@/lib/utils"
+import { formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -165,7 +165,8 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
 
 // --- Mobile Lead Card ---
 const LeadCard = ({ lead }: { lead: Lead }) => {
-  const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode);
+  const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode); // digits-only for WhatsApp
+  const callPhone = formatPhoneForCall(lead.phone, lead.phoneCountryCode); // +E.164 for tel: link
 
   const handleWhatsApp = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -204,7 +205,7 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
     
     // Always fire tel link on mobile just in case bridge is restricted
     if (isMobileApp() || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-      window.location.href = `tel:${phone}`;
+      window.location.href = `tel:${callPhone}`;
     }
 
     try {

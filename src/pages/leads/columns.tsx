@@ -7,7 +7,7 @@ import { type Lead } from "@/services/leadService"
 import { format } from "date-fns"
 import { ActionsCell } from "./ActionsCell"
 import { toast } from "sonner"
-import { formatWhatsAppNumber } from "@/lib/utils"
+import { formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 
 import { NameCell } from "./NameCell"
@@ -239,7 +239,8 @@ export const columns: ColumnDef<Lead>[] = [
     header: "Contact",
     cell: ({ row }) => {
       const lead = row.original
-      const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode)
+      const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode)  // digits-only for WhatsApp
+      const callPhone = formatPhoneForCall(lead.phone, lead.phoneCountryCode) // +E.164 for tel: link
       if (!phone) return <span className="text-muted-foreground/50 text-xs italic">No phone</span>
 
       const logAndOpenWhatsApp = async (e: React.MouseEvent) => {
@@ -293,7 +294,7 @@ export const columns: ColumnDef<Lead>[] = [
         }
 
         if (!isMobileApp()) {
-          window.location.href = `tel:${phone}`
+          window.location.href = `tel:${callPhone}`
         }
       }
 

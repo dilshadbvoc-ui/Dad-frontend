@@ -20,7 +20,7 @@ import { ScheduleMeetingDialog } from "@/components/ScheduleMeetingDialog"
 import { AssignLeadDialog } from "@/components/AssignLeadDialog"
 import { useState } from "react"
 import { toast } from "sonner"
-import { formatWhatsAppNumber, isAdmin, isSuperAdmin, isBranchManager } from "@/lib/utils"
+import { formatWhatsAppNumber, formatPhoneForCall, isAdmin, isSuperAdmin, isBranchManager } from "@/lib/utils"
 import { LeadTimeline } from "@/components/leads/LeadTimeline"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
@@ -452,7 +452,7 @@ export default function LeadDetailPage() {
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span className="flex items-center gap-2">
-                    <a href={`tel:${lead.phone}`} className="hover:underline">{lead.phone}</a>
+                    <a href={`tel:${formatPhoneForCall(lead.phone, lead.phoneCountryCode)}`} className="hover:underline">{lead.phone}</a>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -470,7 +470,7 @@ export default function LeadDetailPage() {
                 <div className="flex items-center gap-3">
                   <Phone className="h-4 w-4 text-muted-foreground" />
                   <span className="flex items-center gap-2">
-                    <a href={`tel:${lead.secondaryPhone}`} className="hover:underline text-muted-foreground">{lead.secondaryPhone}</a>
+                    <a href={`tel:${formatPhoneForCall(lead.secondaryPhone, lead.phoneCountryCode)}`} className="hover:underline text-muted-foreground">{lead.secondaryPhone}</a>
                     <Button
                       variant="ghost"
                       size="sm"

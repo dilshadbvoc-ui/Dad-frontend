@@ -288,3 +288,26 @@ export function formatWhatsAppNumber(phone?: string, countryCode?: string): stri
 
     return cleanedPhone;
 }
+
+/**
+ * Formats a phone number for use in tel: links and Twilio API calls (E.164 format).
+ * Always returns a number with a leading '+' so the native dialer does NOT
+ * auto-prepend the device's own country code (+1, etc.).
+ *
+ * Pass the raw phone + countryCode from the lead. Internally it reuses
+ * formatWhatsAppNumber to build the digit-only international string, then
+ * prepends '+'.
+ *
+ * Examples:
+ *   9876543210  (India, cc=91)  →  +919876543210
+ *   +919876543210               →  +919876543210  (idempotent)
+ *   919876543210                →  +919876543210
+ */
+export function formatPhoneForCall(phone?: string, countryCode?: string): string {
+    if (!phone) return "";
+    // Reuse WhatsApp formatter to get a clean international digit string
+    const digits = formatWhatsAppNumber(phone, countryCode);
+    if (!digits) return "";
+    // Always ensure a leading +
+    return digits.startsWith("+") ? digits : `+${digits}`;
+}
