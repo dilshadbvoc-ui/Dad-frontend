@@ -52,6 +52,7 @@ export default function ReportsPage() {
 
       {/* Existing/Other Reports */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Temporarily disabled as per client request, can be re-enabled later
         <Link to="/reports/analytics">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
             <CardHeader>
@@ -63,7 +64,9 @@ export default function ReportsPage() {
             </CardHeader>
           </Card>
         </Link>
+        */}
 
+        {/* Temporarily disabled as per client request, can be re-enabled later
         <Link to="/reports/campaigns">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
             <CardHeader>
@@ -75,6 +78,7 @@ export default function ReportsPage() {
             </CardHeader>
           </Card>
         </Link>
+        */}
 
         <Link to="/reports/field-force">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
@@ -100,6 +104,7 @@ export default function ReportsPage() {
           </Card>
         </Link>
 
+        {/* Temporarily disabled as per client request, can be re-enabled later
         <Link to="/reports/user-sales">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
             <CardHeader>
@@ -111,6 +116,7 @@ export default function ReportsPage() {
             </CardHeader>
           </Card>
         </Link>
+        */}
 
         {showAuditLogs && (
           <Link to="/reports/audit-logs">
