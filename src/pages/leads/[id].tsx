@@ -106,19 +106,6 @@ export default function LeadDetailPage() {
     }
   })
 
-  const syncToGallaboxMutation = useMutation({
-    mutationFn: async () => {
-      await api.post(`/leads/${id}/sync-gallabox`)
-    },
-    onSuccess: () => {
-      toast.success("Lead successfully synced to Gallabox")
-      queryClient.invalidateQueries({ queryKey: ['lead', id] })
-    },
-    onError: (error: any) => {
-      toast.error(error.response?.data?.message || "Failed to sync to Gallabox")
-    }
-  })
-
   const { data: calls } = useQuery({
     queryKey: ['calls', id],
     queryFn: async () => (await api.get(`/calls/lead/${id}`)).data,
@@ -397,16 +384,7 @@ export default function LeadDetailPage() {
               <Calendar className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Follow-up</span>
             </Button>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => syncToGallaboxMutation.mutate()} 
-              disabled={syncToGallaboxMutation.isPending}
-              className="h-9 px-2 sm:px-3 text-xs"
-            >
-              <RefreshCw className={`h-4 w-4 sm:mr-2 ${syncToGallaboxMutation.isPending ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{syncToGallaboxMutation.isPending ? 'Syncing...' : 'Sync Gallabox'}</span>
-            </Button>
+
             <Button variant="outline" size="sm" onClick={() => setIsEditOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
               <Pencil className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Edit</span>

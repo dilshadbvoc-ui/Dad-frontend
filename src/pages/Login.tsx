@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
-import { Sparkles, Check } from 'lucide-react';
+import { Sparkles, Check, Eye, EyeOff } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { saveAndroidToken, saveAndroidApiUrl } from '@/utils/androidBridge';
 import { API_URL } from '@/config';
@@ -16,6 +16,7 @@ import { API_URL } from '@/config';
 const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [autoLogin, setAutoLogin] = useState(true);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -222,16 +223,30 @@ const Login = () => {
                 </div>
                 {/* Hidden field for accessibility/password managers - moved before password for better browser detection */}
                 <input type="text" name="username" value={email} readOnly style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex={-1} autoComplete="username" aria-hidden="true" />
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="bg-white dark:bg-background"
-                />
+                <div className="relative">
+                  <Input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    className="bg-white dark:bg-background pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="w-4 h-4" />
+                    ) : (
+                      <Eye className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
               </div>
 
               {error && (
