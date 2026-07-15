@@ -72,7 +72,7 @@ export function Header({ className }: { className?: string }) {
       <div className="flex-1 min-w-0">
         {/* Search Bar - Condensed on mobile but wider than before */}
         <div className="max-w-[240px] sm:max-w-md">
-          <GlobalSearch />
+          {/* <GlobalSearch /> */}
         </div>
       </div>
 

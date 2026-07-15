@@ -50,7 +50,7 @@ export default function EMISchedulesPage() {
             <DataTable 
               columns={columns} 
               data={schedules} 
-              searchKeys={["opportunity.name", "status"]} 
+              searchKeys={["opportunity_name", "status"]} 
             />
           )}
         </TabsContent>
