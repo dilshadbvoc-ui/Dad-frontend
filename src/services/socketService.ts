@@ -1,11 +1,25 @@
 import { io, Socket } from 'socket.io-client';
 // Direct environment access to avoid circular dependency or initialization order issues
 const getSocketUrl = () => {
-    let url = import.meta.env.VITE_API_URL || 'http://localhost:5001';
+    let url = import.meta.env.VITE_API_URL;
 
-    // Hard fallback for production if env var is missing/empty but we know we are in prod
-    if (import.meta.env.PROD && (!url || url === '/')) {
-        console.warn('VITE_API_URL missing or relative in production, defaulting to EC2 instance');
+    // If VITE_API_URL is missing/invalid, try to infer from window.location
+    if (!url || url === 'null' || url === 'undefined' || url === '/') {
+        if (typeof window !== 'undefined' && window.location) {
+            const hostname = window.location.hostname;
+            if (hostname && hostname !== 'localhost' && hostname !== '127.0.0.1') {
+                url = window.location.origin;
+            } else {
+                url = 'http://localhost:5001';
+            }
+        } else {
+            url = 'http://localhost:5001';
+        }
+    }
+
+    // Hard fallback for production if it still somehow ended up as localhost
+    if (import.meta.env.PROD && url === 'http://localhost:5001') {
+        console.warn('Socket URL fallback to EC2 instance triggered');
         url = 'https://pypecrm.com';
     }
 
