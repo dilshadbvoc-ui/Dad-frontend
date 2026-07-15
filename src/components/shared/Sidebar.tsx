@@ -49,7 +49,7 @@ const menuGroups = [
     title: "Overview",
     items: [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-      { title: "Analytics", href: "/analytics", icon: PieChart },
+      { title: "Analytics", href: "/analytics", icon: PieChart, role: "org_admin" },
     ]
   },
   {
@@ -88,7 +88,7 @@ const menuGroups = [
     title: "Connect",
     items: [
       { title: "Call Logs", href: "/calls", icon: PhoneCall },
-      { title: "Communications", href: "/communications", icon: Phone },
+      { title: "Communications", href: "/communications", icon: Phone, role: "org_admin" },
     ]
   },
   {
@@ -96,9 +96,9 @@ const menuGroups = [
     items: [
       { title: "Follow-ups", href: "/follow-ups", icon: Calendar },
       { title: "Calendar", href: "/calendar", icon: Calendar },
-      { title: "Goals", href: "/goals", icon: Trophy },
+      { title: "Goals", href: "/goals", icon: Trophy, role: "org_admin" },
       { title: "Reports", href: "/reports", icon: FileText },
-      { title: "AI Writer", href: "/ai-writer", icon: Sparkles },
+      { title: "AI Writer", href: "/ai-writer", icon: Sparkles, role: "org_admin" },
     ]
   },
   {
