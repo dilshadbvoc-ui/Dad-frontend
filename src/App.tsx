@@ -34,6 +34,7 @@ const ContactDetailPage = lazy(() => import('./pages/contacts/[id]'));
 const AccountsPage = lazy(() => import('./pages/accounts'));
 const AccountDetailPage = lazy(() => import('./pages/accounts/[id]'));
 const OpportunitiesPage = lazy(() => import('./pages/opportunities'));
+const OpportunityDetailPage = lazy(() => import('./pages/opportunities/[id]'));
 const EMISchedulesPage = lazy(() => import('./pages/emi-schedules'));
 const MarketingPage = lazy(() => import('./pages/marketing'));
 const AdsDashboard = lazy(() => import('./pages/marketing/ads'));
@@ -304,6 +305,7 @@ function AppContent() {
        <Route path="/accounts" element={<AccountsPage />} />
        <Route path="/accounts/:id" element={<AccountDetailPage />} />
        <Route path="/opportunities" element={<OpportunitiesPage />} />
+       <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
        <Route path="/emi-schedules" element={<EMISchedulesPage />} />
        <Route path="/marketing" element={<MarketingPage />} />
        <Route path="/marketing/ads" element={<AdsDashboard />} />

@@ -28,7 +28,8 @@ export default function Layout() {
     location.pathname.startsWith('/workflows') ||
     location.pathname.startsWith('/whatsapp') ||
     location.pathname.startsWith('/communications') ||
-    location.pathname.startsWith('/opportunities');
+    // Only the opportunities LIST is full-width, not detail pages (/opportunities/:id)
+    location.pathname === '/opportunities';
   const [collapsed, setCollapsed] = useState(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     return saved === 'true';
