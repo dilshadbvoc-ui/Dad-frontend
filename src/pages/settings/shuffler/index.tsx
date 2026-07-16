@@ -46,7 +46,7 @@ export default function ShufflerSettingsPage() {
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([])
   const [selectAllUsers, setSelectAllUsers] = useState(false)
 
-  const [timeFrameType, setTimeFrameType] = useState("days_before")
+  const [timeFrameType, setTimeFrameType] = useState("date_range")
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
   const [backwardsDate, setBackwardsDate] = useState("")
@@ -108,7 +108,7 @@ export default function ShufflerSettingsPage() {
       setSelectedUserIds(initUserIds)
       setSelectAllUsers(false)
       
-      setTimeFrameType(org.shufflerConfig.timeFrameType || "days_before")
+      setTimeFrameType(org.shufflerConfig.timeFrameType || (org.shufflerConfig.isAutoShufflingOn ? "days_before" : "date_range"))
       setFromDate(org.shufflerConfig.fromDate || "")
       setToDate(org.shufflerConfig.toDate || "")
       setBackwardsDate(org.shufflerConfig.backwardsDate || "")
@@ -306,7 +306,14 @@ export default function ShufflerSettingsPage() {
                 </div>
                 <Switch
                   checked={isAutoShufflingOn}
-                  onCheckedChange={setIsAutoShufflingOn}
+                  onCheckedChange={(checked) => {
+                    setIsAutoShufflingOn(checked);
+                    if (checked) {
+                      setTimeFrameType("days_before");
+                    } else if (timeFrameType === "days_before") {
+                      setTimeFrameType("date_range");
+                    }
+                  }}
                   className="data-[state=checked]:bg-green-500 data-[state=unchecked]:bg-red-500"
                 />
               </div>
@@ -362,30 +369,31 @@ export default function ShufflerSettingsPage() {
               </div>
 
               <div className="space-y-4 mt-auto pt-2">
-                <div className="space-y-2">
-                  <Label>Lead Date Filter</Label>
-                  <Select value={timeFrameType} onValueChange={setTimeFrameType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select how to filter leads by date" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="days_before">Auto Schedule Interval</SelectItem>
-                      <SelectItem value="date_range">Between Specific Dates</SelectItem>
-                      <SelectItem value="backwards_from_date">Older than Specific Date</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                {!isAutoShufflingOn && (
+                  <div className="space-y-2">
+                    <Label>Lead Date Filter</Label>
+                    <Select value={timeFrameType} onValueChange={setTimeFrameType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select how to filter leads by date" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="date_range">Between Specific Dates</SelectItem>
+                        <SelectItem value="backwards_from_date">Older than Specific Date</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
 
-                {timeFrameType === "days_before" && (
+                {isAutoShufflingOn && (
                   <div className="flex gap-4">
                     <div className="space-y-2 flex-1">
                       <Label htmlFor="shuffle-before">Repeat Interval (Days)</Label>
                       <Input
                         id="shuffle-before"
-                      type="number"
-                      min="0"
-                      value={shuffleBefore}
-                      onChange={(e) => setShuffleBefore(e.target.value)}
+                        type="number"
+                        min="0"
+                        value={shuffleBefore}
+                        onChange={(e) => setShuffleBefore(e.target.value)}
                         placeholder="e.g. 0 for daily, 1 for every 1 day"
                       />
                     </div>
@@ -401,6 +409,7 @@ export default function ShufflerSettingsPage() {
                           }
                         }}
                         format="hh:mm A"
+                        inputReadOnly={true}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Select time"
                       />
@@ -416,6 +425,7 @@ export default function ShufflerSettingsPage() {
                         value={fromDate ? dayjs(fromDate) : null}
                         onChange={(date) => setFromDate(date ? date.format('YYYY-MM-DD') : "")}
                         format="DD/MM/YYYY"
+                        inputReadOnly={true}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Select from date"
                       />
@@ -426,6 +436,7 @@ export default function ShufflerSettingsPage() {
                         value={toDate ? dayjs(toDate) : null}
                         onChange={(date) => setToDate(date ? date.format('YYYY-MM-DD') : "")}
                         format="DD/MM/YYYY"
+                        inputReadOnly={true}
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                         placeholder="Select to date"
                       />
@@ -440,49 +451,36 @@ export default function ShufflerSettingsPage() {
                       value={backwardsDate ? dayjs(backwardsDate) : null}
                       onChange={(date) => setBackwardsDate(date ? date.format('YYYY-MM-DD') : "")}
                       format="DD/MM/YYYY"
+                      inputReadOnly={true}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                       placeholder="Select backwards date"
                     />
                   </div>
                 )}
 
-                {isAutoShufflingOn && timeFrameType !== "days_before" && (
-                  <div className="space-y-2 flex flex-col">
-                    <Label htmlFor="shuffle-time" className="mb-2">Daily Shuffle Time (Auto)</Label>
-                    <TimePicker
-                      value={shuffleTime ? dayjs(`2000-01-01T${shuffleTime}`) : null}
-                      onChange={(time) => {
-                        if (time) {
-                          setShuffleTime(time.format('HH:mm'));
-                        } else {
-                          setShuffleTime("");
-                        }
-                      }}
-                      format="hh:mm A"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      placeholder="Select time"
-                    />
-                  </div>
-                )}
+
               </div>
 
               <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                <Button
-                  className="w-full sm:w-auto"
-                  onClick={handleSave}
-                  disabled={mutation.isPending}
-                >
-                  {mutation.isPending ? "Saving..." : "Set Shuffler"}
-                </Button>
-                <Button
-                  variant="secondary"
-                  className="w-full sm:w-auto"
-                  type="button"
-                  onClick={handleShuffleNow}
-                  disabled={shuffleNowMutation.isPending}
-                >
-                  {shuffleNowMutation.isPending ? "Shuffling..." : "Shuffle Now"}
-                </Button>
+                {isAutoShufflingOn ? (
+                  <Button
+                    className="w-full sm:w-auto"
+                    onClick={handleSave}
+                    disabled={mutation.isPending}
+                  >
+                    {mutation.isPending ? "Saving..." : "Save Auto Schedule"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="secondary"
+                    className="w-full sm:w-auto"
+                    type="button"
+                    onClick={handleShuffleNow}
+                    disabled={shuffleNowMutation.isPending}
+                  >
+                    {shuffleNowMutation.isPending ? "Shuffling..." : "Shuffle Now"}
+                  </Button>
+                )}
               </div>
             </div>
 
