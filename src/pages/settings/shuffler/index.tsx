@@ -218,6 +218,17 @@ export default function ShufflerSettingsPage() {
     }
     setSelectAllBranches(false);
     setSelectedBranchIds(prev => {
+      if (prev.length === branchList.length && branchList.length > 0) {
+        // We are resetting from ALL to just one branch.
+        // We must also update the selected users to ONLY include users from this branch.
+        setTimeout(() => {
+          setSelectedUserIds(prevUsers => prevUsers.filter(userId => {
+            const userObj = userList.find((u: any) => u.id === userId);
+            return userObj?.branch?.id === val;
+          }));
+        }, 0);
+        return [val];
+      }
       if (!prev.includes(val)) return [...prev, val];
       return prev;
     });
@@ -245,6 +256,9 @@ export default function ShufflerSettingsPage() {
     }
     setSelectAllUsers(false);
     setSelectedUserIds(prev => {
+      if (prev.length === filteredUsers.length && filteredUsers.length > 0) {
+        return [val];
+      }
       if (!prev.includes(val)) return [...prev, val];
       return prev;
     });
