@@ -37,6 +37,7 @@ export default function ShufflerSettingsPage() {
   const [shuffleBefore, setShuffleBefore] = useState("")
   const [shuffleTime, setShuffleTime] = useState("")
   const [isAutoShufflingOn, setIsAutoShufflingOn] = useState(false)
+  const [minLeadAgeDays, setMinLeadAgeDays] = useState("")
 
   const [branchDropdownVal, setBranchDropdownVal] = useState("")
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([])
@@ -87,6 +88,7 @@ export default function ShufflerSettingsPage() {
       setShuffleBefore(org.shufflerConfig.shuffleBeforeDays?.toString() || "")
       setShuffleTime(org.shufflerConfig.shuffleTime || "")
       setIsAutoShufflingOn(org.shufflerConfig.isAutoShufflingOn || false)
+      setMinLeadAgeDays(org.shufflerConfig.minLeadAgeDays?.toString() || "")
       
       let initBranchIds = org.shufflerConfig.branches || [];
       if (org.shufflerConfig.selectAllBranches && branchList.length > 0) {
@@ -144,6 +146,7 @@ export default function ShufflerSettingsPage() {
         shuffleBeforeDays: parseInt(shuffleBefore) || 0,
         shuffleTime: shuffleTime,
         isAutoShufflingOn: isAutoShufflingOn,
+        minLeadAgeDays: parseInt(minLeadAgeDays) || 0,
         branches: selectedBranchIds,
         selectAllBranches,
         users: selectedUserIds,
@@ -165,6 +168,7 @@ export default function ShufflerSettingsPage() {
         shuffleBeforeDays: parseInt(shuffleBefore) || 0,
         shuffleTime: shuffleTime,
         isAutoShufflingOn: isAutoShufflingOn,
+        minLeadAgeDays: parseInt(minLeadAgeDays) || 0,
         branches: selectedBranchIds,
         selectAllBranches,
         users: selectedUserIds,
@@ -385,33 +389,47 @@ export default function ShufflerSettingsPage() {
                 )}
 
                 {isAutoShufflingOn && (
-                  <div className="flex gap-4">
-                    <div className="space-y-2 flex-1">
-                      <Label htmlFor="shuffle-before">Repeat Interval (Days)</Label>
+                  <div className="space-y-4">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="space-y-2 flex-1">
+                        <Label htmlFor="shuffle-before">Repeat Interval (Days)</Label>
+                        <Input
+                          id="shuffle-before"
+                          type="number"
+                          min="0"
+                          value={shuffleBefore}
+                          onChange={(e) => setShuffleBefore(e.target.value)}
+                          placeholder="e.g. 0 for daily, 1 for every 1 day"
+                        />
+                      </div>
+                      <div className="space-y-2 flex-1">
+                        <Label>Schedule Time</Label>
+                        <TimePicker
+                          value={shuffleTime ? dayjs(`2000-01-01T${shuffleTime}`) : null}
+                          onChange={(time) => {
+                            if (time) {
+                              setShuffleTime(time.format('HH:mm'));
+                            } else {
+                              setShuffleTime("");
+                            }
+                          }}
+                          format="hh:mm A"
+                          inputReadOnly={true}
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                          placeholder="Select time"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-2">
+                      <Label htmlFor="min-lead-age" className="whitespace-nowrap">Minimum Lead Age (Days)</Label>
                       <Input
-                        id="shuffle-before"
+                        id="min-lead-age"
                         type="number"
                         min="0"
-                        value={shuffleBefore}
-                        onChange={(e) => setShuffleBefore(e.target.value)}
-                        placeholder="e.g. 0 for daily, 1 for every 1 day"
-                      />
-                    </div>
-                    <div className="space-y-2 flex-1">
-                      <Label>Schedule Time</Label>
-                      <TimePicker
-                        value={shuffleTime ? dayjs(`2000-01-01T${shuffleTime}`) : null}
-                        onChange={(time) => {
-                          if (time) {
-                            setShuffleTime(time.format('HH:mm'));
-                          } else {
-                            setShuffleTime("");
-                          }
-                        }}
-                        format="hh:mm A"
-                        inputReadOnly={true}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        placeholder="Select time"
+                        value={minLeadAgeDays}
+                        onChange={(e) => setMinLeadAgeDays(e.target.value)}
+                        placeholder="Exclude leads younger than X days"
+                        className="w-full sm:max-w-[280px]"
                       />
                     </div>
                   </div>
@@ -466,7 +484,12 @@ export default function ShufflerSettingsPage() {
                   <Button
                     className="w-full sm:w-auto"
                     onClick={handleSave}
-                    disabled={mutation.isPending}
+                    disabled={
+                      mutation.isPending || 
+                      shuffleBefore === "" || parseInt(shuffleBefore) < 0 || 
+                      shuffleTime === "" || 
+                      minLeadAgeDays === "" || parseInt(minLeadAgeDays) < 0
+                    }
                   >
                     {mutation.isPending ? "Saving..." : "Save Auto Schedule"}
                   </Button>
