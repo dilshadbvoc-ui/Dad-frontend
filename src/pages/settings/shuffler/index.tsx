@@ -66,22 +66,54 @@ export default function ShufflerSettingsPage() {
     queryFn: () => getUsers()
   })
 
+  const branchList = Array.isArray(branches) ? branches : (branches?.branches || []);
+  const userList = Array.isArray(users) ? (users as any) : ((users as any)?.users || []);
+
+  const excludedRoles = ['super_admin', 'admin'];
+  const filteredUsers = userList.filter((u: any) => {
+    // If branches are selected, only show users belonging to those branches
+    if (selectedBranchIds.length > 0 && (!u.branch || !selectedBranchIds.includes(u.branch.id))) {
+      return false;
+    }
+    const roleName = u.role?.name?.toLowerCase() || '';
+    const roleKey = u.role?.roleKey?.toLowerCase() || '';
+    const isExcluded = roleName.includes('admin') || roleKey.includes('admin') || excludedRoles.includes(roleKey);
+    return !isExcluded;
+  });
+
   useEffect(() => {
     if (org?.shufflerConfig) {
       setShufflingLeads(org.shufflerConfig.statuses?.join('\n') || "")
       setShuffleBefore(org.shufflerConfig.shuffleBeforeDays?.toString() || "")
       setShuffleTime(org.shufflerConfig.shuffleTime || "")
       setIsAutoShufflingOn(org.shufflerConfig.isAutoShufflingOn || false)
-      setSelectedBranchIds(org.shufflerConfig.branches || [])
-      setSelectAllBranches(org.shufflerConfig.selectAllBranches || false)
-      setSelectedUserIds(org.shufflerConfig.users || [])
-      setSelectAllUsers(org.shufflerConfig.selectAllUsers || false)
+      
+      let initBranchIds = org.shufflerConfig.branches || [];
+      if (org.shufflerConfig.selectAllBranches && branchList.length > 0) {
+         initBranchIds = branchList.map((b: any) => b.id);
+      }
+      setSelectedBranchIds(initBranchIds)
+      setSelectAllBranches(false)
+      
+      let initUserIds = org.shufflerConfig.users || [];
+      if (org.shufflerConfig.selectAllUsers && userList.length > 0) {
+         const filtered = userList.filter((u: any) => {
+            if (initBranchIds.length > 0 && (!u.branch || !initBranchIds.includes(u.branch.id))) return false;
+            const roleName = u.role?.name?.toLowerCase() || '';
+            const roleKey = u.role?.roleKey?.toLowerCase() || '';
+            return !(roleName.includes('admin') || roleKey.includes('admin') || excludedRoles.includes(roleKey));
+         });
+         initUserIds = filtered.map((u: any) => u.id);
+      }
+      setSelectedUserIds(initUserIds)
+      setSelectAllUsers(false)
+      
       setTimeFrameType(org.shufflerConfig.timeFrameType || "days_before")
       setFromDate(org.shufflerConfig.fromDate || "")
       setToDate(org.shufflerConfig.toDate || "")
       setBackwardsDate(org.shufflerConfig.backwardsDate || "")
     }
-  }, [org])
+  }, [org, branchList.length, userList.length])
 
   const mutation = useMutation({
     mutationFn: updateOrganisation,
@@ -179,8 +211,8 @@ export default function ShufflerSettingsPage() {
   const handleBranchSelect = (val: string) => {
     if (!val) return;
     if (val === "ALL") {
-      setSelectAllBranches(true);
-      setSelectedBranchIds([]);
+      setSelectAllBranches(false);
+      setSelectedBranchIds(branchList.map((b: any) => b.id));
       setTimeout(() => setBranchDropdownVal(""), 0);
       return;
     }
@@ -206,8 +238,8 @@ export default function ShufflerSettingsPage() {
   const handleUserSelect = (val: string) => {
     if (!val) return;
     if (val === "ALL") {
-      setSelectAllUsers(true);
-      setSelectedUserIds([]);
+      setSelectAllUsers(false);
+      setSelectedUserIds(filteredUsers.map((u: any) => u.id));
       setTimeout(() => setUserDropdownVal(""), 0);
       return;
     }
@@ -224,21 +256,6 @@ export default function ShufflerSettingsPage() {
   }
 
   const selectedList = shufflingLeads.split('\n').map(s => s.trim()).filter(Boolean);
-  const branchList = Array.isArray(branches) ? branches : (branches?.branches || []);
-  const userList = Array.isArray(users) ? (users as any) : ((users as any)?.users || []);
-
-  const excludedRoles = ['super_admin', 'admin'];
-  const filteredUsers = userList.filter((u: any) => {
-    // If branches are selected, only show users belonging to those branches
-    if (selectedBranchIds.length > 0 && (!u.branch || !selectedBranchIds.includes(u.branch.id))) {
-      return false;
-    }
-    const roleName = u.role?.name?.toLowerCase() || '';
-    const roleKey = u.role?.roleKey?.toLowerCase() || '';
-    // Exclude administrators from receiving standard leads
-    const isExcluded = roleName.includes('admin') || roleKey.includes('admin') || excludedRoles.includes(roleKey);
-    return !isExcluded;
-  });
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
