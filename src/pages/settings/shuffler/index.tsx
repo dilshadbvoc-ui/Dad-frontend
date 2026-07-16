@@ -63,7 +63,7 @@ export default function ShufflerSettingsPage() {
 
   const { data: users = [] } = useQuery({
     queryKey: ['users'],
-    queryFn: getUsers
+    queryFn: () => getUsers()
   })
 
   useEffect(() => {
@@ -196,7 +196,7 @@ export default function ShufflerSettingsPage() {
     setSelectedBranchIds(prev => prev.filter(id => id !== branchId));
 
     // Also remove any users from Users (Selected) who belong to this removed branch
-    const currentUserList = Array.isArray(users) ? users : (users?.users || []);
+    const currentUserList = Array.isArray(users) ? (users as any) : ((users as any)?.users || []);
     setSelectedUserIds(prev => prev.filter(userId => {
       const userObj = currentUserList.find((u: any) => u.id === userId);
       return userObj?.branch?.id !== branchId;
@@ -225,7 +225,7 @@ export default function ShufflerSettingsPage() {
 
   const selectedList = shufflingLeads.split('\n').map(s => s.trim()).filter(Boolean);
   const branchList = Array.isArray(branches) ? branches : (branches?.branches || []);
-  const userList = Array.isArray(users) ? users : (users?.users || []);
+  const userList = Array.isArray(users) ? (users as any) : ((users as any)?.users || []);
 
   const excludedRoles = ['super_admin', 'admin'];
   const filteredUsers = userList.filter((u: any) => {
