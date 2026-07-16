@@ -20,7 +20,8 @@ import {
   Upload,
   Phone,
   CreditCard,
-  FileText
+  FileText,
+  Shuffle
 } from "lucide-react"
 
 const ALL_SETTINGS_SECTIONS = [
@@ -108,6 +109,14 @@ const ALL_SETTINGS_SECTIONS = [
     description: "Manage webhooks, APIs, and third-party integrations",
     href: "/settings/integrations",
     icon: Webhook,
+    gradient: "from-indigo-600 to-violet-600",
+    roles: ['admin']
+  },
+  {
+    title: "Lead Shuffler",
+    description: "Automate and manage the redistribution (shuffling) of leads",
+    href: "/settings/shuffler",
+    icon: Shuffle,
     gradient: "from-indigo-600 to-violet-600",
     roles: ['admin']
   },

@@ -108,6 +108,7 @@ const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-status
 const BroadcastSettingsPage = lazy(() => import('./pages/settings/broadcast'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
 
+const ShufflerSettingsPage = lazy(() => import('./pages/settings/shuffler'));
 const TrashPage = lazy(() => import('./pages/trash'));
 
 const TrainingPage = lazy(() => import('./pages/Training'));
@@ -340,6 +341,9 @@ function AppContent() {
        <Route path="/settings/billing" element={<BillingSettingsPage />} />
        <Route path="/settings/audit-logs" element={<AuditLogsPage />} />
        <Route path="/settings/developer" element={<DeveloperSettingsPage />} />
+
+       <Route path="/settings/shuffler" element={<ShufflerSettingsPage />} />
+
        <Route path="/settings/broadcast" element={<BroadcastSettingsPage />} />
        <Route path="/automation" element={<AutomationPage />} />
        <Route path="/settings/organisation" element={<OrganisationSettingsPage />} />

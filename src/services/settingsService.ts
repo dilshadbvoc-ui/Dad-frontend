@@ -104,6 +104,7 @@ export interface OrganisationUpdateData {
     leadScoringConfig?: LeadScoringConfig;
     leadStatuses?: LeadStatus[];
     opportunityLeadStatuses?: LeadStatus[];
+    shufflerConfig?: ShufflerConfig;
 }
 
 export const getUsers = async () => {
@@ -210,5 +211,19 @@ export const uploadImage = async (file: File) => {
 
 export const getBranches = async () => {
     const response = await api.get('/branches');
+    return response.data;
+};
+
+export interface ShufflerConfig {
+    statuses: string[];
+    shuffleBeforeDays: number;
+    shuffleTime: string;
+    isAutoShufflingOn?: boolean;
+    branches?: string[];
+    users?: string[];
+}
+
+export const triggerShuffleNow = async () => {
+    const response = await api.post('/organisation/shuffle-now');
     return response.data;
 };
