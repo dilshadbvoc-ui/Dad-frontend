@@ -41,6 +41,7 @@ interface DataTableProps<TData, TValue> {
   renderSubComponent?: (props: { row: any }) => React.ReactElement
   initialPageSize?: number
   pageSize?: number
+  onSearchChange?: (value: string) => void;
   rowSelection?: RowSelectionState
   onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
   isVirtual?: boolean
@@ -65,6 +66,7 @@ export function DataTable<TData, TValue>({
   renderSubComponent,
   initialPageSize,
   pageSize,
+  onSearchChange,
   onRowSelectionChangeState,
   rowSelection,
   isVirtual = false,
@@ -261,7 +263,12 @@ export function DataTable<TData, TValue>({
           <Input
             placeholder="Search..."
             value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
+            onChange={(event) => {
+              setGlobalFilter(event.target.value);
+              if (onSearchChange) {
+                onSearchChange(event.target.value);
+              }
+            }}
             className="max-w-sm h-10 shadow-sm"
           />
         </div>

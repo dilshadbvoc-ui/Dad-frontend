@@ -352,6 +352,16 @@ export default function LeadsPage() {
   }, []);
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
+  const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
   const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
@@ -456,9 +466,10 @@ export default function LeadsPage() {
   // --- Data Fetching ---
   // 1. Leads
   const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource, currentStatus, backendDateFilter],
+    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource, currentStatus, backendDateFilter, debouncedSearchTerm],
     queryFn: () => getLeads({ 
       pageSize: 1000,
+      search: debouncedSearchTerm || undefined,
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
       branchId: currentBranch === 'all' ? undefined : currentBranch,
       source: currentSource === 'all' ? undefined : currentSource,
@@ -1169,6 +1180,7 @@ export default function LeadsPage() {
                     columns={columns}
                     data={sortedDisplayData as Lead[]}
                     searchKeys={["firstName", "lastName", "email", "phone", "company"]}
+                    onSearchChange={setSearchTerm}
                     mobileCardRender={(lead) => <LeadCard lead={lead} />}
                     initialPageSize={50}
                     pageSize={pageSize}
