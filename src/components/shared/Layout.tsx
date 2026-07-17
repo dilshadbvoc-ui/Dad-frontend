@@ -133,25 +133,32 @@ export default function Layout() {
       // Invalidate notification queries to update the bell/popover
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
 
+      const isNewLeadNotification = data.title && data.title.includes('New Lead Assigned');
+
       // If it's a persistent popup, suppress the transient sonner toast to avoid duplicate alerts
       if (data.type === 'popup') {
-        triggerRichNotification(data.title, data.message);
+        if (!isNewLeadNotification) {
+          triggerRichNotification(data.title, data.message);
+        }
         triggerAndroidNotification(data.title, data.message);
         return;
       }
 
-      // Map backend types to sonner toast types
-      const type = data.type === 'error' ? 'error' :
-        data.type === 'success' ? 'success' :
-          data.type === 'warning' ? 'warning' : 'info';
+      // Normal generic push (fallback for non-popup UI)
+      if (!isNewLeadNotification) {
+        // Map backend types to sonner toast types
+        const type = data.type === 'error' ? 'error' :
+          data.type === 'success' ? 'success' :
+            data.type === 'warning' ? 'warning' : 'info';
 
-      toast[type](data.title, {
-        description: data.message,
-        duration: 4000,
-      });
+        toast[type](data.title, {
+          description: data.message,
+          duration: 4000,
+        });
 
-      // Trigger sensory feedback (sound/vibration/OS popup)
-      triggerRichNotification(data.title, data.message);
+        // Trigger sensory feedback (sound/vibration/OS popup)
+        triggerRichNotification(data.title, data.message);
+      }
 
       // Native Android App push notification mirror
       triggerAndroidNotification(data.title, data.message);
@@ -164,9 +171,6 @@ export default function Layout() {
     socketService.on('lead_created', () => {
       handleRealtimeSync('lead_created');
       
-      // Rich alert for new leads
-      triggerRichNotification('New Lead Assigned', 'A fresh lead has been assigned to you. Details are available in the dashboard.');
-
       const userInfo = localStorage.getItem('userInfo');
       if (userInfo) {
         const { token } = JSON.parse(userInfo);
