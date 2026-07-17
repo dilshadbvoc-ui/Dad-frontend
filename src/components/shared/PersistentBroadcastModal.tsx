@@ -30,7 +30,9 @@ export function PersistentBroadcastModal() {
     staleTime: 5000,
   });
 
-  const notifications = data?.notifications || [];
+  const notifications = (data?.notifications || []).filter(
+    (n: any) => !(n.title && n.title.includes('New Lead Assigned'))
+  );
   const currentNotif = notifications[currentNotifIndex];
 
   // Socket listener for real-time popups
