@@ -33,7 +33,7 @@ export function BulkStatusDialog({
   selectedLeads,
   onSuccess,
 }: BulkStatusDialogProps) {
-  const { statuses, isLoading: loadingStatuses } = useLeadStatuses()
+  const { statuses, selectableStatuses, isLoading: loadingStatuses } = useLeadStatuses()
   const [selectedStatus, setSelectedStatus] = useState<string>("")
   const [loading, setLoading] = useState(false)
 
@@ -84,7 +84,7 @@ export function BulkStatusDialog({
                 <SelectValue placeholder={loadingStatuses ? "Loading statuses..." : "Select a new status"} />
               </SelectTrigger>
               <SelectContent>
-                {statuses.map((status) => (
+                {selectableStatuses.map((status) => (
                   <SelectItem key={status.id} value={status.id}>
                     <div className="flex items-center gap-2">
                       <div 

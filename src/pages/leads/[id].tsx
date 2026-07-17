@@ -77,7 +77,7 @@ export default function LeadDetailPage() {
   const [isQuickWonOpen, setIsQuickWonOpen] = useState(false)
   const [isQuickLostOpen, setIsQuickLostOpen] = useState(false)
   const [dragOver, setDragOver] = useState(false)
-  const { statuses, getStatusDetails } = useLeadStatuses()
+  const { statuses, selectableStatuses, getStatusDetails } = useLeadStatuses()
   const queryClient = useQueryClient()
 
   const { data: lead, isLoading: leadLoading } = useQuery({
@@ -343,7 +343,7 @@ export default function LeadDetailPage() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
                   <SelectContent>
-                    {statuses.map((status) => (
+                    {selectableStatuses.map((status) => (
                       <SelectItem key={status.id} value={status.id}>
                         <div className="flex items-center gap-2">
                           <div 
@@ -364,7 +364,7 @@ export default function LeadDetailPage() {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                {statuses.map((status) => (
+                {selectableStatuses.map((status) => (
                   <SelectItem key={status.id} value={status.id}>
                     <div className="flex items-center gap-2">
                       <div 

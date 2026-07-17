@@ -52,7 +52,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
   const finalOpen = isControlled ? open : internalOpen
   const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
-  const { statuses } = useLeadStatuses()
+  const { statuses, selectableStatuses } = useLeadStatuses()
   const queryClient = useQueryClient()
 
   const form = useForm<EditLeadFormData>({
@@ -249,7 +249,7 @@ export function EditLeadDialog({ children, open, onOpenChange, lead }: EditLeadD
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {statuses.map((status) => (
+                      {selectableStatuses.map((status) => (
                         <SelectItem key={status.id} value={status.id}>
                           <div className="flex items-center gap-2">
                             <div 

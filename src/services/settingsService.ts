@@ -224,11 +224,12 @@ export interface ShufflerConfig {
 }
 
 export const triggerShuffleNow = async () => {
-    const response = await api.post('/organisation/shuffle-now');
+    // 10 minute timeout for large shuffles
+    const response = await api.post('/organisation/shuffle-now', {}, { timeout: 600000 });
     return response.data;
 };
 
-export const getShuffleCount = async () => {
-    const response = await api.get('/organisation/shuffle-count');
+export const getShuffleCount = async (config?: ShufflerConfig) => {
+    const response = await api.post('/organisation/shuffle-count', { shufflerConfig: config });
     return response.data;
 };

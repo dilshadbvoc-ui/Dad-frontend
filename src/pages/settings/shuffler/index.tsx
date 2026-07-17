@@ -82,6 +82,30 @@ export default function ShufflerSettingsPage() {
   const branchList = Array.isArray(branches) ? branches : (branches?.branches || []);
   const userList = Array.isArray(users) ? (users as any) : ((users as any)?.users || []);
 
+  const currentConfigPayload = {
+    statuses: shufflingLeads.split('\n').map(s => s.trim()).filter(Boolean),
+    shuffleBeforeDays: parseInt(shuffleBefore) || 0,
+    shuffleTime: shuffleTime,
+    isAutoShufflingOn: isAutoShufflingOn,
+    minLeadAgeDays: parseInt(minLeadAgeDays) || 0,
+    branches: selectedBranchIds,
+    selectAllBranches,
+    users: selectedUserIds,
+    selectAllUsers,
+    timeFrameType,
+    fromDate,
+    toDate,
+    backwardsDate
+  };
+
+  const { data: shufflePreviewCount } = useQuery({
+    queryKey: ['shuffleCountPreview', currentConfigPayload],
+    queryFn: () => getShuffleCount(currentConfigPayload as any),
+    enabled: !!org
+  });
+
+  const countsByStatus = shufflePreviewCount?.countsByStatus || {};
+
   const excludedRoles = ['super_admin', 'admin'];
   const filteredUsers = userList.filter((u: any) => {
     // If branches are selected, only show users belonging to those branches
@@ -194,7 +218,7 @@ export default function ShufflerSettingsPage() {
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['organisation'] });
-        getShuffleCount().then(res => {
+        getShuffleCount(currentConfigPayload as any).then(res => {
             setShuffleLeadsCount(res.count);
             setIsConfirmDialogOpen(true);
             setIsCounting(false);
@@ -533,6 +557,24 @@ export default function ShufflerSettingsPage() {
                   </Button>
                 )}
               </div>
+
+              {shuffleNowMutation.isPending && (
+                <div className="w-full mt-6 space-y-2">
+                  <p className="text-sm text-center font-medium text-primary animate-pulse">Shuffling leads in progress... this may take a few minutes. Please do not close this tab.</p>
+                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden relative">
+                    <div className="h-full bg-primary rounded-full absolute" style={{ width: '30%', animation: 'slideRight 1.5s infinite alternate ease-in-out' }}>
+                      <style>
+                        {`
+                          @keyframes slideRight {
+                            0% { left: 0%; }
+                            100% { left: 70%; }
+                          }
+                        `}
+                      </style>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Right Column */}
@@ -544,9 +586,10 @@ export default function ShufflerSettingsPage() {
                     selectedList.map((statusId, index) => {
                       const statusObj = statuses.find(s => s.id === statusId);
                       const label = statusObj ? statusObj.label : statusId;
+                      const count = countsByStatus[statusId] || 0;
                       return (
                         <Badge key={index} variant="secondary" className="flex items-center gap-1 text-sm py-1 h-fit">
-                          {label}
+                          {label} ({count})
                           <button
                             type="button"
                             onClick={() => removeStatus(statusId)}

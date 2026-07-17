@@ -12,7 +12,8 @@ export const DEFAULT_LEAD_STATUSES: LeadStatus[] = [
     { id: 'converted', label: 'Converted', color: '#059669', isSystem: true, order: 6 },
     { id: 'lost', label: 'Lost', color: '#6b7280', isSystem: true, order: 7 },
     { id: 'not_interested', label: 'Not Interested', color: '#ef4444', isSystem: false, order: 8 },
-    { id: 're_enquiry', label: 'Re-Enquiry', color: '#f97316', isSystem: true, order: 9 }
+    { id: 're_enquiry', label: 'Re-Enquiry', color: '#f97316', isSystem: true, order: 9 },
+    { id: 'shuffled_lead', label: 'Shuffled', color: '#8b5cf6', isSystem: true, order: 10 }
 ];
 
 export function useLeadStatuses() {
@@ -22,7 +23,13 @@ export function useLeadStatuses() {
         staleTime: 1000 * 60 * 5, // 5 minutes
     });
 
-    const statuses: LeadStatus[] = org?.leadStatuses || DEFAULT_LEAD_STATUSES;
+    const orgStatuses: LeadStatus[] = org?.leadStatuses || DEFAULT_LEAD_STATUSES;
+    let statuses = [...orgStatuses];
+    
+    // Ensure 'shuffled_lead' is always available even if org has custom statuses
+    if (!statuses.find(s => s.id === 'shuffled_lead')) {
+        statuses.push({ id: 'shuffled_lead', label: 'Shuffled', color: '#8b5cf6', isSystem: true, order: 99 });
+    }
 
     const getStatusDetails = (id: string) => {
         const status = statuses.find(s => s.id === id);
@@ -31,6 +38,7 @@ export function useLeadStatuses() {
 
     return {
         statuses: statuses.sort((a, b) => a.order - b.order),
+        selectableStatuses: statuses.filter(s => s.id !== 'shuffled_lead').sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
         orgId: org?.id

@@ -62,7 +62,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
   const finalOpen = isControlled ? open : internalOpen
   const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
-  const { statuses } = useLeadStatuses()
+  const { statuses, selectableStatuses } = useLeadStatuses()
   const queryClient = useQueryClient()
 
   const form = useForm<QuickLeadFormData>({
@@ -396,7 +396,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {statuses.map((status) => (
+                          {selectableStatuses.map((status) => (
                             <SelectItem key={status.id} value={status.id}>
                               <div className="flex items-center gap-2">
                                 <div 
