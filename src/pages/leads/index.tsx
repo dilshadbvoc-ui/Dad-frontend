@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient, keepPreviousData } from "@tanstack/react-query"
 import { type RowSelectionState } from "@tanstack/react-table"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
@@ -477,6 +477,7 @@ export default function LeadsPage() {
       startDate: backendDateFilter.from || undefined,
       endDate: backendDateFilter.to || undefined
     }),
+    placeholderData: keepPreviousData,
   });
 
   // 2. Tasks (Follow Ups)
