@@ -11,12 +11,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, X } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
-import { getOrganisation, updateOrganisation, triggerShuffleNow, getBranches } from "@/services/settingsService"
+import { getOrganisation, updateOrganisation, triggerShuffleNow, getBranches, getShuffleCount } from "@/services/settingsService"
 import { getUsers } from "@/services/userService"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -51,6 +59,10 @@ export default function ShufflerSettingsPage() {
   const [fromDate, setFromDate] = useState("")
   const [toDate, setToDate] = useState("")
   const [backwardsDate, setBackwardsDate] = useState("")
+
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+  const [shuffleLeadsCount, setShuffleLeadsCount] = useState<number | null>(null)
+  const [isCounting, setIsCounting] = useState(false)
 
   const { data: org, isLoading } = useQuery({
     queryKey: ['organisation'],
@@ -160,7 +172,8 @@ export default function ShufflerSettingsPage() {
   }
 
   const handleShuffleNow = () => {
-    // Save first, then trigger shuffle on success
+    setIsCounting(true);
+    // Save first, then get count on success
     mutation.mutate({
       shufflerConfig: {
         ...(org?.shufflerConfig || {}),
@@ -181,9 +194,24 @@ export default function ShufflerSettingsPage() {
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['organisation'] });
-        shuffleNowMutation.mutate();
+        getShuffleCount().then(res => {
+            setShuffleLeadsCount(res.count);
+            setIsConfirmDialogOpen(true);
+            setIsCounting(false);
+        }).catch(err => {
+            toast.error("Failed to get shuffle count");
+            setIsCounting(false);
+        });
+      },
+      onError: () => {
+        setIsCounting(false);
       }
     });
+  }
+
+  const confirmShuffle = () => {
+    setIsConfirmDialogOpen(false);
+    shuffleNowMutation.mutate();
   }
 
   const filteredStatuses = statuses.filter(
@@ -499,9 +527,9 @@ export default function ShufflerSettingsPage() {
                     className="w-full sm:w-auto"
                     type="button"
                     onClick={handleShuffleNow}
-                    disabled={shuffleNowMutation.isPending}
+                    disabled={shuffleNowMutation.isPending || isCounting || mutation.isPending}
                   >
-                    {shuffleNowMutation.isPending ? "Shuffling..." : "Shuffle Now"}
+                    {isCounting || mutation.isPending ? "Calculating..." : shuffleNowMutation.isPending ? "Shuffling..." : "Shuffle Now"}
                   </Button>
                 )}
               </div>
@@ -612,6 +640,44 @@ export default function ShufflerSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Confirm Shuffle</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to proceed with shuffling leads?
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-4">
+            <div className="rounded-lg bg-muted p-4 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Eligible Leads to Shuffle:</span>
+                <span className="text-lg font-bold text-primary">{shuffleLeadsCount ?? 0}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-sm font-medium">Estimated Time:</span>
+                <span className="text-sm font-semibold">
+                  {Math.max(1, Math.ceil((shuffleLeadsCount ?? 0) * 0.1))} seconds
+                </span>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground mt-4">
+              Clicking Confirm will immediately begin re-assigning these leads in a round-robin format among the selected users.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmShuffle}>
+              Confirm Shuffle
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

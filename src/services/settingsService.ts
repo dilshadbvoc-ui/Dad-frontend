@@ -227,3 +227,8 @@ export const triggerShuffleNow = async () => {
     const response = await api.post('/organisation/shuffle-now');
     return response.data;
 };
+
+export const getShuffleCount = async () => {
+    const response = await api.get('/organisation/shuffle-count');
+    return response.data;
+};
