@@ -24,7 +24,7 @@ import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, X } from "lucide-react"
 import { Link, useNavigate } from "react-router-dom"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
-import { getOrganisation, updateOrganisation, triggerShuffleNow, getBranches, getShuffleCount } from "@/services/settingsService"
+import { getOrganisation, updateOrganisation, triggerShuffleNow, getBranches, getShuffleCount, getShuffleStatus } from "@/services/settingsService"
 import { getUsers } from "@/services/userService"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
@@ -104,7 +104,16 @@ export default function ShufflerSettingsPage() {
     enabled: !!org
   });
 
+  const { data: shuffleStatusData } = useQuery({
+    queryKey: ['shuffleStatus'],
+    queryFn: getShuffleStatus,
+    refetchInterval: 3000 // Poll every 3 seconds
+  });
+
   const countsByStatus = shufflePreviewCount?.countsByStatus || {};
+  const activeJob = shuffleStatusData?.activeJob;
+  const isJobRunning = activeJob?.status === "IN_PROGRESS";
+
 
   const excludedRoles = ['super_admin', 'admin'];
   const filteredUsers = userList.filter((u: any) => {
@@ -112,9 +121,16 @@ export default function ShufflerSettingsPage() {
     if (selectedBranchIds.length > 0 && (!u.branch || !selectedBranchIds.includes(u.branch.id))) {
       return false;
     }
-    const roleName = u.role?.name?.toLowerCase() || '';
-    const roleKey = u.role?.roleKey?.toLowerCase() || '';
-    const isExcluded = roleName.includes('admin') || roleKey.includes('admin') || excludedRoles.includes(roleKey);
+    
+    // Support both string roles and object roles
+    let roleStr = '';
+    if (typeof u.role === 'string') {
+      roleStr = u.role.toLowerCase();
+    } else if (u.role) {
+      roleStr = (u.role.name || u.role.roleKey || '').toLowerCase();
+    }
+    
+    const isExcluded = roleStr.includes('admin') || excludedRoles.includes(roleStr);
     return !isExcluded;
   });
 
@@ -137,9 +153,15 @@ export default function ShufflerSettingsPage() {
       if (org.shufflerConfig.selectAllUsers && userList.length > 0) {
          const filtered = userList.filter((u: any) => {
             if (initBranchIds.length > 0 && (!u.branch || !initBranchIds.includes(u.branch.id))) return false;
-            const roleName = u.role?.name?.toLowerCase() || '';
-            const roleKey = u.role?.roleKey?.toLowerCase() || '';
-            return !(roleName.includes('admin') || roleKey.includes('admin') || excludedRoles.includes(roleKey));
+            
+            let roleStr = '';
+            if (typeof u.role === 'string') {
+              roleStr = u.role.toLowerCase();
+            } else if (u.role) {
+              roleStr = (u.role.name || u.role.roleKey || '').toLowerCase();
+            }
+            
+            return !(roleStr.includes('admin') || excludedRoles.includes(roleStr));
          });
          initUserIds = filtered.map((u: any) => u.id);
       }
@@ -167,10 +189,11 @@ export default function ShufflerSettingsPage() {
   const shuffleNowMutation = useMutation({
     mutationFn: triggerShuffleNow,
     onSuccess: (data) => {
-      toast.success(data.message || "Shuffle completed successfully")
+      queryClient.invalidateQueries({ queryKey: ['shuffleStatus'] });
+      toast.success(data.message || "Shuffle started successfully");
     },
     onError: (error: any) => {
-      toast.error(error?.response?.data?.message || "Failed to execute shuffle")
+      toast.error(error?.response?.data?.message || "Failed to start shuffle");
     }
   })
 
@@ -551,28 +574,31 @@ export default function ShufflerSettingsPage() {
                     className="w-full sm:w-auto"
                     type="button"
                     onClick={handleShuffleNow}
-                    disabled={shuffleNowMutation.isPending || isCounting || mutation.isPending}
+                    disabled={shuffleNowMutation.isPending || isCounting || mutation.isPending || isJobRunning}
                   >
-                    {isCounting || mutation.isPending ? "Calculating..." : shuffleNowMutation.isPending ? "Shuffling..." : "Shuffle Now"}
+                    {isCounting || mutation.isPending ? "Calculating..." : isJobRunning ? "Shuffling in progress..." : "Shuffle Now"}
                   </Button>
                 )}
               </div>
 
-              {shuffleNowMutation.isPending && (
+              {isJobRunning && activeJob && (
                 <div className="w-full mt-6 space-y-2">
-                  <p className="text-sm text-center font-medium text-primary animate-pulse">Shuffling leads in progress... this may take a few minutes. Please do not close this tab.</p>
-                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden relative">
-                    <div className="h-full bg-primary rounded-full absolute" style={{ width: '30%', animation: 'slideRight 1.5s infinite alternate ease-in-out' }}>
-                      <style>
-                        {`
-                          @keyframes slideRight {
-                            0% { left: 0%; }
-                            100% { left: 70%; }
-                          }
-                        `}
-                      </style>
-                    </div>
+                  <div className="flex justify-between text-sm font-medium text-primary">
+                    <span>Shuffling leads...</span>
+                    <span>{activeJob.processedLeads} / {activeJob.totalLeads}</span>
                   </div>
+                  <div className="w-full h-2 bg-secondary rounded-full overflow-hidden relative">
+                    <div 
+                      className="h-full bg-primary transition-all duration-500 ease-in-out" 
+                      style={{ width: `${Math.min(100, Math.max(0, (activeJob.processedLeads / Math.max(1, activeJob.totalLeads)) * 100))}%` }} 
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {activeJob?.status === "COMPLETED" && (
+                <div className="w-full mt-6 space-y-2">
+                  <p className="text-sm text-center font-medium text-green-600">Shuffle completed successfully! ({activeJob.processedLeads} leads reassigned)</p>
                 </div>
               )}
             </div>

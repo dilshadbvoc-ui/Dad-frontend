@@ -229,6 +229,11 @@ export const triggerShuffleNow = async () => {
     return response.data;
 };
 
+export const getShuffleStatus = async () => {
+    const response = await api.get('/organisation/shuffle-status');
+    return response.data;
+};
+
 export const getShuffleCount = async (config?: ShufflerConfig) => {
     const response = await api.post('/organisation/shuffle-count', { shufflerConfig: config });
     return response.data;
