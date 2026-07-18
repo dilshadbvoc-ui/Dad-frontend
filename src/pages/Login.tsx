@@ -126,7 +126,7 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-[100dvh] lg:min-h-screen grid lg:grid-cols-2">
       <SEO
         title="Login"
         description="Securely access your Pype CRM account. Manage your sales pipeline and leads with ease."
@@ -191,7 +191,7 @@ const Login = () => {
       </div>
 
       {/* Form Section */}
-      <div className="flex items-center justify-center p-4 lg:p-12 bg-background data-[theme=dark]:bg-background">
+      <div className="flex min-h-[100dvh] lg:min-h-screen items-center justify-center px-4 py-6 lg:p-12 bg-background">
         <Card className="w-full max-w-[400px] shadow-lg border-0 bg-card shadow-sm">
           <CardHeader className="space-y-1 text-center lg:text-left px-6 pt-6">
             <CardTitle className="text-3xl font-bold tracking-tight">
@@ -241,9 +241,9 @@ const Login = () => {
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="w-6 h-6" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-6 h-6" />
                     )}
                   </button>
                 </div>
@@ -259,6 +259,7 @@ const Login = () => {
               <div className="flex items-center space-x-2 py-2">
                 <Checkbox
                   id="autoLogin"
+                  className="min-h-5! min-w-5! md:min-h-4! md:min-w-4!"
                   checked={autoLogin}
                   onCheckedChange={(checked) => setAutoLogin(checked as boolean)}
                 />

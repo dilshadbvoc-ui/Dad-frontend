@@ -41,7 +41,7 @@ const AdsManager: React.FC = () => {
   useEffect(() => {
     if (selectedAccount) {
       fetchCampaigns(selectedAccount);
-      fetchInsights();
+      fetchInsights(selectedAccount);
     }
   }, [selectedAccount]);
 
@@ -93,12 +93,12 @@ const AdsManager: React.FC = () => {
     }
   };
 
-  const fetchInsights = async () => {
+  const fetchInsights = async (accountId: string) => {
     setInsightsLoading(true);
     try {
       const [acctData, campData] = await Promise.all([
-        getAccountInsights().catch(() => null),
-        getCampaignInsights().catch(() => [])
+        getAccountInsights(accountId).catch(() => null),
+        getCampaignInsights(accountId).catch(() => [])
       ]);
 
       if (acctData && !acctData.error) {
