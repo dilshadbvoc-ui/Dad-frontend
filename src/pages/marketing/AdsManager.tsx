@@ -221,7 +221,7 @@ const AdsManager: React.FC = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={fetchInsights}
+            onClick={() => selectedAccount && fetchInsights(selectedAccount)}
             disabled={insightsLoading}
           >
             <RefreshCcw className={`h-4 w-4 mr-2 ${insightsLoading ? 'animate-spin' : ''}`} />
