@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { DataTable } from "@/components/ui/data-table"
 import { cn } from "@/lib/utils"
 import { createOpportunityColumns } from "./columns"
-import { getOpportunities } from "@/services/opportunityService"
+import { getOpportunities, type Opportunity } from "@/services/opportunityService"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "./KanbanBoard"
 import { OpportunityMobileCard } from "./OpportunityMobileCard"
@@ -389,7 +389,7 @@ export default function OpportunitiesPage() {
                     No opportunities found.
                   </div>
                 ) : (
-                  filteredOpportunities.map(opp => (
+                  filteredOpportunities.map((opp: Opportunity) => (
                     <OpportunityMobileCard key={opp.id} opportunity={opp} />
                   ))
                 )}
