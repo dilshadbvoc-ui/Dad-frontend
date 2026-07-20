@@ -168,7 +168,7 @@
 
   /* Finance Breeze Card - Soft, Round, Floating */
   .finance-card {
-    @apply bg-card text-card-foreground rounded-[2rem] border-0 transition-all duration-300;
+    @apply bg-card text-card-foreground rounded-[0.8rem] md:rounded-[2rem] border-0 transition-all duration-300;
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
   }
 

@@ -21,7 +21,7 @@ export function LeadSourcesWidget({ branchId }: { branchId?: string | null }) {
     }));
 
   return (
-    <Card className="col-span-3 min-w-0 overflow-hidden shadow-sm border-0 rounded-[2rem]">
+    <Card className="col-span-3 min-w-0 overflow-hidden shadow-sm border-0 rounded-[0.8rem] md:rounded-[2rem]">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">Lead Sources</CardTitle>
         <CardDescription className="text-muted-foreground">Acquisition channel distribution.</CardDescription>

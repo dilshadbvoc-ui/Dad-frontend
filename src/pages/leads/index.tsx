@@ -228,8 +228,8 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
   const { label, color } = getStatusDetails(lead.status);
 
   return (
-    <Card className="shadow-sm border-l-4 overflow-hidden" style={{ borderLeftColor: color }}>
-      <CardContent className="p-4 space-y-3">
+    <Card className="shadow-sm border-l-4 overflow-hidden mb-3" style={{ borderLeftColor: color }}>
+      <CardContent className="p-3.5 sm:p-4 space-y-3">
         <div className="flex items-start justify-between">
           <div className="min-w-0">
             <h4 className="font-bold text-foreground truncate">{lead.firstName} {lead.lastName}</h4>
@@ -838,7 +838,7 @@ export default function LeadsPage() {
         </div>
 
         {/* Header Area */}
-        <div className="space-y-4 px-2 sm:px-0">
+        <div className="space-y-4 sm:px-0 pt-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 hidden sm:flex">
@@ -858,11 +858,11 @@ export default function LeadsPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 self-end sm:self-auto">
+            <div className="flex w-full md:w-auto items-center gap-2 sm:gap-3 justify-between md:justify-start mt-2 md:mt-0">
               {!isTaskView && !isChartView && !isAnalyticsView && (
-                <Link to="/leads/new">
-                  <Button className="h-11 px-6 bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold rounded-xl">
-                    <Plus className="h-5 w-5 mr-2" />
+                <Link to="/leads/new" className="flex-1 md:flex-none">
+                  <Button className="w-full md:w-auto h-11 px-6 bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold rounded-xl">
+                    <Plus className="h-5 w-5 mr-1 md:mr-2" />
                     New Lead
                   </Button>
                 </Link>
@@ -871,7 +871,7 @@ export default function LeadsPage() {
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={leadsFetching}
-                className="h-11 w-11 p-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm"
+                className="h-11 w-11 shrink-0 p-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm"
                 title="Refresh Data"
               >
                 <RefreshCw className={`h-5 w-5 ${leadsFetching ? 'animate-spin text-primary' : ''}`} />
@@ -879,7 +879,7 @@ export default function LeadsPage() {
               <Button
                 variant="outline"
                 onClick={handleClearAllFilters}
-                className={`h-11 px-4 rounded-xl border-dashed bg-background/50 backdrop-blur-sm gap-2 font-semibold text-xs transition-all ${
+                className={`h-11 px-3 md:px-4 shrink-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm gap-1 md:gap-2 font-semibold text-xs transition-all ${
                   hasActiveFilters 
                     ? 'text-destructive border-destructive/50 hover:bg-destructive/10' 
                     : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed'
@@ -888,12 +888,12 @@ export default function LeadsPage() {
                 title="Clear All Active Filters"
               >
                 <X className="h-4 w-4" />
-                Clear Filters
+                <span className="hidden xs:inline">Clear Filters</span>
               </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
             {/* View Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>

@@ -21,7 +21,7 @@ export function SalesChartWidget({ branchId }: { branchId?: string | null }) {
     }));
 
   return (
-    <Card className="w-full min-w-0 overflow-hidden shadow-sm border-0 rounded-[2rem]">
+    <Card className="w-full min-w-0 overflow-hidden shadow-sm border-0 rounded-[0.8rem] md:rounded-[2rem]">
       <CardHeader>
         <CardTitle className="text-xl text-foreground">Sales Overview</CardTitle>
         <CardDescription className="text-muted-foreground">Revenue trend over the last 6 months.</CardDescription>

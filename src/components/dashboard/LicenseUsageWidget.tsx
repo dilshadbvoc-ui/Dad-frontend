@@ -19,7 +19,7 @@ export function LicenseUsageWidget() {
   const usagePercent = Math.min(100, Math.round((userCount / (userLimit || 1)) * 100))
 
   return (
-    <Link to="/settings/billing" className="block relative overflow-hidden rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
+    <Link to="/settings/billing" className="block relative overflow-hidden rounded-[0.8rem] md:rounded-[2rem] bg-card p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group">
       <div className="flex flex-col items-center justify-center space-y-3">
         <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:scale-110 transition-transform">
           <Users className="h-6 w-6" />

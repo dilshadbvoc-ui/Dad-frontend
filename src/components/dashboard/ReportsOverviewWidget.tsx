@@ -50,8 +50,8 @@ export function ReportsOverviewWidget() {
   ]
 
   return (
-    <Card className="rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-6">
+    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden">
+      <CardHeader className="flex flex-row items-start md:items-center justify-between space-y-0 pb-6">
         <div className="space-y-1">
           <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
             <FileText className="h-5 w-5 text-primary" />
@@ -59,8 +59,14 @@ export function ReportsOverviewWidget() {
           </CardTitle>
           <p className="text-sm text-muted-foreground">Access your most important analytics</p>
         </div>
-        <Link to="/reports">
-          <Button variant="ghost" size="sm" className="gap-2 rounded-xl">
+        {/* for mobile */}
+        <Link className="flex md:hidden flex-none justify-between border-b border-black mt-[4px] border-1.5 pb-[0.001rem] items-center w-20 gap-1.5" to="/reports">
+          <p className="md:hidden text-[14.5px] text-black font-medium ">View All</p>
+          <ArrowRight className="size-4 md:hidden" />
+        </Link>
+        {/* Above md */}
+        <Link className="hidden md:block" to="/reports">
+          <Button variant="ghost" size="sm" className="hidden md:flex gap-1.5 rounded-xl">
             View All
             <ArrowRight className="h-4 w-4" />
           </Button>

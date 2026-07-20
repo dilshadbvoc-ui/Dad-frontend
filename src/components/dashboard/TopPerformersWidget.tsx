@@ -21,7 +21,7 @@ export function TopPerformersWidget({ branchId }: { branchId?: string | null }) 
 
   if (isError) {
     return (
-      <Card className="col-span-2 rounded-3xl bg-card shadow-sm border-0">
+      <Card className="col-span-2 rounded-[0.8rem] md:rounded-3xl bg-card shadow-sm border-0">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-xl font-bold text-card-foreground flex items-center gap-2">
             <Trophy className="h-5 w-5 text-primary" />
