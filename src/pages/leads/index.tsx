@@ -6,13 +6,14 @@ import { columns } from "./columns"
 import { getLeads, type Lead } from "@/services/leadService"
 import { getTasks, type Task } from "@/services/taskService"
 import { getFollowUps } from "@/services/followUpService"
+import { FollowUpMobileCard } from "@/pages/follow-ups/FollowUpMobileCard"
 import { getUsers } from "@/services/userService"
 import { getBranches } from "@/services/settingsService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
 import { toast } from "sonner"
-import { formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
+import { cn, formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -893,7 +894,12 @@ export default function LeadsPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8 gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50">
+          <div className={cn(
+            "gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50",
+            isTaskView
+              ? "grid grid-cols-2"
+              : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8"
+          )}>
             {/* View Filter */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>
@@ -1173,7 +1179,22 @@ export default function LeadsPage() {
                 </div>
               ) : isTaskView ? (
                 <div className="p-2 sm:p-4">
-                  <TaskTable tasks={displayData as Task[]} />
+                  {/* Mobile: card list (same as /follow-ups page) */}
+                  <div className="flex flex-col gap-3 lg:hidden">
+                    {(displayData as Task[]).length === 0 ? (
+                      <div className="text-center py-10 text-muted-foreground text-sm border rounded-xl bg-card">
+                        No follow-ups found.
+                      </div>
+                    ) : (
+                      (displayData as Task[]).map((task: Task) => (
+                        <FollowUpMobileCard key={task.id} task={task as any} />
+                      ))
+                    )}
+                  </div>
+                  {/* Desktop: existing plain table */}
+                  <div className="hidden lg:block">
+                    <TaskTable tasks={displayData as Task[]} />
+                  </div>
                 </div>
               ) : (
                 <div className="p-0">

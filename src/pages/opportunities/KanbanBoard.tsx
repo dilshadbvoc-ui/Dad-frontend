@@ -151,7 +151,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   };
 
   return (
-    <div className="flex h-full overflow-x-auto snap-x snap-mandatory gap-4 pb-4 px-2 scrollbar-hide">
+    <div className="flex h-full overflow-x-auto snap-x snap-mandatory gap-3 pb-4 px-1 sm:px-2 scrollbar-hide">
       <TooltipProvider>
         {STAGES.map((stage) => {
           const stageOpps = columns[stage.id] || [];
@@ -238,7 +238,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  className="h-7 w-7 p-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity rounded-lg border border-border/40 bg-background/60"
                                 >
                                   <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                                 </Button>

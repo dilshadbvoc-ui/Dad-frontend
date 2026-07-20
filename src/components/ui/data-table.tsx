@@ -276,7 +276,7 @@ export function DataTable<TData, TValue>({
 
       {/* Mobile Card View (visible below lg) */}
       {mobileCardRender && (
-        <div className="grid grid-cols-1 gap-4 lg:hidden px-4">
+        <div className="grid grid-cols-1 gap-3 lg:hidden">
           {table.getRowModel().rows?.length ? (
             table.getRowModel().rows.map((row) => (
               <div key={row.id}>
@@ -440,7 +440,10 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2">
+      <div className={cn(
+        "flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2",
+        mobileCardRender && "hidden lg:flex"
+      )}>
         <div className="text-xs text-muted-foreground">
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
         </div>
