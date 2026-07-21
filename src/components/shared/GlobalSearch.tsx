@@ -32,6 +32,7 @@ export function GlobalSearch() {
   const searchTimeout = useRef<NodeJS.Timeout | null>(null)
   const suggestionTimeout = useRef<NodeJS.Timeout | null>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const activeSearchId = useRef(0)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -47,6 +48,9 @@ export function GlobalSearch() {
   const handleSearch = (value: string) => {
     setQuery(value)
 
+    if (searchTimeout.current) clearTimeout(searchTimeout.current)
+    if (suggestionTimeout.current) clearTimeout(suggestionTimeout.current)
+
     if (value.length < 1) {
       setResults([])
       setSuggestions([])
@@ -55,21 +59,21 @@ export function GlobalSearch() {
       return
     }
 
+    const currentSearchId = ++activeSearchId.current;
+
     // Show suggestions for short queries
     if (value.length >= 1 && value.length < 2) {
       setShowSuggestions(true)
       setShowResults(false)
 
-      if (suggestionTimeout.current) {
-        clearTimeout(suggestionTimeout.current)
-      }
-
       suggestionTimeout.current = setTimeout(async () => {
         try {
           const response = await api.get(`/search/suggestions?q=${encodeURIComponent(value)}`)
+          if (currentSearchId !== activeSearchId.current) return;
           const searchData = response.data.data || response.data;
           setSuggestions(Array.isArray(searchData.suggestions) ? searchData.suggestions : [])
         } catch (error) {
+          if (currentSearchId !== activeSearchId.current) return;
           console.error("Suggestions failed", error)
           setSuggestions([])
         }
@@ -82,21 +86,21 @@ export function GlobalSearch() {
     setShowResults(true)
     setShowSuggestions(false)
 
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current)
-    }
-
     searchTimeout.current = setTimeout(async () => {
       try {
         const response = await api.get(`/search/global?q=${encodeURIComponent(value)}&limit=20`)
+        if (currentSearchId !== activeSearchId.current) return;
         const searchData = response.data.data || response.data;
         const rawResults = Array.isArray(searchData.results) ? searchData.results : [];
         setResults(rawResults.filter((r: unknown) => r && typeof r === 'object') as SearchResult[]);
       } catch (error) {
+        if (currentSearchId !== activeSearchId.current) return;
         console.error("Search failed", error)
         setResults([])
       } finally {
-        setIsLoading(false)
+        if (currentSearchId === activeSearchId.current) {
+          setIsLoading(false)
+        }
       }
     }, 300)
   }

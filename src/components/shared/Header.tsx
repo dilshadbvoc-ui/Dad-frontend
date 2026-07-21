@@ -70,9 +70,9 @@ export function Header({ className }: { className?: string }) {
     <header className={cn("sticky top-0 z-30 flex h-16 items-center gap-2 sm:gap-4 bg-transparent px-2 sm:px-4", className)}>
 
       <div className="flex-1 min-w-0">
-        {/* Search Bar - Condensed on mobile but wider than before */}
-        <div className="max-w-[240px] sm:max-w-md">
-          {/* <GlobalSearch /> */}
+        {/* Search Bar - Hidden on mobile, visible on medium screens and up */}
+        <div className="max-w-[240px] sm:max-w-md hidden md:block">
+          <GlobalSearch />
         </div>
       </div>
 

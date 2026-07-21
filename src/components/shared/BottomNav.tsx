@@ -23,9 +23,8 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
     if (item.label === 'Menu') {
       onMenuClick();
     } else if (item.label === 'Search') {
-      // Trigger global search shortcut
-      const event = new KeyboardEvent('keydown', { key: 'k', metaKey: true });
-      document.dispatchEvent(event);
+      // Dispatch custom event to open CommandCenter (works on mobile without a keyboard)
+      document.dispatchEvent(new Event('openCommandCenter'));
     }
   };
 
