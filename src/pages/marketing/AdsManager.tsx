@@ -180,9 +180,9 @@ const AdsManager: React.FC = () => {
   };
 
   const formatCurrency = (val: string | number | undefined) => {
-    if (!val) return '$0.00';
+    if (!val) return '₹0.00';
     const num = typeof val === 'string' ? parseFloat(val) : val;
-    return `$${num.toFixed(2)}`;
+    return `₹${num.toFixed(2)}`;
   };
 
   const formatPercent = (val: string | number | undefined) => {

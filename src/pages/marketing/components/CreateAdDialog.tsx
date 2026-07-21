@@ -207,7 +207,7 @@ export function CreateAdDialog({ open, onOpenChange, organisation }: CreateAdDia
             <div className="space-y-4 animate-in slide-in-from-right duration-300">
               <div className="rounded-lg border p-4 bg-gray-50 space-y-2">
                 <p className="text-sm"><strong>Campaign:</strong> {formData.campaign.name}</p>
-                <p className="text-sm"><strong>Budget:</strong> ${formData.adSet.dailyBudget}/day</p>
+                <p className="text-sm"><strong>Budget:</strong> ₹{formData.adSet.dailyBudget}/day</p>
                 <p className="text-sm"><strong>Platform:</strong> Facebook, Instagram</p>
               </div>
               <p className="text-xs text-gray-500 italic">

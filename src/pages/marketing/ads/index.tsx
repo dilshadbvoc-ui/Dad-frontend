@@ -91,7 +91,7 @@ export default function AdsDashboard() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">
-                    {insightsLoading ? '...' : accountInsights ? `$${accountInsights.spend}` : '$0.00'}
+                    {insightsLoading ? '...' : accountInsights ? `₹${accountInsights.spend}` : '₹0.00'}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     Last 30 days
