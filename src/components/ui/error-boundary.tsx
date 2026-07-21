@@ -23,6 +23,22 @@ export class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error(`Uncaught error in component ${this.props.name || 'Unknown'}:`, error, errorInfo);
+
+    // Auto-reload for Vite chunk loading errors (happens when deploying new version while users have app open)
+    const isChunkLoadError = error?.name === 'ChunkLoadError' || 
+                             error?.message?.includes('Failed to fetch dynamically imported module') ||
+                             error?.message?.includes('Importing a module script failed');
+
+    if (isChunkLoadError) {
+      const lastReload = parseInt(sessionStorage.getItem('chunkLoadReloadTime') || '0', 10);
+      const now = Date.now();
+      // Only auto-reload if we haven't done so in the last 10 seconds to prevent infinite loops
+      if (now - lastReload > 10000) {
+        sessionStorage.setItem('chunkLoadReloadTime', now.toString());
+        // Force hard reload from server
+        window.location.reload();
+      }
+    }
   }
 
   public render() {
