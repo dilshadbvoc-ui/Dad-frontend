@@ -441,8 +441,7 @@ export function DataTable<TData, TValue>({
       </div>
 
       <div className={cn(
-        "flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2",
-        mobileCardRender && "hidden lg:flex"
+        "flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2 mt-4"
       )}>
         <div className="text-xs text-muted-foreground">
           Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
@@ -451,7 +450,15 @@ export function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.previousPage()}
+            onClick={() => {
+              table.previousPage();
+              if (tableContainerRef.current) {
+                tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+              const main = document.querySelector('main');
+              if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={!table.getCanPreviousPage()}
             className="h-8 touch-safe"
           >
@@ -460,7 +467,15 @@ export function DataTable<TData, TValue>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() => table.nextPage()}
+            onClick={() => {
+              table.nextPage();
+              if (tableContainerRef.current) {
+                tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+              const main = document.querySelector('main');
+              if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
             disabled={!table.getCanNextPage()}
             className="h-8 touch-safe"
           >
