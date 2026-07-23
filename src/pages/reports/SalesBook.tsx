@@ -187,7 +187,8 @@ export default function SalesBookPage() {
                   branchName: string; 
                   amount: number; 
                   paymentStatus: string; 
-                  totalPaid: number; 
+                  totalPaid: number;
+                  totalDue?: number;
                   hasEmi: boolean; 
                   emiDetails: { 
                     totalAmount: number; 
@@ -230,8 +231,8 @@ export default function SalesBookPage() {
                       {(sale.paymentStatus === 'partial' || sale.hasEmi || sale.totalPaid > 0) && (
                         <div className="text-[10px] text-muted-foreground mt-0.5 space-y-0.5">
                           <div>Paid: <span className="font-medium text-emerald-600 dark:text-emerald-400">{formatCurrency(sale.totalPaid, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>
-                          {sale.amount - sale.totalPaid > 0 && (
-                            <div>Due: <span className="font-medium text-amber-600 dark:text-amber-400">{formatCurrency(sale.amount - sale.totalPaid, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>
+                          {(sale.totalDue ?? (sale.amount - sale.totalPaid)) > 0 && (
+                            <div>Due: <span className="font-medium text-amber-600 dark:text-amber-400">{formatCurrency(sale.totalDue ?? (sale.amount - sale.totalPaid), { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>
                           )}
                         </div>
                       )}
