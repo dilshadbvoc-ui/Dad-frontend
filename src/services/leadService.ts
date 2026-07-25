@@ -50,6 +50,10 @@ export interface Lead {
     branch?: {
         name: string;
     };
+    interactions?: {
+        description: string;
+        date: string;
+    }[];
     createdAt: string;
     updatedAt: string;
 }

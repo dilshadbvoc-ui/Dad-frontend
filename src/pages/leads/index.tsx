@@ -806,7 +806,8 @@ export default function LeadsPage() {
       'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
       'Created At': lead.createdAt ? format(new Date(lead.createdAt), 'yyyy-MM-dd HH:mm:ss') : '',
       'Country': lead.country || '',
-      'Re-Enquiry': lead.isReEnquiry ? 'Yes' : 'No'
+      'Re-Enquiry': lead.isReEnquiry ? 'Yes' : 'No',
+      'Latest Note': lead.interactions && lead.interactions.length > 0 ? lead.interactions[0].description : ''
     }));
 
     const worksheet = XLSX.utils.json_to_sheet(excelData);
