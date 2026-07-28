@@ -11,6 +11,7 @@ export interface Lead {
     enquiryAbout?: string;
     jobTitle?: string;
     leadScore: number;
+    nextFollowUp?: string;
     status: string;
     source: string;
     assignedTo?: {

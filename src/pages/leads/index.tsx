@@ -805,6 +805,7 @@ export default function LeadsPage() {
       'Lead Score': lead.leadScore || 0,
       'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
       'Created At': lead.createdAt ? format(new Date(lead.createdAt), 'yyyy-MM-dd HH:mm:ss') : '',
+      'Next Follow-up': lead.nextFollowUp ? format(new Date(lead.nextFollowUp), 'yyyy-MM-dd HH:mm:ss') : '',
       'Country': lead.country || '',
       'Re-Enquiry': lead.isReEnquiry ? 'Yes' : 'No',
       'Latest Note': lead.interactions && lead.interactions.length > 0 ? lead.interactions[0].description : ''
