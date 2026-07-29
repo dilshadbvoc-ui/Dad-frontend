@@ -961,7 +961,9 @@ export default function LeadsPage() {
                     <SelectItem value="all" className="rounded-lg font-medium italic">General Pool (All)</SelectItem>
                     <SelectGroup>
                       <SelectLabel className="text-[10px] uppercase tracking-widest font-black text-primary/50 py-3 border-t">Active Users</SelectLabel>
-                      {users.map((user: any) => (
+                      {users
+                        .filter((user: any) => currentBranch === 'all' || user.branchId === currentBranch)
+                        .map((user: any) => (
                         <SelectItem key={user.id} value={user.id} className="rounded-lg">
                           <div className="flex items-center gap-2">
                             <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-[10px] font-bold text-primary">

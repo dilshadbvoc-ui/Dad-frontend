@@ -517,7 +517,9 @@ export default function FollowUpsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Users</SelectItem>
-                {users.map((user: any) => (
+                {users
+                  .filter((user: any) => branchFilter === 'all' || user.branchId === branchFilter)
+                  .map((user: any) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.firstName} {user.lastName}
                   </SelectItem>
