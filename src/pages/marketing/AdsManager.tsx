@@ -140,18 +140,28 @@ const AdsManager: React.FC = () => {
       const { updateOrganisation } = await import('../../services/settingsService');
       const currentIntegrations = (organisation?.integrations as any) || {};
       const meta = currentIntegrations.meta || {};
-      const enabledAccounts = [...(meta.enabledLeadSyncAccounts || [])];
 
-      let newEnabledAccounts;
+      // Compute new enabled list for the primary meta field
+      const enabledAccounts = [...(meta.enabledLeadSyncAccounts || [])];
+      let newEnabledAccounts: string[];
       if (enabled) {
-        if (!enabledAccounts.includes(accountId)) {
-          newEnabledAccounts = [...enabledAccounts, accountId];
-        } else {
-          newEnabledAccounts = enabledAccounts;
-        }
+        newEnabledAccounts = enabledAccounts.includes(accountId)
+          ? enabledAccounts
+          : [...enabledAccounts, accountId];
       } else {
-        newEnabledAccounts = enabledAccounts.filter(id => id !== accountId);
+        newEnabledAccounts = enabledAccounts.filter((id: string) => id !== accountId);
       }
+
+      // FIX: Also propagate to every metaAccounts[] entry so the backend
+      // lead service (which reads matchedAccount.enabledLeadSyncAccounts) picks it up.
+      const updatedMetaAccounts = (currentIntegrations.metaAccounts || []).map((acc: any) => ({
+        ...acc,
+        enabledLeadSyncAccounts: enabled
+          ? (acc.enabledLeadSyncAccounts || []).includes(accountId)
+            ? acc.enabledLeadSyncAccounts
+            : [...(acc.enabledLeadSyncAccounts || []), accountId]
+          : (acc.enabledLeadSyncAccounts || []).filter((id: string) => id !== accountId)
+      }));
 
       await updateOrganisation({
         integrations: {
@@ -159,10 +169,12 @@ const AdsManager: React.FC = () => {
           meta: {
             ...meta,
             enabledLeadSyncAccounts: newEnabledAccounts
-          }
+          },
+          // Write to metaAccounts[] too — this is what the backend lead service reads
+          metaAccounts: updatedMetaAccounts
         }
       });
-      
+
       queryClient.invalidateQueries({ queryKey: ['organisation'] });
       toast.success(enabled ? 'Lead sync enabled for this account' : 'Lead sync disabled for this account');
     } catch (error) {
