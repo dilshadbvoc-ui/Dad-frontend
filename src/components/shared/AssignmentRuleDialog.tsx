@@ -68,7 +68,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
     }
   })
 
-  const branches = branchesData?.branches || [];
+  const branches = Array.isArray(branchesData) ? branchesData : branchesData?.branches || [];
   const showBranchSelector = branches.length > 0;
 
   const form = useForm<CreateAssignmentRuleData>({
@@ -185,33 +185,7 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            {showBranchSelector && (
-              <FormField
-                control={form.control}
-                name="branchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Branch (Optional)</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Branch (Default: All)" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="all_branches_placeholder">All Branches</SelectItem>
-                        {branches.map((b: { id: string, name: string }) => (
-                          <SelectItem key={b.id} value={b.id}>
-                            {b.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+
             <FormField
               control={form.control}
               name="name"
@@ -248,6 +222,33 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
             </div>
 
             <div className="grid grid-cols-2 gap-4">
+              {showBranchSelector && (
+                <FormField
+                  control={form.control}
+                  name="branchId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Branch (Filter Users)</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="All Branches" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="all_branches_placeholder">All Branches</SelectItem>
+                          {branches.map((b: { id: string, name: string }) => (
+                            <SelectItem key={b.id} value={b.id}>
+                              {b.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
               <FormField
                 control={form.control}
                 name="distributionType"

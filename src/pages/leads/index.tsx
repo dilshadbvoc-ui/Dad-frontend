@@ -164,6 +164,16 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
 ));
 
 
+const formatSourceLabel = (src: string) => {
+  if (!src) return 'Unknown';
+  if (src === 'meta_leadgen') return 'Meta Ads';
+  if (src === 'meta_ads') return 'Meta Ads (Custom)';
+  if (src === 'google_ads') return 'Google Ads';
+  if (src === 'facebook_payload') return 'Facebook Lead';
+  if (src === 'lead_squared') return 'LeadSquared';
+  return src.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+};
+
 // --- Mobile Lead Card ---
 const LeadCard = ({ lead }: { lead: Lead }) => {
   const phone = formatWhatsAppNumber(lead.phone, lead.phoneCountryCode); // digits-only for WhatsApp
@@ -479,6 +489,15 @@ export default function LeadsPage() {
       endDate: backendDateFilter.to || undefined
     }),
     placeholderData: keepPreviousData,
+  });
+
+  const { data: sourceStats } = useQuery({
+    queryKey: ['lead-sources'],
+    queryFn: async () => {
+      const { api } = await import('@/services/api');
+      const res = await api.get('/analytics/lead-sources');
+      return res.data as { source: string; count: number }[];
+    }
   });
 
   // 2. Tasks (Follow Ups)
@@ -1016,20 +1035,28 @@ export default function LeadsPage() {
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
                     <SelectItem value="all" className="rounded-lg italic">All Sources</SelectItem>
                     <SelectGroup>
-                      <SelectItem value="website" className="rounded-lg">Website</SelectItem>
-                      <SelectItem value="referral" className="rounded-lg">Referral</SelectItem>
-                      <SelectItem value="social" className="rounded-lg">Social</SelectItem>
-                      <SelectItem value="paid_ad" className="rounded-lg">Paid Ad</SelectItem>
-                      <SelectItem value="import" className="rounded-lg">Import</SelectItem>
-                      <SelectItem value="api" className="rounded-lg">API</SelectItem>
-                      <SelectItem value="manual" className="rounded-lg">Manual</SelectItem>
-                      <SelectItem value="whatsapp" className="rounded-lg">WhatsApp</SelectItem>
-                      <SelectItem value="meta_leadgen" className="rounded-lg">Meta Ads</SelectItem>
-                      <SelectItem value="cold_call" className="rounded-lg">Cold Call</SelectItem>
-                      <SelectItem value="email_campaign" className="rounded-lg">Email Campaign</SelectItem>
-                      <SelectItem value="meta_ads" className="rounded-lg">Meta Ads</SelectItem>
-                      <SelectItem value="google_ads" className="rounded-lg">Google Ads</SelectItem>
-                      <SelectItem value="other" className="rounded-lg">Other</SelectItem>
+                      {sourceStats ? sourceStats.map((stat: any) => (
+                        <SelectItem key={stat.source} value={stat.source} className="rounded-lg">
+                          {formatSourceLabel(stat.source)} ({stat.count})
+                        </SelectItem>
+                      )) : (
+                        <>
+                          <SelectItem value="website" className="rounded-lg">Website</SelectItem>
+                          <SelectItem value="referral" className="rounded-lg">Referral</SelectItem>
+                          <SelectItem value="social" className="rounded-lg">Social</SelectItem>
+                          <SelectItem value="paid_ad" className="rounded-lg">Paid Ad</SelectItem>
+                          <SelectItem value="import" className="rounded-lg">Import</SelectItem>
+                          <SelectItem value="api" className="rounded-lg">API</SelectItem>
+                          <SelectItem value="manual" className="rounded-lg">Manual</SelectItem>
+                          <SelectItem value="whatsapp" className="rounded-lg">WhatsApp</SelectItem>
+                          <SelectItem value="meta_leadgen" className="rounded-lg">Meta Ads</SelectItem>
+                          <SelectItem value="cold_call" className="rounded-lg">Cold Call</SelectItem>
+                          <SelectItem value="email_campaign" className="rounded-lg">Email Campaign</SelectItem>
+                          <SelectItem value="meta_ads" className="rounded-lg">Meta Ads (Custom)</SelectItem>
+                          <SelectItem value="google_ads" className="rounded-lg">Google Ads</SelectItem>
+                          <SelectItem value="other" className="rounded-lg">Other</SelectItem>
+                        </>
+                      )}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
