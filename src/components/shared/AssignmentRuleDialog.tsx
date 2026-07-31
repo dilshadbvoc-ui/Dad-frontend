@@ -68,7 +68,6 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
     }
   })
 
-  const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string }) => u && typeof u === 'object');
   const branches = branchesData?.branches || [];
   const showBranchSelector = branches.length > 0;
 
@@ -89,6 +88,16 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
       branchId: userBranchId || ""
     }
   })
+
+  const selectedBranchId = form.watch('branchId');
+  
+  const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string; branchId?: string }) => {
+    if (!u || typeof u !== 'object') return false;
+    if (selectedBranchId && selectedBranchId !== 'all_branches_placeholder' && selectedBranchId !== '') {
+      return u.branchId === selectedBranchId;
+    }
+    return true;
+  });
 
   useEffect(() => {
     if (rule) {
