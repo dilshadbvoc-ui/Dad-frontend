@@ -566,7 +566,7 @@ export default function LeadsPage() {
 
   const leads = (leadData?.leads || []).filter((l: Lead) => l && typeof l === 'object');
   const tasks = (taskData?.tasks || []).filter((t: Task) => t && typeof t === 'object');
-  const users = userData?.users || (Array.isArray(userData) ? userData : []);
+  const users = (userData?.users || (Array.isArray(userData) ? userData : [])).filter((u: any) => u.isActive !== false);
   const branches = branchData || [];
 
   const activeFiltersList = useMemo(() => {

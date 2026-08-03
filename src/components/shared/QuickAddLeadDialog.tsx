@@ -97,7 +97,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
     queryKey: ['users'],
     queryFn: getUsers
   })
-  const users = usersData?.users || []
+  const users = (usersData?.users || []).filter((u: any) => u.isActive !== false)
 
   const mutation = useMutation({
     mutationFn: createLead,

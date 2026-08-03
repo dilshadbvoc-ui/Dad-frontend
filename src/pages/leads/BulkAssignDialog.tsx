@@ -62,6 +62,7 @@ export function BulkAssignDialog({
   }
 
   const filteredUsers = users.filter(user => {
+    if (user.isActive === false) return false;
     const name = `${user.firstName} ${user.lastName}`.toLowerCase()
     const email = (user.email || '').toLowerCase()
     const search = searchTerm.toLowerCase()

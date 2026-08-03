@@ -91,8 +91,9 @@ export function AssignmentRuleDialog({ children, open, onOpenChange, rule }: Ass
 
   const selectedBranchId = form.watch('branchId');
   
-  const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string; branchId?: string }) => {
+  const users = (usersData?.users || []).filter((u: { id: string; firstName: string; lastName: string; branchId?: string; isActive?: boolean }) => {
     if (!u || typeof u !== 'object') return false;
+    if (u.isActive === false) return false;
     if (selectedBranchId && selectedBranchId !== 'all_branches_placeholder' && selectedBranchId !== '') {
       return u.branchId === selectedBranchId;
     }
