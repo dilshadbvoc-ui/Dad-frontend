@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Footer from "@/components/landing/Footer";
 import SEO from "@/components/shared/SEO";
@@ -86,22 +87,22 @@ export default function PrivacyPolicy() {
                 5. User Data Deletion
               </h2>
               <p className="mb-4">
-                You have the right to request the deletion of your personal data held by us. To request data deletion:
+                You have the right to request the deletion of your personal data held by us. Send
+                an email to{" "}
+                <a
+                  href="mailto:support@pypecrm.com"
+                  className="text-blue-600 font-medium hover:underline"
+                >
+                  support@pypecrm.com
+                </a>{" "}
+                with the subject "Data Deletion Request", including the email address associated
+                with your account. Full details on the process, timeframe, and what gets deleted
+                are on our{" "}
+                <Link to="/data-deletion" className="text-blue-600 font-medium hover:underline">
+                  Data Deletion page
+                </Link>
+                .
               </p>
-              <ol className="list-decimal pl-6 space-y-2">
-                <li>
-                  Send an email to{" "}
-                  <a
-                    href="mailto:privacy@pypecrm.com"
-                    className="text-blue-600 font-medium hover:underline"
-                  >
-                    privacy@pypecrm.com
-                  </a>{" "}
-                  with the subject "Data Deletion Request".
-                </li>
-                <li>Include your full name and the email address associated with your account.</li>
-                <li>We will process your request and delete your data within 30 days.</li>
-              </ol>
             </section>
 
             <section className="p-8 bg-blue-50 dark:bg-blue-900/10 rounded-3xl border border-blue-100 dark:border-blue-900/30">
@@ -111,8 +112,8 @@ export default function PrivacyPolicy() {
               <p className="mb-4">
                 If you have questions or comments about this policy, you may email us at:
               </p>
-              <a href="mailto:privacy@pypecrm.com" className="text-blue-600 font-bold hover:underline">
-                privacy@pypecrm.com
+              <a href="mailto:support@pypecrm.com" className="text-blue-600 font-bold hover:underline">
+                support@pypecrm.com
               </a>
             </section>
           </div>

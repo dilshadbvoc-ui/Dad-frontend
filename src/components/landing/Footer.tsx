@@ -56,9 +56,10 @@ export default function Footer() {
           <div className="mt-12 pt-8 border-t border-indigo-500/10 text-center text-indigo-400/60 text-sm">
             <p>&copy; {new Date().getFullYear()} PYPE. All rights reserved.</p>
           </div>
-          <div className="flex gap-6 text-sm text-gray-500 dark:text-gray-400">
+          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 dark:text-gray-400">
             <Link to="/privacy" className="hover:text-gray-900 dark:hover:text-white">Privacy Policy</Link>
-            <a href="#" className="hover:text-gray-900 dark:hover:text-white">Terms of Service</a>
+            <Link to="/terms" className="hover:text-gray-900 dark:hover:text-white">Terms of Service</Link>
+            <Link to="/data-deletion" className="hover:text-gray-900 dark:hover:text-white">Data Deletion</Link>
           </div>
         </div>
       </div>
