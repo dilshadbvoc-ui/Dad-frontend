@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { motion, useScroll, useMotionValueEvent } from "framer-motion";
-import Logo from "../shared/Logo01";
+import Logo from "../shared/Logo";
 
 export default function LandingNavbar() {
   const [isScrolled, setIsScrolled] = useState(false);
