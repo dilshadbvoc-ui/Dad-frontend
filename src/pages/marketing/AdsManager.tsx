@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getAdAccounts, getMetaCampaigns, createMetaCampaign, getAccountInsights, getCampaignInsights, type Campaign, type AdInsight } from '../../services/marketingService';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
@@ -7,10 +7,12 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
-import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp } from 'lucide-react';
+import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Filter } from 'lucide-react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrganisation } from '../../services/settingsService';
 import { useNavigate } from 'react-router-dom';
+import { DateRangePicker } from '../../components/shared/DateRangePicker';
+import { format, subDays } from 'date-fns';
 
 const AdsManager: React.FC = () => {
   const navigate = useNavigate();
@@ -34,6 +36,16 @@ const AdsManager: React.FC = () => {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
 
+  // Shared date range — drives both the account overview and every campaign's
+  // expanded analytics, since campaignInsights is fetched with the same range.
+  const [startDate, setStartDate] = useState<string>(format(subDays(new Date(), 29), 'yyyy-MM-dd'));
+  const [endDate, setEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+
+  // Campaign list sort/filter
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+
   useEffect(() => {
     fetchAdAccounts();
   }, []);
@@ -41,9 +53,14 @@ const AdsManager: React.FC = () => {
   useEffect(() => {
     if (selectedAccount) {
       fetchCampaigns(selectedAccount);
-      fetchInsights(selectedAccount);
     }
   }, [selectedAccount]);
+
+  useEffect(() => {
+    if (selectedAccount) {
+      fetchInsights(selectedAccount);
+    }
+  }, [selectedAccount, startDate, endDate]);
 
   const fetchAdAccounts = async () => {
     try {
@@ -97,8 +114,8 @@ const AdsManager: React.FC = () => {
     setInsightsLoading(true);
     try {
       const [acctData, campData] = await Promise.all([
-        getAccountInsights(accountId).catch(() => null),
-        getCampaignInsights(accountId).catch(() => [])
+        getAccountInsights(accountId, startDate, endDate).catch(() => null),
+        getCampaignInsights(accountId, startDate, endDate).catch(() => [])
       ]);
 
       if (acctData && !acctData.error) {
@@ -222,6 +239,43 @@ const AdsManager: React.FC = () => {
     }
   };
 
+  const availableStatuses = useMemo(() => {
+    const set = new Set(campaigns.map(c => c.status?.toUpperCase()).filter(Boolean));
+    return Array.from(set) as string[];
+  }, [campaigns]);
+
+  const getSortValue = (camp: Campaign, insight: AdInsight | undefined, key: string): number | string => {
+    switch (key) {
+      case 'status': return camp.status?.toLowerCase() || '';
+      case 'impressions': return insight ? parseFloat(insight.impressions) || 0 : 0;
+      case 'clicks': return insight ? parseFloat(insight.clicks) || 0 : 0;
+      case 'spend': return insight ? parseFloat(insight.spend) || 0 : 0;
+      case 'ctr': return insight ? parseFloat(insight.ctr) || 0 : 0;
+      case 'leads': return insight ? parseFloat(getLeadCount(insight.actions)) || 0 : 0;
+      case 'name':
+      default:
+        return camp.name?.toLowerCase() || '';
+    }
+  };
+
+  const displayedCampaigns = useMemo(() => {
+    const filtered = statusFilter === 'all'
+      ? campaigns
+      : campaigns.filter(c => c.status?.toUpperCase() === statusFilter);
+
+    return [...filtered].sort((a, b) => {
+      const valA = getSortValue(a, getCampaignInsight(a.id), sortBy);
+      const valB = getSortValue(b, getCampaignInsight(b.id), sortBy);
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        return sortDir === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+      }
+      const numA = valA as number;
+      const numB = valB as number;
+      return sortDir === 'asc' ? numA - numB : numB - numA;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [campaigns, campaignInsights, statusFilter, sortBy, sortDir]);
+
   return (
     <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -341,101 +395,116 @@ const AdsManager: React.FC = () => {
       )}
 
       {/* ============= ANALYTICS OVERVIEW ============= */}
-      {metaConnected && accountInsights && (organisation?.integrations?.facebook_payload?.connectionMode !== 'webhook' || organisation?.integrations?.meta?.connected) && (
+      {metaConnected && selectedAccount && (organisation?.integrations?.facebook_payload?.connectionMode !== 'webhook' || organisation?.integrations?.meta?.connected) && (
         <div>
-          <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-primary" />
-            Account Performance (Last 30 Days)
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Eye className="h-4 w-4 text-blue-600" />
-                  <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Impressions</span>
-                </div>
-                <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatNumber(accountInsights.impressions)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Users className="h-4 w-4 text-green-600" />
-                  <span className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">Reach</span>
-                </div>
-                <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatNumber(accountInsights.reach)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <MousePointerClick className="h-4 w-4 text-purple-600" />
-                  <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Clicks</span>
-                </div>
-                <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{formatNumber(accountInsights.clicks)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-amber-600" />
-                  <span className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">CTR</span>
-                </div>
-                <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{formatPercent(accountInsights.ctr)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <DollarSign className="h-4 w-4 text-red-600" />
-                  <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Spend</span>
-                </div>
-                <p className="text-2xl font-bold text-red-900 dark:text-red-100">{formatCurrency(accountInsights.spend)}</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950/40 dark:to-teal-900/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Target className="h-4 w-4 text-teal-600" />
-                  <span className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide">Leads</span>
-                </div>
-                <p className="text-2xl font-bold text-teal-900 dark:text-teal-100">{getLeadCount(accountInsights.actions)}</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Secondary metrics row */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-              <p className="text-xs text-muted-foreground">Cost per Click</p>
-              <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpc)}</p>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-              <p className="text-xs text-muted-foreground">CPM</p>
-              <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpm)}</p>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-              <p className="text-xs text-muted-foreground">Unique Clicks</p>
-              <p className="text-lg font-semibold">{formatNumber(accountInsights.unique_clicks)}</p>
-            </div>
-            <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-              <p className="text-xs text-muted-foreground">Date Range</p>
-              <p className="text-sm font-medium">{accountInsights.date_start} – {accountInsights.date_stop}</p>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-primary" />
+              Account Performance
+            </h2>
+            <div className="w-full sm:w-auto sm:min-w-[260px]">
+              <DateRangePicker
+                startDate={startDate}
+                endDate={endDate}
+                onUpdate={(start, end) => {
+                  // Falls back to the default last-30-days window if the picker is cleared
+                  setStartDate(start || format(subDays(new Date(), 29), 'yyyy-MM-dd'));
+                  setEndDate(end || format(new Date(), 'yyyy-MM-dd'));
+                }}
+              />
             </div>
           </div>
-        </div>
-      )}
 
-      {/* Insights Loading State */}
-      {metaConnected && insightsLoading && !accountInsights && (
-        <div className="flex justify-center items-center py-8">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <span className="ml-3 text-muted-foreground">Loading analytics...</span>
+          {insightsLoading && !accountInsights ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <span className="ml-3 text-muted-foreground">Loading analytics...</span>
+            </div>
+          ) : accountInsights ? (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Eye className="h-4 w-4 text-blue-600" />
+                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Impressions</span>
+                    </div>
+                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatNumber(accountInsights.impressions)}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-green-600" />
+                      <span className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">Reach</span>
+                    </div>
+                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatNumber(accountInsights.reach)}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MousePointerClick className="h-4 w-4 text-purple-600" />
+                      <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Clicks</span>
+                    </div>
+                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{formatNumber(accountInsights.clicks)}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-4 w-4 text-amber-600" />
+                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">CTR</span>
+                    </div>
+                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{formatPercent(accountInsights.ctr)}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <DollarSign className="h-4 w-4 text-red-600" />
+                      <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Spend</span>
+                    </div>
+                    <p className="text-2xl font-bold text-red-900 dark:text-red-100">{formatCurrency(accountInsights.spend)}</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950/40 dark:to-teal-900/20">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Target className="h-4 w-4 text-teal-600" />
+                      <span className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide">Leads</span>
+                    </div>
+                    <p className="text-2xl font-bold text-teal-900 dark:text-teal-100">{getLeadCount(accountInsights.actions)}</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Secondary metrics row */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                  <p className="text-xs text-muted-foreground">Cost per Click</p>
+                  <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpc)}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                  <p className="text-xs text-muted-foreground">CPM</p>
+                  <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpm)}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                  <p className="text-xs text-muted-foreground">Unique Clicks</p>
+                  <p className="text-lg font-semibold">{formatNumber(accountInsights.unique_clicks)}</p>
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                  <p className="text-xs text-muted-foreground">Date Range</p>
+                  <p className="text-sm font-medium">{accountInsights.date_start} – {accountInsights.date_stop}</p>
+                </div>
+              </div>
+            </>
+          ) : null}
         </div>
       )}
 
@@ -481,9 +550,64 @@ const AdsManager: React.FC = () => {
 
       {/* ============= CAMPAIGNS WITH INSIGHTS ============= */}
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-lg">Campaigns</CardTitle>
-          <Badge variant="secondary">{campaigns.length} total</Badge>
+        <CardHeader className="flex flex-col gap-4">
+          <div className="flex flex-row items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-lg">Campaigns</CardTitle>
+              {startDate && endDate && (
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Performance shown for {format(new Date(startDate), 'MMM d, yyyy')} – {format(new Date(endDate), 'MMM d, yyyy')}
+                </p>
+              )}
+            </div>
+            <Badge variant="secondary" className="shrink-0">
+              {statusFilter === 'all' ? `${campaigns.length} total` : `${displayedCampaigns.length} of ${campaigns.length}`}
+            </Badge>
+          </div>
+
+          {/* Sort & Filter controls */}
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex items-center gap-1.5 text-xs text-muted-foreground mr-1">
+              <Filter className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Filter</span>
+            </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="h-8 w-[140px] text-xs bg-white dark:bg-gray-900">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {availableStatuses.map(s => (
+                  <SelectItem key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="h-8 w-[150px] text-xs bg-white dark:bg-gray-900">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="name">Name</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="impressions">Impressions</SelectItem>
+                <SelectItem value="clicks">Clicks</SelectItem>
+                <SelectItem value="spend">Spend</SelectItem>
+                <SelectItem value="ctr">CTR</SelectItem>
+                <SelectItem value="leads">Leads</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 px-2.5"
+              onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
+              title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
+            >
+              {sortDir === 'asc' ? <ArrowUp className="h-3.5 w-3.5" /> : <ArrowDown className="h-3.5 w-3.5" />}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -492,9 +616,11 @@ const AdsManager: React.FC = () => {
             </div>
           ) : campaigns.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">No campaigns found.</p>
+          ) : displayedCampaigns.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No campaigns match the selected filter.</p>
           ) : (
             <div className="space-y-3">
-              {campaigns.map((camp) => {
+              {displayedCampaigns.map((camp) => {
                 const insight = getCampaignInsight(camp.id);
                 const isExpanded = expandedCampaign === camp.id;
 
@@ -519,10 +645,18 @@ const AdsManager: React.FC = () => {
                         {/* Quick stats inline */}
                         {insight && (
                           <div className="hidden md:flex items-center gap-4 text-sm text-muted-foreground mr-4">
-                            <span title="Impressions">👁 {formatNumber(insight.impressions)}</span>
-                            <span title="Clicks">🖱 {formatNumber(insight.clicks)}</span>
-                            <span title="Spend">💰 {formatCurrency(insight.spend)}</span>
-                            <span title="CTR">📊 {formatPercent(insight.ctr)}</span>
+                            <span title="Impressions" className="flex items-center gap-1.5">
+                              <Eye className="h-3.5 w-3.5 text-blue-500" /> {formatNumber(insight.impressions)}
+                            </span>
+                            <span title="Clicks" className="flex items-center gap-1.5">
+                              <MousePointerClick className="h-3.5 w-3.5 text-purple-500" /> {formatNumber(insight.clicks)}
+                            </span>
+                            <span title="Spend" className="flex items-center gap-1.5">
+                              <DollarSign className="h-3.5 w-3.5 text-red-500" /> {formatCurrency(insight.spend)}
+                            </span>
+                            <span title="CTR" className="flex items-center gap-1.5">
+                              <BarChart3 className="h-3.5 w-3.5 text-amber-500" /> {formatPercent(insight.ctr)}
+                            </span>
                           </div>
                         )}
 
@@ -534,55 +668,43 @@ const AdsManager: React.FC = () => {
                           {camp.objective?.replace('OUTCOME_', '') || 'N/A'}
                         </Badge>
 
-                        {insight ? (
-                          isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                        ) : null}
+                        {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                       </div>
                     </div>
 
                     {/* Expanded Campaign Insights */}
+                    {isExpanded && !insight && (
+                      <div className="border-t bg-gray-50 dark:bg-gray-950/50 p-4">
+                        <p className="text-sm text-muted-foreground text-center py-2">
+                          No performance data for this campaign in the selected date range.
+                        </p>
+                      </div>
+                    )}
                     {isExpanded && insight && (
                       <div className="border-t bg-gray-50 dark:bg-gray-950/50 p-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Impressions</p>
-                            <p className="text-lg font-bold mt-1">{formatNumber(insight.impressions)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Reach</p>
-                            <p className="text-lg font-bold mt-1">{formatNumber(insight.reach)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Clicks</p>
-                            <p className="text-lg font-bold mt-1">{formatNumber(insight.clicks)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">CTR</p>
-                            <p className="text-lg font-bold mt-1">{formatPercent(insight.ctr)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Spend</p>
-                            <p className="text-lg font-bold mt-1">{formatCurrency(insight.spend)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">CPC</p>
-                            <p className="text-lg font-bold mt-1">{formatCurrency(insight.cpc)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">CPM</p>
-                            <p className="text-lg font-bold mt-1">{formatCurrency(insight.cpm)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Unique Clicks</p>
-                            <p className="text-lg font-bold mt-1">{formatNumber(insight.unique_clicks)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Leads</p>
-                            <p className="text-lg font-bold mt-1">{getLeadCount(insight.actions)}</p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Period</p>
-                            <p className="text-sm font-medium mt-1">{insight.date_start} – {insight.date_stop}</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+                          {[
+                            { label: 'Impressions', value: formatNumber(insight.impressions), icon: Eye, color: 'text-blue-500' },
+                            { label: 'Reach', value: formatNumber(insight.reach), icon: Users, color: 'text-green-500' },
+                            { label: 'Clicks', value: formatNumber(insight.clicks), icon: MousePointerClick, color: 'text-purple-500' },
+                            { label: 'CTR', value: formatPercent(insight.ctr), icon: BarChart3, color: 'text-amber-500' },
+                            { label: 'Spend', value: formatCurrency(insight.spend), icon: DollarSign, color: 'text-red-500' },
+                            { label: 'CPC', value: formatCurrency(insight.cpc), icon: DollarSign, color: 'text-red-400' },
+                            { label: 'CPM', value: formatCurrency(insight.cpm), icon: DollarSign, color: 'text-red-400' },
+                            { label: 'Unique Clicks', value: formatNumber(insight.unique_clicks), icon: MousePointerClick, color: 'text-purple-400' },
+                            { label: 'Leads', value: getLeadCount(insight.actions), icon: Target, color: 'text-teal-500' },
+                          ].map((stat) => (
+                            <div key={stat.label} className="bg-white dark:bg-gray-900 rounded-lg border p-3">
+                              <div className="flex items-center gap-1.5 mb-1">
+                                <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
+                                <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
+                              </div>
+                              <p className="text-lg font-bold">{stat.value}</p>
+                            </div>
+                          ))}
+                          <div className="bg-white dark:bg-gray-900 rounded-lg border p-3 col-span-2">
+                            <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Period</p>
+                            <p className="text-sm font-medium">{insight.date_start} – {insight.date_stop}</p>
                           </div>
                         </div>
                       </div>

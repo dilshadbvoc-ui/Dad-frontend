@@ -88,12 +88,12 @@ export interface AdInsight {
     campaign_id?: string;
 }
 
-export const getAccountInsights = async (accountId?: string) => {
-    const response = await api.get('/ads/meta/account/insights', { params: { accountId } });
+export const getAccountInsights = async (accountId?: string, startDate?: string, endDate?: string) => {
+    const response = await api.get('/ads/meta/account/insights', { params: { accountId, startDate, endDate } });
     return response.data;
 };
 
-export const getCampaignInsights = async (accountId?: string) => {
-    const response = await api.get('/ads/meta/insights', { params: { level: 'campaign', accountId } });
+export const getCampaignInsights = async (accountId?: string, startDate?: string, endDate?: string) => {
+    const response = await api.get('/ads/meta/insights', { params: { level: 'campaign', accountId, startDate, endDate } });
     return response.data;
 };
