@@ -1,5 +1,7 @@
 import LandingNavbar from "@/components/landing/LandingNavbar";
 import Hero from "@/components/landing/Hero";
+import FeatureSpotlight from "@/components/landing/FeatureSpotlight";
+import GetStartedBanner from "@/components/landing/GetStartedBanner";
 import FeatureSection from "@/components/landing/FeatureSection";
 import IntegrationSection from "@/components/landing/IntegrationSection";
 import Testimonials from "@/components/landing/Testimonials";
@@ -52,6 +54,8 @@ export default function LandingPage() {
       <LandingNavbar />
       <main>
         <Hero />
+        <FeatureSpotlight />
+        <GetStartedBanner />
         <FeatureSection />
         <IntegrationSection />
         <Testimonials />

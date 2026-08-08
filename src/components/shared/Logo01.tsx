@@ -27,22 +27,17 @@ const Logo = ({ className, size = "md", showText = true }: LogoProps) => {
     <div className={cn("flex items-center gap-2", className)}>
       <div className={cn("relative", sizeClasses[size])}>
         {/* Light Mode Logo (Visible in Light Mode, Hidden in Dark Mode) */}
-        <img
-          src={logoLight}
-          alt="PYPE CRM Logo"
-          className="h-full w-full object-contain dark:hidden"
-        />
         {/* Dark Mode Logo (Hidden in Light Mode, Visible in Dark Mode) */}
         <img
           src={logoDark}
           alt="PYPE CRM Logo"
-          className="h-full w-full object-contain hidden dark:block"
+          className="h-full w-full object-contain"
         />
       </div>
       {showText && (
         <span
           className={cn(
-            "font-extrabold tracking-tighter text-black",
+            "font-extrabold tracking-tighter text-white",
             textClasses[size]
           )}
           style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}

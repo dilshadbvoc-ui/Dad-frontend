@@ -12,7 +12,7 @@ const integrations = [
 export default function IntegrationSection() {
   return (
     <section className="py-24 bg-white dark:bg-gray-950 overflow-hidden">
-      <div className="container mx-auto px-4 md:px-6 text-center">
+      <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 text-center">
         <Badge variant="outline" className="mb-6 px-4 py-1 border-purple-200 bg-purple-50 text-purple-700 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300">
           Seamless Integrations
         </Badge>

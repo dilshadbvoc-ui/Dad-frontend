@@ -96,7 +96,7 @@ const features = [
 
 export default function FeatureSection() {
   return (
-    <section id="features" className="py-24 bg-gray-50 dark:bg-gray-900/50 px-4 md:px-6">
+    <section id="features" className="py-24 bg-gray-50 dark:bg-gray-900/50 px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
       <div className="container mx-auto max-w-7xl">
         <div className="text-center max-w-3xl mx-auto mb-20">
           <Badge variant="outline" className="mb-4 px-4 py-1 border-blue-200 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">

@@ -8,7 +8,7 @@ export default function CTASection() {
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10 pattern-grid-lg" />
 
-      <div className="container mx-auto px-4 md:px-6 relative z-10 text-center">
+      <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 relative z-10 text-center">
         <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
           Ready to transform your sales?
         </h2>

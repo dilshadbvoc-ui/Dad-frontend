@@ -52,7 +52,7 @@ export default function FAQSection() {
 
   return (
     <section id="faq" className="py-24 bg-neutral-50 dark:bg-neutral-900/30 overflow-hidden">
-      <div className="container px-4 mx-auto">
+      <div className="container mx-auto px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
