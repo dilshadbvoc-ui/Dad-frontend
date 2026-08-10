@@ -303,6 +303,7 @@ function LeadTable({ leads }: { leads: Lead[] }) {
           <TableHead>Branch</TableHead>
           <TableHead>Company</TableHead>
           <TableHead>Status</TableHead>
+          <TableHead>Closed Status</TableHead>
           <TableHead>Source</TableHead>
           <TableHead>Assigned To</TableHead>
           <TableHead>Created At</TableHead>
@@ -316,6 +317,13 @@ function LeadTable({ leads }: { leads: Lead[] }) {
             <TableCell>{lead.branch?.name || '-'}</TableCell>
             <TableCell>{lead.company || '-'}</TableCell>
             <TableCell><Badge variant="outline">{lead.status}</Badge></TableCell>
+            <TableCell>
+              {lead.closedOpportunityStatus ? (
+                <Badge variant={lead.closedOpportunityStatus === 'Won' ? 'default' : 'destructive'}>
+                  {lead.closedOpportunityStatus}
+                </Badge>
+              ) : '-'}
+            </TableCell>
             <TableCell>{lead.source}</TableCell>
             <TableCell>{lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '-'}</TableCell>
             <TableCell>{formatDate(lead.createdAt)}</TableCell>

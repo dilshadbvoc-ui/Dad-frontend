@@ -13,6 +13,8 @@ export interface Lead {
     leadScore: number;
     nextFollowUp?: string;
     status: string;
+    // Won/Lost outcome of the opportunity this lead converted into (null if not converted or still open)
+    closedOpportunityStatus?: 'Won' | 'Lost' | null;
     source: string;
     assignedTo?: {
         id: string;
