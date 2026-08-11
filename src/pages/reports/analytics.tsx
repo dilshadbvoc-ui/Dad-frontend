@@ -112,7 +112,7 @@ export default function AnalyticsPage() {
       const key = l.source || 'Unknown';
       if (!dataMap[key]) dataMap[key] = { total: 0, converted: 0 };
       dataMap[key].total++;
-      if (l.status === 'converted') dataMap[key].converted++;
+      if (['converted', 'won', 'lost'].includes(l.status)) dataMap[key].converted++;
     });
     return Object.entries(dataMap).map(([name, stats]) => ({
       name,
@@ -124,7 +124,7 @@ export default function AnalyticsPage() {
   // Process Pipeline (by Status)
   const pipelineData = (() => {
     const counts: Record<string, number> = {};
-    const pipelineOrder = ['new', 'contacted', 'pre_qualified', 'qualified', 'nurturing', 'converted', 'lost'];
+    const pipelineOrder = ['new', 'contacted', 'pre_qualified', 'qualified', 'nurturing', 'converted', 'won', 'lost'];
     leads.forEach((l: Lead) => {
       const status = l.status || 'new'; // valid status fallback or assert type
       counts[status] = (counts[status] || 0) + 1;

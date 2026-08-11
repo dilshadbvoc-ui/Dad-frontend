@@ -410,13 +410,13 @@ export default function LeadDetailPage() {
                   }
                   setIsConvertOpen(true)
                 }}
-                disabled={lead.status === 'converted'}
+                disabled={['converted', 'won', 'lost'].includes(lead.status)}
               >
                 <CheckCircle2 className="h-4 w-4 sm:mr-2" />
-                <span>{lead.status === 'converted' ? 'Converted' : 'Move to Pipeline'}</span>
+                <span>{['converted', 'won', 'lost'].includes(lead.status) ? 'Converted' : 'Move to Pipeline'}</span>
               </Button>
 
-              {lead.status !== 'converted' && lead.products && lead.products.length > 0 && (
+              {!['converted', 'won', 'lost'].includes(lead.status) && lead.products && lead.products.length > 0 && (
                 <div className="flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
                   <Button
                     variant="outline"
