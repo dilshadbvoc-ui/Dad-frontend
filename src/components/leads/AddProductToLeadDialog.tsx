@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { getProducts, type Product as BaseProduct } from "@/services/productService"
 import { api } from "@/services/api"
@@ -47,14 +47,17 @@ export function AddProductToLeadDialog({
   const [selectedProducts, setSelectedProducts] = useState<{ productId: string, product: Product, quantity: number, price: number, customName: string }[]>([])
   const [searchQuery, setSearchQuery] = useState("")
 
-  // Reset state when dialog opens
+  // Reset state on the open transition only. `currentProducts` comes straight from the lead
+  // query and gets a new array reference on every refetch (e.g. the `lead_updated` socket event) —
+  // resyncing on every reference change would clobber in-progress edits while the dialog is open.
+  const wasOpen = useRef(false)
   useEffect(() => {
-    if (open) {
+    if (open && !wasOpen.current) {
       if (currentProducts.length > 0) {
         // Map existing products to state
         const mapped = currentProducts.map(p => ({
           productId: p.productId,
-          product: p.product as Product, 
+          product: p.product as Product,
           quantity: p.quantity,
           price: p.price || p.product?.basePrice || 0,
           customName: p.customName || p.product?.name || ""
@@ -64,6 +67,7 @@ export function AddProductToLeadDialog({
         setSelectedProducts([])
       }
     }
+    wasOpen.current = open
   }, [open, currentProducts])
 
   const { data: availableProducts } = useQuery({

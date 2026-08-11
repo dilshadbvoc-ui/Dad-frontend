@@ -27,6 +27,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { api } from "@/services/api";
 import { toast } from "sonner";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, subMonths } from "date-fns";
+import { formatIST, toISTDateString, getISTNow } from "@/lib/dateUtils";
 import { 
   AreaChart, 
   Area, 
@@ -58,8 +59,8 @@ export default function UserSalesPage() {
   const isAdmin = checkIsAdmin(user);
 
   // Filter States
-  const [startDate, setStartDate] = useState<string>(format(startOfMonth(new Date()), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState<string>(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+  const [startDate, setStartDate] = useState<string>(format(startOfMonth(getISTNow()), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState<string>(format(endOfMonth(getISTNow()), "yyyy-MM-dd"));
   const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string>("all");
   const [activePeriod, setActivePeriod] = useState<string>("month");
@@ -101,7 +102,8 @@ export default function UserSalesPage() {
   // Period handlers
   const setPeriod = (period: string) => {
     setActivePeriod(period);
-    const now = new Date();
+    // Anchor on the IST calendar day so period boundaries match what the backend filters on.
+    const now = getISTNow();
     let start, end;
 
     switch (period) {
@@ -149,7 +151,7 @@ export default function UserSalesPage() {
       const pdfHeight = (img.height * pdfWidth) / img.width;
       
       pdf.addImage(dataUrl, "PNG", 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`Sales_Report_${selectedUserId === "all" ? "Team" : selectedUserId}_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`Sales_Report_${selectedUserId === "all" ? "Team" : selectedUserId}_${toISTDateString()}.pdf`);
       toast.success("PDF report downloaded successfully!");
     } catch (error) {
       console.error("PDF generation error:", error);
@@ -185,7 +187,7 @@ export default function UserSalesPage() {
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', `sales_data_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                link.setAttribute('download', `sales_data_${toISTDateString()}.xlsx`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
@@ -264,11 +266,11 @@ export default function UserSalesPage() {
         <div className="hidden pdf-only flex justify-between items-center border-b pb-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold">Sales Performance Report</h1>
-            <p className="text-sm text-muted-foreground">{format(new Date(startDate), "PPP")} - {format(new Date(endDate), "PPP")}</p>
+            <p className="text-sm text-muted-foreground">{formatIST(startDate, "PPP")} - {formatIST(endDate, "PPP")}</p>
           </div>
           <div className="text-right">
             <p className="font-semibold">{selectedUserId === "all" ? "Team Report" : currentUserStat?.name}</p>
-            <p className="text-xs text-muted-foreground">Generated on {format(new Date(), "PPpp")}</p>
+            <p className="text-xs text-muted-foreground">Generated on {formatIST(new Date(), "PPpp")}</p>
           </div>
         </div>
 

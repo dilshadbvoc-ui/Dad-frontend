@@ -1,5 +1,5 @@
-import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
+import { formatIST } from '@/lib/dateUtils';
 import { Loader2, User, ArrowRight, History } from 'lucide-react';
 import { getLeadHistory } from '@/services/leadService';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,7 @@ export function LeadTimeline({ leadId }: { leadId: string }) {
               <span className="absolute -left-1.5 top-1.5 h-3 w-3 rounded-full border border-background bg-muted-foreground/30 ring-4 ring-background" />
               <div className="flex flex-col gap-1">
                 <div className="text-sm font-medium flex items-center gap-2">
-                  <span className="text-muted-foreground text-xs">{format(new Date(item.createdAt), 'MMM d, yyyy h:mm a')}</span>
+                  <span className="text-muted-foreground text-xs">{formatIST(item.createdAt, 'MMM d, yyyy h:mm a')}</span>
                 </div>
                 <div className="text-sm">
                   <div className="flex items-center gap-2 mt-1">

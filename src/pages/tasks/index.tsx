@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { formatIST } from "@/lib/dateUtils"
 
 export default function TasksPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -158,7 +159,7 @@ export default function TasksPage() {
                   <div className="flex items-center gap-4 text-[10px] text-muted-foreground font-medium">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>Due: {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No date'}</span>
+                      <span>Due: {task.dueDate ? formatIST(task.dueDate, 'MMM d, yyyy') : 'No date'}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className={cn(

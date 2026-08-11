@@ -33,6 +33,7 @@ import { Input } from "@/components/ui/input";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { toast } from "sonner";
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, startOfYear, endOfYear } from "date-fns";
+import { toISTDateString, getISTNow } from "@/lib/dateUtils";
 import { 
   BarChart, 
   Bar, 
@@ -57,8 +58,8 @@ export default function UserPerformanceReport() {
   const [isExporting, setIsExporting] = useState(false);
 
   // Filter States
-  const [startDate, setStartDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState<string>(format(new Date(), "yyyy-MM-dd"));
+  const [startDate, setStartDate] = useState<string>(toISTDateString());
+  const [endDate, setEndDate] = useState<string>(toISTDateString());
   const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
   const [selectedUserId, setSelectedUserId] = useState<string>("all");
   const [activePeriod, setActivePeriod] = useState<string>("today");
@@ -141,7 +142,9 @@ export default function UserPerformanceReport() {
   // Period handlers
   const setPeriod = (period: string) => {
     setActivePeriod(period);
-    const now = new Date();
+    // Anchor on the IST calendar day so "today"/"week"/etc. match the IST day boundaries the
+    // backend actually filters on, not the viewer's local day.
+    const now = getISTNow();
     let start, end;
 
     switch (period) {
@@ -305,7 +308,7 @@ export default function UserPerformanceReport() {
         firstPage = false;
       }
 
-      pdf.save(`User_Total_Report_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+      pdf.save(`User_Total_Report_${toISTDateString()}.pdf`);
       toast.success("PDF report downloaded successfully!");
     } catch (error) {
       console.error("PDF generation error:", error);

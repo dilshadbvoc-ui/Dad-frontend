@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { format } from 'date-fns';
+import { formatIST } from '@/lib/dateUtils';
 import {
   Table,
   TableBody,
@@ -172,7 +172,7 @@ export default function AuditLogsPage() {
                         return (
                           <TableRow key={log.id}>
                             <TableCell className="whitespace-nowrap">
-                              {format(new Date(log.createdAt), 'MMM d, yyyy HH:mm:ss')}
+                              {formatIST(log.createdAt, 'MMM d, yyyy HH:mm:ss')}
                             </TableCell>
                             <TableCell>
                               {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : 'System'}

@@ -15,6 +15,7 @@ import { getAssetUrl } from "@/lib/utils"
 import { EMISchedulePanel } from "@/components/EMISchedulePanel"
 import TimelineFeed from "@/components/shared/TimelineFeed"
 import { useOpportunityLeadStatuses } from "@/hooks/useLeadStatuses"
+import { formatIST } from "@/lib/dateUtils"
 import {
   Select,
   SelectContent,
@@ -170,7 +171,7 @@ export default function OpportunityDetailPage() {
               </div>
               <span className="text-lg font-medium">
                 {opportunity.closeDate
-                  ? new Date(opportunity.closeDate).toLocaleDateString()
+                  ? formatIST(opportunity.closeDate, "MMM d, yyyy")
                   : "N/A"}
               </span>
             </div>

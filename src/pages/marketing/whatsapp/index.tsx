@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
+import { formatIST } from "@/lib/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -185,7 +186,7 @@ export default function WhatsAppCampaignsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(item.createdAt).toLocaleDateString()}
+                        {formatIST(item.createdAt, 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button variant="ghost" size="icon" className="text-red-500" onClick={() => deleteMutation.mutate(item.id)}>

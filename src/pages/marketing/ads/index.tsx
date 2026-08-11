@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { formatIST } from "@/lib/dateUtils"
 
 export default function AdsDashboard() {
 
@@ -233,7 +234,7 @@ export default function AdsDashboard() {
                                   {adSet.daily_budget ? `₹${(parseInt(adSet.daily_budget) / 100).toFixed(2)} / day` : adSet.lifetime_budget ? `₹${(parseInt(adSet.lifetime_budget) / 100).toFixed(2)} lifetime` : '-'}
                                 </TableCell>
                                 <TableCell>
-                                  {adSet.start_time ? new Date(adSet.start_time).toLocaleDateString() : '-'}
+                                  {adSet.start_time ? formatIST(adSet.start_time, 'MMM d, yyyy') : '-'}
                                 </TableCell>
                               </TableRow>
                             ))

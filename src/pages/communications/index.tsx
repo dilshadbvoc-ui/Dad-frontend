@@ -4,7 +4,7 @@ import { getInteractions, type Interaction } from "@/services/interactionService
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { Phone, Mail, Users, MessageSquare } from "lucide-react"
 
 import { LogInteractionDialog } from "@/components/Communications/LogInteractionDialog";
@@ -107,7 +107,7 @@ export default function CommunicationsPage() {
                             </div>
                           </div>
                           <div className="text-sm text-indigo-400/60 text-right">
-                            <div className="text-white">{format(new Date(interaction.date), "MMM d, h:mm a")}</div>
+                            <div className="text-white">{formatIST(interaction.date, "MMM d, h:mm a")}</div>
                             <div className="text-xs mt-0.5">by {interaction.createdBy?.firstName}</div>
                           </div>
                         </div>

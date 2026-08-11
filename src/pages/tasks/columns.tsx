@@ -3,7 +3,7 @@ import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { type Task, updateTask } from "@/services/taskService"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { Link } from "react-router-dom"
 import { TaskActions } from "./TaskActions"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -64,7 +64,7 @@ export const columns: ColumnDef<Task>[] = [
     header: "Due Date",
     cell: ({ row }) => {
       const date = row.getValue("dueDate")
-      return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
+      return date ? <div>{formatIST(date as string, "MMM d, yyyy")}</div> : <div>-</div>
     }
   },
   {

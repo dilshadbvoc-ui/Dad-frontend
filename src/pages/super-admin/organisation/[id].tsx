@@ -39,6 +39,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog"
 import { formatCurrency } from '@/lib/utils'
+import { formatIST } from '@/lib/dateUtils'
 import { AssignPlanDialog } from '@/components/super-admin/AssignPlanDialog'
 import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisationDialog'
 import { SetCustomPriceDialog } from '@/components/super-admin/SetCustomPriceDialog'
@@ -312,7 +313,7 @@ export default function OrganisationDetailPage() {
                     </div>
 
                     <div className="text-[10px] text-indigo-500 text-center mt-6">
-                      Generated on {new Date().toLocaleDateString()} for Internal Super Admin Review
+                      Generated on {formatIST(new Date(), 'MMM d, yyyy')} for Internal Super Admin Review
                     </div>
                   </div>
                   <DialogFooter>
@@ -393,8 +394,8 @@ export default function OrganisationDetailPage() {
               />
             </div>
             <div className="flex justify-between text-[10px] text-indigo-500 mt-2 font-mono">
-              <span>Started: {activeLicense ? new Date(activeLicense.startDate).toLocaleDateString() : 'N/A'}</span>
-              <span>Ends: {activeLicense ? new Date(activeLicense.endDate).toLocaleDateString() : 'N/A'}</span>
+              <span>Started: {activeLicense ? formatIST(activeLicense.startDate, 'MMM d, yyyy') : 'N/A'}</span>
+              <span>Ends: {activeLicense ? formatIST(activeLicense.endDate, 'MMM d, yyyy') : 'N/A'}</span>
             </div>
           </CardContent>
         </Card>
@@ -411,7 +412,7 @@ export default function OrganisationDetailPage() {
             <div className="mt-4 pt-4 border-t border-indigo-700/50">
               <div className="flex justify-between text-[10px] font-mono">
                 <span className="text-indigo-400">Creation Date:</span>
-                <span className="text-white">{new Date(org.createdAt).toLocaleDateString()}</span>
+                <span className="text-white">{formatIST(org.createdAt, 'MMM d, yyyy')}</span>
               </div>
             </div>
           </CardContent>
@@ -506,7 +507,7 @@ export default function OrganisationDetailPage() {
             )}
             <div className="flex items-center gap-3">
               <Calendar className="h-4 w-4 text-indigo-400" />
-              <span className="text-sm text-indigo-200">Created: {new Date(org.createdAt).toLocaleDateString()}</span>
+              <span className="text-sm text-indigo-200">Created: {formatIST(org.createdAt, 'MMM d, yyyy')}</span>
             </div>
             {org.subscription?.plan && (
               <div className="pt-4 border-t border-indigo-800">
@@ -555,7 +556,7 @@ export default function OrganisationDetailPage() {
                     </TableCell>
                     <TableCell className="text-indigo-200">{user.position || '-'}</TableCell>
                     <TableCell className="text-indigo-300/70">
-                      {new Date(user.createdAt).toLocaleDateString()}
+                      {formatIST(user.createdAt, 'MMM d, yyyy')}
                     </TableCell>
                   </TableRow>
                 ))}

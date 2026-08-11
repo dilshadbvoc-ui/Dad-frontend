@@ -29,13 +29,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { api } from '@/services/api';
 import { toast } from 'sonner';
+import { formatIST, toISTDateString, getISTNow } from '@/lib/dateUtils';
 
 const getDefaultStartDate = () => {
     const d = new Date();
     d.setDate(d.getDate() - 30);
-    return d.toISOString().split('T')[0];
+    return toISTDateString(d);
 };
-const getDefaultEndDate = () => new Date().toISOString().split('T')[0];
+const getDefaultEndDate = () => toISTDateString();
 
 export default function LeadDistributionPage() {
     const navigate = useNavigate();
@@ -75,7 +76,7 @@ export default function LeadDistributionPage() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `lead_distribution_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            link.setAttribute('download', `lead_distribution_report_${toISTDateString()}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -322,7 +323,7 @@ export default function LeadDistributionPage() {
                                                                             <Badge variant="secondary" className="text-[10px]">{lead.status}</Badge>
                                                                         </TableCell>
                                                                         <TableCell className="text-xs">
-                                                                            {format(new Date(lead.createdAt), 'MMM d, h:mm a')}
+                                                                            {formatIST(lead.createdAt, 'MMM d, h:mm a')}
                                                                         </TableCell>
                                                                     </TableRow>
                                                                 ))}
@@ -363,7 +364,7 @@ export default function LeadDistributionPage() {
                                 {summaryByDate.length > 0 ? (
                                     summaryByDate.map((row: any) => (
                                         <TableRow key={row.date}>
-                                            <TableCell className="font-medium">{format(new Date(row.date), 'MMM d, yyyy')}</TableCell>
+                                            <TableCell className="font-medium">{formatIST(row.date, 'MMM d, yyyy')}</TableCell>
                                             <TableCell className="text-right font-bold">{row.count}</TableCell>
                                         </TableRow>
                                     ))
@@ -400,7 +401,7 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
         if (startDate) {
             return startOfMonth(new Date(startDate));
         }
-        return startOfMonth(new Date());
+        return startOfMonth(getISTNow());
     });
     
     const rightMonth = addMonths(leftMonth, 1);
@@ -416,19 +417,21 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
         }
     }, [open, startDate, endDate]);
 
+    // Presets anchor on the IST calendar day (via getISTNow()), not the viewer's local day, so
+    // "Today"/"Last 7 days"/etc. match the IST day boundaries the backend actually filters on.
     const presets = [
-        { label: 'Today', getValue: () => { const t = new Date(); return { start: t, end: t }; } },
-        { label: 'Yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: y }; } },
-        { label: 'Today and yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: t }; } },
-        { label: 'Last 7 days', getValue: () => { const t = new Date(); return { start: subDays(t, 6), end: t }; } },
-        { label: 'Last 14 days', getValue: () => { const t = new Date(); return { start: subDays(t, 13), end: t }; } },
-        { label: 'Last 28 days', getValue: () => { const t = new Date(); return { start: subDays(t, 27), end: t }; } },
-        { label: 'Last 30 days', getValue: () => { const t = new Date(); return { start: subDays(t, 29), end: t }; } },
-        { label: 'This week', getValue: () => { const t = new Date(); return { start: startOfWeek(t), end: t }; } },
-        { label: 'Last week', getValue: () => { const t = new Date(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
-        { label: 'This month', getValue: () => { const t = new Date(); return { start: startOfMonth(t), end: t }; } },
-        { label: 'Last month', getValue: () => { const t = new Date(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
-        { label: 'Maximum', getValue: () => { const t = new Date(); return { start: new Date(2020, 0, 1), end: t }; } },
+        { label: 'Today', getValue: () => { const t = getISTNow(); return { start: t, end: t }; } },
+        { label: 'Yesterday', getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: y }; } },
+        { label: 'Today and yesterday', getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: t }; } },
+        { label: 'Last 7 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 6), end: t }; } },
+        { label: 'Last 14 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 13), end: t }; } },
+        { label: 'Last 28 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 27), end: t }; } },
+        { label: 'Last 30 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 29), end: t }; } },
+        { label: 'This week', getValue: () => { const t = getISTNow(); return { start: startOfWeek(t), end: t }; } },
+        { label: 'Last week', getValue: () => { const t = getISTNow(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
+        { label: 'This month', getValue: () => { const t = getISTNow(); return { start: startOfMonth(t), end: t }; } },
+        { label: 'Last month', getValue: () => { const t = getISTNow(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
+        { label: 'Maximum', getValue: () => { const t = getISTNow(); return { start: new Date(2020, 0, 1), end: t }; } },
         { label: 'Custom', getValue: () => null }
     ];
 
@@ -544,7 +547,7 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                 >
                     <Calendar className="h-4 w-4 text-primary" />
                     <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {startDate && endDate ? `${format(new Date(startDate), 'd MMM yyyy')} - ${format(new Date(endDate), 'd MMM yyyy')}` : 'Filter by Date'}
+                        {startDate && endDate ? `${formatIST(startDate, 'd MMM yyyy')} - ${formatIST(endDate, 'd MMM yyyy')}` : 'Filter by Date'}
                     </span>
                 </Button>
             </PopoverTrigger>

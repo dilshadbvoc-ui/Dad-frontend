@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { formatIST } from "@/lib/dateUtils";
 
 interface Violation {
   id: string;
@@ -122,7 +123,7 @@ export function ViolationAlert() {
             <AlertTitle>Lead Assignment Violation: {v.firstName} {v.lastName}</AlertTitle>
             <AlertDescription className="mt-2 flex flex-col gap-2">
               <span className="text-xs opacity-90">
-                This lead was rotated due to inactivity on {new Date(v.violationTime).toLocaleDateString()}.
+                This lead was rotated due to inactivity on {formatIST(v.violationTime, 'MMM d, yyyy')}.
                 An explanation is required.
               </span>
               <Button

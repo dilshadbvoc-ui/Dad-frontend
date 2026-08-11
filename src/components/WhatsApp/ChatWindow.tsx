@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { api } from '../../services/api';
-import { format } from 'date-fns';
+import { formatIST } from '@/lib/dateUtils';
 import { useSocket } from '../../contexts/useSocket';
 import MediaPreview from './MediaPreview';
 import TemplatePicker from './TemplatePicker';
@@ -343,7 +343,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ phoneNumber, onBack }) => {
               {/* Metadata (Time & Status) */}
               <div className="flex items-center justify-end gap-1 mt-1 opacity-70">
                 <span className="text-[10px] min-w-[50px] text-right">
-                  {format(new Date(msg.createdAt), 'p')}
+                  {formatIST(msg.createdAt, 'h:mm a')}
                 </span>
                 {msg.direction === 'outgoing' && (
                   <span>

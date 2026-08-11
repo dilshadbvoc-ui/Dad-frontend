@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import {
   Dialog,
   DialogContent,
@@ -141,13 +141,13 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
                           {getStatusBadge(installment.status)}
                         </div>
                         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                          <div>Due Date: {format(new Date(installment.dueDate), "MMM d, yyyy")}</div>
+                          <div>Due Date: {formatIST(installment.dueDate, "MMM d, yyyy")}</div>
                           <div>Amount: ₹{installment.amount.toLocaleString('en-IN')}</div>
                           {installment.paidAmount > 0 && (
                             <>
                               <div className="text-green-600">Paid: ₹{installment.paidAmount.toLocaleString('en-IN')}</div>
                               {installment.paidDate && (
-                                <div>Paid on: {format(new Date(installment.paidDate), "MMM d, yyyy")}</div>
+                                <div>Paid on: {formatIST(installment.paidDate, "MMM d, yyyy")}</div>
                               )}
                             </>
                           )}

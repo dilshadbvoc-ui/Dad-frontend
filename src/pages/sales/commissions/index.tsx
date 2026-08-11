@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Pencil, Calendar, DollarSign, User as UserIcon } from "lucide-react";
+import { formatIST } from "@/lib/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -266,7 +267,7 @@ export default function CommissionsPage() {
                     <TableRow key={item.id}>
                       <TableCell className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        {new Date(item.date).toLocaleDateString()}
+                        {formatIST(item.date, 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">{item.description || "N/A"}</div>

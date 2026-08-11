@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/services/api';
-import { format } from 'date-fns';
+import { formatIST } from '@/lib/dateUtils';
 import {
   Activity,
   PhoneCall,
@@ -267,7 +267,7 @@ export default function TimelineFeed({ type, id }: TimelineFeedProps) {
                   )}
                 </div>
                 <div className="mt-2 sm:mt-0 text-xs text-muted-foreground whitespace-nowrap text-right">
-                  <div>{format(new Date(item.date), 'MMM d, h:mm a')}</div>
+                  <div>{formatIST(item.date, 'MMM d, h:mm a')}</div>
                   {item.actor && (
                     <div className="mt-0.5">by {item.actor.firstName}</div>
                   )}

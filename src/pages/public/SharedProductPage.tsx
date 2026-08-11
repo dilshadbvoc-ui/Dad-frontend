@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { useParams, useSearchParams } from "react-router-dom"
 import { api } from "@/services/api"
 import { getAssetUrl } from "@/lib/utils"
@@ -177,7 +177,7 @@ export default function SharedProductPage() {
                       {shareConfig?.createdAt && (
                         <p className="text-xs text-muted-foreground/60 flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          Shared on {format(new Date(shareConfig.createdAt), 'MMM d, yyyy h:mm a')}
+                          Shared on {formatIST(shareConfig.createdAt, 'MMM d, yyyy h:mm a')}
                         </p>
                       )}
                     </div>

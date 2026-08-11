@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Download, FileText, Calendar } from "lucide-react";
-import { format } from "date-fns";
+import { formatIST } from "@/lib/dateUtils";
 import { api } from "@/services/api";
 import { toast } from "sonner";
 
@@ -167,7 +167,7 @@ export default function AuditLogsReport() {
       
       // CSV Rows
       const rows = logs.logs.map((log: any) => {
-        const date = format(new Date(log.createdAt), "yyyy-MM-dd HH:mm:ss");
+        const date = formatIST(log.createdAt, "yyyy-MM-dd HH:mm:ss");
         const user = log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System";
         const actionLabel = getReadableAction(log.action);
         const entity = log.entity || "";
@@ -191,7 +191,7 @@ export default function AuditLogsReport() {
       const url = URL.createObjectURL(blob);
       
       link.setAttribute("href", url);
-      link.setAttribute("download", `audit-logs-${format(new Date(), "yyyy-MM-dd-HHmmss")}.csv`);
+      link.setAttribute("download", `audit-logs-${formatIST(new Date(), "yyyy-MM-dd-HHmmss")}.csv`);
       link.style.visibility = "hidden";
       
       document.body.appendChild(link);
@@ -360,7 +360,7 @@ export default function AuditLogsReport() {
                     return (
                       <tr key={log.id} className="border-b hover:bg-muted/50">
                         <td className="p-3 text-sm">
-                          {format(new Date(log.createdAt), "MMM dd, yyyy HH:mm")}
+                          {formatIST(log.createdAt, "MMM dd, yyyy HH:mm")}
                         </td>
                         <td className="p-3 text-sm">
                           {log.actor ? `${log.actor.firstName} ${log.actor.lastName}` : "System"}

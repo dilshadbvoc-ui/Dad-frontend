@@ -8,6 +8,7 @@ import { Check, CreditCard, Loader2, Sparkles, Calendar, IndianRupee, FileText, 
 import { billingService } from '@/services/billingService';
 import { getSubscriptionPlans, type SubscriptionPlan } from '@/services/subscriptionPlanService';
 import { getUserInfo } from '@/lib/utils';
+import { formatIST } from '@/lib/dateUtils';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { api } from '@/services/api';
 import {
@@ -291,7 +292,7 @@ export default function BillingSettingsPage() {
                         </div>
 
                         <div className="text-xs text-muted-foreground text-center mt-6">
-                          Generated on {new Date().toLocaleDateString()} • Valid until {activeLicense ? new Date(activeLicense.endDate).toLocaleDateString() : 'N/A'}
+                          Generated on {formatIST(new Date(), 'MMM d, yyyy')} • Valid until {activeLicense ? formatIST(activeLicense.endDate, 'MMM d, yyyy') : 'N/A'}
                         </div>
                       </div>
                       <DialogFooter>

@@ -55,6 +55,7 @@ import { PlansManagement } from '@/components/super-admin/PlansManagement';
 import { GlobalRolesManagement } from '@/components/super-admin/GlobalRolesManagement';
 import { FAQManagement } from '@/components/super-admin/FAQManagement';
 import { formatCurrency } from "@/lib/utils";
+import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { Globe } from 'lucide-react';
 
 interface Organisation {
@@ -196,7 +197,7 @@ export default function SuperAdminDashboard() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `backup-${org.slug}-${new Date().toISOString().split('T')[0]}.zip`);
+      link.setAttribute('download', `backup-${org.slug}-${toISTDateString()}.zip`);
       document.body.appendChild(link);
       link.click();
       link.parentNode?.removeChild(link);
@@ -373,7 +374,7 @@ export default function SuperAdminDashboard() {
                                 {daysLeft !== null ? `${daysLeft} days` : 'N/A'}
                               </span>
                               <span className="text-[10px] text-slate-500">
-                                {org.activeLicense ? new Date(org.activeLicense.endDate).toLocaleDateString() : 'No active license'}
+                                {org.activeLicense ? formatIST(org.activeLicense.endDate, 'MMM d, yyyy') : 'No active license'}
                               </span>
                             </div>
                           </TableCell>
@@ -512,7 +513,7 @@ export default function SuperAdminDashboard() {
                       const url = window.URL.createObjectURL(new Blob([response.data]));
                       const link = document.createElement('a');
                       link.href = url;
-                      link.setAttribute('download', `platform-full-backup-${new Date().toISOString().split('T')[0]}.json`);
+                      link.setAttribute('download', `platform-full-backup-${toISTDateString()}.json`);
                       document.body.appendChild(link);
                       link.click();
                       link.parentNode?.removeChild(link);

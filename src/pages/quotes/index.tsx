@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Search, FileText, DollarSign, CheckCircle, Trash2, MoreHorizontal } from "lucide-react"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -129,7 +129,7 @@ export default function QuotesPage() {
                         <div className="flex items-center gap-4">
                           <div className="text-right">
                             <p className="text-xl font-bold text-green-600">${quote.grandTotal.toFixed(2)}</p>
-                            <p className="text-xs text-gray-500">Valid until: {format(new Date(quote.validUntil), 'MMM d, yyyy')}</p>
+                            <p className="text-xs text-gray-500">Valid until: {formatIST(quote.validUntil, 'MMM d, yyyy')}</p>
                           </div>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreHorizontal className="h-4 w-4" /></Button></DropdownMenuTrigger>

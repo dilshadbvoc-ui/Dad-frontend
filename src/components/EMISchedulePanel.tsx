@@ -25,6 +25,7 @@ import {
   type EMISchedule,
   type EMIInstallment,
 } from "@/services/emiService"
+import { formatIST } from "@/lib/dateUtils"
 
 interface EMISchedulePanelProps {
   opportunityId: string
@@ -226,9 +227,9 @@ export function EMISchedulePanel({ opportunityId, paymentStatus, opportunityAmou
                         #{installment.installmentNumber} — {formatCurrency(installment.amount)}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        Due: {new Date(installment.dueDate).toLocaleDateString()}
+                        Due: {formatIST(installment.dueDate, 'MMM d, yyyy')}
                         {installment.paidDate && (
-                          <> · Paid: {new Date(installment.paidDate).toLocaleDateString()}</>
+                          <> · Paid: {formatIST(installment.paidDate, 'MMM d, yyyy')}</>
                         )}
                       </span>
                     </div>

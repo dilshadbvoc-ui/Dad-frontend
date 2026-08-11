@@ -20,6 +20,7 @@ import { Link } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { toISTDateString, getISTNow } from '@/lib/dateUtils';
 import {
   Select,
   SelectContent,
@@ -76,7 +77,7 @@ export default function Dashboard() {
   // Generate the last 12 months dynamically starting from current month, plus "All Time"
   const monthOptions = (() => {
     const options = [{ value: 'all', label: 'All Time' }];
-    const current = new Date();
+    const current = getISTNow();
     for (let i = 0; i < 12; i++) {
       const d = new Date(current.getFullYear(), current.getMonth() - i, 1);
       const year = d.getFullYear();
@@ -89,7 +90,7 @@ export default function Dashboard() {
   })();
 
   const getCurrentMonthVal = () => {
-    const d = new Date();
+    const d = getISTNow();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
   };
 
@@ -159,7 +160,7 @@ export default function Dashboard() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(dataUrl, 'PNG', 40, 40, pdfWidth - 80, pdfHeight - 80);
-      pdf.save(`dashboard-analytics-${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`dashboard-analytics-${toISTDateString()}.pdf`);
 
       toast.success("Dashboard exported successfully!", { id: "export-pdf" });
     } catch (error) {

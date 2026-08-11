@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { EventDetailsDialog } from "@/components/EventDetailsDialog"
 import { toast } from "sonner"
+import { formatIST } from "@/lib/dateUtils"
 
 
 const typeColors: Record<string, string> = { meeting: 'bg-blue-500', call: 'bg-green-500', task: 'bg-orange-500', demo: 'bg-purple-500', follow_up: 'bg-pink-500', reminder: 'bg-yellow-500' }
@@ -238,7 +239,7 @@ export default function CalendarPage() {
                                   <div className="flex justify-between items-start">
                                     <h4 className="font-bold text-sm truncate">{event.title}</h4>
                                     <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap">
-                                      {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                      {formatIST(event.startTime, 'h:mm a')}
                                     </span>
                                   </div>
                                   {event.description && <p className="text-[10px] text-muted-foreground truncate italic">{event.description}</p>}

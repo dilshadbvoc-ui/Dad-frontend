@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, Mail, Send, Clock } from "lucide-react";
-import { format } from "date-fns";
+import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/services/api";
@@ -55,7 +55,7 @@ export default function CampaignReportsPage() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `campaign_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            link.setAttribute('download', `campaign_report_${toISTDateString()}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -143,7 +143,7 @@ export default function CampaignReportsPage() {
                         {campaign.status}
                       </Badge>
                     </TableCell>
-                    <TableCell>{campaign.createdAt ? format(new Date(campaign.createdAt), 'MMM d, yyyy') : '-'}</TableCell>
+                    <TableCell>{campaign.createdAt ? formatIST(campaign.createdAt, 'MMM d, yyyy') : '-'}</TableCell>
                   </TableRow>
                 ))
               )}

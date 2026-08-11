@@ -17,6 +17,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatIST, getISTNow } from "@/lib/dateUtils";
 
 interface DateRangePickerProps {
   startDate: string;
@@ -51,19 +52,21 @@ export function DateRangePicker({ startDate, endDate, onUpdate }: DateRangePicke
     }
   }, [open, startDate, endDate]);
 
+  // Presets anchor on the IST calendar day (via getISTNow()), not the viewer's local day, so
+  // "Today"/"Last 7 days"/etc. match the IST day boundaries the backend actually filters on.
   const presets = [
-    { label: "Today", getValue: () => { const t = new Date(); return { start: t, end: t }; } },
-    { label: "Yesterday", getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: y }; } },
-    { label: "Today and yesterday", getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: t }; } },
-    { label: "Last 7 days", getValue: () => { const t = new Date(); return { start: subDays(t, 6), end: t }; } },
-    { label: "Last 14 days", getValue: () => { const t = new Date(); return { start: subDays(t, 13), end: t }; } },
-    { label: "Last 28 days", getValue: () => { const t = new Date(); return { start: subDays(t, 27), end: t }; } },
-    { label: "Last 30 days", getValue: () => { const t = new Date(); return { start: subDays(t, 29), end: t }; } },
-    { label: "This week", getValue: () => { const t = new Date(); return { start: startOfWeek(t), end: t }; } },
-    { label: "Last week", getValue: () => { const t = new Date(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
-    { label: "This month", getValue: () => { const t = new Date(); return { start: startOfMonth(t), end: t }; } },
-    { label: "Last month", getValue: () => { const t = new Date(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
-    { label: "Maximum", getValue: () => { const t = new Date(); return { start: new Date(2020, 0, 1), end: t }; } },
+    { label: "Today", getValue: () => { const t = getISTNow(); return { start: t, end: t }; } },
+    { label: "Yesterday", getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: y }; } },
+    { label: "Today and yesterday", getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: t }; } },
+    { label: "Last 7 days", getValue: () => { const t = getISTNow(); return { start: subDays(t, 6), end: t }; } },
+    { label: "Last 14 days", getValue: () => { const t = getISTNow(); return { start: subDays(t, 13), end: t }; } },
+    { label: "Last 28 days", getValue: () => { const t = getISTNow(); return { start: subDays(t, 27), end: t }; } },
+    { label: "Last 30 days", getValue: () => { const t = getISTNow(); return { start: subDays(t, 29), end: t }; } },
+    { label: "This week", getValue: () => { const t = getISTNow(); return { start: startOfWeek(t), end: t }; } },
+    { label: "Last week", getValue: () => { const t = getISTNow(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
+    { label: "This month", getValue: () => { const t = getISTNow(); return { start: startOfMonth(t), end: t }; } },
+    { label: "Last month", getValue: () => { const t = getISTNow(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
+    { label: "Maximum", getValue: () => { const t = getISTNow(); return { start: new Date(2020, 0, 1), end: t }; } },
     { label: "Custom", getValue: () => null },
   ];
 
@@ -177,10 +180,10 @@ export function DateRangePicker({ startDate, endDate, onUpdate }: DateRangePicke
           {startDate ? (
             endDate ? (
               <span className="truncate text-xs font-medium">
-                {format(new Date(startDate), "MMM d, yyyy")} - {format(new Date(endDate), "MMM d, yyyy")}
+                {formatIST(startDate, "MMM d, yyyy")} - {formatIST(endDate, "MMM d, yyyy")}
               </span>
             ) : (
-              <span className="truncate text-xs font-medium">From {format(new Date(startDate), "MMM d, yyyy")}</span>
+              <span className="truncate text-xs font-medium">From {formatIST(startDate, "MMM d, yyyy")}</span>
             )
           ) : (
             <span className="text-xs">Filter by Date</span>

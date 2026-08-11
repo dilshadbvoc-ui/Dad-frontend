@@ -26,7 +26,7 @@ import TimelineFeed from "@/components/shared/TimelineFeed"
 import { CollaborationBadge } from "@/components/shared/CollaborationBadge"
 import { EmailComposeDialog } from "@/components/EmailComposeDialog"
 import { AddProductToLeadDialog } from "@/components/leads/AddProductToLeadDialog"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { CallRecordingPlayer } from "@/components/CallRecordingPlayer"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { getBestDurationSeconds, formatDuration } from "@/lib/callUtils"
@@ -483,7 +483,7 @@ export default function LeadDetailPage() {
                   </span>
                 </div>
               )}
-              <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {new Date(lead.createdAt).toLocaleDateString()}</span></div>
+              <div className="flex items-center gap-3"><Calendar className="h-4 w-4 text-muted-foreground" /> <span>Created: {formatIST(lead.createdAt, "MMM d, yyyy")}</span></div>
               
               {(() => {
                 const details = typeof lead.sourceDetails === 'string' ? JSON.parse(lead.sourceDetails) : lead.sourceDetails;
@@ -493,7 +493,7 @@ export default function LeadDetailPage() {
                     <Clock className="h-4 w-4" /> 
                     <div className="flex flex-col">
                       <span className="text-[10px] font-bold uppercase tracking-tight">Meta Captured</span>
-                      <span className="text-sm font-semibold">{format(new Date(details.metaCreatedTime), "MMM d, yyyy, h:mm a")}</span>
+                      <span className="text-sm font-semibold">{formatIST(details.metaCreatedTime, "MMM d, yyyy, h:mm a")}</span>
                     </div>
                   </div>
                 );
@@ -570,13 +570,13 @@ export default function LeadDetailPage() {
               {lead.lastEnquiryDate && lead.reEnquiryCount > 0 && (
                 <div className="flex items-center gap-3 text-orange-600 font-medium">
                   <History className="h-4 w-4" />
-                  <span>Last Re-enquiry: {new Date(lead.lastEnquiryDate).toLocaleDateString()}</span>
+                  <span>Last Re-enquiry: {formatIST(lead.lastEnquiryDate, "MMM d, yyyy")}</span>
                 </div>
               )}
               {lead.nextFollowUp && (
                 <div className="flex items-center gap-3 text-indigo-600 dark:text-indigo-400 font-semibold">
                   <Clock className="h-4 w-4" />
-                  <span>Next Follow-up: {format(new Date(lead.nextFollowUp), "MMM d, yyyy, h:mm a")}</span>
+                  <span>Next Follow-up: {formatIST(lead.nextFollowUp, "MMM d, yyyy, h:mm a")}</span>
                 </div>
               )}
 
@@ -675,7 +675,7 @@ export default function LeadDetailPage() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{msg.direction === 'inbound' ? 'From Lead' : 'To Lead'}</span>
-                            <span className="text-xs text-muted-foreground">{format(new Date(msg.date), "MMM d, h:mm a")}</span>
+                            <span className="text-xs text-muted-foreground">{formatIST(msg.date, "MMM d, h:mm a")}</span>
                           </div>
                           <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                           {msg.actor && <span className="text-[10px] text-muted-foreground mt-2 block">Logged by {msg.actor}</span>}
@@ -706,7 +706,7 @@ export default function LeadDetailPage() {
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Last Contacted</p>
                   <p className="text-sm font-semibold mt-1">
-                    {lastWaCallDate ? format(lastWaCallDate, "MMM d, yyyy") : 'Never'}
+                    {lastWaCallDate ? formatIST(lastWaCallDate, "MMM d, yyyy") : 'Never'}
                   </p>
                 </div>
               </div>
@@ -729,7 +729,7 @@ export default function LeadDetailPage() {
                               </span>
                               <span className="font-semibold text-sm">{call.subject || 'WhatsApp Call'}</span>
                             </div>
-                            <span className="text-xs text-muted-foreground">{format(new Date(call.date), "MMM d, h:mm a")}</span>
+                            <span className="text-xs text-muted-foreground">{formatIST(call.date, "MMM d, h:mm a")}</span>
                           </div>
                           
                           {call.content && <p className="text-sm text-muted-foreground mb-3">{call.content}</p>}
@@ -786,7 +786,7 @@ export default function LeadDetailPage() {
                             </span>
                             <span className="font-semibold text-sm">{call.subject}</span>
                           </div>
-                          <span className="text-xs text-muted-foreground">{format(new Date(call.date), "MMM d, h:mm a")}</span>
+                          <span className="text-xs text-muted-foreground">{formatIST(call.date, "MMM d, h:mm a")}</span>
                         </div>
                         
                         {call.description && <p className="text-sm text-muted-foreground mb-3">{call.description}</p>}

@@ -30,6 +30,7 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { formatIST } from "@/lib/dateUtils"
 
 export interface Opportunity {
   id: string
@@ -245,7 +246,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                   <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Close Date</span>
                 </div>
                 <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
-                  {displayOpportunity.closeDate ? new Date(displayOpportunity.closeDate).toLocaleDateString() : 'N/A'}
+                  {displayOpportunity.closeDate ? formatIST(displayOpportunity.closeDate, 'MMM d, yyyy') : 'N/A'}
                 </span>
               </div>
             </div>

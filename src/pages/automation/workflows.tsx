@@ -6,6 +6,7 @@ import { getWorkflows, runWorkflow, deleteWorkflow, type Workflow, type Workflow
 import { getLeads, type Lead } from '@/services/leadService';
 import { toast } from 'sonner';
 import { AxiosError } from 'axios';
+import { formatIST } from '@/lib/dateUtils';
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -285,7 +286,7 @@ export default function WorkflowsPage() {
                   {selectedWorkflow?.isActive ? 'Active' : 'Inactive'}
                 </span>
                 <span>•</span>
-                Last run: {selectedWorkflow?.lastExecutedAt ? new Date(selectedWorkflow.lastExecutedAt).toLocaleDateString() : 'Never'}
+                Last run: {selectedWorkflow?.lastExecutedAt ? formatIST(selectedWorkflow.lastExecutedAt, 'MMM d, yyyy') : 'Never'}
               </p>
             </div>
           </div>

@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Mail, Plus } from "lucide-react"
 import { Link } from "react-router-dom"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 
 export function EmailCampaigns() {
   const { data: campaignsData, isLoading, isError } = useQuery({
@@ -90,7 +90,7 @@ export function EmailCampaigns() {
                     </div>
                     <div className="text-right">
                       <p className="text-muted-foreground">
-                        {campaign.sentAt ? format(new Date(campaign.sentAt), "MMM d, yyyy") : "Draft"}
+                        {campaign.sentAt ? formatIST(campaign.sentAt, "MMM d, yyyy") : "Draft"}
                       </p>
                     </div>
                   </div>

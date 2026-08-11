@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Contact } from "@/services/contactService"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 
 import { ContactActions } from "./ContactActions"
 
@@ -53,7 +53,7 @@ export const columns: ColumnDef<Contact>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
-      return <div>{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+      return <div>{formatIST(row.getValue("createdAt") as string, "MMM d, yyyy")}</div>
     }
   },
   {

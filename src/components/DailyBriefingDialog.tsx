@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { format } from 'date-fns';
 import { useQuery } from '@tanstack/react-query';
 import { getDailyAchievement, acknowledgeDailyNotification } from '@/services/salesTargetService';
+import { formatIST } from '@/lib/dateUtils';
 import {
   Dialog,
   DialogContent,
@@ -135,7 +135,7 @@ export function DailyBriefingDialog() {
                     </div>
                     <div className="flex flex-col items-end gap-1">
                       <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                        {lead.nextFollowUp ? format(new Date(lead.nextFollowUp), 'h:mm a') : 'TBD'}
+                        {lead.nextFollowUp ? formatIST(lead.nextFollowUp, 'h:mm a') : 'TBD'}
                       </span>
                       <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">View Detail →</span>
                     </div>

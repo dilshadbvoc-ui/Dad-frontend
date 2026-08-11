@@ -12,6 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatIST } from "@/lib/dateUtils"
 
 export default function GoalsPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -149,7 +150,7 @@ export default function GoalsPage() {
                               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                 <Badge variant="outline">{goal.type}</Badge>
                                 <Calendar className="h-3 w-3" />
-                                <span>{new Date(goal.endDate).toLocaleDateString()}</span>
+                                <span>{formatIST(goal.endDate, 'MMM d, yyyy')}</span>
                               </div>
                             </div>
                           </div>

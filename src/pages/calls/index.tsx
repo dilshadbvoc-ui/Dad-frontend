@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { formatIST } from '@/lib/dateUtils';
 import {
   Phone,
   PhoneIncoming,
@@ -410,7 +410,7 @@ export default function CallsPage() {
                           callsData?.calls.map((call) => (
                             <TableRow key={call.id} className="hover:bg-muted/30 transition-colors">
                               <TableCell className="font-medium text-foreground">
-                                {format(new Date(call.date), 'MMM d, yyyy h:mm a')}
+                                {formatIST(call.date, 'MMM d, yyyy h:mm a')}
                               </TableCell>
                               <TableCell>
                                 {getDirectionIcon(call.direction)}

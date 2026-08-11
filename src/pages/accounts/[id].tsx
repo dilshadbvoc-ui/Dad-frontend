@@ -10,6 +10,7 @@ import { useState } from "react"
 import { EditAccountDialog } from "@/components/shared/EditAccountDialog"
 import { UpsellDialog } from "@/components/UpsellDialog"
 import { CreateOpportunityDialog } from "@/components/CreateOpportunityDialog"
+import { formatIST } from "@/lib/dateUtils"
 
 export default function AccountDetailPage() {
   const { id } = useParams()
@@ -155,7 +156,7 @@ export default function AccountDetailPage() {
                         <tr key={asset.id} className="hover:bg-muted/30">
                           <td className="p-2 font-medium">{asset.customName || asset.product?.name}</td>
                           <td className="p-2 text-muted-foreground">
-                            {asset.purchaseDate ? new Date(asset.purchaseDate).toLocaleDateString() : 'N/A'}
+                            {asset.purchaseDate ? formatIST(asset.purchaseDate, 'MMM d, yyyy') : 'N/A'}
                           </td>
                           <td className="p-2">{asset.quantity}</td>
                           <td className="p-2">₹{asset.price?.toLocaleString()}</td>

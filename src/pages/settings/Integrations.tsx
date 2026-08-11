@@ -21,6 +21,7 @@ import {
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
 import { GmailConnect } from "@/components/settings/GmailConnect";
+import { formatIST } from "@/lib/dateUtils";
 
 interface MetaAccount {
   adAccountId?: string;
@@ -301,7 +302,7 @@ export default function IntegrationsPage() {
                           ? 'text-amber-500 animate-pulse'
                           : 'text-muted-foreground'
                       }`}>
-                        Expires: {new Date(integrations.meta.tokenExpiresAt).toLocaleDateString()}
+                        Expires: {formatIST(integrations.meta.tokenExpiresAt, 'MMM d, yyyy')}
                       </span>
                     )}
                   </div>

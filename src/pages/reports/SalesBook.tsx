@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Download } from "lucide-react";
-import { format } from "date-fns";
+import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import PageHeader from "../../components/shared/PageHeader";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getBranches } from "@/services/settingsService";
@@ -57,7 +57,7 @@ export default function SalesBookPage() {
         `"${s.opportunityName}"`,
         `"${s.customerName}"`,
         s.amount,
-        format(new Date(s.closeDate), "yyyy-MM-dd"),
+        formatIST(s.closeDate, "yyyy-MM-dd"),
         `"${s.ownerName}"`
       ].join(","))
     ].join("\n");
@@ -66,7 +66,7 @@ export default function SalesBookPage() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `sales_book_${format(new Date(), "yyyy-MM-dd")}.csv`;
+    a.download = `sales_book_${toISTDateString()}.csv`;
     a.click();
   };
 
@@ -92,7 +92,7 @@ export default function SalesBookPage() {
                 const url = window.URL.createObjectURL(new Blob([response.data]));
                 const link = document.createElement('a');
                 link.href = url;
-                link.setAttribute('download', `sales_book_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+                link.setAttribute('download', `sales_book_${toISTDateString()}.xlsx`);
                 document.body.appendChild(link);
                 link.click();
                 link.remove();
@@ -198,7 +198,7 @@ export default function SalesBookPage() {
                   } | null; 
                 }) => (
                   <TableRow key={sale.id}>
-                    <TableCell>{format(new Date(sale.closeDate), "MMM dd, yyyy")}</TableCell>
+                    <TableCell>{formatIST(sale.closeDate, "MMM dd, yyyy")}</TableCell>
                     <TableCell>{sale.branchName || '-'}</TableCell>
                     <TableCell className="font-medium">{sale.opportunityName}</TableCell>
                     <TableCell>{sale.customerName}</TableCell>

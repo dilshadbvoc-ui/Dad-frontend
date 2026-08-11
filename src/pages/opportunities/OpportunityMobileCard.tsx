@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { format } from "date-fns"
 import { differenceInDays } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import {
   MoreHorizontal, Eye, Pencil, Trash2, DollarSign, Calendar,
   AlertCircle, CheckCircle2, CreditCard, Clock, TrendingUp
@@ -260,7 +260,7 @@ export function OpportunityMobileCard({ opportunity: opp }: Props) {
                 )}
                 <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  {opp.closeDate ? format(new Date(opp.closeDate), "MMM d, yyyy") : "No close date"}
+                  {opp.closeDate ? formatIST(opp.closeDate, "MMM d, yyyy") : "No close date"}
                 </div>
               </div>
 

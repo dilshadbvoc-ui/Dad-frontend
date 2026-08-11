@@ -12,7 +12,8 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrganisation } from '../../services/settingsService';
 import { useNavigate } from 'react-router-dom';
 import { DateRangePicker } from '../../components/shared/DateRangePicker';
-import { format, subDays } from 'date-fns';
+import { subDays } from 'date-fns';
+import { formatIST, toISTDateString, getISTNow } from '../../lib/dateUtils';
 
 const AdsManager: React.FC = () => {
   const navigate = useNavigate();
@@ -38,8 +39,8 @@ const AdsManager: React.FC = () => {
 
   // Shared date range — drives both the account overview and every campaign's
   // expanded analytics, since campaignInsights is fetched with the same range.
-  const [startDate, setStartDate] = useState<string>(format(subDays(new Date(), 29), 'yyyy-MM-dd'));
-  const [endDate, setEndDate] = useState<string>(format(new Date(), 'yyyy-MM-dd'));
+  const [startDate, setStartDate] = useState<string>(toISTDateString(subDays(getISTNow(), 29)));
+  const [endDate, setEndDate] = useState<string>(toISTDateString());
 
   // Campaign list sort/filter
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -408,8 +409,8 @@ const AdsManager: React.FC = () => {
                 endDate={endDate}
                 onUpdate={(start, end) => {
                   // Falls back to the default last-30-days window if the picker is cleared
-                  setStartDate(start || format(subDays(new Date(), 29), 'yyyy-MM-dd'));
-                  setEndDate(end || format(new Date(), 'yyyy-MM-dd'));
+                  setStartDate(start || toISTDateString(subDays(getISTNow(), 29)));
+                  setEndDate(end || toISTDateString());
                 }}
               />
             </div>
@@ -556,7 +557,7 @@ const AdsManager: React.FC = () => {
               <CardTitle className="text-lg">Campaigns</CardTitle>
               {startDate && endDate && (
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Performance shown for {format(new Date(startDate), 'MMM d, yyyy')} – {format(new Date(endDate), 'MMM d, yyyy')}
+                  Performance shown for {formatIST(startDate, 'MMM d, yyyy')} – {formatIST(endDate, 'MMM d, yyyy')}
                 </p>
               )}
             </div>

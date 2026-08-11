@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { toast } from "sonner"
 import { Plus, Users, Calendar, Search } from "lucide-react"
+import { formatIST } from "@/lib/dateUtils"
 import {
   Dialog,
   DialogContent,
@@ -168,7 +169,7 @@ export default function EmailListsPage() {
                     <TableCell>
                       <div className="flex items-center text-muted-foreground text-sm">
                         <Calendar className="mr-2 h-3 w-3" />
-                        {list.createdAt ? new Date(list.createdAt).toLocaleDateString() : 'N/A'}
+                        {list.createdAt ? formatIST(list.createdAt, 'MMM d, yyyy') : 'N/A'}
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

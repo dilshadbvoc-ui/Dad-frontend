@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { type Lead } from "@/services/leadService"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { ActionsCell } from "./ActionsCell"
 import { toast } from "sonner"
 import { formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
@@ -181,10 +181,9 @@ export const columns: ColumnDef<Lead>[] = [
     cell: ({ row }) => {
       const date = row.getValue("nextFollowUp") as string
       if (!date) return <div className="text-muted-foreground/30 text-xs italic">-</div>
-      const followUpDate = new Date(date)
       return (
         <div className="text-indigo-400 font-medium text-sm">
-          {format(followUpDate, "MMM d, h:mm a")}
+          {formatIST(date, "MMM d, h:mm a")}
         </div>
       )
     }
@@ -211,7 +210,7 @@ export const columns: ColumnDef<Lead>[] = [
       )
     },
     cell: ({ row }) => {
-      return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("createdAt")), "MMM d, yyyy, h:mm a")}</div>
+      return <div className="text-muted-foreground text-sm">{formatIST(row.getValue("createdAt") as string, "MMM d, yyyy, h:mm a")}</div>
     }
   },
   {
@@ -230,7 +229,7 @@ export const columns: ColumnDef<Lead>[] = [
       )
     },
     cell: ({ row }) => {
-      return <div className="text-muted-foreground text-sm">{format(new Date(row.getValue("updatedAt")), "MMM d, yyyy")}</div>
+      return <div className="text-muted-foreground text-sm">{formatIST(row.getValue("updatedAt") as string, "MMM d, yyyy")}</div>
     }
   },
   {

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query"
 import { getOrganisation } from "@/services/settingsService"
 import { useNavigate } from "react-router-dom"
 import { getWhatsAppCampaigns, getWhatsAppStatistics } from "@/services/whatsAppService"
+import { formatIST } from "@/lib/dateUtils"
 
 export function WhatsAppCampaigns() {
   const navigate = useNavigate();
@@ -152,9 +153,9 @@ export function WhatsAppCampaigns() {
                           {campaign.status}
                         </span>
                         <p className="text-xs text-gray-500 mt-1">
-                          {campaign.sentAt ? new Date(campaign.sentAt).toLocaleDateString() :
-                            campaign.scheduledAt ? new Date(campaign.scheduledAt).toLocaleDateString() :
-                              new Date(campaign.createdAt).toLocaleDateString()}
+                          {campaign.sentAt ? formatIST(campaign.sentAt, 'MMM d, yyyy') :
+                            campaign.scheduledAt ? formatIST(campaign.scheduledAt, 'MMM d, yyyy') :
+                              formatIST(campaign.createdAt, 'MMM d, yyyy')}
                         </p>
                       </div>
                     </div>

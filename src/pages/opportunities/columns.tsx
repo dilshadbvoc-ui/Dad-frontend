@@ -2,7 +2,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { OpportunityActions } from "./OpportunityActions"
 import type { Opportunity } from "@/services/opportunityService"
 
@@ -123,7 +123,7 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
     header: "Close Date",
     cell: ({ row }) => {
       const date = row.getValue("closeDate")
-      return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
+      return date ? <div>{formatIST(date as string, "MMM d, yyyy")}</div> : <div>-</div>
     }
   },
   {

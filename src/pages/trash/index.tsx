@@ -6,7 +6,7 @@ import type { ColumnDef } from "@tanstack/react-table"
 import { Button } from "@/components/ui/button"
 import { RefreshCw, Undo2, Trash2, LayoutGrid, Info } from "lucide-react"
 import { toast } from "sonner"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
@@ -130,8 +130,8 @@ export default function TrashPage() {
         const date = row.getValue("deletedAt") as string;
         return (
           <div className="flex flex-col">
-            <span className="text-sm font-medium">{date ? format(new Date(date), "MMM d, yyyy") : "-"}</span>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-tight">{date ? format(new Date(date), "HH:mm a") : ""}</span>
+            <span className="text-sm font-medium">{date ? formatIST(date, "MMM d, yyyy") : "-"}</span>
+            <span className="text-[10px] text-muted-foreground uppercase tracking-tight">{date ? formatIST(date, "HH:mm a") : ""}</span>
           </div>
         );
       }

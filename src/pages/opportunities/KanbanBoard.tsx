@@ -25,6 +25,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { differenceInDays } from "date-fns";
 import { isOrgAdmin, getUserInfo } from "@/lib/utils";
+import { formatIST } from "@/lib/dateUtils";
 import { EditOpportunityDialog } from "@/components/EditOpportunityDialog";
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -362,7 +363,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                               )}
                               <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                                 <Calendar className="h-3 w-3" />
-                                {opp.closeDate ? new Date(opp.closeDate).toLocaleDateString() : 'No date'}
+                                {opp.closeDate ? formatIST(opp.closeDate, 'MMM d, yyyy') : 'No date'}
                               </div>
                             </div>
 

@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { MapPin, Clock, CheckCircle, Navigation, TrendingUp, Activity, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 
 import { toast } from "sonner"
 import { createCheckIn } from "@/services/checkInService"
@@ -234,7 +234,7 @@ export default function FieldForcePage() {
           location: userCheckIn?.address || 'Unknown',
           latitude: userCheckIn?.latitude,
           longitude: userCheckIn?.longitude,
-          time: userCheckIn ? format(new Date(userCheckIn.createdAt), 'HH:mm') : '--:--'
+          time: userCheckIn ? formatIST(userCheckIn.createdAt, 'HH:mm') : '--:--'
         }
       })
   }, [users, checkIns])
@@ -467,7 +467,7 @@ export default function FieldForcePage() {
                               )}
                             </td>
                             <td className="px-6 py-4 text-muted-foreground">{checkIn.address || 'Unknown'}</td>
-                            <td className="px-6 py-4 text-muted-foreground">{format(new Date(checkIn.createdAt), 'MMM d, h:mm a')}</td>
+                            <td className="px-6 py-4 text-muted-foreground">{formatIST(checkIn.createdAt, 'MMM d, h:mm a')}</td>
                           </tr>
                         ))}
                       </tbody>

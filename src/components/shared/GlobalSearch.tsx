@@ -5,6 +5,7 @@ import { Search, Loader2, User, Building, FileText, CheckSquare, TrendingUp } fr
 import { api } from "@/services/api"
 import { useNavigate } from "react-router-dom"
 import { useCurrency } from "@/contexts/CurrencyContext"
+import { formatIST, toISTDateString } from "@/lib/dateUtils"
 
 interface SearchResult {
   id: string;
@@ -140,10 +141,11 @@ export function GlobalSearch() {
     const diffTime = Math.abs(now.getTime() - date.getTime())
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
+    if (toISTDateString(dateString) === toISTDateString()) return 'Today'
     if (diffDays === 1) return 'Yesterday'
     if (diffDays < 7) return `${diffDays} days ago`
     if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`
-    return date.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' })
+    return formatIST(date, 'MMM d, yyyy')
   }
 
   return (

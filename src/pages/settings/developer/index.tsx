@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { useSearchParams } from "react-router-dom"
 import { toast } from "sonner"
 import { Copy, Plus, Trash2, Globe, Key, AlertCircle, Loader2, FileText, Check, Code } from "lucide-react"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -223,7 +223,7 @@ function ApiKeysTab() {
                       <Badge variant="secondary">Revoked</Badge>
                     )}
                   </TableCell>
-                  <TableCell>{format(new Date(key.createdAt), 'MMM d, yyyy')}</TableCell>
+                  <TableCell>{formatIST(key.createdAt, 'MMM d, yyyy')}</TableCell>
                   <TableCell className="font-mono text-xs max-w-[100px] truncate">{key.firstEight}...</TableCell>
                   <TableCell className="text-right">
                     {key.isActive && (

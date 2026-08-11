@@ -14,6 +14,7 @@ import { LoadingCard } from "@/components/ui/loading-spinner"
 import * as XLSX from 'xlsx'
 import { toast } from "sonner"
 import { cn, formatWhatsAppNumber, formatPhoneForCall } from "@/lib/utils"
+import { formatIST, toISTDateString, getISTNow } from "@/lib/dateUtils"
 import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileBridge"
 import { Button } from "@/components/ui/button"
 import { Link, useSearchParams } from "react-router-dom"
@@ -131,7 +132,7 @@ function TaskTable({ tasks }: { tasks: Task[] }) {
                   {task.status.replace('_', ' ')}
                 </Badge>
               </TableCell>
-              <TableCell>{task.dueDate ? format(new Date(task.dueDate), 'MMM d, yyyy') : '-'}</TableCell>
+              <TableCell>{task.dueDate ? formatIST(task.dueDate, 'MMM d, yyyy') : '-'}</TableCell>
               <TableCell>{task.assignedTo?.firstName || 'Unknown'} {task.assignedTo?.lastName || ''}</TableCell>
             </TableRow>
           );
@@ -280,7 +281,7 @@ const LeadCard = ({ lead }: { lead: Lead }) => {
         <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Plus className="h-3 w-3" />
-            <span>{format(new Date(lead.createdAt), 'MMM d')}</span>
+            <span>{formatIST(lead.createdAt, 'MMM d')}</span>
           </div>
           {(lead.sourceDetails?.campaignName || lead.sourceDetails?.metaCampaignName) && (
             <div className="flex items-center gap-1 text-primary/80 font-medium truncate max-w-[150px]">
@@ -422,48 +423,50 @@ export default function LeadsPage() {
   };
 
   const backendDateFilter = useMemo(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    
+    // Use the IST calendar day (not the viewer's local day / UTC day) so "Today"/"Last 7 days"
+    // etc. match the IST-aligned day boundaries the backend filters createdAt by.
+    const todayStr = toISTDateString();
+
     if (currentView === 'today-leads' || currentView === 'today') {
       return { from: todayStr, to: todayStr };
     }
     if (currentView === 'yesterday-leads' || currentView === 'yesterday') {
       const d = new Date();
       d.setDate(d.getDate() - 1);
-      const yesterdayStr = d.toISOString().split('T')[0];
+      const yesterdayStr = toISTDateString(d);
       return { from: yesterdayStr, to: yesterdayStr };
     }
     if (currentView === 'today-yesterday') {
       const d = new Date();
       d.setDate(d.getDate() - 1);
-      const yesterdayStr = d.toISOString().split('T')[0];
+      const yesterdayStr = toISTDateString(d);
       return { from: yesterdayStr, to: todayStr };
     }
     if (currentView === 'last-7-days') {
       const d = new Date();
       d.setDate(d.getDate() - 6);
-      const startStr = d.toISOString().split('T')[0];
+      const startStr = toISTDateString(d);
       return { from: startStr, to: todayStr };
     }
     if (currentView === 'last-14-days') {
       const d = new Date();
       d.setDate(d.getDate() - 13);
-      const startStr = d.toISOString().split('T')[0];
+      const startStr = toISTDateString(d);
       return { from: startStr, to: todayStr };
     }
     if (currentView === 'last-28-days') {
       const d = new Date();
       d.setDate(d.getDate() - 27);
-      const startStr = d.toISOString().split('T')[0];
+      const startStr = toISTDateString(d);
       return { from: startStr, to: todayStr };
     }
     if (currentView === 'last-30-days') {
       const d = new Date();
       d.setDate(d.getDate() - 29);
-      const startStr = d.toISOString().split('T')[0];
+      const startStr = toISTDateString(d);
       return { from: startStr, to: todayStr };
     }
-    
+
     return dateFilter;
   }, [currentView, dateFilter]);
 
@@ -706,16 +709,15 @@ export default function LeadsPage() {
   const getDisplayData = () => {
     let baseLeads = leads;
     
-    // Apply date range filter if set
+    // Apply date range filter if set. The backend already filters createdAt by IST day
+    // boundaries — this client-side pass is meant to be redundant/defensive, so it must compare
+    // using the same IST calendar day (not raw UTC-midnight Date math) or it silently re-excludes
+    // leads the backend correctly included.
     if (dateFilter.from || dateFilter.to) {
       baseLeads = leads.filter((l: Lead) => {
-        const leadDate = new Date(l.createdAt);
-        if (dateFilter.from && leadDate < new Date(dateFilter.from)) return false;
-        if (dateFilter.to) {
-          const toDate = new Date(dateFilter.to);
-          toDate.setHours(23, 59, 59, 999);
-          if (leadDate > toDate) return false;
-        }
+        const leadDateIST = toISTDateString(l.createdAt);
+        if (dateFilter.from && leadDateIST < dateFilter.from) return false;
+        if (dateFilter.to && leadDateIST > dateFilter.to) return false;
         return true;
       });
     }
@@ -740,16 +742,12 @@ export default function LeadsPage() {
         
         // Task Views
         if (currentView.includes('followup')) {
-          const displayTasks = dateFilter.from || dateFilter.to 
+          const displayTasks = dateFilter.from || dateFilter.to
             ? tasks.filter((t: Task) => {
-              const taskDate = t.dueDate ? new Date(t.dueDate) : null;
-              if (!taskDate) return false;
-              if (dateFilter.from && taskDate < new Date(dateFilter.from)) return false;
-              if (dateFilter.to) {
-                const toDate = new Date(dateFilter.to);
-                toDate.setHours(23, 59, 59, 999);
-                if (taskDate > toDate) return false;
-              }
+              if (!t.dueDate) return false;
+              const taskDateIST = toISTDateString(t.dueDate);
+              if (dateFilter.from && taskDateIST < dateFilter.from) return false;
+              if (dateFilter.to && taskDateIST > dateFilter.to) return false;
               return true;
             })
             : tasks;
@@ -841,8 +839,8 @@ export default function LeadsPage() {
       'Source': lead.source || '',
       'Lead Score': lead.leadScore || 0,
       'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
-      'Created At': lead.createdAt ? format(new Date(lead.createdAt), 'yyyy-MM-dd HH:mm:ss') : '',
-      'Next Follow-up': lead.nextFollowUp ? format(new Date(lead.nextFollowUp), 'yyyy-MM-dd HH:mm:ss') : '',
+      'Created At': lead.createdAt ? formatIST(lead.createdAt, 'yyyy-MM-dd HH:mm:ss') : '',
+      'Next Follow-up': lead.nextFollowUp ? formatIST(lead.nextFollowUp, 'yyyy-MM-dd HH:mm:ss') : '',
       'Country': lead.country || '',
       'Re-Enquiry': lead.isReEnquiry ? 'Yes' : 'No',
       'Latest Note': lead.interactions && lead.interactions.length > 0 ? lead.interactions[0].description : ''
@@ -859,7 +857,7 @@ export default function LeadsPage() {
     }));
     worksheet['!cols'] = colWidths;
 
-    const fileName = `leads_${currentView}_${currentSort}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`;
+    const fileName = `leads_${currentView}_${currentSort}_${toISTDateString()}.xlsx`;
     XLSX.writeFile(workbook, fileName);
   };
 
@@ -1379,7 +1377,7 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
         if (startDate) {
             return startOfMonth(new Date(startDate));
         }
-        return startOfMonth(new Date());
+        return startOfMonth(getISTNow());
     });
     
     const rightMonth = addMonths(leftMonth, 1);
@@ -1395,19 +1393,21 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
         }
     }, [open, startDate, endDate]);
 
+    // Presets anchor on the IST calendar day (via getISTNow()), not the viewer's local day, so
+    // "Today"/"Last 7 days"/etc. match the IST day boundaries the backend actually filters on.
     const presets = [
-        { label: 'Today', getValue: () => { const t = new Date(); return { start: t, end: t }; } },
-        { label: 'Yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: y }; } },
-        { label: 'Today and yesterday', getValue: () => { const t = new Date(); const y = subDays(t, 1); return { start: y, end: t }; } },
-        { label: 'Last 7 days', getValue: () => { const t = new Date(); return { start: subDays(t, 6), end: t }; } },
-        { label: 'Last 14 days', getValue: () => { const t = new Date(); return { start: subDays(t, 13), end: t }; } },
-        { label: 'Last 28 days', getValue: () => { const t = new Date(); return { start: subDays(t, 27), end: t }; } },
-        { label: 'Last 30 days', getValue: () => { const t = new Date(); return { start: subDays(t, 29), end: t }; } },
-        { label: 'This week', getValue: () => { const t = new Date(); return { start: startOfWeek(t), end: t }; } },
-        { label: 'Last week', getValue: () => { const t = new Date(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
-        { label: 'This month', getValue: () => { const t = new Date(); return { start: startOfMonth(t), end: t }; } },
-        { label: 'Last month', getValue: () => { const t = new Date(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
-        { label: 'Maximum', getValue: () => { const t = new Date(); return { start: new Date(2020, 0, 1), end: t }; } },
+        { label: 'Today', getValue: () => { const t = getISTNow(); return { start: t, end: t }; } },
+        { label: 'Yesterday', getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: y }; } },
+        { label: 'Today and yesterday', getValue: () => { const t = getISTNow(); const y = subDays(t, 1); return { start: y, end: t }; } },
+        { label: 'Last 7 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 6), end: t }; } },
+        { label: 'Last 14 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 13), end: t }; } },
+        { label: 'Last 28 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 27), end: t }; } },
+        { label: 'Last 30 days', getValue: () => { const t = getISTNow(); return { start: subDays(t, 29), end: t }; } },
+        { label: 'This week', getValue: () => { const t = getISTNow(); return { start: startOfWeek(t), end: t }; } },
+        { label: 'Last week', getValue: () => { const t = getISTNow(); const prevWeek = subDays(t, 7); return { start: startOfWeek(prevWeek), end: endOfWeek(prevWeek) }; } },
+        { label: 'This month', getValue: () => { const t = getISTNow(); return { start: startOfMonth(t), end: t }; } },
+        { label: 'Last month', getValue: () => { const t = getISTNow(); const prevMonth = subMonths(t, 1); return { start: startOfMonth(prevMonth), end: endOfMonth(prevMonth) }; } },
+        { label: 'Maximum', getValue: () => { const t = getISTNow(); return { start: new Date(2020, 0, 1), end: t }; } },
         { label: 'Custom', getValue: () => null }
     ];
 
@@ -1527,10 +1527,10 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                     {startDate ? (
                       endDate ? (
                         <span className="truncate text-xs font-medium">
-                          {format(new Date(startDate), 'MMM d, yyyy')} - {format(new Date(endDate), 'MMM d, yyyy')}
+                          {formatIST(startDate, 'MMM d, yyyy')} - {formatIST(endDate, 'MMM d, yyyy')}
                         </span>
                       ) : (
-                        <span className="truncate text-xs font-medium">From {format(new Date(startDate), 'MMM d, yyyy')}</span>
+                        <span className="truncate text-xs font-medium">From {formatIST(startDate, 'MMM d, yyyy')}</span>
                       )
                     ) : (
                       <span className="text-xs">Filter by Date</span>

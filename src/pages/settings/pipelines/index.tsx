@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, GitBranch, ArrowRight } from "lucide-react";
+import { formatIST } from "@/lib/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -138,7 +139,7 @@ export default function PipelinesPage() {
                       <Badge variant="secondary">Default</Badge>
                     )}
                   </div>
-                  <CardDescription>Created on {new Date(pipeline.createdAt).toLocaleDateString()}</CardDescription>
+                  <CardDescription>Created on {formatIST(pipeline.createdAt, 'MMM d, yyyy')}</CardDescription>
                 </div>
                 {!pipeline.isDefault && (
                   <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => deleteMutation.mutate(pipeline.id)}>

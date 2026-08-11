@@ -4,7 +4,7 @@ import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import type { Account } from "@/services/accountService"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 
 export const columns: ColumnDef<Account>[] = [
   {
@@ -71,7 +71,7 @@ export const columns: ColumnDef<Account>[] = [
     accessorKey: "createdAt",
     header: "Created",
     cell: ({ row }) => {
-      return <div>{format(new Date(row.getValue("createdAt")), "MMM d, yyyy")}</div>
+      return <div>{formatIST(row.getValue("createdAt") as string, "MMM d, yyyy")}</div>
     }
   },
   {

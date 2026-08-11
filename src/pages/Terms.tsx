@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { formatIST } from '@/lib/dateUtils';
 
 const Terms = () => {
   const navigate = useNavigate();
@@ -22,7 +23,7 @@ const Terms = () => {
               Terms and Conditions
             </CardTitle>
             <CardDescription className="text-base text-slate-500 dark:text-slate-400 mt-2">
-              Last Updated: {new Date().toLocaleDateString()}
+              Last Updated: {formatIST(new Date(), 'MMM d, yyyy')}
             </CardDescription>
           </CardHeader>
           <CardContent className="prose dark:prose-invert max-w-none pt-8 pb-10 px-8 lg:px-12 space-y-6">

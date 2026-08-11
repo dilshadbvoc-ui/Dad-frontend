@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table"
 import { ArrowUpDown } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import { formatIST } from "@/lib/dateUtils"
 import { Link } from "react-router-dom"
 import { EMIActions } from "./EMIActions"
 
@@ -114,7 +114,7 @@ export const columns: ColumnDef<EMISchedule>[] = [
     header: "Start Date",
     cell: ({ row }) => {
       const date = row.getValue("startDate")
-      return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
+      return date ? <div>{formatIST(date as string, "MMM d, yyyy")}</div> : <div>-</div>
     }
   },
   {
@@ -122,7 +122,7 @@ export const columns: ColumnDef<EMISchedule>[] = [
     header: "End Date",
     cell: ({ row }) => {
       const date = row.getValue("endDate")
-      return date ? <div>{format(new Date(date as string), "MMM d, yyyy")}</div> : <div>-</div>
+      return date ? <div>{formatIST(date as string, "MMM d, yyyy")}</div> : <div>-</div>
     }
   },
   {

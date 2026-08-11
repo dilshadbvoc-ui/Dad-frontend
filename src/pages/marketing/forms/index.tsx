@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Plus, Trash2, Code, FormInput } from "lucide-react";
+import { formatIST } from "@/lib/dateUtils";
 import {
   Dialog,
   DialogContent,
@@ -172,7 +173,7 @@ export default function WebFormsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {new Date(item.createdAt).toLocaleDateString()}
+                        {formatIST(item.createdAt, 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

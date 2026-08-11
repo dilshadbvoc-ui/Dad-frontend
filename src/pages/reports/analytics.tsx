@@ -14,6 +14,7 @@ import { ensureArray } from "@/hooks/useArrayData";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
 import { getBranches } from "@/services/settingsService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toISTDateString } from "@/lib/dateUtils";
 
 const COLORS = ['#34d399', '#2dd4bf', '#38bdf8', '#818cf8', '#a78bfa', '#f472b6'];
 
@@ -81,7 +82,7 @@ export default function AnalyticsPage() {
       const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
       pdf.addImage(dataUrl, 'PNG', 40, 40, pdfWidth - 80, pdfHeight - 80);
-      pdf.save(`analytics-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`analytics-report-${toISTDateString()}.pdf`);
 
       toast.success("Analytics report exported successfully!", { id: "export-analytics-pdf" });
     } catch (error) {

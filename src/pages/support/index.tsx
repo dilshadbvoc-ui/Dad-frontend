@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "sonner"
+import { formatIST } from "@/lib/dateUtils"
 
 const statusColors: Record<string, string> = {
   new: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
@@ -191,7 +192,7 @@ export default function SupportPage() {
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
-                          <p className="text-sm text-muted-foreground">{new Date(c.createdAt).toLocaleDateString()}</p>
+                          <p className="text-sm text-muted-foreground">{formatIST(c.createdAt, 'MMM d, yyyy')}</p>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon" className="hover:bg-muted"><MoreVertical className="h-4 w-4" /></Button>

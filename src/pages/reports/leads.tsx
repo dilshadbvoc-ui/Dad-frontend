@@ -5,26 +5,19 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { format, isSameDay } from "date-fns"; // Standard imports, check availability
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { api } from "@/services/api";
 import { toast } from "sonner";
 import { useState, useMemo } from "react";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { getBranches } from "@/services/settingsService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building, Filter } from "lucide-react";
 
 // Formatting helpers
-const formatDate = (dateString: string) => {
-  if (!dateString) return '-';
-  try {
-    return format(new Date(dateString), 'MMM d, yyyy');
-  } catch {
-    return dateString;
-  }
-};
+const formatDate = (dateString: string) => formatIST(dateString, 'MMM d, yyyy');
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d', '#ffc658'];
 
@@ -64,7 +57,7 @@ export default function LeadReportsPage() {
   const getFilteredLeads = () => {
     switch (viewType) {
       case 'today':
-        return leads.filter((lead: Lead) => isSameDay(new Date(lead.createdAt), new Date()));
+        return leads.filter((lead: Lead) => toISTDateString(lead.createdAt) === toISTDateString());
       case 'converted':
         // Lead.status only ever reaches 'converted' (it never becomes 'won'/'lost'); the "Converted"
         // report means leads that actually won, which is tracked on the linked Opportunity's stage.
@@ -264,8 +257,8 @@ export default function LeadReportsPage() {
             if (selectedBranchId && selectedBranchId !== 'all') params.append('branchId', selectedBranchId);
             if (selectedSource && selectedSource !== 'all') params.append('source', selectedSource);
             if (viewType === 'today') {
-              params.append('startDate', new Date().toISOString().split('T')[0]);
-              params.append('endDate', new Date().toISOString().split('T')[0]);
+              params.append('startDate', toISTDateString());
+              params.append('endDate', toISTDateString());
             }
 
             const response = await api.get(`/reports/export/leads?${params.toString()}`, {
@@ -275,7 +268,7 @@ export default function LeadReportsPage() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `leads_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            link.setAttribute('download', `leads_report_${toISTDateString()}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();

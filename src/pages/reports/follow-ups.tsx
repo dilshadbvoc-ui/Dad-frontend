@@ -6,25 +6,20 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { format, isToday, isPast, isFuture, isSameDay } from "date-fns";
+import { isPast, isFuture } from "date-fns";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { api } from "@/services/api";
 import { toast } from "sonner";
 import { useState } from "react";
 import { isAdmin as checkIsAdmin } from "@/lib/utils";
+import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { getBranches } from "@/services/settingsService";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Building } from "lucide-react";
 
 // Helper
-const formatDate = (dateString?: string) => {
-  if (!dateString) return '-';
-  try {
-    return format(new Date(dateString), 'MMM d, yyyy');
-  } catch {
-    return dateString;
-  }
-};
+const formatDate = (dateString?: string) => dateString ? formatIST(dateString, 'MMM d, yyyy') : '-';
+const isISTToday = (dateString: string) => toISTDateString(dateString) === toISTDateString();
 
 export default function FollowUpReportsPage() {
   const [searchParams] = useSearchParams();
@@ -66,11 +61,11 @@ export default function FollowUpReportsPage() {
         );
       case 'today':
         return tasks.filter((t: Task) =>
-          t.dueDate && isSameDay(new Date(t.dueDate), new Date())
+          t.dueDate && isISTToday(t.dueDate)
         );
       case 'upcoming':
         return tasks.filter((t: Task) =>
-          t.dueDate && isFuture(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))
+          t.dueDate && isFuture(new Date(t.dueDate)) && !isISTToday(t.dueDate)
         );
       case 'all':
       default:
@@ -117,7 +112,7 @@ export default function FollowUpReportsPage() {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `tasks_report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+            link.setAttribute('download', `tasks_report_${toISTDateString()}.xlsx`);
             document.body.appendChild(link);
             link.click();
             link.remove();
