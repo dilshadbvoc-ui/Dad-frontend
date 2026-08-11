@@ -66,9 +66,11 @@ export default function LeadReportsPage() {
       case 'today':
         return leads.filter((lead: Lead) => isSameDay(new Date(lead.createdAt), new Date()));
       case 'converted':
-        return leads.filter((lead: Lead) => lead.status === 'converted');
+        // Lead.status only ever reaches 'converted' (it never becomes 'won'/'lost'); the "Converted"
+        // report means leads that actually won, which is tracked on the linked Opportunity's stage.
+        return leads.filter((lead: Lead) => lead.closedOpportunityStatus === 'Won');
       case 'lost':
-        return leads.filter((lead: Lead) => lead.status === 'lost');
+        return leads.filter((lead: Lead) => lead.closedOpportunityStatus === 'Lost');
       // 'no-activity' is tricky without backend support, skipping specific filter for row-list, maybe showing all with 'Last Activity' column empty?
       // For now 'no-activity' -> simple placeholder logic: leads not updated in 30 days?
       // Let's stick to standard lists for others.
@@ -83,7 +85,8 @@ export default function LeadReportsPage() {
   const getLeadsByStatus = () => {
     const counts: Record<string, number> = {};
     leads.forEach((l: Lead) => {
-      const s = l.status || 'unknown';
+      // Show the actual Won/Lost outcome instead of the generic 'converted' status where available.
+      const s = l.closedOpportunityStatus || l.status || 'unknown';
       counts[s] = (counts[s] || 0) + 1;
     });
     return Object.entries(counts).map(([name, value]) => ({ name, value }));
@@ -256,7 +259,7 @@ export default function LeadReportsPage() {
           <Button variant="outline" onClick={async () => {
           try {
             const params = new URLSearchParams();
-            if (viewType === 'converted') params.append('status', 'converted');
+            if (viewType === 'converted') params.append('status', 'won');
             if (viewType === 'lost') params.append('status', 'lost');
             if (selectedBranchId && selectedBranchId !== 'all') params.append('branchId', selectedBranchId);
             if (selectedSource && selectedSource !== 'all') params.append('source', selectedSource);
