@@ -41,6 +41,9 @@ import {
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
 import { BulkStatusDialog } from "./BulkStatusDialog"
+import { BulkScheduleFollowUpDialog } from "./BulkScheduleFollowUpDialog"
+import { BulkSendEmailDialog } from "./BulkSendEmailDialog"
+import { BulkSendWhatsAppDialog } from "./BulkSendWhatsAppDialog"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
 import { bulkLeadAction } from "@/services/leadService"
 import { isOrgAdmin as checkIsOrgAdmin } from "@/lib/utils"
@@ -376,6 +379,9 @@ export default function LeadsPage() {
   const [isBulkAssignDialogOpen, setIsBulkAssignDialogOpen] = useState(false);
   const [isBulkStatusDialogOpen, setIsBulkStatusDialogOpen] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [isBulkFollowUpDialogOpen, setIsBulkFollowUpDialogOpen] = useState(false);
+  const [isBulkEmailDialogOpen, setIsBulkEmailDialogOpen] = useState(false);
+  const [isBulkWhatsAppDialogOpen, setIsBulkWhatsAppDialogOpen] = useState(false);
 
   const pageSize = parseInt(searchParams.get('pageSize') || '50', 10);
   const setPageSize = (val: number | ((prev: number) => number)) => {
@@ -529,6 +535,18 @@ export default function LeadsPage() {
         break;
       case 'export':
         handleExcelDownload();
+        break;
+      case 'schedule-followup':
+        console.log('[BulkAction] Opening follow-up dialog');
+        setIsBulkFollowUpDialogOpen(true);
+        break;
+      case 'send-email':
+        console.log('[BulkAction] Opening send email dialog');
+        setIsBulkEmailDialogOpen(true);
+        break;
+      case 'send-whatsapp':
+        console.log('[BulkAction] Opening send WhatsApp dialog');
+        setIsBulkWhatsAppDialogOpen(true);
         break;
       default:
         console.warn(`Action ${action} not implemented for leads`);
@@ -1303,6 +1321,40 @@ export default function LeadsPage() {
           onSuccess={() => {
             setRowSelection({});
             handleRefresh();
+          }}
+        />
+      )}
+
+      {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
+        <BulkScheduleFollowUpDialog
+          open={isBulkFollowUpDialogOpen}
+          onOpenChange={setIsBulkFollowUpDialogOpen}
+          selectedLeads={Object.keys(rowSelection)}
+          onSuccess={() => {
+            setRowSelection({});
+            handleRefresh();
+          }}
+        />
+      )}
+
+      {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
+        <BulkSendEmailDialog
+          open={isBulkEmailDialogOpen}
+          onOpenChange={setIsBulkEmailDialogOpen}
+          selectedLeads={Object.keys(rowSelection)}
+          onSuccess={() => {
+            setRowSelection({});
+          }}
+        />
+      )}
+
+      {isAdminOrManager && Object.keys(rowSelection).length > 0 && (
+        <BulkSendWhatsAppDialog
+          open={isBulkWhatsAppDialogOpen}
+          onOpenChange={setIsBulkWhatsAppDialogOpen}
+          selectedLeads={Object.keys(rowSelection)}
+          onSuccess={() => {
+            setRowSelection({});
           }}
         />
       )}
