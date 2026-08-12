@@ -75,40 +75,46 @@ export function AddProductToLeadDialog({
     queryFn: () => getProducts({ limit: 1000 })
   })
 
+  // All of these use the functional updater form (prev => ...) rather than closing over
+  // `selectedProducts` directly. Closing over the outer variable reads a snapshot from whichever
+  // render the handler was created in; if two edits fire before React commits a re-render between
+  // them (common on a slower mobile WebView JS thread), the second one overwrites the first using
+  // stale data instead of building on it — this is what caused typed characters to appear
+  // dropped/reordered when editing a product name quickly.
   const handleAddProduct = (product: Product) => {
     // Check if already added
     if (selectedProducts.find(p => p.productId === product.id)) {
       toast.info("Product already added")
       return
     }
-    setSelectedProducts([...selectedProducts, { 
-      productId: product.id, 
-      product, 
-      quantity: 1, 
+    setSelectedProducts(prev => [...prev, {
+      productId: product.id,
+      product,
+      quantity: 1,
       price: product.basePrice || 0,
       customName: product.name || ""
     }])
   }
 
   const handleRemoveProduct = (productId: string) => {
-    setSelectedProducts(selectedProducts.filter(p => p.productId !== productId))
+    setSelectedProducts(prev => prev.filter(p => p.productId !== productId))
   }
 
   const handleQuantityChange = (productId: string, qty: number) => {
     if (qty < 1) return
-    setSelectedProducts(selectedProducts.map(p =>
+    setSelectedProducts(prev => prev.map(p =>
       p.productId === productId ? { ...p, quantity: qty } : p
     ))
   }
 
   const handlePriceChange = (productId: string, price: number) => {
-    setSelectedProducts(selectedProducts.map(p =>
+    setSelectedProducts(prev => prev.map(p =>
       p.productId === productId ? { ...p, price: price } : p
     ))
   }
 
   const handleNameChange = (productId: string, name: string) => {
-    setSelectedProducts(selectedProducts.map(p =>
+    setSelectedProducts(prev => prev.map(p =>
       p.productId === productId ? { ...p, customName: name } : p
     ))
   }

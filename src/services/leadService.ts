@@ -15,6 +15,10 @@ export interface Lead {
     status: string;
     // Won/Lost outcome of the opportunity this lead converted into (null if not converted or still open)
     closedOpportunityStatus?: 'Won' | 'Lost' | null;
+    // Whether this lead actually has a real Opportunity behind it (only present on GET /leads/:id).
+    // Don't infer "converted" from `status` alone — 'won'/'lost'/'converted' can also just be a
+    // manually-picked custom status unrelated to any real conversion.
+    isConverted?: boolean;
     source: string;
     assignedTo?: {
         id: string;
