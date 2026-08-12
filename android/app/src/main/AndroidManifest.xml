@@ -60,7 +60,13 @@
         <activity
             android:name=".MainActivity"
             android:theme="@style/Theme.MaterialComponents.DayNight.NoActionBar"
-            android:exported="true">
+            android:exported="true"
+            android:windowSoftInputMode="adjustResize">
+            <!-- Without this, Android defaults to panning the whole window to keep a focused
+                 input visible instead of resizing it, so the WebView's viewport (window.innerHeight,
+                 CSS dvh, visualViewport) never actually changes when the keyboard opens — no amount
+                 of web-side CSS/JS can compensate for that. adjustResize makes the WebView genuinely
+                 shrink to the visible area, which is what page-level keyboard-aware layout relies on. -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
