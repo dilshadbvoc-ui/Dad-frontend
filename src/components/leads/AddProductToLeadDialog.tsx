@@ -49,6 +49,10 @@ function ProductNameField({ value, onCommit }: { value: string; onCommit: (name:
     <Input
       ref={inputRef}
       defaultValue={value}
+      // Radix ScrollArea uses its own scroll container rather than native page scroll, which the
+      // browser's built-in "scroll the focused input into view" heuristic doesn't always target
+      // correctly when the on-screen keyboard opens — scroll it into view explicitly as a backstop.
+      onFocus={(e) => e.currentTarget.scrollIntoView({ block: "center", behavior: "smooth" })}
       onBlur={() => {
         const next = inputRef.current?.value ?? value
         if (next !== value) onCommit(next)
@@ -176,8 +180,14 @@ export function AddProductToLeadDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent 
-        className="!fixed !inset-0 !z-50 !w-screen !h-screen !max-w-none !max-h-none !m-0 !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 sm:!fixed sm:!left-[50%] sm:!top-[50%] sm:!w-full sm:!max-w-[700px] sm:!h-[80vh] sm:!max-h-[80vh] sm:!translate-x-[-50%] sm:!translate-y-[-50%] sm:!rounded-lg flex flex-col p-0 sm:p-6"
+      <DialogContent
+        // `h-screen`/`100vh` doesn't shrink when the on-screen keyboard opens on Android WebView —
+        // the fixed-position dialog stays sized for the full screen while the actually-visible area
+        // shrinks, so the browser's "keep the focused input in view" logic has nothing correct to
+        // reconcile against (manifesting as the input section being unreachable/unscrollable, and
+        // is suspected to also be contributing to cursor-position resets while typing). `100dvh` is
+        // the dynamic viewport height, which does account for the keyboard.
+        className="!fixed !inset-0 !z-50 !w-screen !h-[100dvh] !max-w-none !max-h-none !m-0 !rounded-none !translate-x-0 !translate-y-0 !top-0 !left-0 sm:!fixed sm:!left-[50%] sm:!top-[50%] sm:!w-full sm:!max-w-[700px] sm:!h-[80vh] sm:!max-h-[80vh] sm:!translate-x-[-50%] sm:!translate-y-[-50%] sm:!rounded-lg flex flex-col p-0 sm:p-6"
       >
         <DialogDescription className="sr-only">Select products to add to this lead.</DialogDescription>
         <DialogHeader className="p-4 sm:p-0 border-b sm:border-0 shrink-0">
