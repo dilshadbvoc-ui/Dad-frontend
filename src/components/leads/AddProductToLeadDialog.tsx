@@ -35,6 +35,35 @@ interface AddProductToLeadDialogProps {
   onSuccess: () => void
 }
 
+// Re-rendering a controlled <input> from parent state on every keystroke (setting `element.value`
+// programmatically each time) can desync a mobile WebView's IME composition buffer from the DOM —
+// this is what caused typed characters to appear scrambled/reordered specifically in the Android
+// WebView app (desktop Chrome tolerates it fine). Keeping the field's live value in local state
+// while typing, and only committing up to the parent on blur, avoids fighting the IME entirely.
+function ProductNameField({ productId, value, onCommit }: { productId: string; value: string; onCommit: (productId: string, name: string) => void }) {
+  const [localValue, setLocalValue] = useState(value)
+
+  // Re-sync if the underlying value changes for reasons other than local typing (e.g. switching
+  // which product this row represents — productId is the row's stable key, so this effectively
+  // only fires when the row is freshly mounted/reused for a different product).
+  useEffect(() => {
+    setLocalValue(value)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productId])
+
+  return (
+    <Input
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => {
+        if (localValue !== value) onCommit(productId, localValue)
+      }}
+      className="h-7 text-xs font-bold px-2"
+      placeholder="Custom Product Name"
+    />
+  )
+}
+
 export function AddProductToLeadDialog({
   open,
   onOpenChange,
@@ -245,11 +274,10 @@ export function AddProductToLeadDialog({
                            <div className="space-y-2">
                              <div className="flex flex-col gap-1">
                                <span className="text-[10px] text-muted-foreground font-medium">Product Name:</span>
-                               <Input
+                               <ProductNameField
+                                 productId={item.productId}
                                  value={item.customName}
-                                 onChange={(e) => handleNameChange(item.productId, e.target.value)}
-                                 className="h-7 text-xs font-bold px-2"
-                                 placeholder="Custom Product Name"
+                                 onCommit={handleNameChange}
                                />
                              </div>
                              <div className="flex items-center gap-2">
