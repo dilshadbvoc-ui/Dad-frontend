@@ -35,28 +35,23 @@ interface AddProductToLeadDialogProps {
   onSuccess: () => void
 }
 
-// Re-rendering a controlled <input> from parent state on every keystroke (setting `element.value`
-// programmatically each time) can desync a mobile WebView's IME composition buffer from the DOM —
-// this is what caused typed characters to appear scrambled/reordered specifically in the Android
-// WebView app (desktop Chrome tolerates it fine). Keeping the field's live value in local state
-// while typing, and only committing up to the parent on blur, avoids fighting the IME entirely.
-function ProductNameField({ productId, value, onCommit }: { productId: string; value: string; onCommit: (productId: string, name: string) => void }) {
-  const [localValue, setLocalValue] = useState(value)
-
-  // Re-sync if the underlying value changes for reasons other than local typing (e.g. switching
-  // which product this row represents — productId is the row's stable key, so this effectively
-  // only fires when the row is freshly mounted/reused for a different product).
-  useEffect(() => {
-    setLocalValue(value)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [productId])
+// Even a *locally*-controlled input (value driven by this component's own state, not the parent's)
+// still has React assign `element.value` on every keystroke's re-render. On Android WebView that
+// assignment alone — regardless of whether the string actually changed — can reset the native
+// input's cursor to position 0, which is what kept causing typed characters to land at the start
+// instead of where they were typed. The only way to stop React from touching `.value` at all during
+// typing is a genuinely uncontrolled input: seed it once with `defaultValue` and read the live text
+// out via a ref only when we need it (on blur, to commit up to parent state).
+function ProductNameField({ value, onCommit }: { value: string; onCommit: (name: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
 
   return (
     <Input
-      value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
+      ref={inputRef}
+      defaultValue={value}
       onBlur={() => {
-        if (localValue !== value) onCommit(productId, localValue)
+        const next = inputRef.current?.value ?? value
+        if (next !== value) onCommit(next)
       }}
       className="h-7 text-xs font-bold px-2"
       placeholder="Custom Product Name"
@@ -275,9 +270,8 @@ export function AddProductToLeadDialog({
                              <div className="flex flex-col gap-1">
                                <span className="text-[10px] text-muted-foreground font-medium">Product Name:</span>
                                <ProductNameField
-                                 productId={item.productId}
                                  value={item.customName}
-                                 onCommit={handleNameChange}
+                                 onCommit={(name) => handleNameChange(item.productId, name)}
                                />
                              </div>
                              <div className="flex items-center gap-2">
