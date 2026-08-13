@@ -59,8 +59,8 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
   const finalOnOpenChange = isControlled ? onOpenChange : setInternalOpen
 
   const queryClient = useQueryClient()
-  const [lineItems, setLineItems] = useState<LineItem[]>([
-    { productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }
+  const [lineItems, setLineItems] = useState<(LineItem & { id: string })[]>([
+    { id: crypto.randomUUID(), productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }
   ])
 
   // Memoize the default date to avoid impure render
@@ -120,7 +120,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
   })
 
   const addLineItem = () => {
-    setLineItems([...lineItems, { productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }])
+    setLineItems([...lineItems, { id: crypto.randomUUID(), productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }])
   }
 
   const removeLineItem = (index: number) => {
@@ -354,7 +354,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
               </div>
 
               {lineItems.map((item, index) => (
-                <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div key={item.id} className="border rounded-lg p-4 space-y-3">
                   <div className="flex justify-between items-start">
                     <h4 className="font-medium">Item {index + 1}</h4>
                     {lineItems.length > 1 && (
@@ -371,13 +371,13 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
                   <div className="grid grid-cols-2 gap-3">
                     <Input
                       placeholder="Product name"
-                      value={item.productName}
-                      onChange={(e) => updateLineItem(index, 'productName', e.target.value)}
+                      defaultValue={item.productName}
+                      onBlur={(e) => updateLineItem(index, 'productName', e.target.value)}
                     />
                     <Input
                       placeholder="Description"
-                      value={item.description}
-                      onChange={(e) => updateLineItem(index, 'description', e.target.value)}
+                      defaultValue={item.description}
+                      onBlur={(e) => updateLineItem(index, 'description', e.target.value)}
                     />
                   </div>
                   <div className="grid grid-cols-4 gap-3">

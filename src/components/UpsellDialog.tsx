@@ -130,9 +130,10 @@ export function UpsellDialog({ open, onOpenChange, accountId, onSuccess }: Upsel
             <div className="grid gap-2">
               <Label htmlFor="customName">Product Name</Label>
               <Input
+                key={`name-${productId}`}
                 id="customName"
-                value={customName}
-                onChange={(e) => setCustomName(e.target.value)}
+                defaultValue={customName}
+                onBlur={(e) => setCustomName(e.target.value)}
                 placeholder="Product name as it should appear on records"
               />
             </div>
