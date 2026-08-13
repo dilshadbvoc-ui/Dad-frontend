@@ -112,7 +112,7 @@ export function CreateQuoteDialog({ children, open, onOpenChange }: CreateQuoteD
       toast.success("Quote created successfully")
       finalOnOpenChange?.(false)
       form.reset()
-      setLineItems([{ productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }])
+      setLineItems([{ id: crypto.randomUUID(), productName: "", description: "", quantity: 1, unitPrice: 0, discount: 0, taxRate: 0 }])
     },
     onError: (error: unknown) => {
       toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to create quote")
