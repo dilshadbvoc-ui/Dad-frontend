@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertTriangle } from "lucide-react"
 import { toast } from "sonner"
 import type { AxiosError } from "axios"
 
@@ -34,6 +34,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { updateOrganisation, getBranches } from "@/services/settingsService"
+import { getAdAccounts } from "@/services/marketingService"
 
 interface MetaAccountConfigDialogProps {
   open: boolean
@@ -52,10 +53,23 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   });
   const branches = branchesData?.branches || [];
 
-  const form = useForm<{ branchId: string; syncEnabled: boolean }>({
+  // Ad accounts the connected Facebook user actually has access to — lets the org correct
+  // which ad account this Page is linked to. The OAuth connect flow can only guess a "primary"
+  // ad account (it has no way to know which one the org actually meant), so a wrong guess has
+  // to be fixable here rather than by reconnecting from scratch.
+  const { data: adAccountsData, isError: adAccountsError } = useQuery({
+    queryKey: ['meta-ad-accounts-for-config'],
+    queryFn: getAdAccounts,
+    enabled: open,
+    retry: false
+  });
+  const adAccountOptions: { id: string; name: string }[] = adAccountsData?.data?.data || adAccountsData?.data || [];
+
+  const form = useForm<{ branchId: string; syncEnabled: boolean; adAccountId: string }>({
     defaultValues: {
       branchId: account?.branchId || "all_branches_placeholder",
-      syncEnabled: account?.connected !== false
+      syncEnabled: account?.connected !== false,
+      adAccountId: account?.adAccountId || "no_ad_account_placeholder"
     }
   })
 
@@ -63,22 +77,28 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     if (open && account) {
       form.reset({
         branchId: account.branchId || "all_branches_placeholder",
-        syncEnabled: account.connected !== false
+        syncEnabled: account.connected !== false,
+        adAccountId: account.adAccountId || "no_ad_account_placeholder"
       })
     }
   }, [open, account, form])
 
   const mutation = useMutation({
-    mutationFn: (data: { branchId: string; syncEnabled: boolean }) => {
+    mutationFn: (data: { branchId: string; syncEnabled: boolean; adAccountId: string }) => {
       const allAccounts = integrations.metaAccounts || [];
+      const selectedAdAccount = adAccountOptions.find(a => a.id === data.adAccountId);
+      const adAccountId = data.adAccountId === "no_ad_account_placeholder" ? null : data.adAccountId;
+      const adAccountName = data.adAccountId === "no_ad_account_placeholder" ? null : (selectedAdAccount?.name ?? account?.adAccountName ?? null);
 
       // update the specific account in the array using pageId
       const updatedAccounts = allAccounts.map((acc: any) => {
         if (acc.pageId === account.pageId) {
-          return { 
-            ...acc, 
+          return {
+            ...acc,
             branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
-            connected: data.syncEnabled
+            connected: data.syncEnabled,
+            adAccountId,
+            adAccountName
           }
         }
         return acc
@@ -90,7 +110,9 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
         updatedMeta = {
           ...updatedMeta,
           branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
-          connected: data.syncEnabled
+          connected: data.syncEnabled,
+          adAccountId,
+          adAccountName
         };
       }
 
@@ -113,7 +135,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     },
   })
 
-  function onSubmit(values: { branchId: string; syncEnabled: boolean }) {
+  function onSubmit(values: { branchId: string; syncEnabled: boolean; adAccountId: string }) {
     mutation.mutate(values)
   }
 
@@ -145,6 +167,55 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                       onCheckedChange={field.onChange}
                     />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="adAccountId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ad Account</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                    value={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an ad account" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="no_ad_account_placeholder">None</SelectItem>
+                      {adAccountOptions.map((acc) => (
+                        <SelectItem key={acc.id} value={acc.id}>
+                          {acc.name}
+                        </SelectItem>
+                      ))}
+                      {/* Keep the currently-saved ad account selectable even if it didn't come back
+                          in this fetch (e.g. token temporarily invalid) so saving other fields
+                          doesn't silently wipe out the existing selection. */}
+                      {account?.adAccountId && !adAccountOptions.some(a => a.id === account.adAccountId) && (
+                        <SelectItem value={account.adAccountId}>
+                          {account.adAccountName || account.adAccountId} (currently saved)
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {adAccountsError && (
+                    <FormDescription className="flex items-center gap-1 text-warning">
+                      <AlertTriangle className="h-3.5 w-3.5" />
+                      Couldn't load ad accounts right now — reconnect Meta if this persists.
+                    </FormDescription>
+                  )}
+                  {!adAccountsError && adAccountOptions.length > 1 && (
+                    <FormDescription>
+                      This Facebook user has access to multiple ad accounts — pick the one that
+                      actually belongs to this business.
+                    </FormDescription>
+                  )}
+                  <FormMessage />
                 </FormItem>
               )}
             />
