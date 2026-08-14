@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getOrganisation } from "@/services/settingsService";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,12 @@ interface MetaAccount {
   pageId?: string;
   branchId?: string;
   connected?: boolean;
+  needsAdAccountSelection?: boolean;
 }
 
 export default function IntegrationsPage() {
   const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm] = useState("");
 
   // Config Dialog State
@@ -52,6 +55,25 @@ export default function IntegrationsPage() {
 
 
   const integrations = orgData?.integrations || {};
+
+  // Right after connecting, if the connecting Facebook user had more than one ad account,
+  // there's no safe default to pick — force the "which ad account" choice immediately instead
+  // of leaving it to be discovered later. Also re-checks on every load (not just the redirect)
+  // so the prompt reappears if it was dismissed without being resolved.
+  useEffect(() => {
+    const metaAccounts: MetaAccount[] = integrations.metaAccounts || [];
+    const pendingAccount = metaAccounts.find(acc => acc.needsAdAccountSelection);
+    if (pendingAccount) {
+      setSelectedMetaAccount(pendingAccount);
+      setMetaConfigOpen(true);
+    }
+    if (searchParams.get('needsAdAccountSelection')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('needsAdAccountSelection');
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [orgData]);
 
   const handleConnectMeta = async () => {
     try {
@@ -320,14 +342,20 @@ export default function IntegrationsPage() {
 
                   {integration.accounts.map((acc: MetaAccount, idx: number) => (
                     <div key={acc.pageId || acc.adAccountId || idx} className={`flex items-center justify-between p-3 rounded-lg border ${
-                      acc.connected !== false 
-                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30" 
+                      acc.needsAdAccountSelection
+                        ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30"
+                        : acc.connected !== false
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30"
                         : "bg-slate-50/30 dark:bg-slate-900/5 border-slate-100 dark:border-slate-900/10 opacity-70"
                     }`}>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium">{acc.pageName || acc.adAccountName || 'Account'}</span>
-                          {acc.connected !== false ? (
+                          {acc.needsAdAccountSelection ? (
+                            <Badge variant="outline" className="bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-800 text-[10px] py-0 px-1.5 h-4">
+                              Action needed
+                            </Badge>
+                          ) : acc.connected !== false ? (
                             <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-[10px] py-0 px-1.5 h-4">
                               Active
                             </Badge>
@@ -337,14 +365,16 @@ export default function IntegrationsPage() {
                             </Badge>
                           )}
                         </div>
-                        <span className="text-xs text-muted-foreground">
-                          {acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : `ID: ${acc.adAccountId || 'N/A'}`}
+                        <span className={`text-xs ${acc.needsAdAccountSelection ? 'text-amber-600 dark:text-amber-500 font-medium' : 'text-muted-foreground'}`}>
+                          {acc.needsAdAccountSelection
+                            ? 'This Facebook user has multiple ad accounts — select which one to use'
+                            : acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : 'No ad account linked'}
                         </span>
                       </div>
                       <div className="flex gap-1">
                         <Button
                           size="sm"
-                          variant="ghost"
+                          variant={acc.needsAdAccountSelection ? "default" : "ghost"}
                           className="h-7 text-xs"
                           onClick={() => {
                             setSelectedMetaAccount(acc);
@@ -352,7 +382,7 @@ export default function IntegrationsPage() {
                           }}
                         >
                           <Settings className="h-3 w-3 mr-1" />
-                          Config
+                          {acc.needsAdAccountSelection ? 'Select Ad Account' : 'Config'}
                         </Button>
                         <Button
                           size="sm"
