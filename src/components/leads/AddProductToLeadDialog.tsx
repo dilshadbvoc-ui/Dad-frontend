@@ -275,39 +275,39 @@ export function AddProductToLeadDialog({
                   {selectedProducts.map((item) => (
                     <div key={item.productId} className="flex gap-2 items-start border p-3 rounded-lg bg-card shadow-sm">
                       <div className="flex-1 min-w-0">
-                         {item.product.isCustom ? (
-                           <div className="space-y-2">
-                             <div className="flex flex-col gap-1">
-                               <span className="text-[10px] text-muted-foreground font-medium">Product Name:</span>
-                               <ProductNameField
-                                 value={item.customName}
-                                 onCommit={(name) => handleNameChange(item.productId, name)}
-                               />
-                             </div>
-                             <div className="flex items-center gap-2">
-                               <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Price:</span>
-                               <Input
-                                 type="number"
-                                 value={item.price}
-                                 onChange={(e) => handlePriceChange(item.productId, parseFloat(e.target.value) || 0)}
-                                 className="h-6 w-24 text-xs font-bold px-1"
-                               />
-                             </div>
-                           </div>
-                         ) : (
-                           <>
-                             <div className="font-bold text-sm truncate">{item.product.name}</div>
-                             <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-                           </>
-                         )}
-                       </div>
+                        {item.product.isCustom ? (
+                          <div className="space-y-2">
+                            <div className="flex flex-col gap-1">
+                              <span className="text-[10px] text-muted-foreground font-medium">Product Name:</span>
+                              <ProductNameField
+                                value={item.customName}
+                                onCommit={(name) => handleNameChange(item.productId, name)}
+                              />
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] text-muted-foreground font-medium whitespace-nowrap">Price:</span>
+                              <Input
+                                type="number"
+                                value={item.price}
+                                onChange={(e) => handlePriceChange(item.productId, parseFloat(e.target.value) || 0)}
+                                className="h-6 w-24 text-xs font-bold px-1"
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="font-bold text-sm truncate">{item.product.name}</div>
+                            <div className="text-[10px] text-muted-foreground font-medium">Unit: {formatCurrency(item.price, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
+                          </>
+                        )}
+                      </div>
 
                       <div className="flex flex-col items-end gap-2 shrink-0">
                         <div className="flex items-center gap-1.5">
                           <div className="flex items-center border rounded-md h-7 overflow-hidden bg-background">
-                            <button 
+                            <button
                               className="px-1.5 hover:bg-muted text-muted-foreground transition-colors"
-                              onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, Math.max(1, item.quantity - 1))}}
+                              onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, Math.max(1, item.quantity - 1)) }}
                             >-</button>
                             <Input
                               type="number"
@@ -316,9 +316,9 @@ export function AddProductToLeadDialog({
                               onChange={(e) => handleQuantityChange(item.productId, parseInt(e.target.value) || 1)}
                               className="h-full w-9 text-center border-0 border-x rounded-none px-0 shadow-none focus-visible:ring-0 text-xs font-bold"
                             />
-                            <button 
+                            <button
                               className="px-1.5 hover:bg-muted text-muted-foreground transition-colors"
-                              onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, item.quantity + 1)}}
+                              onClick={(e) => { e.preventDefault(); handleQuantityChange(item.productId, item.quantity + 1) }}
                             >+</button>
                           </div>
                           <Button
