@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, ImageIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 // import logoDark from "@/assets/logo-dark.png";
 import Logo from "../shared/Logo01";
 export default function GetStartedBanner() {
@@ -11,13 +11,29 @@ export default function GetStartedBanner() {
           {/* Purple glow matching our logo's indigo/violet, in place of ClickUp's pink */}
           <div className="pointer-events-none absolute -right-1/4 -bottom-1/2 w-[70%] aspect-square rounded-full bg-gradient-to-br from-violet-600 via-indigo-600 to-transparent blur-3xl opacity-70" />
           <div className="pointer-events-none absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-indigo-500/40 via-violet-600/10 to-transparent blur-2xl" />
+          {/* Fine grain over the violet glow's top edge, matching ClickUp-style noise texture */}
+          <div
+            className="pointer-events-none absolute right-0 top-0 w-full h-full"
+            style={{
+              backgroundImage:
+                "url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ibWF0cml4IiB2YWx1ZXM9IjAgMCAwIDAgMSAgMCAwIDAgMCAxICAwIDAgMCAwIDEgIDAgMCAwIDAuOSAwIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI24pIi8+PC9zdmc+)",
+              backgroundRepeat: "repeat",
+              backgroundSize: "140px 140px",
+              opacity: 0.9,
+              mixBlendMode: "overlay",
+              maskImage:
+                "radial-gradient(120% 120% at 85% 15%, black 0%, black 45%, transparent 75%)",
+              WebkitMaskImage:
+                "radial-gradient(120% 120% at 85% 15%, black 0%, black 45%, transparent 75%)",
+            }}
+          />
 
           <div className="relative flex flex-col lg:py-9 md:flex-row md:min-h-[250px]">
             {/* Text */}
             <div className="relative z-10 w-full md:w-1/2 lg:w-[60%] px-8 py-8 md:px-12 md:py-8 lg:px-16 flex flex-col justify-center gap-3">
               <Link to="/" className="flex items-center gap-2 group">
-            <Logo size="lg" />
-          </Link>
+                <Logo size="lg" />
+              </Link>
 
               <h2
                 className="text-3xl md:text-4xl font-[550] mt-2 text-white tracking-tighter leading-tight"
@@ -26,8 +42,8 @@ export default function GetStartedBanner() {
                 Start simple. Sell smarter.
               </h2>
               <p className="text-white text-lg leading-snug lg:mb-10 max-w-lg">
-                Set up your first pipeline in minutes, then customize fields, statuses, and
-                automations as your sales team grows.
+                Set up your first pipeline in minutes, then customize fields,
+                statuses, and automations as your sales team grows.
               </p>
               <div>
                 <Link to="/register">
@@ -41,13 +57,11 @@ export default function GetStartedBanner() {
             {/* CRM screenshot — mobile: normal flow, contained */}
             <div className="md:hidden relative z-10 w-full px-8 pb-8">
               <div className="aspect-[16/10] w-full rounded-xl overflow-hidden shadow-2xl border border-white/10">
-                {/* TODO: replace with a real CRM dashboard screenshot */}
-                <div className="flex h-full min-h-0 w-full flex-col items-center justify-center gap-3 bg-white/5 p-8 text-center">
-                  <ImageIcon className="h-8 w-8 text-white/30" />
-                  <p className="text-sm text-white/40 max-w-[220px]">
-                    Add a screenshot of the CRM dashboard here
-                  </p>
-                </div>
+                <img
+                  src="/dashboardview.png"
+                  alt="PypeCRM dashboard"
+                  className="h-full w-full object-cover object-top-left"
+                />
               </div>
             </div>
           </div>
@@ -55,13 +69,13 @@ export default function GetStartedBanner() {
           {/* CRM screenshot — desktop: oversized and anchored bottom-right, so only
               its top-left corner sits inside the banner and the rest bleeds off the
               right/bottom edges, clipped by the banner's own rounded overflow-hidden */}
-          <div className="hidden md:block absolute z-10 top-[22%] right-[-6%] p-3 w-[45%] aspect-[16/10] rounded-tl-[34px] overflow-hidden shadow-2xl bg-white/40 border border-white">
-            {/* TODO: replace with a real CRM dashboard screenshot */}
-            <div className="flex h-full min-h-0 w-full flex-col items-center border border-white rounded-tl-[25px] justify-center gap-3 bg-white/5 p-8 text-center">
-              <ImageIcon className="h-8 w-8 text-white/30" />
-              <p className="text-sm text-white/40 max-w-55">
-                Add a screenshot of the CRM dashboard here
-              </p>
+          <div className="hidden md:block absolute z-10 top-[22%] right-[-6%] p-3 w-[45%] aspect-[16/10] rounded-tl-[32px] overflow-hidden shadow-2xl bg-white/40 border border-white">
+            <div className="h-full w-full rounded-tl-[22px] border border-white object-cover overflow-hidden">
+              <img
+                src="/dashboardview.png"
+                alt="PypeCRM dashboard"
+                className="h-full w-full scale-101"
+              />
             </div>
           </div>
         </div>
