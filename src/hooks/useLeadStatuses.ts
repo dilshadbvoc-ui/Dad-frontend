@@ -36,9 +36,19 @@ export function useLeadStatuses() {
         return status || { id, label: id, color: '#6b7280', isSystem: false, order: 99 };
     };
 
+    // 'won'/'lost'/'converted' must never be manually pickable — they're supposed to mean "there
+    // is a real closed Opportunity behind this lead," which is only ever true when set by the
+    // actual conversion/close actions (Move to Pipeline, Closed Won, Closed Lost). Letting a rep
+    // freely choose them from this dropdown is what caused leads to say "won" with no real deal
+    // behind them, which cascaded into duplicate opportunities, false "already converted" blocks,
+    // and deals silently skipping "Expected" — every one of those traced back to this dropdown.
+    // Still kept in `statuses` (unfiltered) so existing leads with these values still render
+    // correctly as badges/filters — only removed from what's offered as a manual choice.
+    const NOT_MANUALLY_SELECTABLE = new Set(['shuffled_lead', 'won', 'lost', 'converted']);
+
     return {
         statuses: statuses.sort((a, b) => a.order - b.order),
-        selectableStatuses: statuses.filter(s => s.id !== 'shuffled_lead').sort((a, b) => a.order - b.order),
+        selectableStatuses: statuses.filter(s => !NOT_MANUALLY_SELECTABLE.has(s.id)).sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
         orgId: org?.id
