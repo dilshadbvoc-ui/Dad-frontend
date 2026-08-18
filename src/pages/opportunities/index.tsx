@@ -37,6 +37,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { getUsers, getBranches } from "@/services/settingsService"
 import { Input } from "@/components/ui/input"
+import { isManager } from "@/lib/utils"
 
 export default function OpportunitiesPage() {
   const { formatCurrency } = useCurrency()
@@ -68,6 +69,13 @@ export default function OpportunitiesPage() {
     queryFn: () => getUsers(),
   })
   const users = userData?.users || []
+
+  // The "Team" tab only makes sense for someone who actually has people reporting to
+  // them (or an admin/manager role) — a plain rep with no reports sees identical data
+  // in "Team" and "Mine" anyway, so showing the toggle is just confusing.
+  const currentUserId = currentUser?.id || currentUser?._id
+  const hasDirectReports = users.some((u: any) => u.reportsTo?.id === currentUserId)
+  const showTeamTab = isManager(currentUser) || hasDirectReports
 
   const { data: branchData } = useQuery({
     queryKey: ['branches', 'list'],
@@ -163,29 +171,31 @@ export default function OpportunitiesPage() {
         {/* Controls row — scrollable on mobile */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
 
-          {/* Team / Mine toggle */}
-          <div className="flex bg-muted p-1 rounded-xl shrink-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => { setFilterMode('all'); handleFilterChange('ownerId', '') }}
-              className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <Users className="h-3.5 w-3.5" />
-              Team
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => setFilterMode('mine')}
-              className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-            >
-              <User className="h-3.5 w-3.5" />
-              Mine
-            </Button>
-          </div>
+          {/* Team / Mine toggle — only shown to users who actually have a team to view */}
+          {showTeamTab && (
+            <div className="flex bg-muted p-1 rounded-xl shrink-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => { setFilterMode('all'); handleFilterChange('ownerId', '') }}
+                className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <Users className="h-3.5 w-3.5" />
+                Team
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => setFilterMode('mine')}
+                className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+              >
+                <User className="h-3.5 w-3.5" />
+                Mine
+              </Button>
+            </div>
+          )}
 
           {/* List / Board view toggle */}
           <div className="flex bg-muted p-1 rounded-xl shrink-0">
