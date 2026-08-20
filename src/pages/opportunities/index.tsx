@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query"
+import * as XLSX from "xlsx"
 import { DataTable } from "@/components/ui/data-table"
 import { cn } from "@/lib/utils"
 import { createOpportunityColumns } from "./columns"
@@ -7,6 +8,8 @@ import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "./KanbanBoard"
 import { OpportunityMobileCard } from "./OpportunityMobileCard"
 import { useCurrency } from "@/contexts/CurrencyContext"
+import { formatIST, toISTDateString } from "@/lib/dateUtils"
+import { toast } from "sonner"
 
 import {
   Target,
@@ -107,6 +110,39 @@ export default function OpportunitiesPage() {
 
   const handleFilterChange = (key: string, value: string) => {
     setQueryParams(prev => ({ ...prev, [key]: value }))
+  }
+
+  const handleExport = () => {
+    if (filteredOpportunities.length === 0) {
+      toast.error("No opportunities to export")
+      return
+    }
+
+    const excelData = filteredOpportunities.map((opp: Opportunity) => ({
+      "Name": opp.name || "",
+      "Account": opp.account?.name || "",
+      "Stage": opp.stage?.replace(/_/g, " ") || "",
+      "Amount": opp.amount || 0,
+      "Payment Status": opp.paymentStatus || "",
+      "Type": opp.type || "",
+      "Owner": opp.owner ? `${opp.owner.firstName} ${opp.owner.lastName}`.trim() : "",
+      "Branch": opp.branch?.name || "",
+      "Lead Source": opp.leadSource || "",
+      "Close Date": opp.closeDate ? formatIST(opp.closeDate, "yyyy-MM-dd") : "",
+      "Created At": opp.createdAt ? formatIST(opp.createdAt, "yyyy-MM-dd HH:mm:ss") : "",
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Opportunities")
+
+    const maxWidth = 50
+    const colWidths = Object.keys(excelData[0] || {}).map((key) => ({
+      wch: Math.min(Math.max(key.length, 10), maxWidth)
+    }))
+    worksheet["!cols"] = colWidths
+
+    XLSX.writeFile(workbook, `opportunities_${toISTDateString()}.xlsx`)
   }
 
   const resetFilters = () => {
@@ -359,7 +395,7 @@ export default function OpportunitiesPage() {
           </Popover>
 
           {/* Export */}
-          <Button variant="outline" size="sm" className="rounded-xl h-9 gap-1.5 shrink-0">
+          <Button variant="outline" size="sm" onClick={handleExport} className="rounded-xl h-9 gap-1.5 shrink-0">
             <Download className="h-4 w-4" />
             <span className="hidden sm:inline text-xs">Export</span>
           </Button>
