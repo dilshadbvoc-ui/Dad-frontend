@@ -551,8 +551,12 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
                     </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[94vw] max-w-[360px] md:w-[880px] md:max-w-none p-0 rounded-2xl shadow-2xl border border-border/40 overflow-hidden bg-white dark:bg-gray-950" align="start">
-                <div className="flex flex-col md:flex-row h-auto md:h-[520px]">
+            <PopoverContent
+                className="w-[94vw] max-w-[360px] md:w-[880px] md:max-w-none p-0 rounded-2xl shadow-2xl border border-border/40 bg-white dark:bg-gray-950 overflow-x-hidden overflow-y-auto"
+                align="start"
+                style={{ maxHeight: "min(85vh, var(--radix-popper-available-height, 85vh))" }}
+            >
+                <div className="flex flex-col md:flex-row md:min-h-130">
                     {/* Left presets panel */}
                     <div className="w-full md:w-[200px] border-b md:border-b-0 md:border-r border-border/40 bg-gray-50/50 dark:bg-gray-900/30 p-2 overflow-x-auto md:overflow-y-auto flex flex-row md:flex-col gap-1.5 shrink-0 whitespace-nowrap scrollbar-none">
                         {presets.map(p => (
