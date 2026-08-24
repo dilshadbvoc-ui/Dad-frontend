@@ -1,8 +1,17 @@
 import { api } from './api';
 
+export interface CommissionUser {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    profileImage?: string | null;
+}
+
 export interface Commission {
     id: string;
     userId: string;
+    user?: CommissionUser;
     amount: number;
     currency: string;
     status: 'pending' | 'approved' | 'paid' | 'rejected';
