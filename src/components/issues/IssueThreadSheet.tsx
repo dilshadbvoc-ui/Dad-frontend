@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Paperclip, Send, Loader2, ShieldCheck, X } from "lucide-react"
+import { Paperclip, Send, Loader2, ShieldCheck, X, FileX, Lock } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import type { Issue, IssueAttachment, IssueStatus } from "@/services/issueService"
@@ -46,6 +46,29 @@ const PRIORITY_STYLES: Record<string, string> = {
 
 function initials(firstName?: string, lastName?: string) {
   return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase() || "?"
+}
+
+// Once an issue has been closed for a day, the retention cleanup replaces the real
+// file with a { name, removed: true } placeholder — render that as a dead chip
+// instead of a link that would 404.
+function AttachmentChip({ attachment }: { attachment: IssueAttachment }) {
+  if (attachment.removed || !attachment.url) {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-dashed border-border text-muted-foreground">
+        <FileX className="h-3 w-3" /> {attachment.name} <span className="text-muted-foreground/70">(removed)</span>
+      </span>
+    )
+  }
+  return (
+    <a
+      href={attachment.url}
+      target="_blank"
+      rel="noreferrer"
+      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+    >
+      <Paperclip className="h-3 w-3" /> {attachment.name}
+    </a>
+  )
 }
 
 interface IssueThreadSheetProps {
@@ -170,16 +193,8 @@ export function IssueThreadSheet({
                   </div>
                   {issue.attachments && issue.attachments.length > 0 && (
                     <div className={`mt-1.5 flex flex-wrap gap-1.5 ${originalIsMine ? "justify-end" : ""}`}>
-                      {issue.attachments.map((a) => (
-                        <a
-                          key={a.documentId}
-                          href={a.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
-                        >
-                          <Paperclip className="h-3 w-3" /> {a.name}
-                        </a>
+                      {issue.attachments.map((a, i) => (
+                        <AttachmentChip key={a.documentId || i} attachment={a} />
                       ))}
                     </div>
                   )}
@@ -211,16 +226,8 @@ export function IssueThreadSheet({
                   </div>
                   {reply.attachments && reply.attachments.length > 0 && (
                     <div className={`mt-1.5 flex flex-wrap gap-1.5 ${isMine ? "justify-end" : ""}`}>
-                      {reply.attachments.map((a) => (
-                        <a
-                          key={a.documentId}
-                          href={a.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
-                        >
-                          <Paperclip className="h-3 w-3" /> {a.name}
-                        </a>
+                      {reply.attachments.map((a, i) => (
+                        <AttachmentChip key={a.documentId || i} attachment={a} />
                       ))}
                     </div>
                   )}
@@ -231,39 +238,48 @@ export function IssueThreadSheet({
         </div>
 
         <div className="border-t border-border p-4 space-y-2 shrink-0">
-          {pendingAttachment && (
-            <div className="flex items-center gap-2 text-xs bg-muted/60 rounded-lg px-3 py-1.5 w-fit">
-              <Paperclip className="h-3 w-3" />
-              <span className="truncate max-w-[200px]">{pendingAttachment.name}</span>
-              <button type="button" onClick={() => setPendingAttachment(null)} className="text-muted-foreground hover:text-foreground">
-                <X className="h-3 w-3" />
-              </button>
+          {issue.status === "closed" ? (
+            <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground py-2">
+              <Lock className="h-3.5 w-3.5" />
+              This issue is closed and no longer accepting replies.
             </div>
+          ) : (
+            <>
+              {pendingAttachment && (
+                <div className="flex items-center gap-2 text-xs bg-muted/60 rounded-lg px-3 py-1.5 w-fit">
+                  <Paperclip className="h-3 w-3" />
+                  <span className="truncate max-w-[200px]">{pendingAttachment.name}</span>
+                  <button type="button" onClick={() => setPendingAttachment(null)} className="text-muted-foreground hover:text-foreground">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
+              <div className="flex items-end gap-2">
+                <Textarea
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  placeholder="Write a reply..."
+                  rows={2}
+                  className="resize-none flex-1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault()
+                      handleSend()
+                    }
+                  }}
+                />
+                <div className="flex flex-col gap-1.5 shrink-0">
+                  <label className={`inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
+                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                  </label>
+                  <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || !message.trim()}>
+                    {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
-          <div className="flex items-end gap-2">
-            <Textarea
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              placeholder="Write a reply..."
-              rows={2}
-              className="resize-none flex-1"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault()
-                  handleSend()
-                }
-              }}
-            />
-            <div className="flex flex-col gap-1.5 shrink-0">
-              <label className={`inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
-                <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
-                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-              </label>
-              <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || !message.trim()}>
-                {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
         </div>
       </SheetContent>
     </Sheet>

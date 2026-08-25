@@ -5,9 +5,10 @@ export type IssuePriority = 'low' | 'medium' | 'high' | 'critical';
 export type IssueStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 
 export interface IssueAttachment {
-    documentId: string;
-    url: string;
+    documentId?: string;
+    url?: string;
     name: string;
+    removed?: boolean;
 }
 
 export interface IssueAuthor {
@@ -36,6 +37,7 @@ export interface Issue {
     priority: IssuePriority;
     status: IssueStatus;
     attachments?: IssueAttachment[] | null;
+    closedAt?: string | null;
     createdAt: string;
     updatedAt: string;
     reportedBy: IssueAuthor;
