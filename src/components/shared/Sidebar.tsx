@@ -34,6 +34,7 @@ import {
   Smartphone,
   Percent,
   LifeBuoy,
+  Bug,
   UsersRound,
   BookOpen,
   Trash2
@@ -111,6 +112,7 @@ const menuGroups = [
       { title: "Trash", href: "/trash", icon: Trash2, role: "org_admin" },
       { title: "Settings", href: "/settings", icon: Settings },
       { title: "Support", href: "/support", icon: LifeBuoy },
+      { title: "Report Issue", href: "/issues", icon: Bug },
     ]
   }
 ];
@@ -218,7 +220,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   // Auto-expand System group if active page is under System
   useEffect(() => {
-    const isSystemRoute = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support'].some(
+    const isSystemRoute = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support', '/issues'].some(
       route => pathname === route || pathname.startsWith(route + '/')
     );
     if (isSystemRoute) {
@@ -333,6 +335,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
                 {!isCollapsed && <span className="text-red-400 group-hover:text-red-500">Restore Data</span>}
               </Link>
+              <Link to="/super-admin/issues" className={cn(
+                "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                pathname.startsWith('/super-admin/issues') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/issues') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Reported Issues</span>}
+              </Link>
               <Link to="/settings" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
                 pathname.startsWith('/settings') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
@@ -347,7 +357,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
           {/* Filtered Grouped Menu */}
           {filteredGroups.map((group, groupIndex) => {
             if (group.title === "System") {
-              const isAnySystemActive = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support'].some(
+              const isAnySystemActive = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support', '/issues'].some(
                 route => pathname === route || pathname.startsWith(route + '/')
               );
               

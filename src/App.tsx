@@ -114,6 +114,9 @@ const TrashPage = lazy(() => import('./pages/trash'));
 
 const TrainingPage = lazy(() => import('./pages/Training'));
 
+const IssuesPage = lazy(() => import('./pages/issues'));
+const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
+
 const queryClient = new QueryClient({
  defaultOptions: {
   queries: {
@@ -355,6 +358,7 @@ function AppContent() {
        <Route path="/quotes" element={<QuotesPage />} />
        <Route path="/field-force" element={<FieldForcePage />} />
        <Route path="/support" element={<SupportPage />} />
+       <Route path="/issues" element={<IssuesPage />} />
        <Route path="/training" element={<TrainingPage />} />
        <Route path="/trash" element={<TrashPage />} />
        {/* <Route path="/goals" element={<GoalsPage />} /> */}
@@ -377,6 +381,7 @@ function AppContent() {
        <Route path="/super-admin/organisation/:id" element={<OrganisationDetailPage />} />
        <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
        <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
+       <Route path="/super-admin/issues" element={<SuperAdminIssuesPage />} />
        <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
        <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
        <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />
