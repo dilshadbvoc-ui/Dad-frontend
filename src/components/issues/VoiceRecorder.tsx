@@ -35,6 +35,7 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
   const [dragY, setDragY] = useState(0)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [previewPlaying, setPreviewPlaying] = useState(false)
+  const [previewDuration, setPreviewDuration] = useState(0)
   const previewAudioRef = useRef<HTMLAudioElement | null>(null)
   const uploadPromiseRef = useRef<Promise<IssueAttachment> | null>(null)
   const blobRef = useRef<Blob | null>(null)
@@ -53,10 +54,10 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
     }
   }, [previewUrl])
 
-  const kickUpload = () => {
+  const kickUpload = (durationSeconds: number) => {
     const blob = blobRef.current
     if (!blob) return
-    uploadPromiseRef.current = uploadIssueVoiceNote(blob, blob.type, recorder.elapsedSeconds).catch((err) => {
+    uploadPromiseRef.current = uploadIssueVoiceNote(blob, blob.type, durationSeconds).catch((err) => {
       toast.error(err?.message || "Failed to upload voice message")
       throw err
     })
@@ -95,7 +96,7 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
       return
     }
     blobRef.current = result.blob
-    kickUpload()
+    kickUpload(result.durationSeconds)
     try {
       const attachment = await uploadPromiseRef.current
       if (attachment) onSend(attachment)
@@ -113,7 +114,8 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
       return
     }
     blobRef.current = result.blob
-    kickUpload()
+    kickUpload(result.durationSeconds)
+    setPreviewDuration(result.durationSeconds)
     setPreviewUrl(URL.createObjectURL(result.blob))
     setMode("preview")
   }
@@ -125,6 +127,7 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
     if (previewUrl) URL.revokeObjectURL(previewUrl)
     setPreviewUrl(null)
     setPreviewPlaying(false)
+    setPreviewDuration(0)
     setDragX(0)
     setDragY(0)
     setMode("idle")
@@ -241,7 +244,7 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
         <button type="button" onClick={togglePreviewPlay} className="shrink-0 inline-flex items-center justify-center h-7 w-7 rounded-full bg-muted hover:bg-accent">
           {previewPlaying ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5 ml-0.5" />}
         </button>
-        <span className="text-xs text-muted-foreground flex-1">{formatTime(recorder.elapsedSeconds)} voice message</span>
+        <span className="text-xs text-muted-foreground flex-1">{formatTime(previewDuration)} voice message</span>
         <button type="button" onClick={handleCancel} className="shrink-0 h-7 w-7 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10">
           <Trash2 className="h-3.5 w-3.5" />
         </button>

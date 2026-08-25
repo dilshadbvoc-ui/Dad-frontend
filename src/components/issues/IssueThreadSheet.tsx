@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Paperclip, Send, Loader2, ShieldCheck, X, FileX, Lock } from "lucide-react"
+import { Paperclip, Send, Loader2, ShieldCheck, X, FileX, Lock, Trash2 } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import type { Issue, IssueAttachment, IssueStatus } from "@/services/issueService"
@@ -104,6 +104,8 @@ interface IssueThreadSheetProps {
    * (as if from someone else) and the admin's on the right (as if their own).
    */
   viewerIsAdmin: boolean
+  /** Permanently deletes one reply for everyone. Shown on the viewer's own messages, and on every message for the super admin. */
+  onDeleteReply?: (replyId: string) => void | Promise<void>
 }
 
 export function IssueThreadSheet({
@@ -116,6 +118,7 @@ export function IssueThreadSheet({
   onStatusChange,
   isChangingStatus,
   viewerIsAdmin,
+  onDeleteReply,
 }: IssueThreadSheetProps) {
   const [message, setMessage] = useState("")
   const [pendingAttachment, setPendingAttachment] = useState<IssueAttachment | null>(null)
@@ -224,6 +227,12 @@ export function IssueThreadSheet({
               admin, so each side sees their own messages on the right like a normal chat. */}
           {(issue.replies || []).map((reply) => {
             const isMine = reply.isFromAdmin === viewerIsAdmin
+            const canDelete = !!onDeleteReply && (isMine || viewerIsAdmin)
+            const handleDelete = () => {
+              if (window.confirm("Permanently delete this message for everyone? This cannot be undone.")) {
+                onDeleteReply?.(reply.id)
+              }
+            }
             return (
               <div key={reply.id} className={`flex gap-3 ${isMine ? "flex-row-reverse" : ""}`}>
                 <Avatar className="h-8 w-8 shrink-0">
@@ -231,12 +240,22 @@ export function IssueThreadSheet({
                     {reply.isFromAdmin ? <ShieldCheck className="h-3.5 w-3.5" /> : initials(reply.author.firstName, reply.author.lastName)}
                   </AvatarFallback>
                 </Avatar>
-                <div className={`flex-1 min-w-0 ${isMine ? "flex flex-col items-end" : ""}`}>
+                <div className={`flex-1 min-w-0 group ${isMine ? "flex flex-col items-end" : ""}`}>
                   <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-1 ${isMine ? "flex-row-reverse" : ""}`}>
                     <span className="font-semibold text-foreground">
                       {isMine ? "You" : reply.isFromAdmin ? "Pype CRM Support" : `${reply.author.firstName} ${reply.author.lastName}`}
                     </span>
                     <span>{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</span>
+                    {canDelete && (
+                      <button
+                        type="button"
+                        onClick={handleDelete}
+                        title="Delete for everyone"
+                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    )}
                   </div>
                   {reply.message && (
                     <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${isMine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>

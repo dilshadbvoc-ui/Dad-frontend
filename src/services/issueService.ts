@@ -121,6 +121,11 @@ export const addIssueReply = async (id: string, message: string, attachments?: I
     return response.data;
 };
 
+export const deleteIssueReply = async (issueId: string, replyId: string) => {
+    const response = await api.delete<{ message: string }>(`/issues/${issueId}/replies/${replyId}`);
+    return response.data;
+};
+
 export const updateIssueStatus = async (id: string, status: IssueStatus) => {
     const response = await api.put<Issue>(`/issues/${id}/status`, { status });
     return response.data;

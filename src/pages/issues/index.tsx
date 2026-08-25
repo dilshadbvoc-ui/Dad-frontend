@@ -5,6 +5,7 @@ import {
   getMyIssues,
   getIssueById,
   addIssueReply,
+  deleteIssueReply,
   uploadIssueAttachment,
   type Issue,
   type IssueType,
@@ -100,6 +101,14 @@ export default function IssuesPage() {
       queryClient.invalidateQueries({ queryKey: ["issues", selectedIssueId] })
     },
     onError: () => toast.error("Failed to send reply"),
+  })
+
+  const deleteReplyMutation = useMutation({
+    mutationFn: (replyId: string) => deleteIssueReply(selectedIssueId as string, replyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issues", selectedIssueId] })
+    },
+    onError: () => toast.error("Failed to delete message"),
   })
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -330,6 +339,7 @@ export default function IssuesPage() {
           if (!selectedIssueId) return
           await replyMutation.mutateAsync({ id: selectedIssueId, message, attachments })
         }}
+        onDeleteReply={(replyId) => deleteReplyMutation.mutate(replyId)}
       />
     </div>
   )

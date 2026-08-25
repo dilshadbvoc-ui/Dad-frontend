@@ -5,6 +5,7 @@ import {
   getAllIssuesForAdmin,
   getIssueById,
   addIssueReply,
+  deleteIssueReply,
   updateIssueStatus,
   type Issue,
   type IssueStatus,
@@ -76,6 +77,14 @@ export default function SuperAdminIssuesPage() {
       queryClient.invalidateQueries({ queryKey: ["issues", selectedIssueId] })
     },
     onError: () => toast.error("Failed to send reply"),
+  })
+
+  const deleteReplyMutation = useMutation({
+    mutationFn: (replyId: string) => deleteIssueReply(selectedIssueId as string, replyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["issues", selectedIssueId] })
+    },
+    onError: () => toast.error("Failed to delete message"),
   })
 
   const statusMutation = useMutation({
@@ -200,6 +209,7 @@ export default function SuperAdminIssuesPage() {
           if (!selectedIssueId) return
           await replyMutation.mutateAsync({ id: selectedIssueId, message, attachments })
         }}
+        onDeleteReply={(replyId) => deleteReplyMutation.mutate(replyId)}
         canChangeStatus
         isChangingStatus={statusMutation.isPending}
         onStatusChange={(status) => {
