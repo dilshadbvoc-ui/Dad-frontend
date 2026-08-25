@@ -237,11 +237,9 @@ export function IssueThreadSheet({
               }}
             />
             <div className="flex flex-col gap-1.5 shrink-0">
-              <label className="cursor-pointer">
+              <label className={`inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
                 <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
-                <Button type="button" variant="outline" size="icon" asChild disabled={isUploading}>
-                  <span>{isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}</span>
-                </Button>
+                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
               </label>
               <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || !message.trim()}>
                 {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
