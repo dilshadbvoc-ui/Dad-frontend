@@ -26,6 +26,20 @@ const sidebarItems = [
   { icon: Workflow, label: "Automation" },
 ];
 
+const clientLogos = [
+  "Learnuz",
+  "Study Miles",
+  "IITS",
+  "Skillage",
+  "Acadox",
+  "Edufolio",
+  "World Passport",
+  "Edumentora",
+  "Emtees",
+  "Aptor Studies",
+  "WiseHub",
+];
+
 const leadRows = [
   { name: "Priya Sharma", status: "Won", color: "bg-emerald-500", value: "w-14" },
   { name: "Arjun Mehta", status: "Interested", color: "bg-blue-500", value: "w-10" },
@@ -109,12 +123,38 @@ export default function Hero() {
           initial={{ opacity: 0, y: 60 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative"
+          className="relative mx-4 sm:mx-6 md:mx-8 lg:mx-20"
         >
-          {/* Decorative gradient glow, bleeds through the translucent panel on the left */}
-          <div className="absolute -left-16 -bottom-16 w-72 h-72 md:w-[28rem] md:h-[28rem] bg-gradient-to-br from-indigo-400 to-violet-500 opacity-40 blur-3xl rounded-full pointer-events-none z-0" />
+          {/* Decorative gradient glow: a grainy vertical band sitting in the left margin,
+              fading in from the top and fading out toward the bottom just like the panel above it */}
+          <div
+            className="pointer-events-none absolute -left-4 sm:-left-6 md:-left-8 lg:-left-20 top-0 h-full w-4 sm:w-6 md:w-8 lg:w-20 z-0 overflow-hidden"
+            style={{
+              maskImage:
+                "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
+            }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-[#f0abfc] via-[#8b5cf6] via-90% to-[#4c1d95] blur-sm" />
+            <div
+              className="absolute inset-0 opacity-70 mix-blend-overlay"
+              style={{
+                backgroundImage:
+                  "url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iMC44IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PGZlQ29sb3JNYXRyaXggdHlwZT0ibWF0cml4IiB2YWx1ZXM9IjAgMCAwIDAgMSAgMCAwIDAgMCAxICAwIDAgMCAwIDEgIDAgMCAwIDAuOSAwIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI24pIi8+PC9zdmc+)",
+                backgroundRepeat: "repeat",
+                backgroundSize: "140px 140px",
+              }}
+            />
+          </div>
 
-          <div className="relative z-10 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/70 backdrop-blur-xl shadow-2xl overflow-hidden">
+          <div
+            className="relative z-10 rounded-2xl border border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900/70 backdrop-blur-xl shadow-2xl overflow-hidden"
+            style={{
+              maskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
+              WebkitMaskImage: "linear-gradient(to bottom, black 75%, transparent 100%)",
+            }}
+          >
             {/* Panel Header */}
             <div className="flex items-center gap-2 px-4 md:px-6 h-14 border-b border-gray-100 dark:border-gray-800">
               <div className="h-6 w-6 rounded-md bg-primary/10 flex items-center justify-center">
@@ -210,6 +250,28 @@ export default function Hero() {
             </motion.div>
           </div>
         </motion.div>
+
+        {/* Trusted by */}
+        <div className="mt-20 md:mt-8 flex flex-col md:flex-row md:items-center gap-4 md:gap-10">
+          <p className="shrink-0 text-[13.5px] font-semibold mt-1 tracking-[0.2em] text-gray-500 dark:text-gray-600">
+            TRUSTED BY THE BEST
+          </p>
+          <div className="relative flex-1 min-w-0 overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 md:w-16 bg-linear-to-r from-white dark:from-gray-950 to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 md:w-32 bg-linear-to-l from-white dark:from-gray-950 to-transparent" />
+            <div className="flex w-max animate-marquee">
+              {[...clientLogos, ...clientLogos].map((name, i) => (
+                <span
+                  key={`${name}-${i}`}
+                  className="shrink-0 px-8 md:px-12 text-xl md:text-2xl font-bold text-gray-800 dark:text-gray-600 grayscale opacity-70 transition-all duration-300 hover:grayscale-0 hover:opacity-100 hover:text-primary"
+                  style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  {name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

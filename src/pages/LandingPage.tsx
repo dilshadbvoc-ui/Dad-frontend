@@ -53,7 +53,7 @@ export default function LandingPage() {
       />
       <LandingNavbar />
       <main>
-        <Hero />
+      <Hero />
         <FeatureSpotlight />
         <GetStartedBanner />
         <FeatureSection />

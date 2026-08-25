@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 const rowGroupClass =
   "grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 bg-gray-200 md:divide-x divide-gray-200 dark:divide-gray-800";
 const textCellClass = "flex flex-col bg-white justify-center rounded-[6px] gap-4 py-10 md:py-16 md:px-12 lg:px-16";
-const imageCellClass = "flex items-center ";
+const imageCellClass = "flex items-center";
 
 export default function FeatureSpotlight() {
   return (
@@ -16,7 +16,8 @@ export default function FeatureSpotlight() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-gray-900 to-gray-500 dark:from-white dark:to-gray-500 mb-16 md:mb-20"
+          className="text-center text-4xl md:text-5xl font-bold leading-tight pb-2 bg-clip-text text-transparent bg-gradient-to-r from-black to-gray-500 dark:from-white dark:to-gray-500 mb-16 md:mb-6"
+          style={{ fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Bring clarity to every deal, fast
         </motion.h2>
