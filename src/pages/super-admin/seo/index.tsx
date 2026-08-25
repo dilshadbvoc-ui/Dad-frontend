@@ -66,86 +66,86 @@ export default function SeoSettingsPage() {
   }
 
   return (
-    <div className="p-8 space-y-8 bg-[#0f172a] min-h-screen text-slate-100">
+    <div className="p-8 space-y-8 bg-background min-h-screen text-foreground">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">SEO & Global Settings</h1>
-        <p className="text-slate-400 mt-1">Configure global application metadata and SEO tags.</p>
+        <p className="text-muted-foreground mt-1">Configure global application metadata and SEO tags.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="max-w-4xl space-y-6">
-        <Card className="bg-[#1e1b4b] border-indigo-900/50">
+        <Card className="bg-card border-border">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Globe className="h-5 w-5 text-indigo-400" />
               General Metadata
             </CardTitle>
-            <CardDescription className="text-slate-400">
+            <CardDescription className="text-muted-foreground">
               These settings affect how your application appears in search engines and browser tabs.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
-              <Label htmlFor="app_name" className="text-slate-200">Application Name</Label>
+              <Label htmlFor="app_name" className="text-foreground">Application Name</Label>
               <Input
                 id="app_name"
                 name="app_name"
                 value={formData.app_name}
                 onChange={handleChange}
-                className="bg-[#0f172a] border-indigo-900/50 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g. My CRM"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="seo_title" className="text-slate-200">Default Page Title</Label>
+              <Label htmlFor="seo_title" className="text-foreground">Default Page Title</Label>
               <Input
                 id="seo_title"
                 name="seo_title"
                 value={formData.seo_title}
                 onChange={handleChange}
-                className="bg-[#0f172a] border-indigo-900/50 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="e.g. My CRM - Best Solution"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="seo_description" className="text-slate-200">Meta Description</Label>
+              <Label htmlFor="seo_description" className="text-foreground">Meta Description</Label>
               <Textarea
                 id="seo_description"
                 name="seo_description"
                 value={formData.seo_description}
                 onChange={handleChange}
-                className="bg-[#0f172a] border-indigo-900/50 text-white min-h-[100px]"
+                className="bg-background border-border text-foreground min-h-[100px]"
                 placeholder="Brief description of your application..."
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="seo_keywords" className="text-slate-200">Meta Keywords</Label>
+              <Label htmlFor="seo_keywords" className="text-foreground">Meta Keywords</Label>
               <Input
                 id="seo_keywords"
                 name="seo_keywords"
                 value={formData.seo_keywords}
                 onChange={handleChange}
-                className="bg-[#0f172a] border-indigo-900/50 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="crm, sales, marketing (comma separated)"
               />
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="og_image" className="text-slate-200">OG Image URL (Social Share Image)</Label>
+              <Label htmlFor="og_image" className="text-foreground">OG Image URL (Social Share Image)</Label>
               <Input
                 id="og_image"
                 name="og_image"
                 value={formData.og_image}
                 onChange={handleChange}
-                className="bg-[#0f172a] border-indigo-900/50 text-white"
+                className="bg-background border-border text-foreground"
                 placeholder="https://..."
               />
               {formData.og_image && (
-                <div className="mt-2 text-xs text-slate-500">
+                <div className="mt-2 text-xs text-muted-foreground">
                   Preview: <br />
-                  <img src={formData.og_image} alt="Preview" className="h-20 w-auto rounded border border-indigo-900/30 mt-1" />
+                  <img src={formData.og_image} alt="Preview" className="h-20 w-auto rounded border border-border/30 mt-1" />
                 </div>
               )}
             </div>

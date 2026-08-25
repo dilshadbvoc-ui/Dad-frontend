@@ -178,7 +178,7 @@ export function PlansManagement() {
                         {plan.discount}% Off
                       </Badge>
                     ) : (
-                      <span className="text-slate-500 text-xs">No discount</span>
+                      <span className="text-muted-foreground text-xs">No discount</span>
                     )}
                   </TableCell>
                   <TableCell>

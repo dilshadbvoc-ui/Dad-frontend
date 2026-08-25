@@ -155,52 +155,52 @@ export function GlobalRolesManagement() {
   const permSummary = (permissions: string[]) => {
     if (permissions.includes('*')) return <Badge className="bg-amber-500/20 text-amber-300 border-amber-600/40 text-[10px]"><ShieldAlert className="h-3 w-3 mr-1" />Full System Access</Badge>;
     const count = permissions.length;
-    return <span className="text-slate-400 text-xs">{count} permission{count !== 1 ? 's' : ''}</span>;
+    return <span className="text-muted-foreground text-xs">{count} permission{count !== 1 ? 's' : ''}</span>;
   };
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-semibold text-white">Global Role Templates</h2>
-          <p className="text-slate-400 text-sm">System-wide role definitions that organisations can use or override.</p>
+          <h2 className="text-xl font-semibold text-foreground">Global Role Templates</h2>
+          <p className="text-muted-foreground text-sm">System-wide role definitions that organisations can use or override.</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)} className="bg-indigo-600 hover:bg-indigo-700 text-white">
           <Plus className="h-4 w-4 mr-2" /> Create Global Role
         </Button>
       </div>
 
-      <div className="rounded-md border border-indigo-900/50 bg-[#1e1b4b]">
+      <div className="rounded-md border border-border bg-card">
         <Table>
           <TableHeader>
-            <TableRow className="border-indigo-800 hover:bg-indigo-900/30">
-              <TableHead className="text-slate-300">Role Name</TableHead>
-              <TableHead className="text-slate-300">Key</TableHead>
-              <TableHead className="text-slate-300">Permissions</TableHead>
-              <TableHead className="text-slate-300">Type</TableHead>
-              <TableHead className="text-right text-slate-300">Actions</TableHead>
+            <TableRow className="border-border hover:bg-muted/50">
+              <TableHead className="text-foreground">Role Name</TableHead>
+              <TableHead className="text-foreground">Key</TableHead>
+              <TableHead className="text-foreground">Permissions</TableHead>
+              <TableHead className="text-foreground">Type</TableHead>
+              <TableHead className="text-right text-foreground">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-slate-400">Loading...</TableCell>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">Loading...</TableCell>
               </TableRow>
             ) : roles?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-slate-400">No global roles found</TableCell>
+                <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">No global roles found</TableCell>
               </TableRow>
             ) : (
               roles?.map((role: Role) => (
-                <TableRow key={role.id} className="border-indigo-800/50 hover:bg-indigo-900/20">
-                  <TableCell className="font-medium text-white">
+                <TableRow key={role.id} className="border-border/60 hover:bg-muted/40">
+                  <TableCell className="font-medium text-foreground">
                     <div className="flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 text-indigo-400" />
                       {role.name}
                     </div>
-                    {role.description && <div className="text-xs text-slate-400 ml-6">{role.description}</div>}
+                    {role.description && <div className="text-xs text-muted-foreground ml-6">{role.description}</div>}
                   </TableCell>
-                  <TableCell className="text-slate-400 font-mono text-xs">{role.roleKey}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-xs">{role.roleKey}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1 items-center">
                       {role.permissions.includes('*') ? (
@@ -208,12 +208,12 @@ export function GlobalRolesManagement() {
                       ) : (
                         <>
                           {role.permissions.slice(0, 4).map((p, i) => (
-                            <Badge key={i} variant="secondary" className="bg-indigo-900/50 text-indigo-300 text-[10px] border-indigo-700/50">
+                            <Badge key={i} variant="secondary" className="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] border-indigo-500/30">
                               {p}
                             </Badge>
                           ))}
                           {role.permissions.length > 4 && (
-                            <Badge variant="secondary" className="bg-indigo-900/50 text-indigo-300 text-[10px] border-indigo-700/50">
+                            <Badge variant="secondary" className="bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 text-[10px] border-indigo-500/30">
                               +{role.permissions.length - 4} more
                             </Badge>
                           )}
@@ -222,20 +222,20 @@ export function GlobalRolesManagement() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant={role.isSystemRole ? 'outline' : 'default'} className={role.isSystemRole ? 'border-indigo-700 text-indigo-300' : 'bg-indigo-600'}>
+                    <Badge variant={role.isSystemRole ? 'outline' : 'default'} className={role.isSystemRole ? 'border-primary/40 text-indigo-600 dark:text-indigo-300' : 'bg-indigo-600'}>
                       {role.isSystemRole ? 'System' : 'Custom'}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                        <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="bg-[#1e1b4b] border-indigo-800 text-slate-200">
+                      <DropdownMenuContent align="end" className="bg-card border-border text-foreground">
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => setEditingRole(role)} className="cursor-pointer hover:bg-indigo-800">
+                        <DropdownMenuItem onClick={() => setEditingRole(role)} className="cursor-pointer hover:bg-accent">
                           Edit Template
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -248,14 +248,14 @@ export function GlobalRolesManagement() {
         </Table>
       </div>
 
-      <Card className="bg-indigo-950/20 border-indigo-900/30">
+      <Card className="bg-muted/20 border-border">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-indigo-300 flex items-center gap-2">
+          <CardTitle className="text-sm font-semibold text-indigo-600 dark:text-indigo-300 flex items-center gap-2">
             <Info className="h-4 w-4" /> About Global Roles
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-muted-foreground leading-relaxed">
             Global roles serve as templates. When a new organisation is created, it inherits these roles.
             Organisation admins can override these templates with custom names or permissions for their specific needs.
             Changes to global roles will NOT automatically propagate to existing organisation overrides.
@@ -369,14 +369,14 @@ function PermissionMatrix({
 
       {/* Module grid */}
       <ScrollArea className="h-[380px] pr-2">
-        <div className="rounded-lg border border-indigo-900/50 overflow-hidden">
+        <div className="rounded-lg border border-border overflow-hidden">
           {/* Header */}
-          <div className="grid grid-cols-[200px_repeat(4,1fr)_80px] bg-indigo-950/60 border-b border-indigo-900/50 px-3 py-2">
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Module</div>
+          <div className="grid grid-cols-[200px_repeat(4,1fr)_80px] bg-muted border-b border-border px-3 py-2">
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Module</div>
             {allActions.map(a => (
-              <div key={a} className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">{ACTION_LABELS[a]}</div>
+              <div key={a} className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">{ACTION_LABELS[a]}</div>
             ))}
-            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider text-center">Full</div>
+            <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider text-center">Full</div>
           </div>
 
           {/* Rows */}
@@ -386,13 +386,13 @@ function PermissionMatrix({
               <div
                 key={mod.key}
                 className={`grid grid-cols-[200px_repeat(4,1fr)_80px] items-center px-3 py-2.5 transition-colors
-                  ${idx % 2 === 0 ? 'bg-indigo-950/20' : 'bg-indigo-950/40'}
-                  ${modFull ? 'bg-indigo-900/25' : ''}
-                  hover:bg-indigo-900/30`}
+                  ${idx % 2 === 0 ? 'bg-muted/20' : 'bg-muted/40'}
+                  ${modFull ? 'bg-primary/10' : ''}
+                  hover:bg-muted/50`}
               >
                 <div className="flex items-center gap-2">
                   <span className="text-base">{mod.icon}</span>
-                  <span className="text-sm font-medium text-slate-200">{mod.label}</span>
+                  <span className="text-sm font-medium text-foreground">{mod.label}</span>
                 </div>
                 {allActions.map(action => {
                   const supported = mod.actions.includes(action);
@@ -407,7 +407,7 @@ function PermissionMatrix({
                           className="border-indigo-600 data-[state=checked]:bg-indigo-500 data-[state=checked]:border-indigo-500 disabled:opacity-40"
                         />
                       ) : (
-                        <span className="text-slate-700 text-xs">—</span>
+                        <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </div>
                   );
@@ -428,7 +428,7 @@ function PermissionMatrix({
 
       {/* Permission count */}
       {!isSuperAdmin && (
-        <div className="flex items-center gap-2 text-xs text-slate-500">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Check className="h-3 w-3" />
           {stateToPermissions(permState, false).length} permission(s) selected
         </div>
@@ -496,10 +496,10 @@ function RoleDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[720px] bg-[#0f172a] border-indigo-900/50 text-white max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[720px] bg-background border-border text-foreground max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{mode === 'create' ? 'Create Global Role Template' : 'Edit Global Role Template'}</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogDescription className="text-muted-foreground">
             Define a platform-wide role template with granular permissions.
           </DialogDescription>
         </DialogHeader>
@@ -511,7 +511,7 @@ function RoleDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
                 value={roleKey}
                 onChange={(e) => { setRoleKey(e.target.value); setErrors(prev => ({ ...prev, roleKey: '' })); }}
                 placeholder="e.g. sales_manager"
-                className="bg-[#1e1b4b] border-indigo-900/50 text-white"
+                className="bg-card border-border text-foreground"
                 disabled={mode === 'edit'}
               />
               {errors.roleKey && <span className="text-red-400 text-xs">{errors.roleKey}</span>}
@@ -522,7 +522,7 @@ function RoleDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
                 value={name}
                 onChange={(e) => { setName(e.target.value); setErrors(prev => ({ ...prev, name: '' })); }}
                 placeholder="e.g. Sales Manager"
-                className="bg-[#1e1b4b] border-indigo-900/50 text-white"
+                className="bg-card border-border text-foreground"
               />
               {errors.name && <span className="text-red-400 text-xs">{errors.name}</span>}
             </div>
@@ -534,7 +534,7 @@ function RoleDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Brief role description"
-              className="bg-[#1e1b4b] border-indigo-900/50 text-white"
+              className="bg-card border-border text-foreground"
             />
           </div>
 
@@ -551,7 +551,7 @@ function RoleDialog({ open, onOpenChange, onSubmit, isLoading, initialData, mode
         </div>
 
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-slate-400 hover:text-white hover:bg-slate-800">Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} className="text-muted-foreground hover:text-foreground hover:bg-accent">Cancel</Button>
           <Button onClick={handleSubmit} disabled={isLoading} className="bg-indigo-600 hover:bg-indigo-700 text-white">
             {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {mode === 'create' ? 'Create Template' : 'Update Template'}

@@ -87,48 +87,48 @@ export default function SuperAdminRestorePage() {
   };
 
   return (
-    <div className="p-8 space-y-8 bg-[#0f172a] min-h-screen">
+    <div className="p-8 space-y-8 bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-2">
             <ShieldCheck className="w-8 h-8 text-indigo-400" />
             Restore Data
           </h1>
-          <p className="text-slate-400 mt-1">Super Admin utility to restore an organisation from a ZIP backup</p>
+          <p className="text-muted-foreground mt-1">Super Admin utility to restore an organisation from a ZIP backup</p>
         </div>
       </div>
 
       <div className="max-w-2xl mt-8">
-        <Card className="bg-[#1e1b4b] border-red-900/50">
-          <CardHeader className="border-b border-indigo-900/50 pb-6">
+        <Card className="bg-card border-red-900/50">
+          <CardHeader className="border-b border-border pb-6">
             <div className="flex items-center gap-3">
               <div className="p-3 bg-red-500/20 text-red-400 rounded-full">
                 <AlertTriangle className="h-6 w-6" />
               </div>
               <div>
-                <CardTitle className="text-xl text-white">Disaster Recovery</CardTitle>
+                <CardTitle className="text-xl text-foreground">Disaster Recovery</CardTitle>
                 <CardDescription className="text-red-300 mt-1 font-medium">
                   Restoring a backup will wipe and replace all data for the selected Organisation.
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="space-y-6 pt-6 text-slate-300">
+          <CardContent className="space-y-6 pt-6 text-foreground">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-200">Target Organisation</label>
+              <label className="text-sm font-semibold text-foreground">Target Organisation</label>
               {orgsLoading ? (
-                <div className="p-3 border border-indigo-800 rounded-md bg-indigo-900/20 text-indigo-300">
+                <div className="p-3 border border-border rounded-md bg-muted text-indigo-600 dark:text-indigo-300">
                   Loading organisations...
                 </div>
               ) : (
                 <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-                  <SelectTrigger className="w-full bg-[#0f172a] border-indigo-800 text-white">
+                  <SelectTrigger className="w-full bg-background border-border text-foreground">
                     <SelectValue placeholder="Select an organisation to overwrite..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#1e1b4b] border-indigo-800 text-white">
+                  <SelectContent className="bg-card border-border text-foreground">
                     {organisations?.map(org => (
-                      <SelectItem key={org.id} value={org.id} className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer">
-                        {org.name} <span className="text-slate-500 text-xs ml-2">({org.slug})</span>
+                      <SelectItem key={org.id} value={org.id} className="hover:bg-accent focus:bg-accent cursor-pointer">
+                        {org.name} <span className="text-muted-foreground text-xs ml-2">({org.slug})</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -137,17 +137,17 @@ export default function SuperAdminRestorePage() {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-200">Backup Archive (.zip)</label>
+              <label className="text-sm font-semibold text-foreground">Backup Archive (.zip)</label>
               <label
                 htmlFor="backup-upload"
-                className="flex flex-col items-center justify-center w-full h-40 border-2 border-indigo-800 border-dashed rounded-lg cursor-pointer bg-[#0f172a] hover:bg-indigo-900/20 transition-colors"
+                className="flex flex-col items-center justify-center w-full h-40 border-2 border-border border-dashed rounded-lg cursor-pointer bg-background hover:bg-muted/40 transition-colors"
               >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
                   <UploadCloud className="w-10 h-10 mb-3 text-indigo-400" />
-                  <p className="mb-2 text-sm text-slate-300">
-                    <span className="font-semibold text-white">Click to upload</span> or drag and drop
+                  <p className="mb-2 text-sm text-foreground">
+                    <span className="font-semibold text-foreground">Click to upload</span> or drag and drop
                   </p>
-                  <p className="text-xs text-slate-500">ZIP archive containing backup.json</p>
+                  <p className="text-xs text-muted-foreground">ZIP archive containing backup.json</p>
 
                 </div>
                 <input
@@ -172,7 +172,7 @@ export default function SuperAdminRestorePage() {
             </div>
 
           </CardContent>
-          <CardFooter className="bg-[#1e1b4b]/50 border-t border-indigo-900/50 py-4 flex justify-end">
+          <CardFooter className="bg-card/50 border-t border-border py-4 flex justify-end">
             <Button
               variant="destructive"
               onClick={handleRestore}

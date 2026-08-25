@@ -139,8 +139,8 @@ export function FAQManagement() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white tracking-tight">Landing Page FAQs</h2>
-          <p className="text-slate-400 text-sm">Manage the questions and answers displayed on the public landing page.</p>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight">Landing Page FAQs</h2>
+          <p className="text-muted-foreground text-sm">Manage the questions and answers displayed on the public landing page.</p>
         </div>
         {!isCreating && !editingId && (
           <Button 
@@ -157,40 +157,40 @@ export function FAQManagement() {
       </div>
 
       {(isCreating || editingId) && (
-        <Card className="bg-[#1e1b4b] border-indigo-500/30 shadow-2xl">
+        <Card className="bg-card border-indigo-500/30 shadow-2xl">
           <CardHeader>
-            <CardTitle className="text-white">
+            <CardTitle className="text-foreground">
               {editingId ? 'Edit FAQ' : 'Create New FAQ'}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Question</label>
+                <label className="text-sm font-medium text-foreground">Question</label>
                 <Input 
                   value={formData.question}
                   onChange={(e) => setFormData({ ...formData, question: e.target.value })}
                   placeholder="e.g. What is Pype CRM?"
-                  className="bg-[#0f172a] border-indigo-900/50 text-white"
+                  className="bg-background border-border text-foreground"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-medium text-slate-300">Answer</label>
+                <label className="text-sm font-medium text-foreground">Answer</label>
                 <Textarea 
                   value={formData.answer}
                   onChange={(e) => setFormData({ ...formData, answer: e.target.value })}
                   placeholder="Provide a clear and concise answer..."
-                  className="bg-[#0f172a] border-indigo-900/50 text-white min-h-[120px]"
+                  className="bg-background border-border text-foreground min-h-[120px]"
                 />
               </div>
               <div className="flex items-center gap-8">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Display Order</label>
+                  <label className="text-sm font-medium text-foreground">Display Order</label>
                   <Input 
                     type="number"
                     value={formData.order}
                     onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
-                    className="bg-[#0f172a] border-indigo-900/50 text-white w-32"
+                    className="bg-background border-border text-foreground w-32"
                   />
                 </div>
                 <div className="flex items-center gap-3 pt-6">
@@ -198,7 +198,7 @@ export function FAQManagement() {
                     checked={formData.isActive}
                     onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
                   />
-                  <span className="text-sm text-slate-300">Active (Visible on Landing Page)</span>
+                  <span className="text-sm text-foreground">Active (Visible on Landing Page)</span>
                 </div>
               </div>
             </div>
@@ -210,7 +210,7 @@ export function FAQManagement() {
                   setIsCreating(false);
                   setEditingId(null);
                 }}
-                className="text-slate-400 hover:text-white"
+                className="text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4 mr-2" />
                 Cancel
@@ -234,37 +234,37 @@ export function FAQManagement() {
 
       <div className="space-y-4">
         {faqs?.length === 0 ? (
-          <div className="text-center py-20 bg-[#1e1b4b]/30 rounded-2xl border border-dashed border-indigo-900/50">
-            <HelpCircle className="h-12 w-12 text-slate-600 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-slate-400">No FAQs found</h3>
-            <p className="text-slate-500 text-sm">Create your first FAQ to display it on the landing page.</p>
+          <div className="text-center py-20 bg-muted/30 rounded-2xl border border-dashed border-border">
+            <HelpCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-muted-foreground">No FAQs found</h3>
+            <p className="text-muted-foreground text-sm">Create your first FAQ to display it on the landing page.</p>
           </div>
         ) : (
           faqs?.map((faq) => (
             <Card 
               key={faq.id} 
               className={cn(
-                "bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-700/50 transition-all group",
+                "bg-card border-border hover:border-primary/30 transition-all group",
                 !faq.isActive && "opacity-60 grayscale-[0.5]"
               )}
             >
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className="pt-1 text-slate-500">
+                  <div className="pt-1 text-muted-foreground">
                     <GripVertical className="h-5 w-5 cursor-grab" />
                   </div>
                   <div className="flex-1 space-y-1">
                     <div className="flex items-center gap-2">
-                      <h4 className="font-bold text-white text-lg">{faq.question}</h4>
+                      <h4 className="font-bold text-foreground text-lg">{faq.question}</h4>
                       {!faq.isActive && (
                         <span className="text-[10px] uppercase font-black bg-red-500/20 text-red-500 px-2 py-0.5 rounded-full tracking-widest">
                           Inactive
                         </span>
                       )}
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed">{faq.answer}</p>
+                    <p className="text-muted-foreground text-sm leading-relaxed">{faq.answer}</p>
                     <div className="flex items-center gap-4 pt-2">
-                      <div className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
+                      <div className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
                         Order: {faq.order}
                       </div>
                     </div>
@@ -274,7 +274,7 @@ export function FAQManagement() {
                       size="icon" 
                       variant="ghost" 
                       onClick={() => handleEdit(faq)}
-                      className="h-8 w-8 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-950/50"
+                      className="h-8 w-8 text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 hover:bg-accent"
                     >
                       <Edit2 className="h-4 w-4" />
                     </Button>

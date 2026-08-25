@@ -72,21 +72,21 @@ export function SetCustomPriceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-[#0f172a] border-indigo-900 text-white">
+      <DialogContent className="bg-background border-border text-foreground">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-indigo-400" />
+            <DollarSign className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
             Set Custom Pricing
           </DialogTitle>
-          <DialogDescription className="text-indigo-300">
-            Override the standard plan price for <span className="font-semibold text-white">{organisationName}</span>
+          <DialogDescription className="text-indigo-600 dark:text-indigo-300">
+            Override the standard plan price for <span className="font-semibold text-foreground">{organisationName}</span>
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <Alert className="bg-indigo-950/30 border-indigo-800">
-            <Info className="h-4 w-4 text-indigo-400" />
-            <AlertDescription className="text-indigo-300 text-sm">
+          <Alert className="bg-muted/50 border-border">
+            <Info className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+            <AlertDescription className="text-indigo-600 dark:text-indigo-300 text-sm">
               {customPrice !== null ? (
                 <>Custom pricing is currently active. Standard plan price: {currency === 'INR' ? '₹' : '$'}{currentPrice}</>
               ) : (
@@ -96,11 +96,11 @@ export function SetCustomPriceDialog({
           </Alert>
 
           <div className="space-y-2">
-            <Label htmlFor="customPrice" className="text-indigo-300">
+            <Label htmlFor="customPrice" className="text-indigo-600 dark:text-indigo-300">
               Custom Price Per User (before GST)
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-400">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-indigo-600 dark:text-indigo-400">
                 {currency === 'INR' ? '₹' : '$'}
               </span>
               <Input
@@ -110,34 +110,34 @@ export function SetCustomPriceDialog({
                 min="0"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="pl-8 bg-indigo-950/30 border-indigo-800 text-white"
+                className="pl-8 bg-muted/50 border-border text-foreground"
                 placeholder="Enter custom price per user"
                 required
               />
             </div>
-            <p className="text-xs text-indigo-400">
+            <p className="text-xs text-indigo-600 dark:text-indigo-400">
               This price will be multiplied by the number of active users
             </p>
           </div>
 
           {!isNaN(parseFloat(price)) && parseFloat(price) > 0 && (
-            <div className="bg-indigo-950/30 p-4 rounded-lg space-y-2 border border-indigo-800">
+            <div className="bg-muted/50 p-4 rounded-lg space-y-2 border border-border">
               <div className="flex justify-between text-sm">
-                <span className="text-indigo-400">Base Amount:</span>
-                <span className="text-white font-medium">
+                <span className="text-indigo-600 dark:text-indigo-400">Base Amount:</span>
+                <span className="text-foreground font-medium">
                   {currency === 'INR' ? '₹' : '$'}{parseFloat(price).toFixed(2)}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
-                <span className="text-indigo-400">GST (18%):</span>
-                <span className="text-white font-medium">
+                <span className="text-indigo-600 dark:text-indigo-400">GST (18%):</span>
+                <span className="text-foreground font-medium">
                   {currency === 'INR' ? '₹' : '$'}{gstAmount.toFixed(2)}
                 </span>
               </div>
-              <div className="h-px bg-indigo-800 my-2"></div>
+              <div className="h-px bg-border my-2"></div>
               <div className="flex justify-between">
-                <span className="font-semibold text-white">Total Amount:</span>
-                <span className="font-bold text-indigo-400 text-lg">
+                <span className="font-semibold text-foreground">Total Amount:</span>
+                <span className="font-bold text-indigo-600 dark:text-indigo-400 text-lg">
                   {currency === 'INR' ? '₹' : '$'}{totalWithGst.toFixed(2)}
                 </span>
               </div>
@@ -151,7 +151,7 @@ export function SetCustomPriceDialog({
                 variant="outline"
                 onClick={handleReset}
                 disabled={mutation.isPending}
-                className="border-indigo-700 text-indigo-300 hover:bg-indigo-900/40"
+                className="border-primary/40 text-indigo-600 dark:text-indigo-300 hover:bg-muted/50"
               >
                 Reset to Plan Price
               </Button>

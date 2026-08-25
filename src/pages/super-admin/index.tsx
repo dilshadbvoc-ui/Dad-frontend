@@ -210,22 +210,22 @@ export default function SuperAdminDashboard() {
   };
 
   return (
-    <div className="p-8 space-y-8 bg-[#0f172a] min-h-screen">
+    <div className="p-8 space-y-8 bg-background min-h-screen">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Super Admin Dashboard</h1>
-          <p className="text-slate-400 mt-1">Platform overview and management</p>
+          <h1 className="text-3xl font-bold text-foreground tracking-tight">Super Admin Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Platform overview and management</p>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={onTabChange} className="space-y-6">
-        <TabsList className="bg-[#1e1b4b] border border-indigo-900/50">
-          <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Overview</TabsTrigger>
-          <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">License Plans</TabsTrigger>
-          <TabsTrigger value="landing-page" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Landing Page</TabsTrigger>
-          <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">System Roles</TabsTrigger>
-          <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Database</TabsTrigger>
-          <TabsTrigger value="broadcast" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-slate-400">Broadcast</TabsTrigger>
+        <TabsList className="bg-card border border-border">
+          <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Overview</TabsTrigger>
+          <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">License Plans</TabsTrigger>
+          <TabsTrigger value="landing-page" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Landing Page</TabsTrigger>
+          <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">System Roles</TabsTrigger>
+          <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Database</TabsTrigger>
+          <TabsTrigger value="broadcast" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Broadcast</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-8">
@@ -236,60 +236,60 @@ export default function SuperAdminDashboard() {
 
           {/* Stats Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-700/50 transition-colors">
+            <Card className="bg-card border-border hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-200">
+                <CardTitle className="text-sm font-medium text-foreground">
                   Total Organisations
                 </CardTitle>
                 <Building className="h-4 w-4 text-indigo-400" />
               </CardHeader>
               <CardContent>
-                {statsLoading ? <Skeleton className="h-8 w-20 bg-indigo-900/20" /> : (
+                {statsLoading ? <Skeleton className="h-8 w-20 bg-muted" /> : (
                   <>
-                    <div className="text-2xl font-bold text-white">{stats?.totalOrganisations}</div>
-                    <p className="text-xs text-slate-400">
+                    <div className="text-2xl font-bold text-foreground">{stats?.totalOrganisations}</div>
+                    <p className="text-xs text-muted-foreground">
                       {stats?.activeOrganisations} active, {stats?.suspendedOrganisations} suspended
                     </p>
                   </>
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-700/50 transition-colors">
+            <Card className="bg-card border-border hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-200">
+                <CardTitle className="text-sm font-medium text-foreground">
                   Total Users
                 </CardTitle>
                 <Users className="h-4 w-4 text-blue-400" />
               </CardHeader>
               <CardContent>
-                {statsLoading ? <Skeleton className="h-8 w-20 bg-indigo-900/20" /> : (
-                  <div className="text-2xl font-bold text-white">{stats?.totalUsers}</div>
+                {statsLoading ? <Skeleton className="h-8 w-20 bg-muted" /> : (
+                  <div className="text-2xl font-bold text-foreground">{stats?.totalUsers}</div>
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-700/50 transition-colors">
+            <Card className="bg-card border-border hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-200">
+                <CardTitle className="text-sm font-medium text-foreground">
                   Active Licenses
                 </CardTitle>
                 <Shield className="h-4 w-4 text-emerald-400" />
               </CardHeader>
               <CardContent>
-                {statsLoading ? <Skeleton className="h-8 w-20 bg-indigo-900/20" /> : (
-                  <div className="text-2xl font-bold text-white">{stats?.activeLicenses}</div>
+                {statsLoading ? <Skeleton className="h-8 w-20 bg-muted" /> : (
+                  <div className="text-2xl font-bold text-foreground">{stats?.activeLicenses}</div>
                 )}
               </CardContent>
             </Card>
-            <Card className="bg-[#1e1b4b] border-indigo-900/50 hover:border-indigo-700/50 transition-colors">
+            <Card className="bg-card border-border hover:border-primary/30 transition-colors">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-200">
+                <CardTitle className="text-sm font-medium text-foreground">
                   Total Revenue
                 </CardTitle>
                 <CreditCard className="h-4 w-4 text-purple-400" />
               </CardHeader>
               <CardContent>
-                {statsLoading ? <Skeleton className="h-8 w-20 bg-indigo-900/20" /> : (
-                  <div className="text-2xl font-bold text-white">
+                {statsLoading ? <Skeleton className="h-8 w-20 bg-muted" /> : (
+                  <div className="text-2xl font-bold text-foreground">
                     {formatCurrency(stats?.totalRevenue || 0)}
                   </div>
                 )}
@@ -298,18 +298,18 @@ export default function SuperAdminDashboard() {
           </div>
 
           {/* Organisations List */}
-          <Card className="bg-[#1e1b4b] border-indigo-900/50">
+          <Card className="bg-card border-border">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle className="text-white">Organisations</CardTitle>
-                  <CardDescription className="text-slate-400">Manage platform tenants</CardDescription>
+                  <CardTitle className="text-foreground">Organisations</CardTitle>
+                  <CardDescription className="text-muted-foreground">Manage platform tenants</CardDescription>
                 </div>
                 <div className="relative w-64">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search organisations..."
-                    className="pl-8 bg-[#0f172a] border-indigo-900/50 text-white placeholder:text-slate-500"
+                    className="pl-8 bg-background border-border text-foreground placeholder:text-muted-foreground"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                   />
@@ -319,26 +319,26 @@ export default function SuperAdminDashboard() {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow className="border-indigo-800 hover:bg-indigo-900/30">
-                    <TableHead className="text-slate-300">Organisation</TableHead>
-                    <TableHead className="text-slate-300">Plan</TableHead>
-                    <TableHead className="text-slate-300 text-center">Users</TableHead>
-                    <TableHead className="text-slate-300">Expiry</TableHead>
-                    <TableHead className="text-slate-300">Next Bill</TableHead>
-                    <TableHead className="text-slate-300">Status</TableHead>
-                    <TableHead className="text-right text-slate-300">Actions</TableHead>
+                  <TableRow className="border-border hover:bg-muted/50">
+                    <TableHead className="text-foreground">Organisation</TableHead>
+                    <TableHead className="text-foreground">Plan</TableHead>
+                    <TableHead className="text-foreground text-center">Users</TableHead>
+                    <TableHead className="text-foreground">Expiry</TableHead>
+                    <TableHead className="text-foreground">Next Bill</TableHead>
+                    <TableHead className="text-foreground">Status</TableHead>
+                    <TableHead className="text-right text-foreground">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {orgsLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-slate-400">
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                         Loading organisations...
                       </TableCell>
                     </TableRow>
                   ) : filteredOrgs?.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center text-slate-400">
+                      <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
                         No organisations found.
                       </TableCell>
                     </TableRow>
@@ -353,32 +353,32 @@ export default function SuperAdminDashboard() {
                         : 0;
 
                       return (
-                        <TableRow key={org.id} className="border-indigo-800/50 hover:bg-indigo-900/20">
+                        <TableRow key={org.id} className="border-border/60 hover:bg-muted/40">
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className="font-medium text-white">{org.name}</span>
-                              <span className="text-[10px] text-slate-500">{org.slug}</span>
+                              <span className="font-medium text-foreground">{org.name}</span>
+                              <span className="text-[10px] text-muted-foreground">{org.slug}</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="border-indigo-700 text-indigo-300 text-[10px]">
+                            <Badge variant="outline" className="border-primary/40 text-indigo-600 dark:text-indigo-300 text-[10px]">
                               {org.activeLicense?.plan.name || org.subscription?.plan?.name || 'Trial'}
                             </Badge>
                           </TableCell>
-                          <TableCell className="text-center font-mono text-slate-300">
+                          <TableCell className="text-center font-mono text-foreground">
                             {org.userCount || 0}
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
-                              <span className={`text-xs font-semibold ${daysLeft !== null && daysLeft < 5 ? 'text-red-400' : 'text-slate-300'}`}>
+                              <span className={`text-xs font-semibold ${daysLeft !== null && daysLeft < 5 ? 'text-red-400' : 'text-foreground'}`}>
                                 {daysLeft !== null ? `${daysLeft} days` : 'N/A'}
                               </span>
-                              <span className="text-[10px] text-slate-500">
+                              <span className="text-[10px] text-muted-foreground">
                                 {org.activeLicense ? formatIST(org.activeLicense.endDate, 'MMM d, yyyy') : 'No active license'}
                               </span>
                             </div>
                           </TableCell>
-                          <TableCell className="text-indigo-300 font-semibold text-xs">
+                          <TableCell className="text-indigo-600 dark:text-indigo-300 font-semibold text-xs">
                             {formatCurrency(estBill, org.activeLicense?.plan.currency || 'INR')}
                           </TableCell>
                           <TableCell>
@@ -394,16 +394,16 @@ export default function SuperAdminDashboard() {
                           <TableCell className="text-right">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0 text-slate-400 hover:text-white">
+                                <Button variant="ghost" className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground">
                                   <span className="sr-only">Open menu</span>
                                   <MoreHorizontal className="h-4 w-4" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end" className="bg-[#1e1b4b] border-indigo-800 text-slate-200">
+                              <DropdownMenuContent align="end" className="bg-card border-border text-foreground">
                                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
                                 <DropdownMenuItem
                                   onClick={() => navigate(`/super-admin/organisation/${org.id}`)}
-                                  className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer"
+                                  className="hover:bg-accent focus:bg-accent cursor-pointer"
                                 >
                                   View Details
                                 </DropdownMenuItem>
@@ -412,11 +412,11 @@ export default function SuperAdminDashboard() {
                                     setEditingOrg(org);
                                     setIsEditOrgOpen(true);
                                   }}
-                                  className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer text-indigo-300"
+                                  className="hover:bg-accent focus:bg-accent cursor-pointer text-indigo-600 dark:text-indigo-300"
                                 >
                                   Edit Organisation
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-indigo-800" />
+                                <DropdownMenuSeparator className="bg-border" />
                                 {org.status === 'active' ? (
                                   <DropdownMenuItem
                                     onClick={() => toggleStatusMutation.mutate({ id: org.id, status: 'active' })}
@@ -432,14 +432,14 @@ export default function SuperAdminDashboard() {
                                     Restore Organisation
                                   </DropdownMenuItem>
                                 )}
-                                <DropdownMenuSeparator className="bg-indigo-800" />
+                                <DropdownMenuSeparator className="bg-border" />
                                 <DropdownMenuItem
                                   onClick={() => handleBackup(org)}
-                                  className="hover:bg-indigo-800 focus:bg-indigo-800 cursor-pointer text-blue-300"
+                                  className="hover:bg-accent focus:bg-accent cursor-pointer text-blue-300"
                                 >
                                   📥 Download Backup
                                 </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-indigo-800" />
+                                <DropdownMenuSeparator className="bg-border" />
                                 <DropdownMenuItem
                                   onClick={() => handlePermanentDelete(org)}
                                   className="text-red-600 hover:text-red-400 hover:bg-red-950/50 focus:bg-red-950/50 cursor-pointer font-semibold"
@@ -474,27 +474,27 @@ export default function SuperAdminDashboard() {
         <TabsContent value="database" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-2">
             {/* ─── Platform Backup ─────────────────────────── */}
-            <Card className="bg-[#1e1b4b] border-indigo-900/50 flex flex-col">
+            <Card className="bg-card border-border flex flex-col">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
                     <Download className="h-5 w-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-white">Platform Export</CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardTitle className="text-foreground">Platform Export</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       Download a complete backup of the entire platform.
                     </CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="flex-1">
-                <p className="text-sm text-slate-300 mb-6">
+                <p className="text-sm text-foreground mb-6">
                   This will generate a comprehensive <strong>.json</strong> file containing all organisations, users, leads, accounts, and configuration data.
                 </p>
                 <div className="bg-indigo-950/30 border border-indigo-500/20 rounded-xl p-4 mb-6">
-                  <h4 className="text-xs font-bold text-indigo-300 uppercase tracking-wider mb-2">Backup Scope</h4>
-                  <ul className="text-xs text-slate-400 space-y-1">
+                  <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-300 uppercase tracking-wider mb-2">Backup Scope</h4>
+                  <ul className="text-xs text-muted-foreground space-y-1">
                     <li>• 50+ Database Tables</li>
                     <li>• Global Roles & System Settings</li>
                     <li>• Organisation Hierarchy & Data</li>
@@ -531,7 +531,7 @@ export default function SuperAdminDashboard() {
             </Card>
 
             {/* ─── Platform Restore (Danger Zone) ──────────── */}
-            <Card className="bg-[#1e1b4b] border-red-900/30 flex flex-col relative overflow-hidden">
+            <Card className="bg-card border-red-900/30 flex flex-col relative overflow-hidden">
               <div className="absolute top-0 right-0 p-1">
                 <div className="bg-red-500/10 text-red-500 text-[10px] font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-widest border-l border-b border-red-900/20">
                   Danger Zone
@@ -543,8 +543,8 @@ export default function SuperAdminDashboard() {
                     <Upload className="h-5 w-5" />
                   </div>
                   <div>
-                    <CardTitle className="text-white">Platform Restore</CardTitle>
-                    <CardDescription className="text-slate-400">
+                    <CardTitle className="text-foreground">Platform Restore</CardTitle>
+                    <CardDescription className="text-muted-foreground">
                       Restore the entire system from a backup file.
                     </CardDescription>
                   </div>
@@ -561,12 +561,12 @@ export default function SuperAdminDashboard() {
                 </div>
                 <div className="space-y-4">
                   <label className="block">
-                    <div className="border-2 border-dashed border-slate-700 hover:border-indigo-500/50 rounded-xl p-8 transition-all cursor-pointer bg-[#0f172a]/50 text-center">
-                      <Upload className="h-8 w-8 text-slate-500 mx-auto mb-3" />
-                      <p className="text-sm font-medium text-slate-300">
+                    <div className="border-2 border-dashed border-border hover:border-indigo-500/50 rounded-xl p-8 transition-all cursor-pointer bg-muted/50 text-center">
+                      <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
+                      <p className="text-sm font-medium text-foreground">
                         Click to upload or drag & drop backup file
                       </p>
-                      <p className="text-[10px] text-slate-500 mt-1 uppercase tracking-wider">
+                      <p className="text-[10px] text-muted-foreground mt-1 uppercase tracking-wider">
                         Support for .json platform backups
                       </p>
                     </div>
@@ -615,15 +615,15 @@ export default function SuperAdminDashboard() {
             </Card>
           </div>
 
-          <Card className="bg-[#1e1b4b] border-indigo-900/50">
+          <Card className="bg-card border-border">
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400">
                   <Database className="h-5 w-5" />
                 </div>
                 <div>
-                  <CardTitle className="text-white">Database Viewer</CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardTitle className="text-foreground">Database Viewer</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     External tools for direct database management.
                   </CardDescription>
                 </div>
@@ -631,23 +631,23 @@ export default function SuperAdminDashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
-                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-xl p-5 group hover:border-indigo-500/30 transition-all">
-                  <h4 className="text-white font-bold mb-1">Prisma Studio</h4>
-                  <p className="text-xs text-slate-400 mb-4">Visual spreadsheet-like interface for your database tables.</p>
+                <div className="bg-background border border-border rounded-xl p-5 group hover:border-indigo-500/30 transition-all">
+                  <h4 className="text-foreground font-bold mb-1">Prisma Studio</h4>
+                  <p className="text-xs text-muted-foreground mb-4">Visual spreadsheet-like interface for your database tables.</p>
                   <Button
                     onClick={() => window.open('http://localhost:5555', '_blank')}
-                    className="w-full bg-slate-800 hover:bg-slate-700 text-xs h-9 justify-between pr-3"
+                    className="w-full bg-secondary hover:bg-secondary/80 text-xs h-9 justify-between pr-3"
                   >
                     <span>Open Prisma Studio (Local)</span>
                     <ChevronRight className="h-3 w-3" />
                   </Button>
                 </div>
-                <div className="bg-[#0f172a] border border-indigo-900/50 rounded-xl p-5">
+                <div className="bg-background border border-border rounded-xl p-5">
                   <div className="flex gap-2 items-center mb-3">
                     <AlertTriangle className="h-4 w-4 text-amber-400" />
                     <h4 className="text-amber-400 font-bold text-sm">Security Note</h4>
                   </div>
-                  <ul className="text-[10px] text-slate-500 space-y-1 mt-1 leading-relaxed">
+                  <ul className="text-[10px] text-muted-foreground space-y-1 mt-1 leading-relaxed">
                     <li>• Direct database access bypasses application logic.</li>
                     <li>• Use restoration tools for major environment syncs.</li>
                     <li>• Export daily to ensure data integrity during development.</li>
@@ -659,15 +659,15 @@ export default function SuperAdminDashboard() {
         </TabsContent>
 
         <TabsContent value="broadcast" className="space-y-6">
-          <Card className="bg-[#1e1b4b] border-indigo-900/50 shadow-2xl">
-            <CardHeader className="border-b border-indigo-900/40 pb-5">
+          <Card className="bg-card border-border shadow-2xl">
+            <CardHeader className="border-b border-border/60 pb-5">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 rounded-xl bg-indigo-500/10 text-indigo-400">
                   <Bell className="h-6 w-6 stroke-[1.5]" />
                 </div>
                 <div>
-                  <CardTitle className="text-white text-xl">Platform Broadcast</CardTitle>
-                  <CardDescription className="text-slate-400">
+                  <CardTitle className="text-foreground text-xl">Platform Broadcast</CardTitle>
+                  <CardDescription className="text-muted-foreground">
                     Send a persistent popup notification to all Organisation Administrators across the platform.
                   </CardDescription>
                 </div>
@@ -725,25 +725,25 @@ function SuperAdminBroadcastForm() {
       {/* Form Input fields */}
       <form onSubmit={handleSend} className="space-y-5">
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-300">Broadcast Title</label>
+          <label className="text-sm font-semibold text-foreground">Broadcast Title</label>
           <Input
             placeholder="e.g. System Scheduled Maintenance"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="bg-[#0f172a] border-indigo-900/50 text-white placeholder:text-slate-600 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl h-11"
+            className="bg-background border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-indigo-500 focus-visible:border-indigo-500 rounded-xl h-11"
           />
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-slate-300">Message Description</label>
+          <label className="text-sm font-semibold text-foreground">Message Description</label>
           <textarea
             placeholder="Write your announcement details here..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             required
             rows={5}
-            className="w-full bg-[#0f172a] border border-indigo-900/50 rounded-xl px-3 py-2 text-sm text-white placeholder:text-slate-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 resize-none min-h-[120px]"
+            className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-indigo-500 focus-visible:border-indigo-500 resize-none min-h-[120px]"
           />
         </div>
 
@@ -765,7 +765,7 @@ function SuperAdminBroadcastForm() {
 
       {/* Live Preview Area */}
       <div className="flex flex-col justify-start">
-        <label className="text-sm font-semibold text-slate-300 mb-3">Real-time Pop-up Preview</label>
+        <label className="text-sm font-semibold text-foreground mb-3">Real-time Pop-up Preview</label>
         <div className="relative border border-indigo-850 bg-slate-900/80 rounded-2xl p-6 shadow-xl flex flex-col items-center justify-center min-h-[220px] overflow-hidden">
           <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-violet-600 via-indigo-500 to-purple-600" />
           <div className="h-10 w-10 bg-indigo-500/10 text-indigo-400 rounded-full flex items-center justify-center mb-3 animate-pulse">
