@@ -58,6 +58,13 @@ interface IssueThreadSheetProps {
   canChangeStatus?: boolean
   onStatusChange?: (status: IssueStatus) => void
   isChangingStatus?: boolean
+  /**
+   * Whether the person currently viewing this thread IS the super admin.
+   * Bubble alignment/color is relative to the viewer, not hardcoded to "admin
+   * = right" — otherwise the reporter sees their own messages on the left
+   * (as if from someone else) and the admin's on the right (as if their own).
+   */
+  viewerIsAdmin: boolean
 }
 
 export function IssueThreadSheet({
@@ -69,6 +76,7 @@ export function IssueThreadSheet({
   canChangeStatus,
   onStatusChange,
   isChangingStatus,
+  viewerIsAdmin,
 }: IssueThreadSheetProps) {
   const [message, setMessage] = useState("")
   const [pendingAttachment, setPendingAttachment] = useState<IssueAttachment | null>(null)
@@ -139,77 +147,87 @@ export function IssueThreadSheet({
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-5 space-y-4">
-          {/* Original report, rendered as the first message */}
-          <div className="flex gap-3">
-            <Avatar className="h-8 w-8 shrink-0">
-              <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
-                {initials(issue.reportedBy.firstName, issue.reportedBy.lastName)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-                <span className="font-semibold text-foreground">
-                  {issue.reportedBy.firstName} {issue.reportedBy.lastName}
-                </span>
-                <span>{formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}</span>
-              </div>
-              <div className="rounded-2xl rounded-tl-sm bg-muted/60 px-4 py-2.5 text-sm whitespace-pre-wrap break-words">
-                {issue.description}
-              </div>
-              {issue.attachments && issue.attachments.length > 0 && (
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {issue.attachments.map((a) => (
-                    <a
-                      key={a.documentId}
-                      href={a.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
-                    >
-                      <Paperclip className="h-3 w-3" /> {a.name}
-                    </a>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Replies */}
-          {(issue.replies || []).map((reply) => (
-            <div key={reply.id} className={`flex gap-3 ${reply.isFromAdmin ? "flex-row-reverse" : ""}`}>
-              <Avatar className="h-8 w-8 shrink-0">
-                <AvatarFallback className={`text-[10px] ${reply.isFromAdmin ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
-                  {reply.isFromAdmin ? <ShieldCheck className="h-3.5 w-3.5" /> : initials(reply.author.firstName, reply.author.lastName)}
-                </AvatarFallback>
-              </Avatar>
-              <div className={`flex-1 min-w-0 ${reply.isFromAdmin ? "flex flex-col items-end" : ""}`}>
-                <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-1 ${reply.isFromAdmin ? "flex-row-reverse" : ""}`}>
-                  <span className="font-semibold text-foreground">
-                    {reply.isFromAdmin ? "Pype CRM Support" : `${reply.author.firstName} ${reply.author.lastName}`}
-                  </span>
-                  <span>{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</span>
-                </div>
-                <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${reply.isFromAdmin ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>
-                  {reply.message}
-                </div>
-                {reply.attachments && reply.attachments.length > 0 && (
-                  <div className={`mt-1.5 flex flex-wrap gap-1.5 ${reply.isFromAdmin ? "justify-end" : ""}`}>
-                    {reply.attachments.map((a) => (
-                      <a
-                        key={a.documentId}
-                        href={a.url}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
-                      >
-                        <Paperclip className="h-3 w-3" /> {a.name}
-                      </a>
-                    ))}
+          {/* Original report, rendered as the first message. The reporter wrote it, so
+              it's only ever "mine" when the reporter themselves is the viewer. */}
+          {(() => {
+            const originalIsMine = !viewerIsAdmin
+            return (
+              <div className={`flex gap-3 ${originalIsMine ? "flex-row-reverse" : ""}`}>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                    {initials(issue.reportedBy.firstName, issue.reportedBy.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className={`flex-1 min-w-0 ${originalIsMine ? "flex flex-col items-end" : ""}`}>
+                  <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-1 ${originalIsMine ? "flex-row-reverse" : ""}`}>
+                    <span className="font-semibold text-foreground">
+                      {originalIsMine ? "You" : `${issue.reportedBy.firstName} ${issue.reportedBy.lastName}`}
+                    </span>
+                    <span>{formatDistanceToNow(new Date(issue.createdAt), { addSuffix: true })}</span>
                   </div>
-                )}
+                  <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${originalIsMine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>
+                    {issue.description}
+                  </div>
+                  {issue.attachments && issue.attachments.length > 0 && (
+                    <div className={`mt-1.5 flex flex-wrap gap-1.5 ${originalIsMine ? "justify-end" : ""}`}>
+                      {issue.attachments.map((a) => (
+                        <a
+                          key={a.documentId}
+                          href={a.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+                        >
+                          <Paperclip className="h-3 w-3" /> {a.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })()}
+
+          {/* Replies — alignment is relative to who's viewing, not hardcoded to the
+              admin, so each side sees their own messages on the right like a normal chat. */}
+          {(issue.replies || []).map((reply) => {
+            const isMine = reply.isFromAdmin === viewerIsAdmin
+            return (
+              <div key={reply.id} className={`flex gap-3 ${isMine ? "flex-row-reverse" : ""}`}>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className={`text-[10px] ${isMine ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary"}`}>
+                    {reply.isFromAdmin ? <ShieldCheck className="h-3.5 w-3.5" /> : initials(reply.author.firstName, reply.author.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+                <div className={`flex-1 min-w-0 ${isMine ? "flex flex-col items-end" : ""}`}>
+                  <div className={`flex items-center gap-2 text-xs text-muted-foreground mb-1 ${isMine ? "flex-row-reverse" : ""}`}>
+                    <span className="font-semibold text-foreground">
+                      {isMine ? "You" : reply.isFromAdmin ? "Pype CRM Support" : `${reply.author.firstName} ${reply.author.lastName}`}
+                    </span>
+                    <span>{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</span>
+                  </div>
+                  <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${isMine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>
+                    {reply.message}
+                  </div>
+                  {reply.attachments && reply.attachments.length > 0 && (
+                    <div className={`mt-1.5 flex flex-wrap gap-1.5 ${isMine ? "justify-end" : ""}`}>
+                      {reply.attachments.map((a) => (
+                        <a
+                          key={a.documentId}
+                          href={a.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg border border-border bg-background hover:bg-muted transition-colors"
+                        >
+                          <Paperclip className="h-3 w-3" /> {a.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )
+          })}
         </div>
 
         <div className="border-t border-border p-4 space-y-2 shrink-0">

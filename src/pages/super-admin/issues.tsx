@@ -195,6 +195,7 @@ export default function SuperAdminIssuesPage() {
         open={!!selectedIssueId}
         onOpenChange={(open) => { if (!open) setSelectedIssueId(null) }}
         isReplying={replyMutation.isPending}
+        viewerIsAdmin
         onReply={async (message, attachments) => {
           if (!selectedIssueId) return
           await replyMutation.mutateAsync({ id: selectedIssueId, message, attachments })

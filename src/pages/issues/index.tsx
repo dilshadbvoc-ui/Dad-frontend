@@ -325,6 +325,7 @@ export default function IssuesPage() {
         open={!!selectedIssueId}
         onOpenChange={(open) => { if (!open) setSelectedIssueId(null) }}
         isReplying={replyMutation.isPending}
+        viewerIsAdmin={false}
         onReply={async (message, attachments) => {
           if (!selectedIssueId) return
           await replyMutation.mutateAsync({ id: selectedIssueId, message, attachments })
