@@ -8,6 +8,8 @@ export interface IssueAttachment {
     documentId?: string;
     url?: string;
     name: string;
+    type?: 'voice';
+    duration?: number;
     removed?: boolean;
 }
 
@@ -69,6 +71,29 @@ export const uploadIssueAttachment = async (file: File): Promise<IssueAttachment
     });
 
     return { documentId: response.data.documentId, url: response.data.url, name: file.name };
+};
+
+export const uploadIssueVoiceNote = async (blob: Blob, mimeType: string, durationSeconds: number): Promise<IssueAttachment> => {
+    const maxSize = 15 * 1024 * 1024; // 15MB, matches the backend's /upload/voice-note limit
+    if (blob.size > maxSize) {
+        throw new Error(`Voice note exceeds the 15MB limit. Yours is ${(blob.size / (1024 * 1024)).toFixed(2)}MB.`);
+    }
+
+    const extension = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
+    const formData = new FormData();
+    formData.append('voice', blob, `voice-message.${extension}`);
+
+    const response = await api.post('/upload/voice-note', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+
+    return {
+        documentId: response.data.documentId,
+        url: response.data.url,
+        name: 'Voice message',
+        type: 'voice',
+        duration: durationSeconds
+    };
 };
 
 export const createIssue = async (data: CreateIssueData) => {

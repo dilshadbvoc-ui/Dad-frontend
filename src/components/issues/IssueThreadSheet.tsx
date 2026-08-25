@@ -22,6 +22,8 @@ import { formatDistanceToNow } from "date-fns"
 import { toast } from "sonner"
 import type { Issue, IssueAttachment, IssueStatus } from "@/services/issueService"
 import { uploadIssueAttachment } from "@/services/issueService"
+import { VoiceRecorder } from "./VoiceRecorder"
+import { VoiceMessageBubble } from "./VoiceMessageBubble"
 
 const TYPE_LABELS: Record<string, string> = {
   bug: "Bug",
@@ -71,6 +73,20 @@ function AttachmentChip({ attachment }: { attachment: IssueAttachment }) {
   )
 }
 
+function AttachmentList({ attachments, isMine }: { attachments: IssueAttachment[]; isMine: boolean }) {
+  return (
+    <div className={`mt-1.5 flex flex-wrap gap-1.5 ${isMine ? "justify-end" : ""}`}>
+      {attachments.map((a, i) =>
+        a.type === "voice" && !a.removed ? (
+          <VoiceMessageBubble key={a.documentId || i} attachment={a} isMine={isMine} />
+        ) : (
+          <AttachmentChip key={a.documentId || i} attachment={a} />
+        )
+      )}
+    </div>
+  )
+}
+
 interface IssueThreadSheetProps {
   issue: Issue | null
   open: boolean
@@ -104,6 +120,7 @@ export function IssueThreadSheet({
   const [message, setMessage] = useState("")
   const [pendingAttachment, setPendingAttachment] = useState<IssueAttachment | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isRecordingActive, setIsRecordingActive] = useState(false)
 
   if (!issue) return null
 
@@ -124,10 +141,14 @@ export function IssueThreadSheet({
   }
 
   const handleSend = async () => {
-    if (!message.trim()) return
+    if (!message.trim() && !pendingAttachment) return
     await onReply(message.trim(), pendingAttachment ? [pendingAttachment] : undefined)
     setMessage("")
     setPendingAttachment(null)
+  }
+
+  const handleVoiceSend = async (attachment: IssueAttachment) => {
+    await onReply("", [attachment])
   }
 
   return (
@@ -192,11 +213,7 @@ export function IssueThreadSheet({
                     {issue.description}
                   </div>
                   {issue.attachments && issue.attachments.length > 0 && (
-                    <div className={`mt-1.5 flex flex-wrap gap-1.5 ${originalIsMine ? "justify-end" : ""}`}>
-                      {issue.attachments.map((a, i) => (
-                        <AttachmentChip key={a.documentId || i} attachment={a} />
-                      ))}
-                    </div>
+                    <AttachmentList attachments={issue.attachments} isMine={originalIsMine} />
                   )}
                 </div>
               </div>
@@ -221,15 +238,13 @@ export function IssueThreadSheet({
                     </span>
                     <span>{formatDistanceToNow(new Date(reply.createdAt), { addSuffix: true })}</span>
                   </div>
-                  <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${isMine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>
-                    {reply.message}
-                  </div>
-                  {reply.attachments && reply.attachments.length > 0 && (
-                    <div className={`mt-1.5 flex flex-wrap gap-1.5 ${isMine ? "justify-end" : ""}`}>
-                      {reply.attachments.map((a, i) => (
-                        <AttachmentChip key={a.documentId || i} attachment={a} />
-                      ))}
+                  {reply.message && (
+                    <div className={`rounded-2xl px-4 py-2.5 text-sm whitespace-pre-wrap break-words max-w-[85%] ${isMine ? "rounded-tr-sm bg-primary text-primary-foreground" : "rounded-tl-sm bg-muted/60"}`}>
+                      {reply.message}
                     </div>
+                  )}
+                  {reply.attachments && reply.attachments.length > 0 && (
+                    <AttachmentList attachments={reply.attachments} isMine={isMine} />
                   )}
                 </div>
               </div>
@@ -245,7 +260,7 @@ export function IssueThreadSheet({
             </div>
           ) : (
             <>
-              {pendingAttachment && (
+              {pendingAttachment && !isRecordingActive && (
                 <div className="flex items-center gap-2 text-xs bg-muted/60 rounded-lg px-3 py-1.5 w-fit">
                   <Paperclip className="h-3 w-3" />
                   <span className="truncate max-w-[200px]">{pendingAttachment.name}</span>
@@ -255,28 +270,37 @@ export function IssueThreadSheet({
                 </div>
               )}
               <div className="flex items-end gap-2">
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Write a reply..."
-                  rows={2}
-                  className="resize-none flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" && !e.shiftKey) {
-                      e.preventDefault()
-                      handleSend()
-                    }
-                  }}
+                {!isRecordingActive && (
+                  <Textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder="Write a reply..."
+                    rows={2}
+                    className="resize-none flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault()
+                        handleSend()
+                      }
+                    }}
+                  />
+                )}
+                <VoiceRecorder
+                  onSend={handleVoiceSend}
+                  onActiveChange={setIsRecordingActive}
+                  disabled={isUploading || !!pendingAttachment}
                 />
-                <div className="flex flex-col gap-1.5 shrink-0">
-                  <label className={`inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
-                    <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
-                    {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
-                  </label>
-                  <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || !message.trim()}>
-                    {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                  </Button>
-                </div>
+                {!isRecordingActive && (
+                  <div className="flex flex-col gap-1.5 shrink-0">
+                    <label className={`inline-flex items-center justify-center h-9 w-9 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors ${isUploading ? "opacity-50 pointer-events-none" : "cursor-pointer"}`}>
+                      <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
+                      {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
+                    </label>
+                    <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || (!message.trim() && !pendingAttachment)}>
+                      {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                    </Button>
+                  </div>
+                )}
               </div>
             </>
           )}

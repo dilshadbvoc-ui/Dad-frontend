@@ -17,6 +17,7 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.webkit.GeolocationPermissions
 import android.webkit.DownloadListener
+import android.webkit.PermissionRequest
 import android.widget.Toast
 import android.provider.Settings
 import android.content.ComponentName
@@ -140,6 +141,25 @@ class MainActivity : AppCompatActivity() {
                     )
                 } else {
                     callback?.invoke(origin, true, false)
+                }
+            }
+
+            // Voice messages: the web app calls getUserMedia({audio:true}) for recording.
+            // WebChromeClient denies this by default unless we explicitly grant it here.
+            // RECORD_AUDIO is already requested at app launch (see checkPermissions()) for
+            // call recording, so in the normal case it's already granted by the time this fires.
+            override fun onPermissionRequest(request: PermissionRequest?) {
+                request ?: return
+                val needsAudio = request.resources.contains(PermissionRequest.RESOURCE_AUDIO_CAPTURE)
+                if (needsAudio && ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                    request.grant(request.resources)
+                } else {
+                    request.deny()
+                    if (needsAudio) {
+                        this@MainActivity.runOnUiThread {
+                            Toast.makeText(this@MainActivity, "Microphone permission is required for voice messages. Please enable it in Settings.", Toast.LENGTH_LONG).show()
+                        }
+                    }
                 }
             }
 
