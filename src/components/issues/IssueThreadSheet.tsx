@@ -23,6 +23,7 @@ import { toast } from "sonner"
 import type { Issue, IssueAttachment, IssueStatus } from "@/services/issueService"
 import { uploadIssueAttachment } from "@/services/issueService"
 import { VoiceRecorder } from "./VoiceRecorder"
+import { isCoarsePointer } from "@/utils/pointerUtils"
 import { VoiceMessageBubble } from "./VoiceMessageBubble"
 
 const TYPE_LABELS: Record<string, string> = {
@@ -126,6 +127,11 @@ export function IssueThreadSheet({
   const [isRecordingActive, setIsRecordingActive] = useState(false)
 
   if (!issue) return null
+
+  // Mobile gets a single adaptive mic/send button instead of both shown at once —
+  // the mic button hides and the Send button takes its place once there's content.
+  const isMobileComposer = isCoarsePointer()
+  const hasComposerContent = !!message.trim() || !!pendingAttachment
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -309,6 +315,7 @@ export function IssueThreadSheet({
                   onActiveChange={setIsRecordingActive}
                   disabled={isUploading || !!pendingAttachment}
                   organisationId={issue.organisation?.id}
+                  hideIdleButton={isMobileComposer && hasComposerContent}
                 />
                 {!isRecordingActive && (
                   <div className="flex flex-col gap-1.5 shrink-0">
@@ -316,9 +323,11 @@ export function IssueThreadSheet({
                       <input type="file" accept="image/*,application/pdf" className="hidden" onChange={handleFileChange} disabled={isUploading} />
                       {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}
                     </label>
-                    <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || (!message.trim() && !pendingAttachment)}>
-                      {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-                    </Button>
+                    {(!isMobileComposer || hasComposerContent) && (
+                      <Button type="button" size="icon" onClick={handleSend} disabled={isReplying || !hasComposerContent}>
+                        {isReplying ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

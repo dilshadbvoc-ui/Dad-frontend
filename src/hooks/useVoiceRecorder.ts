@@ -43,12 +43,15 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   const [state, setState] = useState<VoiceRecorderState>("idle")
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [levels, setLevels] = useState<number[]>([])
+  const [isPaused, setIsPaused] = useState(false)
 
   const streamRef = useRef<MediaStream | null>(null)
   const recorderRef = useRef<MediaRecorder | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const mimeTypeRef = useRef<string>("")
   const startedAtRef = useRef<number>(0)
+  const pausedAccumMsRef = useRef<number>(0)
+  const pauseStartedAtRef = useRef<number>(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const audioContextRef = useRef<AudioContext | null>(null)
   const analyserRef = useRef<AnalyserNode | null>(null)
@@ -82,7 +85,10 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
     analyserRef.current = null
     recorderRef.current = null
     chunksRef.current = []
+    pausedAccumMsRef.current = 0
+    pauseStartedAtRef.current = 0
     setLevels([])
+    setIsPaused(false)
   }, [stopLevelLoop])
 
   const runLevelLoop = useCallback(() => {
@@ -108,7 +114,9 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
 
   const finalize = useCallback((): VoiceRecordingResult | null => {
     const mimeType = mimeTypeRef.current || "audio/webm"
-    const durationSeconds = Math.max(0, Math.round((Date.now() - startedAtRef.current) / 1000))
+    const inFlightPauseMs = pauseStartedAtRef.current ? Date.now() - pauseStartedAtRef.current : 0
+    const totalPausedMs = pausedAccumMsRef.current + inFlightPauseMs
+    const durationSeconds = Math.max(0, Math.round((Date.now() - startedAtRef.current - totalPausedMs) / 1000))
     const chunks = chunksRef.current
     if (chunks.length === 0 || durationSeconds === 0) return null
     const blob = new Blob(chunks, { type: mimeType })
@@ -160,11 +168,14 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
     }
 
     startedAtRef.current = Date.now()
+    pausedAccumMsRef.current = 0
+    pauseStartedAtRef.current = 0
     recorder.start(250)
     setState("recording")
     setElapsedSeconds(0)
+    setIsPaused(false)
     timerRef.current = setInterval(() => {
-      setElapsedSeconds(Math.floor((Date.now() - startedAtRef.current) / 1000))
+      setElapsedSeconds(Math.floor((Date.now() - startedAtRef.current - pausedAccumMsRef.current) / 1000))
     }, 200)
 
     if (maxDurationSeconds > 0) {
@@ -178,6 +189,32 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
   const lock = useCallback(() => {
     setState((prev) => (prev === "recording" ? "locked" : prev))
   }, [])
+
+  const pause = useCallback(() => {
+    const recorder = recorderRef.current
+    if (!recorder || recorder.state !== "recording") return
+    recorder.pause()
+    pauseStartedAtRef.current = Date.now()
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = null
+    }
+    stopLevelLoop()
+    setIsPaused(true)
+  }, [stopLevelLoop])
+
+  const resume = useCallback(() => {
+    const recorder = recorderRef.current
+    if (!recorder || recorder.state !== "paused") return
+    pausedAccumMsRef.current += Date.now() - pauseStartedAtRef.current
+    pauseStartedAtRef.current = 0
+    recorder.resume()
+    timerRef.current = setInterval(() => {
+      setElapsedSeconds(Math.floor((Date.now() - startedAtRef.current - pausedAccumMsRef.current) / 1000))
+    }, 200)
+    runLevelLoop()
+    setIsPaused(false)
+  }, [runLevelLoop])
 
   const stop = useCallback((): Promise<VoiceRecordingResult | null> => {
     return new Promise((resolve) => {
@@ -204,5 +241,5 @@ export function useVoiceRecorder(options: UseVoiceRecorderOptions = {}) {
     setElapsedSeconds(0)
   }, [teardown])
 
-  return { state, elapsedSeconds, levels, start, stop, lock, cancel }
+  return { state, elapsedSeconds, levels, isPaused, start, stop, lock, pause, resume, cancel }
 }
