@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock, History, RefreshCw } from "lucide-react"
+import { ArrowLeft, Phone, Mail, Calendar, User, Building, Pencil, MessageSquare, CheckSquare, GripVertical, CheckCircle2, Video, UserPlus, Clock, History, RefreshCw, Sparkles } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
@@ -16,6 +16,8 @@ import { EditLeadDialog } from "@/components/shared/EditLeadDialog"
 import { CreateTaskDialog } from "@/components/CreateTaskDialog"
 import { CreateFollowUpDialog } from "@/components/CreateFollowUpDialog"
 import { LogNoteDialog } from "@/components/LogNoteDialog"
+import { suggestNextStep, type AiNextStepSuggestion } from "@/services/followUpService"
+import { motion } from "framer-motion"
 import { ScheduleMeetingDialog } from "@/components/ScheduleMeetingDialog"
 import { AssignLeadDialog } from "@/components/AssignLeadDialog"
 import { useState } from "react"
@@ -72,6 +74,8 @@ export default function LeadDetailPage() {
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [assignDialogOpen, setAssignDialogOpen] = useState(false)
   const [followUpDialogOpen, setFollowUpDialogOpen] = useState(false)
+  const [aiSuggestion, setAiSuggestion] = useState<AiNextStepSuggestion | null>(null)
+  const [isAiThinking, setIsAiThinking] = useState(false)
   const [emailDialogOpen, setEmailDialogOpen] = useState(false)
   const [productDialogOpen, setProductDialogOpen] = useState(false)
   const [isQuickWonOpen, setIsQuickWonOpen] = useState(false)
@@ -261,6 +265,20 @@ export default function LeadDetailPage() {
     )
   }
 
+  const handleSuggestNextStep = async () => {
+    if (!id || id === 'new') return
+    setIsAiThinking(true)
+    try {
+      const suggestion = await suggestNextStep(id)
+      setAiSuggestion(suggestion)
+      setFollowUpDialogOpen(true)
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Could not get an AI suggestion right now')
+    } finally {
+      setIsAiThinking(false)
+    }
+  }
+
   const handleWhatsAppCall = async (phone: string) => {
     const cleanPhone = formatWhatsAppNumber(phone, lead?.phoneCountryCode)
     if (cleanPhone) {
@@ -380,7 +398,28 @@ export default function LeadDetailPage() {
           </div>
 
           <div className="flex items-center gap-1.5 ml-auto sm:ml-0 overflow-x-auto pb-1 no-scrollbar">
-            <Button variant="outline" size="sm" onClick={() => setFollowUpDialogOpen(true)} className="h-9 px-2 sm:px-3 text-xs">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSuggestNextStep}
+              disabled={isAiThinking}
+              className="h-9 px-2 sm:px-3 text-xs border-purple-500/30 bg-purple-500/5 text-purple-600 dark:text-purple-400 hover:bg-purple-500/10 hover:text-purple-600"
+            >
+              <motion.span
+                animate={isAiThinking ? { rotate: 360 } : { rotate: 0 }}
+                transition={isAiThinking ? { repeat: Infinity, duration: 1.1, ease: 'linear' } : {}}
+                className="sm:mr-2 inline-flex"
+              >
+                <Sparkles className="h-4 w-4" />
+              </motion.span>
+              <span className="hidden sm:inline">{isAiThinking ? 'AI is thinking…' : 'AI: Next Step'}</span>
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => { setAiSuggestion(null); setFollowUpDialogOpen(true) }}
+              className="h-9 px-2 sm:px-3 text-xs"
+            >
               <Calendar className="h-4 w-4 sm:mr-2" />
               <span className="hidden sm:inline">Follow-up</span>
             </Button>
@@ -837,8 +876,14 @@ export default function LeadDetailPage() {
           <>
             <CreateFollowUpDialog
               open={followUpDialogOpen}
-              onOpenChange={setFollowUpDialogOpen}
+              onOpenChange={(open) => {
+                setFollowUpDialogOpen(open)
+                if (!open) setAiSuggestion(null)
+              }}
               leadId={lead.id}
+              aiSuggestion={aiSuggestion}
+              onRegenerateAi={handleSuggestNextStep}
+              isRegeneratingAi={isAiThinking}
               onSuccess={() => {
                 queryClient.invalidateQueries({ queryKey: ['lead', id] })
                 queryClient.invalidateQueries({ queryKey: ['follow-ups'] })

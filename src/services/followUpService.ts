@@ -51,3 +51,17 @@ export const updateFollowUp = async (id: string, data: Partial<FollowUpTask>) =>
     const response = await api.put(`/follow-ups/${id}`, data);
     return response.data;
 };
+
+export interface AiNextStepSuggestion {
+    subject: string;
+    description: string;
+    priority: 'high' | 'medium' | 'low';
+    dueDate: string;
+    assignedToId: string | null;
+    source: 'gemini' | 'rule-based';
+}
+
+export const suggestNextStep = async (leadId: string): Promise<AiNextStepSuggestion> => {
+    const response = await api.post(`/leads/${leadId}/suggest-next-step`);
+    return response.data;
+};
