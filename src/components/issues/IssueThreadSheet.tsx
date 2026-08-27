@@ -257,7 +257,7 @@ export function IssueThreadSheet({
                         type="button"
                         onClick={handleDelete}
                         title="Delete for everyone"
-                        className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-muted-foreground hover:text-destructive"
+                        className={`transition-opacity text-muted-foreground hover:text-destructive ${isMobileComposer ? "opacity-100" : "opacity-0 group-hover:opacity-100 focus:opacity-100"}`}
                       >
                         <Trash2 className="h-3 w-3" />
                       </button>
