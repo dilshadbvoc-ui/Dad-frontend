@@ -56,7 +56,7 @@ export interface CreateIssueData {
     attachments?: IssueAttachment[];
 }
 
-export const uploadIssueAttachment = async (file: File): Promise<IssueAttachment> => {
+export const uploadIssueAttachment = async (file: File, organisationId?: string): Promise<IssueAttachment> => {
     const maxSize = 5 * 1024 * 1024; // 5MB, matches the backend's /upload/document limit
     if (file.size > maxSize) {
         throw new Error(`File size exceeds the 5MB limit. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
@@ -65,6 +65,10 @@ export const uploadIssueAttachment = async (file: File): Promise<IssueAttachment
     const formData = new FormData();
     formData.append('document', file);
     formData.append('category', 'issue_attachment');
+    // The super admin has no organisationId of their own — when they're replying to a
+    // tenant's issue, the target issue's org is passed through so the upload has somewhere
+    // valid to attach to.
+    if (organisationId) formData.append('organisationId', organisationId);
 
     const response = await api.post('/upload/document', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
@@ -73,7 +77,7 @@ export const uploadIssueAttachment = async (file: File): Promise<IssueAttachment
     return { documentId: response.data.documentId, url: response.data.url, name: file.name };
 };
 
-export const uploadIssueVoiceNote = async (blob: Blob, mimeType: string, durationSeconds: number): Promise<IssueAttachment> => {
+export const uploadIssueVoiceNote = async (blob: Blob, mimeType: string, durationSeconds: number, organisationId?: string): Promise<IssueAttachment> => {
     const maxSize = 15 * 1024 * 1024; // 15MB, matches the backend's /upload/voice-note limit
     if (blob.size > maxSize) {
         throw new Error(`Voice note exceeds the 15MB limit. Yours is ${(blob.size / (1024 * 1024)).toFixed(2)}MB.`);
@@ -82,6 +86,7 @@ export const uploadIssueVoiceNote = async (blob: Blob, mimeType: string, duratio
     const extension = mimeType.includes('mp4') ? 'm4a' : mimeType.includes('ogg') ? 'ogg' : 'webm';
     const formData = new FormData();
     formData.append('voice', blob, `voice-message.${extension}`);
+    if (organisationId) formData.append('organisationId', organisationId);
 
     const response = await api.post('/upload/voice-note', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }

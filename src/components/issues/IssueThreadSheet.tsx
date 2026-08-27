@@ -133,7 +133,7 @@ export function IssueThreadSheet({
     if (!file) return
     setIsUploading(true)
     try {
-      const attachment = await uploadIssueAttachment(file)
+      const attachment = await uploadIssueAttachment(file, issue.organisation?.id)
       setPendingAttachment(attachment)
     } catch (err: unknown) {
       const error = err as { message?: string }
@@ -308,6 +308,7 @@ export function IssueThreadSheet({
                   onSend={handleVoiceSend}
                   onActiveChange={setIsRecordingActive}
                   disabled={isUploading || !!pendingAttachment}
+                  organisationId={issue.organisation?.id}
                 />
                 {!isRecordingActive && (
                   <div className="flex flex-col gap-1.5 shrink-0">

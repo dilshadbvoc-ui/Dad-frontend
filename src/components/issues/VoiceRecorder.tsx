@@ -24,9 +24,11 @@ interface VoiceRecorderProps {
   onSend: (attachment: IssueAttachment) => void
   onActiveChange: (active: boolean) => void
   disabled?: boolean
+  /** Passed through to the upload call for platform-level users (e.g. super admin) who have no organisationId of their own. */
+  organisationId?: string
 }
 
-export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorderProps) {
+export function VoiceRecorder({ onSend, onActiveChange, disabled, organisationId }: VoiceRecorderProps) {
   const recorder = useVoiceRecorder({
     onMaxDurationReached: () => toast.info("Voice note reached the 5 minute limit and was sent."),
   })
@@ -57,7 +59,7 @@ export function VoiceRecorder({ onSend, onActiveChange, disabled }: VoiceRecorde
   const kickUpload = (durationSeconds: number) => {
     const blob = blobRef.current
     if (!blob) return
-    uploadPromiseRef.current = uploadIssueVoiceNote(blob, blob.type, durationSeconds).catch((err) => {
+    uploadPromiseRef.current = uploadIssueVoiceNote(blob, blob.type, durationSeconds, organisationId).catch((err) => {
       toast.error(err?.message || "Failed to upload voice message")
       throw err
     })
