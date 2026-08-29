@@ -6,6 +6,7 @@ import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
 import Dashboard from './pages/Dashboard';
+import DashboardV2 from './pages/DashboardV2';
 import Layout from './components/shared/Layout';
 import PrivacyPolicy from './pages/PrivacyPolicy';
 import Terms from './pages/Terms';
@@ -91,6 +92,8 @@ const FollowUpReportsPage = lazy(() => import('./pages/reports/follow-ups'));
 const AuditLogsReportPage = lazy(() => import('./pages/reports/audit-logs'));
 const CallAnalyticsPage = lazy(() => import('./pages/reports/CallAnalytics'));
 const UserTotalReportPage = lazy(() => import('./pages/reports/PerformanceReport'));
+const UserTrendPage = lazy(() => import('./pages/trends/UserTrend'));
+const BusinessTrendPage = lazy(() => import('./pages/trends/BusinessTrend'));
 const DailyReportPage = lazy(() => import('./pages/reports/DailyReport'));
 const LeadDistributionReportPage = lazy(() => import('./pages/reports/LeadDistribution'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/settings/Integrations'));
@@ -299,6 +302,9 @@ function AppContent() {
 
       <Route element={<Layout />}>
        <Route path="/dashboard" element={<Dashboard />} />
+       <Route path="/dashboard-2" element={<DashboardV2 />} />
+       <Route path="/trends/user" element={<UserTrendPage />} />
+       <Route path="/trends/business" element={<BusinessTrendPage />} />
        <Route path="/leads" element={<LeadsPage />} />
        <Route path="/leads/import" element={<BulkImportLeadsPage />} />
        <Route path="/leads/new" element={<CreateLeadPage />} />

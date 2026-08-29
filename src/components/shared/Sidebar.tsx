@@ -50,6 +50,7 @@ const menuGroups = [
     title: "Overview",
     items: [
       { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { title: "Dashboard II", href: "/dashboard-2", icon: PieChart },
       // { title: "Analytics", href: "/analytics", icon: PieChart, role: "org_admin" },
     ]
   },

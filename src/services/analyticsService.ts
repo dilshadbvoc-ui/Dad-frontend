@@ -1,5 +1,37 @@
 import { api } from './api';
 
+export interface LeadStageCount {
+    id: string;
+    label: string;
+    color: string;
+    count: number;
+}
+
+export interface LeadsByStageResult {
+    stages: LeadStageCount[];
+    total: number;
+}
+
+export const getLeadsByStage = async (filters?: { branchId?: string; campaignId?: string; startDate?: string; endDate?: string }): Promise<LeadsByStageResult> => {
+    try {
+        const response = await api.get('/analytics/leads-by-stage', { params: filters });
+        return response.data || { stages: [], total: 0 };
+    } catch (error) {
+        console.error('Error fetching leads by stage:', error);
+        return { stages: [], total: 0 };
+    }
+};
+
+export const getLeadCampaigns = async (): Promise<string[]> => {
+    try {
+        const response = await api.get('/analytics/lead-campaigns');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching lead campaigns:', error);
+        return [];
+    }
+};
+
 export const getDashboardStats = async (branchId?: string, month?: string) => {
     try {
         const params: any = {};
