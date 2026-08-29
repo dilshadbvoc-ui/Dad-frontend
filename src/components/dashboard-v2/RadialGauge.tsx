@@ -4,7 +4,7 @@ export function RadialGauge({
   strokeWidth = 14,
   label,
   valueText,
-  color = "hsl(var(--primary))",
+  color = "hsl(var(--chart-5))",
 }: {
   percent: number;
   size?: number;

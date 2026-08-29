@@ -43,7 +43,7 @@ export function LeadsByStageCard() {
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
       <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between space-y-0 pb-4">
         <CardTitle className="text-lg sm:text-xl font-bold text-card-foreground flex items-center gap-2">
-          <GitBranch className="h-5 w-5 text-primary" />
+          <GitBranch className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Leads by Stage
         </CardTitle>
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">

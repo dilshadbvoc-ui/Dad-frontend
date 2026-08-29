@@ -25,7 +25,7 @@ export function TaskFollowUpStatusChart() {
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
-          <ListChecks className="h-5 w-5 text-primary" />
+          <ListChecks className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Tasks &amp; Follow-ups by Status
         </CardTitle>
       </CardHeader>

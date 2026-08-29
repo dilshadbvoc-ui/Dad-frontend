@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { TrendingUp, BarChart3, ArrowRight } from "lucide-react";
+import { SectionHeading } from "./SectionHeading";
 
 const tools = [
   {
@@ -23,9 +24,7 @@ const tools = [
 export function ToolsSection() {
   return (
     <div className="space-y-3">
-      <h2 className="text-base sm:text-lg font-bold text-foreground">
-        Tools to improve efficiency and outcomes
-      </h2>
+      <SectionHeading>Tools to improve efficiency and outcomes</SectionHeading>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {tools.map((tool) => (
           <Link key={tool.title} to={tool.to}>

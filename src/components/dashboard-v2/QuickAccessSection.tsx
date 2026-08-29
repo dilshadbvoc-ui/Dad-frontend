@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { KeyRound, LogIn, Users, BookOpen } from "lucide-react";
+import { SectionHeading } from "./SectionHeading";
 
 interface QuickAccessItem {
   title: string;
@@ -42,7 +43,7 @@ const items: QuickAccessItem[] = [
 export function QuickAccessSection() {
   return (
     <div className="space-y-3">
-      <h2 className="text-base sm:text-lg font-bold text-foreground">Quick Access</h2>
+      <SectionHeading>Quick Access</SectionHeading>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {items.map((item) => {
           const content = (
@@ -51,7 +52,7 @@ export function QuickAccessSection() {
                 {item.icon}
               </div>
               <div>
-                <h3 className="font-bold text-sm text-card-foreground group-hover:text-primary transition-colors">
+                <h3 className="font-bold text-sm text-card-foreground group-hover:text-[hsl(var(--chart-5))] transition-colors">
                   {item.title}
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>

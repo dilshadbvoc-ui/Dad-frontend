@@ -28,7 +28,7 @@ export function CallOverviewCard({ range }: { range: DateRangeValue }) {
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden">
       <CardHeader className="pb-4">
         <CardTitle className="text-lg sm:text-xl font-bold text-card-foreground flex items-center gap-2">
-          <Phone className="h-5 w-5 text-primary" />
+          <Phone className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Call Overview
         </CardTitle>
       </CardHeader>
@@ -41,7 +41,7 @@ export function CallOverviewCard({ range }: { range: DateRangeValue }) {
             <div className="flex flex-col gap-4 flex-1 min-w-[120px]">
               <div>
                 <p className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none flex items-center gap-2">
-                  <PhoneCall className="h-4 w-4 text-primary" /> {connected}
+                  <PhoneCall className="h-4 w-4 text-[hsl(var(--chart-5))]" /> {connected}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">Connected Calls</p>
               </div>
@@ -54,7 +54,7 @@ export function CallOverviewCard({ range }: { range: DateRangeValue }) {
         )}
         <Link
           to="/reports/call-analytics"
-          className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline mt-4"
+          className="inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--chart-5))] hover:underline mt-4"
         >
           View Report
           <ArrowRight className="h-3.5 w-3.5" />

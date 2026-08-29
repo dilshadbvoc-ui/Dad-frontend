@@ -20,7 +20,7 @@ export function ConversionFunnelChart() {
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
-          <Filter className="h-5 w-5 text-primary" />
+          <Filter className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Conversion Funnel
         </CardTitle>
       </CardHeader>

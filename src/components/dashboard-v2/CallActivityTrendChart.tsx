@@ -31,7 +31,7 @@ export function CallActivityTrendChart() {
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
-          <Activity className="h-5 w-5 text-primary" />
+          <Activity className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Call Activity Trend
         </CardTitle>
         <DateRangeDropdown value={range} onChange={setRange} />

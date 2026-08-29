@@ -81,7 +81,7 @@ export function DateRangeDropdown({
               )}
             >
               {opt.label}
-              {value.period === opt.value && <Check className="h-3.5 w-3.5 text-primary" />}
+              {value.period === opt.value && <Check className="h-3.5 w-3.5 text-[hsl(var(--chart-5))]" />}
             </button>
           ))}
         </div>

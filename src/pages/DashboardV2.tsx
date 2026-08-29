@@ -1,5 +1,7 @@
 import { useState } from "react";
+import { LineChart } from "lucide-react";
 import { CallOverviewCard } from "@/components/dashboard-v2/CallOverviewCard";
+import { SectionHeading } from "@/components/dashboard-v2/SectionHeading";
 import { LeadsByStageCard } from "@/components/dashboard-v2/LeadsByStageCard";
 import { ToolsSection } from "@/components/dashboard-v2/ToolsSection";
 import { QuickAccessSection } from "@/components/dashboard-v2/QuickAccessSection";
@@ -41,7 +43,9 @@ export default function DashboardV2() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-base sm:text-lg font-bold text-foreground">Analytics &amp; Trends</h2>
+        <SectionHeading icon={<LineChart className="h-4 w-4 text-[hsl(var(--chart-5))]" />}>
+          Analytics &amp; Trends
+        </SectionHeading>
         <div className="grid gap-4 lg:grid-cols-2">
           <CallActivityTrendChart />
           <LeadSourceDonutChart />
