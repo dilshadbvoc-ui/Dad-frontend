@@ -32,6 +32,74 @@ export const getLeadCampaigns = async (): Promise<string[]> => {
     }
 };
 
+export interface CallActivityPoint {
+    date: string;
+    total: number;
+    connected: number;
+}
+
+export const getCallActivityTrend = async (filters?: { period?: string; startDate?: string; endDate?: string; branchId?: string }): Promise<CallActivityPoint[]> => {
+    try {
+        const response = await api.get('/analytics/call-activity-trend', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching call activity trend:', error);
+        return [];
+    }
+};
+
+export interface TaskFollowUpStatusCount {
+    status: string;
+    label: string;
+    tasks: number;
+    followUps: number;
+    total: number;
+}
+
+export const getTaskFollowUpCompletion = async (filters?: { branchId?: string }): Promise<TaskFollowUpStatusCount[]> => {
+    try {
+        const response = await api.get('/analytics/task-followup-completion', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching task/follow-up completion:', error);
+        return [];
+    }
+};
+
+export interface OpportunityPipelineBucket {
+    id: string;
+    label: string;
+    value: number;
+    count: number;
+}
+
+export const getOpportunityPipelineValue = async (filters?: { branchId?: string }): Promise<OpportunityPipelineBucket[]> => {
+    try {
+        const response = await api.get('/analytics/opportunity-pipeline-value', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching opportunity pipeline value:', error);
+        return [];
+    }
+};
+
+export interface BranchPerformanceRow {
+    id: string;
+    name: string;
+    totalLeads: number;
+    convertedLeads: number;
+}
+
+export const getBranchPerformance = async (): Promise<BranchPerformanceRow[]> => {
+    try {
+        const response = await api.get('/analytics/branch-performance');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching branch performance:', error);
+        return [];
+    }
+};
+
 export const getDashboardStats = async (branchId?: string, month?: string) => {
     try {
         const params: any = {};
