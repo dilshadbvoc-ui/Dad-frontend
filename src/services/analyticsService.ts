@@ -90,6 +90,24 @@ export interface BranchPerformanceRow {
     convertedLeads: number;
 }
 
+export interface UserTrendTile {
+    key: string;
+    label: string;
+    current: number;
+    previous: number;
+    changePct: number;
+}
+
+export const getUserTrendsSummary = async (filters?: { period?: string; startDate?: string; endDate?: string; branchId?: string }): Promise<UserTrendTile[]> => {
+    try {
+        const response = await api.get('/analytics/user-trends-summary', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching user trends summary:', error);
+        return [];
+    }
+};
+
 export const getBranchPerformance = async (): Promise<BranchPerformanceRow[]> => {
     try {
         const response = await api.get('/analytics/branch-performance');

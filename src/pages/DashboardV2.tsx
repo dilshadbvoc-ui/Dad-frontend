@@ -8,6 +8,8 @@ import { ConversionFunnelChart } from "@/components/dashboard-v2/ConversionFunne
 import { TaskFollowUpStatusChart } from "@/components/dashboard-v2/TaskFollowUpStatusChart";
 import { OpportunityPipelineChart } from "@/components/dashboard-v2/OpportunityPipelineChart";
 import { BranchPerformanceChart } from "@/components/dashboard-v2/BranchPerformanceChart";
+import { UserTrendsQuickPanel } from "@/components/dashboard-v2/UserTrendsQuickPanel";
+import { UserRankingCard } from "@/components/dashboard-v2/UserRankingCard";
 
 export default function DashboardV2() {
   return (
@@ -22,6 +24,11 @@ export default function DashboardV2() {
       <div className="grid gap-4 lg:grid-cols-2">
         <CallOverviewCard />
         <LeadsByStageCard />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <UserTrendsQuickPanel />
+        <UserRankingCard />
       </div>
 
       <div className="space-y-3">
