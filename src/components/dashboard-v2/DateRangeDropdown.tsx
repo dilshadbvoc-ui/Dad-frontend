@@ -31,9 +31,11 @@ export function getDateRangeLabel(value: DateRangeValue): string {
 export function DateRangeDropdown({
   value,
   onChange,
+  variant = "default",
 }: {
   value: DateRangeValue;
   onChange: (value: DateRangeValue) => void;
+  variant?: "default" | "accent";
 }) {
   const [open, setOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(value.period === "custom");
@@ -56,28 +58,42 @@ export function DateRangeDropdown({
     setOpen(false);
   };
 
+  const isAccent = variant === "accent";
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           size="sm"
-          className="h-9 rounded-xl gap-2 text-xs sm:text-sm font-medium border-input bg-background"
+          className={cn(
+            "h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium",
+            isAccent
+              ? "border-[hsl(var(--chart-5))]/20 bg-[hsl(var(--chart-5))]/5 text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10 hover:text-[hsl(var(--chart-5))] focus:outline-none focus:ring-0 focus:ring-offset-0"
+              : "rounded-xl border-input bg-background"
+          )}
         >
-          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+          <Calendar className={cn("h-3.5 w-3.5", isAccent ? "text-[hsl(var(--chart-5))]" : "text-muted-foreground")} />
           <span className="truncate max-w-[140px]">{getDateRangeLabel(value)}</span>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          <ChevronDown className={cn("h-3.5 w-3.5", isAccent ? "text-[hsl(var(--chart-5))]" : "text-muted-foreground")} />
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-64 p-2 rounded-xl">
+      <PopoverContent align="end" className={cn("w-64 p-2", isAccent ? "rounded-[10px]" : "rounded-xl")}>
         <div className="space-y-0.5">
           {OPTIONS.map((opt) => (
             <button
               key={opt.value}
               onClick={() => handleSelect(opt.value)}
               className={cn(
-                "w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm text-left hover:bg-muted/60 transition-colors",
-                value.period === opt.value && "bg-muted/60 font-medium"
+                "w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors",
+                isAccent ? "rounded-[10px]" : "rounded-lg",
+                value.period === opt.value
+                  ? isAccent
+                    ? "bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))] font-medium"
+                    : "bg-muted/60 font-medium"
+                  : isAccent
+                  ? "hover:bg-[hsl(var(--chart-5))]/10 hover:text-[hsl(var(--chart-5))]"
+                  : "hover:bg-muted/60"
               )}
             >
               {opt.label}

@@ -17,7 +17,7 @@ export function OpportunityPipelineChart() {
   const hasData = data.some((d) => d.count > 0);
 
   return (
-    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
+    <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-[hsl(var(--chart-5))]" />

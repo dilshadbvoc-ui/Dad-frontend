@@ -1,6 +1,6 @@
 export function RadialGauge({
   percent,
-  size = 160,
+  size = 180,
   strokeWidth = 14,
   label,
   valueText,
@@ -43,10 +43,10 @@ export function RadialGauge({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-2xl font-extrabold text-foreground leading-none">
+        <span className="text-3xl font-medium font-poppins text-foreground leading-none">
           {valueText ?? `${Math.round(pct)}%`}
         </span>
-        {label && <span className="text-[11px] text-muted-foreground mt-1">{label}</span>}
+        {label && <span className="text-[12px] font-poppins text-black mt-1">{label}</span>}
       </div>
     </div>
   );

@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Phone, PhoneCall, ArrowRight } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getCallStats } from "@/services/callService";
 import type { DateRangeValue } from "./DateRangeDropdown";
-import { RadialGauge } from "./RadialGauge";
+import { SemiCircleGauge } from "./SemiCircleGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function CallOverviewCard({ range }: { range: DateRangeValue }) {
@@ -25,41 +24,60 @@ export function CallOverviewCard({ range }: { range: DateRangeValue }) {
   const pct = total > 0 ? (connected / total) * 100 : 0;
 
   return (
-    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg sm:text-xl font-bold text-card-foreground flex items-center gap-2">
-          <Phone className="h-5 w-5 text-[hsl(var(--chart-5))]" />
+    <div className="w-fit">
+      <div className="flex items-center justify-between gap-6 mb-6">
+        <h3 className="text-lg sm:text-xl font-medium font-poppins text-card-foreground flex items-center gap-2">
+          <Phone  strokeWidth={1} className="h-5.5 w-5.5 text-[hsl(var(--chart-5))]" />
           Call Overview
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {isLoading ? (
-          <Skeleton className="h-32 w-full rounded-2xl" />
-        ) : (
-          <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-            <RadialGauge percent={pct} label="Connected" />
-            <div className="flex flex-col gap-4 flex-1 min-w-[120px]">
-              <div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none flex items-center gap-2">
-                  <PhoneCall className="h-4 w-4 text-[hsl(var(--chart-5))]" /> {connected}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1">Connected Calls</p>
+        </h3>
+        <Link
+          to="/reports/call-analytics"
+          className="group inline-flex items-center gap-1.5 text-sm font-medium text-[hsl(var(--chart-5))] shrink-0"
+        >
+          View Report
+          <ArrowRight className="h-3.5 w-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+        </Link>
+      </div>
+
+      {isLoading ? (
+        <Skeleton className="h-48 w-full max-w-[320px] mx-auto rounded-2xl" />
+      ) : (
+        <>
+          <div className="flex justify-center">
+            <SemiCircleGauge percent={pct} label="Connected" />
+          </div>
+
+          <div className="border-t border-border my-8" />
+
+          <div className="flex items-center justify-center gap-8">
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-14 rounded-none bg-[hsl(var(--chart-5))]/10 flex items-center justify-center shrink-0">
+                <PhoneCall strokeWidth={1.5} className="h-6 w-6 text-[hsl(var(--chart-5))]" />
               </div>
               <div>
-                <p className="text-xl sm:text-2xl font-bold text-muted-foreground leading-none">{total}</p>
-                <p className="text-xs text-muted-foreground mt-1">Total Calls</p>
+                <p className="text-2xl sm:text-3xl font-medium font-poppins text-black leading-none">
+                  {connected}
+                </p>
+                <p className="text-[12px] font-poppins text-black mt-1">Connected Calls</p>
+              </div>
+            </div>
+
+            <div className="w-px self-stretch bg-border" />
+
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-14 rounded-none bg-[hsl(var(--chart-5))]/10 flex items-center justify-center shrink-0">
+                <Phone strokeWidth={1.5} className="h-6 w-6 text-[hsl(var(--chart-5))]" />
+              </div>
+              <div>
+                <p className="text-2xl sm:text-3xl font-medium font-poppins text-black leading-none">
+                  {total}
+                </p>
+                <p className="text-[12px] font-poppins text-black mt-1">Total Calls</p>
               </div>
             </div>
           </div>
-        )}
-        <Link
-          to="/reports/call-analytics"
-          className="inline-flex items-center gap-1 text-sm font-medium text-[hsl(var(--chart-5))] hover:underline mt-4"
-        >
-          View Report
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </CardContent>
-    </Card>
+        </>
+      )}
+    </div>
   );
 }

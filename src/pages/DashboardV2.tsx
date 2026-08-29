@@ -19,31 +19,42 @@ export default function DashboardV2() {
   const [range, setRange] = useState<DateRangeValue>({ period: "week" });
 
   return (
-    <div className="space-y-4 sm:space-y-8 pt-3 sm:p-8 animate-in fade-in duration-500 pb-20 sm:pb-8">
+    <div className="bg-white space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-4xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
+          <h1 className="text-xl sm:text-3xl font-medium font-poppins tracking-tight text-foreground flex items-center gap-2">
             Dashboard <span aria-hidden>👋</span>
           </h1>
-          <p className="text-muted-foreground mt-0.5 text-xs sm:text-base opacity-80">
+          <p className="text-gray-600 tracking-tight font-poppins mt-0.5 text-[12px] sm:text-[14px] opacity-80">
             Here's what's happening with your CRM today.
           </p>
         </div>
         <DateRangeDropdown value={range} onChange={setRange} />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <CallOverviewCard range={range} />
-        <LeadsByStageCard />
-      </div>
-
-      <div className="grid gap-4 lg:grid-cols-2">
-        <UserTrendsQuickPanel range={range} />
-        <UserRankingCard />
+      <div className="bg-card overflow-hidden">
+        <div className="grid lg:grid-cols-[auto_1fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
+          <div className="p-4 sm:p-1 w-fit lg:pr-8 lg:pb-5">
+            <CallOverviewCard range={range} />
+          </div>
+          <div className="p-4 sm:p-1 lg:pl-4 lg:pb-5">
+            <LeadsByStageCard />
+          </div>
+        </div>
+        <div className="border-t border-border" />
+        <div className="grid lg:grid-cols-[auto_auto_1fr] divide-y lg:divide-y-0 divide-border">
+          <div className="p-4 sm:p-1 w-fit lg:pr-8 lg:pt-4 lg:pb-5">
+            <UserTrendsQuickPanel range={range} />
+          </div>
+          <div className="hidden lg:block w-px bg-border my-6" />
+          <div className="p-4 sm:p-1 lg:pl-4 lg:pt-5 lg:pb-5">
+            <UserRankingCard />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-3">
-        <SectionHeading icon={<LineChart className="h-4 w-4 text-[hsl(var(--chart-5))]" />}>
+        <SectionHeading  icon={<LineChart strokeWidth={1} className="h-5.5 w-5.5 text-[hsl(var(--chart-5))]" />}>
           Analytics &amp; Trends
         </SectionHeading>
         <div className="grid gap-4 lg:grid-cols-2">

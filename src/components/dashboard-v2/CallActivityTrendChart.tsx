@@ -28,13 +28,12 @@ export function CallActivityTrendChart() {
   const chartData = data.map((d) => ({ ...d, label: formatDay(d.date) }));
 
   return (
-    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
+    <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
-          <Activity className="h-5 w-5 text-[hsl(var(--chart-5))]" />
+        <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           Call Activity Trend
         </CardTitle>
-        <DateRangeDropdown value={range} onChange={setRange} />
+        <DateRangeDropdown value={range} onChange={setRange} variant="accent" />
       </CardHeader>
       <CardContent>
         {isLoading ? (

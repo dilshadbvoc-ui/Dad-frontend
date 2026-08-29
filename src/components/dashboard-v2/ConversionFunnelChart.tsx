@@ -17,7 +17,7 @@ export function ConversionFunnelChart() {
   const step = stages.length > 1 ? (MAX_WIDTH_PCT - MIN_WIDTH_PCT) / (stages.length - 1) : 0;
 
   return (
-    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
+    <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
           <Filter className="h-5 w-5 text-[hsl(var(--chart-5))]" />

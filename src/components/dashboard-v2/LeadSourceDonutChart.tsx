@@ -46,7 +46,7 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
 
   return (
-    <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
+    <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
           <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-5))]" />
