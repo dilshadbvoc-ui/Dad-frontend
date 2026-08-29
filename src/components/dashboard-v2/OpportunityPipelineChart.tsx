@@ -5,7 +5,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Toolti
 import { Skeleton } from "@/components/ui/skeleton";
 import { getOpportunityPipelineValue } from "@/services/analyticsService";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { CHART_COLORS } from "./chartColors";
+import { PIPELINE_BUCKET_COLORS } from "./chartColors";
 
 export function OpportunityPipelineChart() {
   const { formatCurrencyCompact, formatCurrency } = useCurrency();
@@ -52,8 +52,8 @@ export function OpportunityPipelineChart() {
                 ]}
               />
               <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={entry.id} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                {data.map((entry) => (
+                  <Cell key={entry.id} fill={PIPELINE_BUCKET_COLORS[entry.id] || "hsl(var(--chart-3))"} />
                 ))}
                 <LabelList
                   dataKey="value"

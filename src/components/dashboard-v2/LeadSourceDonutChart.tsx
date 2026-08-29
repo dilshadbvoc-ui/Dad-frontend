@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLeadSourceAnalytics } from "@/services/analyticsService";
-import { CHART_COLORS } from "./chartColors";
+import { CHART_COLORS, LEAD_SOURCE_COLORS } from "./chartColors";
 
 const SOURCE_LABELS: Record<string, string> = {
   website: "Website",
@@ -29,16 +29,18 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
   const data = useMemo(() => {
     const items = (Array.isArray(raw) ? raw : [])
       .map((item: { source?: string; count?: number }) => ({
+        id: item.source || "unknown",
         name: SOURCE_LABELS[item.source || ""] || item.source || "Unknown",
         value: Number(item.count || 0),
       }))
       .filter((d) => d.value > 0)
       .sort((a, b) => b.value - a.value);
 
-    if (items.length <= CHART_COLORS.length) return items;
-    const top = items.slice(0, CHART_COLORS.length - 1);
-    const other = items.slice(CHART_COLORS.length - 1).reduce((sum, i) => sum + i.value, 0);
-    return [...top, { name: "Other", value: other }];
+    const maxSlices = Object.keys(LEAD_SOURCE_COLORS).length;
+    if (items.length <= maxSlices) return items;
+    const top = items.slice(0, maxSlices - 1);
+    const other = items.slice(maxSlices - 1).reduce((sum, i) => sum + i.value, 0);
+    return [...top, { id: "Other", name: "Other", value: other }];
   }, [raw]);
 
   const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -73,8 +75,8 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
                 label={({ value }) => `${Math.round((value / total) * 100)}%`}
                 labelLine={false}
               >
-                {data.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                {data.map((entry, index) => (
+                  <Cell key={entry.id} fill={LEAD_SOURCE_COLORS[entry.id] || CHART_COLORS[index % CHART_COLORS.length]} />
                 ))}
               </Pie>
               <Tooltip

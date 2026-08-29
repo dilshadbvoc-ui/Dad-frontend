@@ -4,14 +4,17 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLeadsByStage } from "@/services/analyticsService";
 
+const MAX_WIDTH_PCT = 100;
+const MIN_WIDTH_PCT = 22;
+
 export function ConversionFunnelChart() {
   const { data, isLoading } = useQuery({
     queryKey: ["conversion-funnel"],
     queryFn: () => getLeadsByStage(),
   });
 
-  const stages = (data?.stages ?? []).filter((s) => s.id !== "lost");
-  const maxCount = Math.max(1, ...stages.map((s) => s.count));
+  const stages = data?.stages ?? [];
+  const step = stages.length > 1 ? (MAX_WIDTH_PCT - MIN_WIDTH_PCT) / (stages.length - 1) : 0;
 
   return (
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
@@ -23,33 +26,37 @@ export function ConversionFunnelChart() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-9 rounded-lg" />
-            ))}
-          </div>
+          <Skeleton className="h-[260px] w-full rounded-2xl" />
         ) : stages.length === 0 ? (
           <div className="h-[160px] flex items-center justify-center text-sm text-muted-foreground">
             No pipeline data yet
           </div>
         ) : (
-          <div className="space-y-2.5">
-            {stages.map((stage) => {
-              const widthPct = Math.max(6, (stage.count / maxCount) * 100);
-              return (
-                <div key={stage.id} className="flex items-center gap-3">
-                  <span className="text-xs text-muted-foreground w-28 shrink-0 truncate">{stage.label}</span>
-                  <div className="flex-1 h-8 rounded-lg bg-muted/30 relative overflow-hidden">
-                    <div
-                      className="h-full rounded-lg flex items-center justify-end px-2 transition-all"
-                      style={{ width: `${widthPct}%`, backgroundColor: stage.color }}
-                    >
-                      <span className="text-xs font-bold text-white drop-shadow-sm">{stage.count}</span>
-                    </div>
-                  </div>
+          <div className="flex gap-4">
+            <div className="flex flex-col gap-2 shrink-0">
+              {stages.map((stage) => (
+                <div key={stage.id} className="flex items-center gap-1.5 h-[22px]">
+                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">{stage.label}</span>
                 </div>
-              );
-            })}
+              ))}
+            </div>
+            <div className="flex-1 flex flex-col items-center gap-2">
+              {stages.map((stage, index) => (
+                <div
+                  key={stage.id}
+                  className="h-[22px] rounded-sm"
+                  style={{ width: `${MAX_WIDTH_PCT - step * index}%`, backgroundColor: stage.color }}
+                />
+              ))}
+            </div>
+            <div className="flex flex-col gap-2 shrink-0 items-end">
+              {stages.map((stage) => (
+                <span key={stage.id} className="h-[22px] flex items-center text-xs font-semibold text-foreground">
+                  {stage.count.toLocaleString()}
+                </span>
+              ))}
+            </div>
           </div>
         )}
       </CardContent>

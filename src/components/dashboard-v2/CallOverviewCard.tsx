@@ -1,16 +1,13 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Phone, PhoneCall, ArrowRight } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { getCallStats } from "@/services/callService";
-import { DateRangeDropdown, type DateRangeValue } from "./DateRangeDropdown";
-import { SemiCircleGauge } from "./SemiCircleGauge";
+import type { DateRangeValue } from "./DateRangeDropdown";
+import { RadialGauge } from "./RadialGauge";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function CallOverviewCard() {
-  const [range, setRange] = useState<DateRangeValue>({ period: "week" });
-
+export function CallOverviewCard({ range }: { range: DateRangeValue }) {
   const { data, isLoading } = useQuery({
     queryKey: ["call-overview-stats", range.period, range.startDate, range.endDate],
     queryFn: () =>
@@ -29,25 +26,24 @@ export function CallOverviewCard() {
 
   return (
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden">
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+      <CardHeader className="pb-4">
         <CardTitle className="text-lg sm:text-xl font-bold text-card-foreground flex items-center gap-2">
           <Phone className="h-5 w-5 text-primary" />
           Call Overview
         </CardTitle>
-        <DateRangeDropdown value={range} onChange={setRange} />
       </CardHeader>
       <CardContent>
         {isLoading ? (
           <Skeleton className="h-32 w-full rounded-2xl" />
         ) : (
           <div className="flex items-center justify-between gap-4 flex-wrap sm:flex-nowrap">
-            <SemiCircleGauge percent={pct} label="Connected" />
+            <RadialGauge percent={pct} label="Connected" />
             <div className="flex flex-col gap-4 flex-1 min-w-[120px]">
               <div>
-                <p className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none">{connected}</p>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  <PhoneCall className="h-3.5 w-3.5 text-primary" /> Connected Calls
+                <p className="text-2xl sm:text-3xl font-extrabold text-foreground leading-none flex items-center gap-2">
+                  <PhoneCall className="h-4 w-4 text-primary" /> {connected}
                 </p>
+                <p className="text-xs text-muted-foreground mt-1">Connected Calls</p>
               </div>
               <div>
                 <p className="text-xl sm:text-2xl font-bold text-muted-foreground leading-none">{total}</p>

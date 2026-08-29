@@ -85,16 +85,29 @@ export function LeadsByStageCard() {
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {stages.map((stage) => (
-              <div key={stage.id} className="rounded-xl bg-muted/30 p-3 flex flex-col gap-1">
-                <div className="flex items-center gap-1.5">
-                  <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
-                  <span className="text-xs text-muted-foreground truncate">{stage.label}</span>
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {stages.filter((s) => s.id !== "other").map((stage) => (
+                <div key={stage.id} className="rounded-xl bg-muted/30 p-3 flex flex-col gap-1">
+                  <div className="flex items-center gap-1.5">
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
+                    <span className="text-xs text-muted-foreground truncate">{stage.label}</span>
+                  </div>
+                  <span className="text-xl font-extrabold text-foreground">{stage.count}</span>
                 </div>
-                <span className="text-xl font-extrabold text-foreground">{stage.count}</span>
+              ))}
+            </div>
+            {stages.some((s) => s.id === "other") && (
+              <div className="rounded-xl bg-muted/30 p-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="h-4 w-4 rounded-sm bg-muted-foreground/30 shrink-0" />
+                  <span className="text-xs text-muted-foreground">Other</span>
+                </div>
+                <span className="text-lg font-extrabold text-foreground">
+                  {stages.find((s) => s.id === "other")?.count.toLocaleString()}
+                </span>
               </div>
-            ))}
+            )}
           </div>
         )}
       </CardContent>

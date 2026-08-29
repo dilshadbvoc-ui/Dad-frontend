@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { ListChecks } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LabelList } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTaskFollowUpCompletion } from "@/services/analyticsService";
+import { RadialGauge } from "./RadialGauge";
+import { STATUS_COLORS } from "./chartColors";
 
 const STATUS_ORDER = ["not_started", "in_progress", "completed", "deferred"];
 
@@ -13,9 +14,12 @@ export function TaskFollowUpStatusChart() {
     queryFn: () => getTaskFollowUpCompletion(),
   });
 
-  const chartData = [...data].sort(
+  const rows = [...data].sort(
     (a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status)
   );
+  const total = rows.reduce((sum, r) => sum + r.total, 0);
+  const completed = rows.find((r) => r.status === "completed")?.total ?? 0;
+  const completionPct = total > 0 ? (completed / total) * 100 : 0;
 
   return (
     <Card className="rounded-[0.8rem] md:rounded-[2rem] bg-card shadow-sm border-0 overflow-hidden h-full">
@@ -27,30 +31,31 @@ export function TaskFollowUpStatusChart() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-[260px] w-full rounded-2xl" />
-        ) : chartData.length === 0 ? (
-          <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">
+          <Skeleton className="h-[220px] w-full rounded-2xl" />
+        ) : total === 0 ? (
+          <div className="h-[180px] flex items-center justify-center text-sm text-muted-foreground">
             No tasks or follow-ups yet
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
-            <BarChart data={chartData} margin={{ top: 20, right: 16, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-              <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
-              <Tooltip
-                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
-                itemStyle={{ color: "hsl(var(--foreground))" }}
-              />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="tasks" name="Tasks" fill="hsl(var(--chart-1))" radius={[4, 4, 0, 0]}>
-                <LabelList dataKey="tasks" position="top" fontSize={11} fill="hsl(var(--foreground))" />
-              </Bar>
-              <Bar dataKey="followUps" name="Follow-ups" fill="hsl(var(--chart-4))" radius={[4, 4, 0, 0]}>
-                <LabelList dataKey="followUps" position="top" fontSize={11} fill="hsl(var(--foreground))" />
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex items-center gap-6 flex-wrap sm:flex-nowrap">
+            <RadialGauge percent={completionPct} valueText={total.toLocaleString()} label="Total" />
+            <div className="flex-1 min-w-[180px] space-y-3">
+              {rows.map((row) => {
+                const share = total > 0 ? (row.total / total) * 100 : 0;
+                const color = STATUS_COLORS[row.status] || "hsl(var(--muted-foreground))";
+                return (
+                  <div key={row.status} className="flex items-center gap-3">
+                    <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="text-xs text-muted-foreground w-20 shrink-0 truncate">{row.label}</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-muted/50 overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: color }} />
+                    </div>
+                    <span className="text-xs font-semibold text-foreground w-10 text-right shrink-0">{row.total}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>

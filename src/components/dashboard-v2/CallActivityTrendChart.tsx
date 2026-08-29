@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCallActivityTrend } from "@/services/analyticsService";
 import { DateRangeDropdown, type DateRangeValue } from "./DateRangeDropdown";
@@ -38,14 +38,24 @@ export function CallActivityTrendChart() {
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <Skeleton className="h-[260px] w-full rounded-2xl" />
+          <Skeleton className="h-[280px] w-full rounded-2xl" />
         ) : chartData.length === 0 ? (
           <div className="h-[220px] flex items-center justify-center text-sm text-muted-foreground">
             No call activity in this range
           </div>
         ) : (
-          <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
-            <LineChart data={chartData} margin={{ top: 10, right: 16, left: -20, bottom: 0 }}>
+          <ResponsiveContainer width="100%" height={300} minWidth={1} minHeight={1}>
+            <AreaChart data={chartData} margin={{ top: 0, right: 16, left: -20, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorConnected" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
               <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
               <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
@@ -53,10 +63,10 @@ export function CallActivityTrendChart() {
                 contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
               />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line type="monotone" dataKey="total" name="Total Calls" stroke="hsl(var(--chart-4))" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="connected" name="Connected" stroke="hsl(var(--chart-1))" strokeWidth={2} dot={false} />
-            </LineChart>
+              <Legend verticalAlign="top" align="left" height={32} wrapperStyle={{ fontSize: 12 }} />
+              <Area type="monotone" dataKey="connected" name="Connected" stroke="hsl(var(--chart-1))" strokeWidth={2} fillOpacity={1} fill="url(#colorConnected)" />
+              <Area type="monotone" dataKey="total" name="Total Calls" stroke="hsl(var(--chart-5))" strokeWidth={2} fillOpacity={1} fill="url(#colorTotal)" />
+            </AreaChart>
           </ResponsiveContainer>
         )}
       </CardContent>
