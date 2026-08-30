@@ -201,6 +201,43 @@ const AdsManager: React.FC = () => {
     }
   };
 
+  // Per-campaign lead sync opt-out — lets a client keep the ad account/page connected
+  // and enabled overall, but stop specific campaigns from creating CRM leads. Absence
+  // from this list means "still syncing", so every existing campaign stays enabled by
+  // default and nothing changes until someone explicitly unchecks one.
+  const disabledCampaignIds: string[] = (organisation?.integrations as any)?.meta?.disabledLeadSyncCampaignIds || [];
+
+  const handleToggleCampaignLeadSync = async (campaignId: string, enabled: boolean) => {
+    try {
+      const { updateOrganisation } = await import('../../services/settingsService');
+      const currentIntegrations = (organisation?.integrations as any) || {};
+      const meta = currentIntegrations.meta || {};
+      const currentDisabled: string[] = meta.disabledLeadSyncCampaignIds || [];
+
+      const newDisabled = enabled
+        ? currentDisabled.filter((id: string) => id !== campaignId)
+        : currentDisabled.includes(campaignId)
+          ? currentDisabled
+          : [...currentDisabled, campaignId];
+
+      await updateOrganisation({
+        integrations: {
+          ...currentIntegrations,
+          meta: {
+            ...meta,
+            disabledLeadSyncCampaignIds: newDisabled
+          }
+        }
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['organisation'] });
+      toast.success(enabled ? 'Lead sync enabled for this campaign' : 'Lead sync disabled for this campaign');
+    } catch (error) {
+      console.error('Failed to update campaign lead sync settings', error);
+      toast.error('Failed to update sync settings');
+    }
+  };
+
   const formatNumber = (val: string | number | undefined) => {
     if (!val) return '0';
     const num = typeof val === 'string' ? parseFloat(val) : val;
@@ -636,6 +673,14 @@ const AdsManager: React.FC = () => {
                       onClick={() => setExpandedCampaign(isExpanded ? null : camp.id)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 shrink-0 rounded border-gray-300 text-primary focus:ring-primary"
+                          checked={!disabledCampaignIds.includes(camp.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => handleToggleCampaignLeadSync(camp.id, e.target.checked)}
+                          title="Sync leads from this campaign into the CRM"
+                        />
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold text-foreground truncate">{camp.name}</p>
                           <p className="text-xs text-muted-foreground mt-0.5">ID: {camp.id}</p>
