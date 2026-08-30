@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { TrendingUp, BarChart3, ArrowRight } from "lucide-react";
 import { SectionHeading } from "./SectionHeading";
+import type { DashboardTier } from "./useDashboardRoleTier";
 
 const tools = [
   {
@@ -18,15 +19,19 @@ const tools = [
     cardClass: "bg-gradient-to-br from-pink-100 to-rose-100 dark:from-pink-950/40 dark:to-rose-950/40",
     iconBg: "bg-white/60 dark:bg-white/10",
     to: "/trends/business",
+    // Org-level business insight — not a single contributor's or team lead's concern.
+    fullTierOnly: true,
   },
 ];
 
-export function ToolsSection() {
+export function ToolsSection({ tier }: { tier: DashboardTier }) {
+  const visibleTools = tools.filter((tool) => !tool.fullTierOnly || tier === "full");
+
   return (
     <div className="space-y-3">
       <SectionHeading>Tools to improve efficiency and outcomes</SectionHeading>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {tools.map((tool) => (
+        {visibleTools.map((tool) => (
           <Link key={tool.title} to={tool.to}>
             <div className={`group relative rounded-[0.8rem] md:rounded-[1.5rem] overflow-hidden flex items-stretch hover:shadow-md hover:scale-[1.01] transition-all ${tool.cardClass}`}>
               <ArrowRight className="absolute top-3 right-3 h-4 w-4 text-foreground/60 group-hover:translate-x-0.5 transition-all" />

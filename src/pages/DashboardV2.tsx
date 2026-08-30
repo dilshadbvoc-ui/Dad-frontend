@@ -14,10 +14,15 @@ import { BranchPerformanceChart } from "@/components/dashboard-v2/BranchPerforma
 import { UserTrendsQuickPanel } from "@/components/dashboard-v2/UserTrendsQuickPanel";
 import { UserRankingCard } from "@/components/dashboard-v2/UserRankingCard";
 import { QuickStatsBar } from "@/components/dashboard-v2/QuickStatsBar";
+import { MyTargetProgress } from "@/components/dashboard-v2/MyTargetProgress";
+import { TeamTargetsCard } from "@/components/dashboard-v2/TeamTargetsCard";
+import { MyRecentActivity } from "@/components/dashboard-v2/MyRecentActivity";
+import { useDashboardRoleTier } from "@/components/dashboard-v2/useDashboardRoleTier";
 import { DateRangeDropdown, getDefaultDateRange, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown";
 
 export default function DashboardV2() {
   const [range, setRange] = useState<DateRangeValue>(getDefaultDateRange());
+  const { tier } = useDashboardRoleTier();
 
   return (
     <div className="bg-white space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-6">
@@ -51,10 +56,16 @@ export default function DashboardV2() {
           </div>
           <div className="hidden lg:block w-px bg-border my-6" />
           <div className="p-4 sm:p-1 lg:pl-4 lg:pt-5 lg:pb-5">
-            <UserRankingCard />
+            {tier === "rep" ? <MyRecentActivity /> : <UserRankingCard />}
           </div>
         </div>
       </div>
+
+      {tier !== "full" && (
+        <div className="rounded-[10px] bg-card border border-border overflow-hidden p-4 sm:p-6">
+          {tier === "teamLead" ? <TeamTargetsCard /> : <MyTargetProgress />}
+        </div>
+      )}
 
       <QuickAccessSection />
 
@@ -68,11 +79,11 @@ export default function DashboardV2() {
           <ConversionFunnelChart />
           <OpportunityPipelineChart />
           <TaskFollowUpStatusChart />
-          <BranchPerformanceChart />
+          {tier === "full" && <BranchPerformanceChart />}
         </div>
       </div>
 
-      <ToolsSection />
+      <ToolsSection tier={tier} />
     </div>
   );
 }
