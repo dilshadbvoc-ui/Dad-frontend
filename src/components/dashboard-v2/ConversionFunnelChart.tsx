@@ -19,7 +19,7 @@ export function ConversionFunnelChart() {
   return (
     <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
+        <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           <Filter className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Conversion Funnel
         </CardTitle>
@@ -37,7 +37,7 @@ export function ConversionFunnelChart() {
               {stages.map((stage) => (
                 <div key={stage.id} className="flex items-center gap-1.5 h-[22px]">
                   <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: stage.color }} />
-                  <span className="text-[11px] text-muted-foreground whitespace-nowrap">{stage.label}</span>
+                  <span className="text-[11px] font-poppins text-muted-foreground whitespace-nowrap">{stage.label}</span>
                 </div>
               ))}
             </div>
@@ -52,7 +52,7 @@ export function ConversionFunnelChart() {
             </div>
             <div className="flex flex-col gap-2 shrink-0 items-end">
               {stages.map((stage) => (
-                <span key={stage.id} className="h-[22px] flex items-center text-xs font-semibold text-foreground">
+                <span key={stage.id} className="h-[22px] flex items-center text-xs font-semibold font-poppins text-foreground">
                   {stage.count.toLocaleString()}
                 </span>
               ))}

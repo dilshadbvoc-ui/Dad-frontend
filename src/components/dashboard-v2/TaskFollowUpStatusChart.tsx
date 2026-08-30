@@ -24,7 +24,7 @@ export function TaskFollowUpStatusChart() {
   return (
     <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
+        <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           <ListChecks className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Tasks &amp; Follow-ups by Status
         </CardTitle>
@@ -46,11 +46,11 @@ export function TaskFollowUpStatusChart() {
                 return (
                   <div key={row.status} className="flex items-center gap-3">
                     <span className="h-2 w-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
-                    <span className="text-xs text-muted-foreground w-20 shrink-0 truncate">{row.label}</span>
+                    <span className="text-xs font-poppins text-muted-foreground w-20 shrink-0 truncate">{row.label}</span>
                     <div className="flex-1 h-1.5 rounded-full bg-muted/50 overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${share}%`, backgroundColor: color }} />
                     </div>
-                    <span className="text-xs font-semibold text-foreground w-10 text-right shrink-0">{row.total}</span>
+                    <span className="text-xs font-semibold font-poppins text-foreground w-10 text-right shrink-0">{row.total}</span>
                   </div>
                 );
               })}

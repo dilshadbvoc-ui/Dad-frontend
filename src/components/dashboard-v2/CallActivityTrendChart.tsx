@@ -56,13 +56,13 @@ export function CallActivityTrendChart() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-              <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-              <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} allowDecimals={false} />
+              <XAxis dataKey="label" tick={{ fontFamily: "Poppins, sans-serif", fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
+              <YAxis tick={{ fontFamily: "Poppins, sans-serif", fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} allowDecimals={false} />
               <Tooltip
-                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
+                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontFamily: "Poppins, sans-serif" }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
               />
-              <Legend verticalAlign="top" align="left" height={32} wrapperStyle={{ fontSize: 12 }} />
+              <Legend verticalAlign="top" align="left" height={32} wrapperStyle={{ fontSize: 12, fontFamily: "Poppins, sans-serif" }} />
               <Area type="monotone" dataKey="connected" name="Connected" stroke="hsl(var(--chart-1))" strokeWidth={2} fillOpacity={1} fill="url(#colorConnected)" />
               <Area type="monotone" dataKey="total" name="Total Calls" stroke="hsl(var(--chart-5))" strokeWidth={2} fillOpacity={1} fill="url(#colorTotal)" />
             </AreaChart>

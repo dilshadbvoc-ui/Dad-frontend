@@ -48,7 +48,7 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
   return (
     <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
+        <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           <PieChartIcon className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Lead Source Breakdown
         </CardTitle>
@@ -72,7 +72,25 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
                 paddingAngle={3}
                 dataKey="value"
                 nameKey="name"
-                label={({ value }) => `${Math.round((value / total) * 100)}%`}
+                label={({ cx, cy, midAngle, outerRadius, value }) => {
+                  const RADIAN = Math.PI / 180;
+                  const radius = outerRadius + 16;
+                  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+                  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor={x > cx ? "start" : "end"}
+                      dominantBaseline="central"
+                      fontFamily="Poppins, sans-serif"
+                      fontSize={12}
+                      fill="hsl(var(--foreground))"
+                    >
+                      {`${Math.round((value / total) * 100)}%`}
+                    </text>
+                  );
+                }}
                 labelLine={false}
               >
                 {data.map((entry, index) => (
@@ -80,11 +98,11 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
                 ))}
               </Pie>
               <Tooltip
-                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
+                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontFamily: "Poppins, sans-serif" }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
                 formatter={(value?: number, name?: string) => [`${value ?? 0} leads`, name ?? ""]}
               />
-              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12 }} />
+              <Legend verticalAlign="bottom" height={36} wrapperStyle={{ fontSize: 12, fontFamily: "Poppins, sans-serif" }} />
             </PieChart>
           </ResponsiveContainer>
         )}

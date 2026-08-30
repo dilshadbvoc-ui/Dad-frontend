@@ -13,10 +13,11 @@ import { OpportunityPipelineChart } from "@/components/dashboard-v2/OpportunityP
 import { BranchPerformanceChart } from "@/components/dashboard-v2/BranchPerformanceChart";
 import { UserTrendsQuickPanel } from "@/components/dashboard-v2/UserTrendsQuickPanel";
 import { UserRankingCard } from "@/components/dashboard-v2/UserRankingCard";
-import { DateRangeDropdown, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown";
+import { QuickStatsBar } from "@/components/dashboard-v2/QuickStatsBar";
+import { DateRangeDropdown, getDefaultDateRange, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown";
 
 export default function DashboardV2() {
-  const [range, setRange] = useState<DateRangeValue>({ period: "week" });
+  const [range, setRange] = useState<DateRangeValue>(getDefaultDateRange());
 
   return (
     <div className="bg-white space-y-4 sm:space-y-8 animate-in fade-in duration-500 p-6">
@@ -29,8 +30,10 @@ export default function DashboardV2() {
             Here's what's happening with your CRM today.
           </p>
         </div>
-        <DateRangeDropdown value={range} onChange={setRange} />
+        <DateRangeDropdown value={range} onChange={setRange} variant="accent" />
       </div>
+
+      <QuickStatsBar range={range} />
 
       <div className="bg-card overflow-hidden">
         <div className="grid lg:grid-cols-[auto_1fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
@@ -38,7 +41,7 @@ export default function DashboardV2() {
             <CallOverviewCard range={range} />
           </div>
           <div className="p-4 sm:p-1 lg:pl-4 lg:pb-5">
-            <LeadsByStageCard />
+            <LeadsByStageCard range={range} />
           </div>
         </div>
         <div className="border-t border-border" />

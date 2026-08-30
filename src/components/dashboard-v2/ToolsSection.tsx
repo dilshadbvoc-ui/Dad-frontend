@@ -34,10 +34,10 @@ export function ToolsSection() {
                 <div className="scale-150">{tool.icon}</div>
               </div>
               <div className="min-w-0 flex-1 py-5 pl-4 pr-10">
-                <h3 className="font-bold text-sm text-foreground">
+                <h3 className="font-bold font-poppins text-sm text-foreground">
                   {tool.title}
                 </h3>
-                <p className="text-xs text-foreground/70 mt-0.5">{tool.description}</p>
+                <p className="text-xs font-poppins text-foreground/70 mt-0.5">{tool.description}</p>
               </div>
             </div>
           </Link>

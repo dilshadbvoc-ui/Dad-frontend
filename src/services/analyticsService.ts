@@ -118,11 +118,13 @@ export const getBranchPerformance = async (): Promise<BranchPerformanceRow[]> =>
     }
 };
 
-export const getDashboardStats = async (branchId?: string, month?: string) => {
+export const getDashboardStats = async (branchId?: string, month?: string, startDate?: string, endDate?: string) => {
     try {
         const params: any = {};
         if (branchId) params.branchId = branchId;
         if (month) params.month = month;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
         const response = await api.get('/analytics/dashboard', { params });
         return response.data || {};
     } catch (error) {
@@ -158,11 +160,13 @@ export const getTopLeads = async (branchId?: string) => {
     }
 };
 
-export const getSalesForecast = async (branchId?: string, month?: string) => {
+export const getSalesForecast = async (branchId?: string, month?: string, startDate?: string, endDate?: string) => {
     try {
         const params: any = {};
         if (branchId) params.branchId = branchId;
         if (month) params.month = month;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
         const response = await api.get('/analytics/forecast', { params });
         return response.data || {};
     } catch (error) {

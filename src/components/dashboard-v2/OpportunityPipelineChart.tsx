@@ -19,7 +19,7 @@ export function OpportunityPipelineChart() {
   return (
     <Card className="rounded-[10px] md:rounded-[20px] bg-card border border-border overflow-hidden h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-bold text-card-foreground flex items-center gap-2">
+        <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-[hsl(var(--chart-5))]" />
           Opportunity Pipeline Value
         </CardTitle>
@@ -35,16 +35,15 @@ export function OpportunityPipelineChart() {
           <ResponsiveContainer width="100%" height={280} minWidth={1} minHeight={1}>
             <BarChart data={data} margin={{ top: 20, right: 16, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-              <XAxis dataKey="label" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
+              <XAxis dataKey="label" tick={{ fontFamily: "Poppins, sans-serif", fontSize: 12, fill: "hsl(var(--muted-foreground))" }} tickLine={false} axisLine={false} />
               <YAxis
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
+                tick={{ fontFamily: "Poppins, sans-serif", fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(v) => formatCurrencyCompact(v)}
               />
               <Tooltip
-                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px" }}
+                contentStyle={{ backgroundColor: "hsl(var(--card))", borderColor: "hsl(var(--border))", borderRadius: "8px", fontFamily: "Poppins, sans-serif" }}
                 itemStyle={{ color: "hsl(var(--foreground))" }}
                 formatter={(value?: number, _name?, item?: { payload?: { count?: number } }) => [
                   formatCurrency(value ?? 0),
@@ -59,6 +58,7 @@ export function OpportunityPipelineChart() {
                   dataKey="value"
                   position="top"
                   fontSize={11}
+                  style={{ fontFamily: "Poppins, sans-serif" }}
                   fill="hsl(var(--foreground))"
                   formatter={(v: React.ReactNode) => formatCurrencyCompact(typeof v === "number" ? v : 0)}
                 />

@@ -5,13 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLeadsByStage, getLeadCampaigns } from "@/services/analyticsService";
 import { getBranches } from "@/services/settingsService";
+import type { DateRangeValue } from "./DateRangeDropdown";
 
 interface Branch {
   id: string;
   name: string;
 }
 
-export function LeadsByStageCard() {
+export function LeadsByStageCard({ range }: { range: DateRangeValue }) {
   const [branchId, setBranchId] = useState<string>("all");
   const [campaignId, setCampaignId] = useState<string>("all");
 
@@ -28,11 +29,13 @@ export function LeadsByStageCard() {
   });
 
   const { data, isLoading } = useQuery({
-    queryKey: ["leads-by-stage", branchId, campaignId],
+    queryKey: ["leads-by-stage", branchId, campaignId, range.startDate, range.endDate],
     queryFn: () =>
       getLeadsByStage({
         branchId: branchId !== "all" ? branchId : undefined,
         campaignId: campaignId !== "all" ? campaignId : undefined,
+        startDate: range.startDate,
+        endDate: range.endDate,
       }),
   });
 
