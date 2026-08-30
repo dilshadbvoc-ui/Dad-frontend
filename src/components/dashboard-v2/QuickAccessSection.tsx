@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
-import { KeyRound, LogIn, Users, BookOpen } from "lucide-react";
+import { KeyRound, LogIn, Users, BookOpen, BarChart3, Trophy, TrendingUp, ArrowUpRight } from "lucide-react";
 import { SectionHeading } from "./SectionHeading";
 
 interface QuickAccessItem {
@@ -19,12 +19,6 @@ const items: QuickAccessItem[] = [
     color: "bg-amber-500/10",
   },
   {
-    title: "User Login Report",
-    description: "Track sign-in activity by user",
-    icon: <LogIn className="h-5 w-5 text-emerald-500" />,
-    color: "bg-emerald-500/10",
-  },
-  {
     title: "Lead Reports",
     description: "Lead volume, sources and outcomes",
     icon: <Users className="h-5 w-5 text-blue-500" />,
@@ -38,24 +32,46 @@ const items: QuickAccessItem[] = [
     color: "bg-rose-500/10",
     to: "/reports/sales-book",
   },
+  {
+    title: "Daily Report",
+    description: "Today's exact metrics",
+    icon: <BarChart3 className="h-5 w-5 text-purple-500" />,
+    color: "bg-purple-500/10",
+    to: "/reports/daily",
+  },
+  {
+    title: "User Total",
+    description: "Efficiency & metrics summary",
+    icon: <Trophy className="h-5 w-5 text-blue-600" />,
+    color: "bg-blue-600/10",
+    to: "/reports/user-total",
+  },
+  {
+    title: "User Sales",
+    description: "Performance leaderboard",
+    icon: <TrendingUp className="h-5 w-5 text-amber-500" />,
+    color: "bg-amber-500/10",
+    to: "/reports/user-sales",
+  },
 ];
 
 export function QuickAccessSection() {
   return (
     <div className="space-y-3">
       <SectionHeading>Quick Access</SectionHeading>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
         {items.map((item) => {
           const content = (
-            <div className="group rounded-[0.8rem] md:rounded-[1.5rem] bg-card shadow-sm p-4 flex flex-col gap-3 h-full hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer">
-              <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${item.color}`}>
-                {item.icon}
+            <div className="group relative h-16 rounded-[0.8rem] md:rounded-none overflow-hidden flex items-stretch hover:shadow-md hover:scale-[1.01] transition-all cursor-pointer">
+              <ArrowUpRight strokeWidth={1} className="absolute top-1 right-1 h-6 w-6 text-muted-foreground group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all" />
+              <div className={`flex w-16 h-16 shrink-0 items-center justify-center ${item.color}`}>
+                <div className="scale-125">{item.icon}</div>
               </div>
-              <div>
-                <h3 className="font-bold text-sm text-card-foreground group-hover:text-[hsl(var(--chart-5))] transition-colors">
+              <div className="min-w-0 flex-1 flex flex-col justify-center bg-transparent pl-4 pr-8">
+                <h3 className="font-medium font-poppins text-sm text-card-foreground truncate transition-colors">
                   {item.title}
                 </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">{item.description}</p>
+                <p className="text-xs font-poppins text-muted-foreground mt-0.5 truncate">{item.description}</p>
               </div>
             </div>
           );

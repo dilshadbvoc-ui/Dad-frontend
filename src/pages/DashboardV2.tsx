@@ -53,7 +53,9 @@ export default function DashboardV2() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      <QuickAccessSection />
+
+      <div className="space-y-3 mt-12">
         <SectionHeading  icon={<LineChart strokeWidth={1} className="h-5.5 w-5.5 text-[hsl(var(--chart-5))]" />}>
           Analytics &amp; Trends
         </SectionHeading>
@@ -68,8 +70,6 @@ export default function DashboardV2() {
       </div>
 
       <ToolsSection />
-
-      <QuickAccessSection />
     </div>
   );
 }
