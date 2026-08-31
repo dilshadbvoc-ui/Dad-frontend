@@ -72,7 +72,7 @@ export function LeadSourceDonutChart({ branchId }: { branchId?: string }) {
                 paddingAngle={3}
                 dataKey="value"
                 nameKey="name"
-                label={({ cx, cy, midAngle, outerRadius, value }) => {
+                label={({ cx, cy, midAngle = 0, outerRadius, value }) => {
                   const RADIAN = Math.PI / 180;
                   const radius = outerRadius + 16;
                   const x = cx + radius * Math.cos(-midAngle * RADIAN);
