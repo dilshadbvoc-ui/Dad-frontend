@@ -8,7 +8,6 @@ import {
   Target,
   CheckSquare,
   Megaphone,
-  PieChart,
   User,
   Settings,
   LogOut,

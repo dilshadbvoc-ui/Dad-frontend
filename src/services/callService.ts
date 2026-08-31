@@ -57,10 +57,13 @@ export interface CallStats {
     inboundCalls: number;
     missedCalls: number;
     completedCalls: number;
+    connectedCalls: number;
     avgDuration: number;
     callsWithRecording: number;
     period: string;
 }
+
+export type CallStatsPeriod = 'today' | 'yesterday' | 'week' | 'last30' | 'thisMonth' | 'custom';
 
 export interface CallFilters {
     page?: number;
@@ -93,12 +96,18 @@ export const getCalls = async (filters: CallFilters = {}): Promise<CallsResponse
     return response.data;
 };
 
-export const getCallStats = async (period: 'today' | 'week' | 'month' = 'week', userId?: string): Promise<CallStats> => {
-    let url = `/calls/stats?period=${period}`;
-    if (userId && userId !== 'all') {
-        url += `&userId=${userId}`;
+export const getCallStats = async (
+    period: 'today' | 'week' | 'month' | CallStatsPeriod = 'week',
+    userId?: string,
+    customRange?: { startDate: string; endDate: string }
+): Promise<CallStats> => {
+    const params: Record<string, string> = { period };
+    if (userId && userId !== 'all') params.userId = userId;
+    if (period === 'custom' && customRange) {
+        params.startDate = customRange.startDate;
+        params.endDate = customRange.endDate;
     }
-    const response = await api.get(url);
+    const response = await api.get('/calls/stats', { params });
     return response.data;
 };
 

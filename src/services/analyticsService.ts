@@ -1,10 +1,130 @@
 import { api } from './api';
 
-export const getDashboardStats = async (branchId?: string, month?: string) => {
+export interface LeadStageCount {
+    id: string;
+    label: string;
+    color: string;
+    count: number;
+}
+
+export interface LeadsByStageResult {
+    stages: LeadStageCount[];
+    total: number;
+}
+
+export const getLeadsByStage = async (filters?: { branchId?: string; campaignId?: string; startDate?: string; endDate?: string }): Promise<LeadsByStageResult> => {
+    try {
+        const response = await api.get('/analytics/leads-by-stage', { params: filters });
+        return response.data || { stages: [], total: 0 };
+    } catch (error) {
+        console.error('Error fetching leads by stage:', error);
+        return { stages: [], total: 0 };
+    }
+};
+
+export const getLeadCampaigns = async (): Promise<string[]> => {
+    try {
+        const response = await api.get('/analytics/lead-campaigns');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching lead campaigns:', error);
+        return [];
+    }
+};
+
+export interface CallActivityPoint {
+    date: string;
+    total: number;
+    connected: number;
+}
+
+export const getCallActivityTrend = async (filters?: { period?: string; startDate?: string; endDate?: string; branchId?: string }): Promise<CallActivityPoint[]> => {
+    try {
+        const response = await api.get('/analytics/call-activity-trend', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching call activity trend:', error);
+        return [];
+    }
+};
+
+export interface TaskFollowUpStatusCount {
+    status: string;
+    label: string;
+    tasks: number;
+    followUps: number;
+    total: number;
+}
+
+export const getTaskFollowUpCompletion = async (filters?: { branchId?: string }): Promise<TaskFollowUpStatusCount[]> => {
+    try {
+        const response = await api.get('/analytics/task-followup-completion', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching task/follow-up completion:', error);
+        return [];
+    }
+};
+
+export interface OpportunityPipelineBucket {
+    id: string;
+    label: string;
+    value: number;
+    count: number;
+}
+
+export const getOpportunityPipelineValue = async (filters?: { branchId?: string }): Promise<OpportunityPipelineBucket[]> => {
+    try {
+        const response = await api.get('/analytics/opportunity-pipeline-value', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching opportunity pipeline value:', error);
+        return [];
+    }
+};
+
+export interface BranchPerformanceRow {
+    id: string;
+    name: string;
+    totalLeads: number;
+    convertedLeads: number;
+}
+
+export interface UserTrendTile {
+    key: string;
+    label: string;
+    current: number;
+    previous: number;
+    changePct: number;
+}
+
+export const getUserTrendsSummary = async (filters?: { period?: string; startDate?: string; endDate?: string; branchId?: string }): Promise<UserTrendTile[]> => {
+    try {
+        const response = await api.get('/analytics/user-trends-summary', { params: filters });
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching user trends summary:', error);
+        return [];
+    }
+};
+
+export const getBranchPerformance = async (): Promise<BranchPerformanceRow[]> => {
+    try {
+        const response = await api.get('/analytics/branch-performance');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching branch performance:', error);
+        return [];
+    }
+};
+
+export const getDashboardStats = async (branchId?: string, month?: string, startDate?: string, endDate?: string) => {
     try {
         const params: any = {};
         if (branchId) params.branchId = branchId;
         if (month) params.month = month;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
         const response = await api.get('/analytics/dashboard', { params });
         return response.data || {};
     } catch (error) {
@@ -40,11 +160,13 @@ export const getTopLeads = async (branchId?: string) => {
     }
 };
 
-export const getSalesForecast = async (branchId?: string, month?: string) => {
+export const getSalesForecast = async (branchId?: string, month?: string, startDate?: string, endDate?: string) => {
     try {
         const params: any = {};
         if (branchId) params.branchId = branchId;
         if (month) params.month = month;
+        if (startDate) params.startDate = startDate;
+        if (endDate) params.endDate = endDate;
         const response = await api.get('/analytics/forecast', { params });
         return response.data || {};
     } catch (error) {

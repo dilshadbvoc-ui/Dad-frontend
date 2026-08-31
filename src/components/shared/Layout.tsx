@@ -345,7 +345,7 @@ export default function Layout() {
             isFullWidthPage ? "h-full" : "pb-24 lg:pb-8"
           )}>
             <div className={cn(
-              isFullWidthPage ? "p-0 h-full" : "px-4 sm:px-6 pt-0 sm:pt-4"
+              isFullWidthPage ? "p-0 h-full" : "px-4 sm:px-0 pt-0 sm:pt-0"
             )}>
               <ErrorBoundary name="PageContent">
                 <Outlet />
