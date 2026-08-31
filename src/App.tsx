@@ -301,8 +301,8 @@ function AppContent() {
       <Route path="/pages/:slug" element={<LandingPageView />} />
 
       <Route element={<Layout />}>
-       <Route path="/dashboard" element={<Dashboard />} />
-       <Route path="/dashboard-2" element={<DashboardV2 />} />
+       <Route path="/dashboard" element={<DashboardV2 />} />
+       <Route path="/old-dashboard" element={<Dashboard />} />
        <Route path="/trends/user" element={<UserTrendPage />} />
        <Route path="/trends/business" element={<BusinessTrendPage />} />
        <Route path="/leads" element={<LeadsPage />} />
