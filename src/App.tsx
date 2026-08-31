@@ -24,6 +24,7 @@ import { socketService } from './services/socketService';
 
 
 // Lazy load secondary pages
+const DownloadApp = lazy(() => import('./pages/DownloadApp'));
 const LeadsPage = lazy(() => import('./pages/leads'));
 const CreateLeadPage = lazy(() => import('./pages/leads/new'));
 const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
@@ -399,6 +400,7 @@ function AppContent() {
 
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<Terms />} />
+      <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />
       <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
