@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { Mail, CheckCircle2, Loader2, Unplug, ExternalLink } from "lucide-react"
+import { CheckCircle2, Loader2, Unplug, ExternalLink } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { GmailLogo } from "@/components/icons/BrandLogos"
 import { getGmailAuthUrl, getGmailStatus, disconnectGmail } from "@/services/gmailService"
 
 export function GmailConnect() {
@@ -53,8 +54,8 @@ export function GmailConnect() {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-red-500 via-yellow-500 to-green-500 flex items-center justify-center">
-              <Mail className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 rounded-lg bg-white border border-border flex items-center justify-center">
+              <GmailLogo className="w-5 h-5 text-[#EA4335]" />
             </div>
             <div>
               <CardTitle className="text-base">Gmail</CardTitle>

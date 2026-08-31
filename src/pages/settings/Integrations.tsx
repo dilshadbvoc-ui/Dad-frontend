@@ -15,6 +15,7 @@ import {
   WabisLogo,
   DoubleTickLogo,
   WatiLogo,
+  GallaboxLogo,
   HalApiLogo,
   WebFormLogo,
   ZapierLogo
@@ -217,7 +218,7 @@ export default function IntegrationsPage() {
       id: 'gallabox',
       name: 'Gallabox',
       description: 'Connect Gallabox for advanced WhatsApp lead syncing and communication.',
-      icon: WhatsAppLogo, // Mapping to WhatsAppLogo for now, can be changed later
+      icon: GallaboxLogo,
       iconColor: 'text-indigo-500',
       connected: integrations.gallabox?.connected,
       onEnable: () => openConfig('gallabox'),

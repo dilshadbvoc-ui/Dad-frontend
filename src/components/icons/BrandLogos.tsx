@@ -1,6 +1,11 @@
 /**
  * Brand Logos for Integrations
- * SVG-based brand icons for third-party integration services
+ * SVG-based brand icons for third-party integration services.
+ *
+ * Paths are sourced from each brand's real logo mark (Simple Icons or the
+ * vendor's own site) and normalized to a single fill="currentColor" path so
+ * they render as a clean white silhouette on the colored badge circle used
+ * on the Integrations page, matching how Facebook/WhatsApp already worked.
  */
 
 import React from 'react';
@@ -23,63 +28,70 @@ export const WhatsAppLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => 
   </svg>
 );
 
-// Google Ads Logo (simplified G with ad icon)
+// Google Ads Logo — real mark (source: Simple Icons)
 export const GoogleAdsLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path fill="#FBBC04" d="M12.87 15.07l-2.54-2.51.03-.03c1.74-1.94 2.98-4.17 3.71-6.53H17V4H7v2h5.55c-.67 1.86-1.65 3.59-2.98 5.04-1.12-1.23-2.02-2.62-2.71-4.13H4.84c.84 1.96 1.99 3.76 3.45 5.32L3.39 17.03l1.41 1.41L9.59 14l3.95 3.95.4-.39-1.07-2.49z" />
-    <circle fill="#4285F4" cx="18.5" cy="16.5" r="3.5" />
-  </svg>
-);
-
-// Happilee Logo (stylized H)
-export const HappileeLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
-    <rect x="4" y="4" width="4" height="16" rx="1" fill="#4FC3F7" />
-    <rect x="16" y="4" width="4" height="16" rx="1" fill="#4FC3F7" />
-    <rect x="6" y="10" width="12" height="4" rx="1" fill="#4FC3F7" />
-    <circle cx="6" cy="6" r="1.5" fill="#FFD54F" />
-    <circle cx="18" cy="6" r="1.5" fill="#FFD54F" />
+    <path d="M3.9998 22.9291C1.7908 22.9291 0 21.1383 0 18.9293s1.7908-3.9998 3.9998-3.9998 3.9998 1.7908 3.9998 3.9998-1.7908 3.9998-3.9998 3.9998zm19.4643-6.0004L15.4632 3.072C14.3586 1.1587 11.9121.5028 9.9988 1.6074S7.4295 5.1585 8.5341 7.0718l8.0009 13.8567c1.1046 1.9133 3.5511 2.5679 5.4644 1.4646 1.9134-1.1046 2.568-3.5511 1.4647-5.4644zM7.5137 4.8438L1.5645 15.1484A4.5 4.5 0 0 1 4 14.4297c2.5597-.0075 4.6248 2.1585 4.4941 4.7148l3.2168-5.5723-3.6094-6.25c-.4499-.7793-.6322-1.6394-.5878-2.4784z" />
   </svg>
 );
 
-// Wabis Logo (stylized W)
+// Happilee Logo — real mark (source: happilee.io footer logo)
+export const HappileeLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
+  <svg viewBox="0 0 32 32" className={className} fill="currentColor">
+    <path d="M16.5291 0.00439453C19.9991 0.0943945 23.4791 1.36439 26.4691 3.98439C28.9591 6.17439 30.6491 8.85439 31.4591 12.0444C32.5491 16.2844 32.0091 20.3544 29.6991 24.0844C29.0891 25.0744 29.4591 25.9344 29.5791 26.8444C29.7691 28.2144 30.0491 29.5644 30.2591 30.9344C30.3791 31.7044 30.0491 31.9744 29.3291 31.7144C27.7291 31.1344 26.1391 30.5444 24.5491 29.9244C24.2591 29.8144 24.0291 29.8044 23.7791 29.9544C21.9191 31.0344 19.8991 31.6944 17.7691 31.9044C15.6691 32.1144 13.5791 31.9744 11.5291 31.3544C8.47907 30.4444 5.91907 28.7744 3.86907 26.3744C1.74907 23.8944 0.499067 21.0044 0.109067 17.7244C-0.270933 14.4844 0.349067 11.4444 1.85907 8.58439C3.65907 5.17439 6.36907 2.73439 9.92907 1.22439C11.8991 0.394395 13.9291 0.0243945 16.5291 0.00439453ZM16.0991 27.6344C19.9391 27.6344 23.7791 25.6744 26.0191 22.5344C27.2491 20.8044 28.0691 18.9044 28.2491 16.7644C28.2991 16.1744 28.0691 15.7344 27.5591 15.4544C26.6291 14.9444 25.5491 15.5644 25.3391 16.7444C24.9191 19.1144 23.8391 21.0844 21.9491 22.6344C18.3591 25.5644 12.8991 25.3444 9.58907 22.0844C8.09907 20.6144 7.19907 18.8344 6.86907 16.7744C6.75907 16.1244 6.37907 15.7044 5.85907 15.4044C5.36907 15.1144 4.86907 15.2744 4.43907 15.5744C3.85907 15.9744 3.87907 16.5744 3.95907 17.1744C4.81907 23.1044 10.0891 27.6444 16.0991 27.6344Z" />
+  </svg>
+);
+
+// Wabis — no vector brand mark is published anywhere; only a small raster
+// logo exists on their site (wabis.in), so this renders that image directly
+// rather than approximating a fake vector shape.
 export const WabisLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path fill="#4CAF50" d="M2 6l4 12h2l3-9 3 9h2l4-12h-2.5l-2.5 8-3-8h-2l-3 8-2.5-8H2z" />
-  </svg>
+  <img
+    src="https://wabis.in/wp-content/uploads/2022/12/cropped-6-157x53.png"
+    alt="Wabis"
+    className={className}
+    style={{ objectFit: "contain" }}
+  />
 );
 
-// DoubleTick Logo (two checkmarks)
+// DoubleTick Logo — real checkmark mark, extracted from doubletick.io's site logo
 export const DoubleTickLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path d="M1.5 12.5l5 5L18 6" stroke="#4CAF50" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M7 12.5l5 5L23.5 6" stroke="#2196F3" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+  <svg viewBox="0 0 30 16" className={className} fill="currentColor">
+    <path d="M19.9729 0L12.6856 7.11881L14.4508 8.84309L21.738 1.72428L19.9729 0ZM27.4624 0L14.6141 12.5514L9.25537 7.31648L7.49026 9.04076L14.6141 16L29.2275 1.72428L27.4624 0ZM1.76583 7.31648L0.000724792 9.04076L6.55652 15.4475L8.32406 13.7207L1.76583 7.31648Z" />
   </svg>
 );
 
-// Wati Logo (stylized chat bubble with W)
+// Wati Logo — real chat-bubble mark, extracted from wati.io's site logo
 export const WatiLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path fill="#25D366" d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z" />
-    <text x="7" y="14" fill="white" fontSize="8" fontWeight="bold" fontFamily="Arial">W</text>
+  <svg viewBox="0 0 118 109" className={className} fill="currentColor">
+    <path d="M36.56,86.33h37.13l22.19,22.17v-22.17h9.48c11.31,0,20.56-9.25,20.56-20.56v-29.2c0-11.31-9.25-20.56-20.56-20.56H36.56c-11.31,0-20.56,9.25-20.56,20.56v29.2c0,11.31,9.25,20.56,20.56,20.56Z" />
+    <path d="M83.9,102.17l-23.86-23.84H24.56c-13.54,0-24.56-11.02-24.56-24.56V24.56C0,11.02,11.02,0,24.56,0H93.36c13.54,0,24.56,11.02,24.56,24.56v29.2c0,13.54-11.02,24.56-24.56,24.56h-9.48v-8h9.48c9.13,0,16.56-7.43,16.56-16.56V24.56c0-9.13-7.43-16.56-16.56-16.56H24.56c-9.13,0-16.56,7.43-16.56,16.56v29.2c0,9.13,7.43,16.56,16.56,16.56H63.35l20.62,20.6-.07,11.24Z" />
   </svg>
 );
 
-// HAL API Logo (code/API symbol)
+// Gallabox Logo — real interlocking-cube mark, extracted from gallabox.com's site logo
+export const GallaboxLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
+  <svg viewBox="0 0 27 31" className={className} fill="currentColor">
+    <path d="M24.1559 6.16185L14.9491 0.540105C14.3667 0.186224 13.7067 0 13.035 0C12.3633 0 11.7033 0.186224 11.1208 0.540105L1.91414 6.16185C1.33288 6.51818 0.850193 7.02957 0.514302 7.64493C0.178411 8.26031 0.00107305 8.95811 0 9.66866V20.9106C0.00121658 21.6212 0.178616 22.3188 0.514491 22.9343C0.850368 23.5496 1.33297 24.061 1.91414 24.4174L11.1208 30.0407C11.7032 30.3947 12.3632 30.5811 13.035 30.5811C13.7067 30.5811 14.3667 30.3947 14.9491 30.0407L24.1559 24.4205C24.7368 24.064 25.2192 23.5526 25.5548 22.9371C25.8905 22.3218 26.0677 21.624 26.0685 20.9136V9.66866C26.0677 8.95823 25.8907 8.26047 25.5551 7.64507C25.2193 7.0297 24.7369 6.51825 24.1559 6.16185ZM24.1431 20.9106C24.1426 21.2636 24.0544 21.6102 23.8876 21.9159C23.7208 22.2216 23.481 22.4757 23.1924 22.6527L13.997 28.2669V16.7698C13.996 16.1396 13.8369 15.521 13.536 14.9771C13.235 14.4332 12.8031 13.9834 12.2842 13.6736L2.78485 7.98546L2.87763 7.92506L12.0843 2.30482C12.3735 2.12879 12.7013 2.03613 13.035 2.03613C13.3686 2.03613 13.6965 2.12879 13.9856 2.30482L23.1924 7.92506C23.481 8.10244 23.7208 8.35678 23.8876 8.66271C24.0544 8.96865 24.1426 9.3155 24.1431 9.66866V20.9106Z" />
+  </svg>
+);
+
+// HAL API — a bespoke internal integration, not a public third-party brand
+// (no real published logo exists to source), kept as a generic API glyph.
 export const HalApiLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path fill="#7C4DFF" d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
-    <rect x="10" y="11" width="4" height="2" fill="#7C4DFF" />
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M9.4 16.6L4.8 12l4.6-4.6L8 6l-6 6 6 6 1.4-1.4zm5.2 0l4.6-4.6-4.6-4.6L16 6l6 6-6 6-1.4-1.4z" />
+    <rect x="10" y="11" width="4" height="2" />
   </svg>
 );
 
-// Web Form Logo (form/input icon)
+// Web Form Logo — a PypeCRM feature, not a third-party brand (generic form icon,
+// just the field-line glyph since the wrapping badge already supplies the background)
 export const WebFormLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <rect x="3" y="3" width="18" height="18" rx="2" fill="#2196F3" />
-    <rect x="6" y="6" width="12" height="2" rx="0.5" fill="white" />
-    <rect x="6" y="10" width="8" height="2" rx="0.5" fill="white" opacity="0.7" />
-    <rect x="6" y="14" width="10" height="2" rx="0.5" fill="white" opacity="0.7" />
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <rect x="3" y="6" width="18" height="2" rx="1" />
+    <rect x="3" y="11" width="12" height="2" rx="1" opacity="0.7" />
+    <rect x="3" y="16" width="15" height="2" rx="1" opacity="0.7" />
   </svg>
 );
 
@@ -104,7 +116,7 @@ export const TwilioLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
   </svg>
 );
 
-// SSO Logo (lock with key)
+// SSO Logo (generic — SSO isn't a single vendor's brand)
 export const SSOLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
   <svg viewBox="0 0 24 24" className={className}>
     <rect x="5" y="10" width="14" height="10" rx="2" fill="#5C6BC0" />
@@ -114,10 +126,17 @@ export const SSOLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
   </svg>
 );
 
-// Zapier Logo (lightning bolt Z)
+// Zapier Logo — real mark (source: Simple Icons)
 export const ZapierLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
-  <svg viewBox="0 0 24 24" className={className}>
-    <path d="M12 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor" />
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M4.157 0A4.151 4.151 0 0 0 0 4.161v15.678A4.151 4.151 0 0 0 4.157 24h15.682A4.152 4.152 0 0 0 24 19.839V4.161A4.152 4.152 0 0 0 19.839 0H4.157Zm10.61 8.761h.03a.577.577 0 0 1 .23.038.585.585 0 0 1 .201.124.63.63 0 0 1 .162.431.612.612 0 0 1-.162.435.58.58 0 0 1-.201.128.58.58 0 0 1-.23.042.529.529 0 0 1-.235-.042.585.585 0 0 1-.332-.328.559.559 0 0 1-.038-.235.613.613 0 0 1 .17-.431.59.59 0 0 1 .405-.162Zm2.853 1.572c.03.004.061.004.095.004.325-.011.646.064.937.219.238.144.431.355.552.609.128.279.189.582.185.888v.193a2 2 0 0 1 0 .219h-2.498c.003.227.075.45.204.642a.78.78 0 0 0 .646.265.714.714 0 0 0 .484-.136.642.642 0 0 0 .23-.318l.915.257a1.398 1.398 0 0 1-.28.537c-.14.159-.321.284-.521.355a2.234 2.234 0 0 1-.836.136 1.923 1.923 0 0 1-1.001-.245 1.618 1.618 0 0 1-.665-.703 2.221 2.221 0 0 1-.227-1.036 1.95 1.95 0 0 1 .48-1.398 1.9 1.9 0 0 1 1.3-.488Zm-9.607.023c.162.004.325.026.48.079.207.065.4.174.563.314.26.302.393.692.366 1.088v2.276H8.53l-.109-.711h-.065c-.064.163-.155.31-.272.439a1.122 1.122 0 0 1-.374.264 1.023 1.023 0 0 1-.453.083 1.334 1.334 0 0 1-.866-.264.965.965 0 0 1-.329-.801.993.993 0 0 1 .076-.431 1.02 1.02 0 0 1 .242-.363 1.478 1.478 0 0 1 1.043-.303h.952v-.181a.696.696 0 0 0-.136-.454.553.553 0 0 0-.438-.154.695.695 0 0 0-.378.086.48.48 0 0 0-.193.254l-.99-.144a1.26 1.26 0 0 1 .257-.563c.14-.174.321-.302.533-.378.261-.091.54-.136.82-.129.053-.003.106-.007.163-.007Zm4.384.007c.174 0 .347.038.506.114.182.083.34.211.458.374.257.423.377.911.351 1.406a2.53 2.53 0 0 1-.355 1.448 1.148 1.148 0 0 1-1.009.517c-.204 0-.401-.045-.582-.136a1.052 1.052 0 0 1-.48-.457 1.298 1.298 0 0 1-.114-.234h-.045l.004 1.784h-1.059v-4.713h.904l.117.805h.057c.068-.208.177-.401.328-.56a1.129 1.129 0 0 1 .843-.344h.076v-.004Zm7.559.084h.903l.113.805h.053a1.37 1.37 0 0 1 .235-.484.813.813 0 0 1 .313-.242.82.82 0 0 1 .39-.076h.234v1.051h-.401a.662.662 0 0 0-.313.008.623.623 0 0 0-.272.155.663.663 0 0 0-.174.26.683.683 0 0 0-.027.314v1.875h-1.054v-3.666Zm-17.515.003h3.262v.896L3.73 13.104l.034.113h1.973l.042.9H2.4v-.9l1.931-1.754-.045-.117H2.441v-.896Zm11.815 0h1.055v3.659h-1.055V10.45Zm3.443.684.019.016a.69.69 0 0 0-.351.045.756.756 0 0 0-.287.204c-.11.155-.174.336-.189.522h1.545c-.034-.526-.257-.787-.74-.787h.003Zm-5.718.163c-.026 0-.057 0-.083.004a.78.78 0 0 0-.31.053.746.746 0 0 0-.257.189 1.016 1.016 0 0 0-.204.695v.064c-.015.257.057.507.204.711a.634.634 0 0 0 .253.196.638.638 0 0 0 .314.061.644.644 0 0 0 .578-.265c.14-.223.204-.48.189-.74a1.216 1.216 0 0 0-.181-.711.677.677 0 0 0-.503-.257Zm-4.509 1.266a.464.464 0 0 0-.268.102.373.373 0 0 0-.114.276c0 .053.008.106.027.155a.375.375 0 0 0 .087.132.576.576 0 0 0 .397.11v.004a.863.863 0 0 0 .563-.182.573.573 0 0 0 .211-.457v-.14h-.903Z" />
+  </svg>
+);
+
+// Gmail Logo — real mark (source: Simple Icons)
+export const GmailLogo: React.FC<LogoProps> = ({ className = "h-6 w-6" }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z" />
   </svg>
 );
 
@@ -129,10 +148,12 @@ export default {
   WabisLogo,
   DoubleTickLogo,
   WatiLogo,
+  GallaboxLogo,
   HalApiLogo,
   WebFormLogo,
   SlackLogo,
   TwilioLogo,
   SSOLogo,
   ZapierLogo,
+  GmailLogo,
 };
