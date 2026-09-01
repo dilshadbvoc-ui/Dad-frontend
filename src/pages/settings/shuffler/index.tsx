@@ -114,6 +114,27 @@ export default function ShufflerSettingsPage() {
   const activeJob = shuffleStatusData?.activeJob;
   const isJobRunning = activeJob?.status === "IN_PROGRESS";
 
+  // The "completed" status persists on the org indefinitely once a shuffle finishes, so
+  // without a cutoff this banner would resurface forever on every page load/poll — even
+  // for a run from weeks ago. Only show it within 2 minutes of the job actually finishing,
+  // then auto-hide via a timer (computed in an effect, not during render).
+  const [showCompletionBanner, setShowCompletionBanner] = useState(false);
+  useEffect(() => {
+    if (activeJob?.status !== "COMPLETED" || !activeJob?.endTime) {
+      setShowCompletionBanner(false);
+      return;
+    }
+    const COMPLETION_BANNER_WINDOW_MS = 2 * 60 * 1000;
+    const remainingMs = COMPLETION_BANNER_WINDOW_MS - (Date.now() - new Date(activeJob.endTime).getTime());
+    if (remainingMs <= 0) {
+      setShowCompletionBanner(false);
+      return;
+    }
+    setShowCompletionBanner(true);
+    const timer = setTimeout(() => setShowCompletionBanner(false), remainingMs);
+    return () => clearTimeout(timer);
+  }, [activeJob?.status, activeJob?.endTime]);
+
 
   const excludedRoles = ['super_admin', 'admin'];
   const filteredUsers = userList.filter((u: any) => {
@@ -596,7 +617,7 @@ export default function ShufflerSettingsPage() {
                 </div>
               )}
               
-              {activeJob?.status === "COMPLETED" && (
+              {showCompletionBanner && activeJob && (
                 <div className="w-full mt-6 space-y-2">
                   <p className="text-sm text-center font-medium text-green-600">Shuffle completed successfully! ({activeJob.processedLeads} leads reassigned)</p>
                 </div>
