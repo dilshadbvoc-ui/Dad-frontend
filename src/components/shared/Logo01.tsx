@@ -1,6 +1,5 @@
 import { cn } from "@/lib/utils";
-import logoLight from "@/assets/logo-light.png";
-import logoDark from "@/assets/logo-dark.png";
+import logoOnDark from "@/assets/logo-ondark.png";
 
 interface LogoProps {
   className?: string;
@@ -26,10 +25,11 @@ const Logo = ({ className, size = "md", showText = true }: LogoProps) => {
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <div className={cn("relative", sizeClasses[size])}>
-        {/* Light Mode Logo (Visible in Light Mode, Hidden in Dark Mode) */}
-        {/* Dark Mode Logo (Hidden in Light Mode, Visible in Dark Mode) */}
+        {/* This component is used on a permanently dark surface (e.g. GetStartedBanner),
+            independent of the site's own light/dark theme, so it always renders the
+            white-ring mark rather than switching with the theme toggle. */}
         <img
-          src={logoDark}
+          src={logoOnDark}
           alt="PYPE CRM Logo"
           className="h-full w-full object-contain"
         />
