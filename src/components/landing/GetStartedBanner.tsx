@@ -8,10 +8,10 @@ export default function GetStartedBanner() {
     <section className="py-12 md:py-20 px-6 sm:px-8 md:px-12 lg:px-20 xl:px-28 bg-white dark:bg-gray-950">
       <div className="container mx-auto max-w-7xl">
         <div className="relative isolate overflow-hidden rounded-3xl bg-gray-950">
-          {/* Purple glow matching our logo's indigo/violet, in place of ClickUp's pink */}
-          <div className="pointer-events-none absolute -right-1/4 -bottom-1/2 w-[70%] aspect-square rounded-full bg-gradient-to-br from-violet-600 via-indigo-600 to-transparent blur-3xl opacity-70" />
-          <div className="pointer-events-none absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-indigo-500/40 via-violet-600/10 to-transparent blur-2xl" />
-          {/* Fine grain over the violet glow's top edge, matching ClickUp-style noise texture */}
+          {/* Green glow matching our logo's brand green, in place of ClickUp's pink */}
+          <div className="pointer-events-none absolute -right-1/4 -bottom-1/2 w-[70%] aspect-square rounded-full bg-gradient-to-br from-[#69a63a] via-[#79be45] to-transparent blur-3xl opacity-70" />
+          <div className="pointer-events-none absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-[#69a63a]/40 via-[#79be45]/10 to-transparent blur-2xl" />
+          {/* Fine grain over the green glow's top edge, matching ClickUp-style noise texture */}
           <div
             className="pointer-events-none absolute right-0 top-0 w-full h-full"
             style={{
