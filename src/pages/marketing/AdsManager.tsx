@@ -268,23 +268,41 @@ const AdsManager: React.FC = () => {
     return campaignInsights.find(i => i.campaign_id === campaignId);
   };
 
+  // Converts Meta's SCREAMING_SNAKE_CASE delivery values into readable labels,
+  // e.g. "CAMPAIGN_PAUSED" -> "Campaign Paused".
+  const humanizeStatus = (status: string) =>
+    status
+      .toLowerCase()
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+
   const getStatusColor = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'ACTIVE': return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400';
-      case 'PAUSED': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'ARCHIVED': return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+      case 'PAUSED':
+      case 'CAMPAIGN_PAUSED':
+      case 'ADSET_PAUSED': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'ARCHIVED':
+      case 'DELETED': return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+      case 'DISAPPROVED':
+      case 'WITH_ISSUES': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+      case 'PENDING_REVIEW':
+      case 'IN_PROCESS':
+      case 'PENDING_BILLING_INFO':
+      case 'PREAPPROVED': return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
       default: return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
     }
   };
 
   const availableStatuses = useMemo(() => {
-    const set = new Set(campaigns.map(c => c.status?.toUpperCase()).filter(Boolean));
+    const set = new Set(campaigns.map(c => c.effective_status?.toUpperCase()).filter(Boolean));
     return Array.from(set) as string[];
   }, [campaigns]);
 
   const getSortValue = (camp: Campaign, insight: AdInsight | undefined, key: string): number | string => {
     switch (key) {
-      case 'status': return camp.status?.toLowerCase() || '';
+      case 'status': return camp.effective_status?.toLowerCase() || '';
       case 'impressions': return insight ? parseFloat(insight.impressions) || 0 : 0;
       case 'clicks': return insight ? parseFloat(insight.clicks) || 0 : 0;
       case 'spend': return insight ? parseFloat(insight.spend) || 0 : 0;
@@ -299,7 +317,7 @@ const AdsManager: React.FC = () => {
   const displayedCampaigns = useMemo(() => {
     const filtered = statusFilter === 'all'
       ? campaigns
-      : campaigns.filter(c => c.status?.toUpperCase() === statusFilter);
+      : campaigns.filter(c => c.effective_status?.toUpperCase() === statusFilter);
 
     return [...filtered].sort((a, b) => {
       const valA = getSortValue(a, getCampaignInsight(a.id), sortBy);
@@ -616,7 +634,7 @@ const AdsManager: React.FC = () => {
               <SelectContent>
                 <SelectItem value="all">All statuses</SelectItem>
                 {availableStatuses.map(s => (
-                  <SelectItem key={s} value={s}>{s.charAt(0) + s.slice(1).toLowerCase()}</SelectItem>
+                  <SelectItem key={s} value={s}>{humanizeStatus(s)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -706,8 +724,8 @@ const AdsManager: React.FC = () => {
                           </div>
                         )}
 
-                        <Badge className={getStatusColor(camp.status)}>
-                          {camp.status}
+                        <Badge className={getStatusColor(camp.effective_status || camp.status)}>
+                          {humanizeStatus(camp.effective_status || camp.status)}
                         </Badge>
 
                         <Badge variant="outline" className="hidden sm:inline-flex">

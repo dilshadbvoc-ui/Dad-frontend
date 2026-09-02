@@ -22,6 +22,7 @@ export interface Campaign {
     sentAt?: string;
     createdAt?: string;
     objective?: string; // Added for AdsManager
+    effective_status?: string; // Meta's real delivery status (accounts for ad set/ad-level pauses, review, billing holds etc.) — distinct from the raw user-set `status`
 }
 
 export const getAdAccounts = async () => {
