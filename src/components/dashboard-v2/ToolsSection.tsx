@@ -7,8 +7,8 @@ const tools = [
   {
     title: "User Trend",
     description: "Discover how the calls conversation breaks high over time",
-    icon: <TrendingUp className="h-5 w-5 text-violet-600 dark:text-violet-300" />,
-    cardClass: "bg-gradient-to-br from-violet-100 to-indigo-100 dark:from-violet-950/40 dark:to-indigo-950/40",
+    icon: <TrendingUp className="h-5 w-5 text-[#69a63a] dark:text-[#a3d97a]" />,
+    cardClass: "bg-gradient-to-br from-[#69a63a]/15 to-[#69a63a]/5 dark:from-[#69a63a]/25 dark:to-[#69a63a]/10",
     iconBg: "bg-white/60 dark:bg-white/10",
     to: "/trends/user",
   },

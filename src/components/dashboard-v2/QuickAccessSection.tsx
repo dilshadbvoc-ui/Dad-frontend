@@ -35,8 +35,8 @@ const items: QuickAccessItem[] = [
   {
     title: "Daily Report",
     description: "Today's exact metrics",
-    icon: <BarChart3 className="h-5 w-5 text-purple-500" />,
-    color: "bg-purple-500/10",
+    icon: <BarChart3 className="h-5 w-5 text-[#69a63a]" />,
+    color: "bg-[#69a63a]/10",
     to: "/reports/daily",
   },
   {
