@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Settings, Zap, Sun, Moon } from "lucide-react"
+import { Settings, Zap } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -13,7 +13,6 @@ import { GlobalSearch } from "./GlobalSearch"
 import { NotificationPopover } from "./NotificationPopover"
 import { QuickAddLeadDialog } from "./QuickAddLeadDialog"
 import { cn, getAssetUrl } from "@/lib/utils"
-import { useTheme } from "@/contexts/theme-context"
 import { Switch } from "@/components/ui/switch"
 import { api } from "@/services/api"
 import { toast } from "sonner"
@@ -32,7 +31,6 @@ import { clearAndroidToken } from "@/utils/androidBridge"
 
 export function Header({ className }: { className?: string }) {
   const navigate = useNavigate()
-  const { setTheme, resolvedTheme } = useTheme()
 
   const [userInfo, setUserInfo] = useState(() => {
     try {
@@ -96,27 +94,6 @@ export function Header({ className }: { className?: string }) {
               <NotificationPopover />
             </ErrorBoundary>
           </DropdownMenu>
-
-          {/* Theme Toggle - Always visible */}
-          <div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
-                  className="h-9 w-9 text-foreground/70 hover:text-foreground"
-                >
-                  {resolvedTheme === 'dark' ? (
-                    <Sun className="h-5 w-5" />
-                  ) : (
-                    <Moon className="h-5 w-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{resolvedTheme === 'dark' ? 'Light Mode' : 'Dark Mode'}</TooltipContent>
-            </Tooltip>
-          </div>
 
           {/* Settings - Desktop Only or through user menu on mobile if needed */}
           <div className="hidden md:block">

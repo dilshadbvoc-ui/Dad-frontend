@@ -17,7 +17,6 @@ import { PageLoader } from './components/ui/page-loader';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'sonner'; 
 import { SocketProvider } from './contexts/SocketContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import SSOCallback from './pages/SSOCallback';
 import { socketService } from './services/socketService';
@@ -416,23 +415,21 @@ import { HelmetProvider } from 'react-helmet-async';
 function App() {
  return (
   <HelmetProvider>
-   <ThemeProvider>
-    <CurrencyProvider>
-     <QueryClientProvider client={queryClient}>
-      <AppContent />
-      <Toaster
-       position="bottom-right"
-       expand={true}
-       richColors
-       closeButton
-       duration={4000}
-       toastOptions={{
-        style: { borderRadius: '12px' },
-       }}
-      />
-     </QueryClientProvider>
-    </CurrencyProvider>
-   </ThemeProvider>
+   <CurrencyProvider>
+    <QueryClientProvider client={queryClient}>
+     <AppContent />
+     <Toaster
+      position="bottom-right"
+      expand={true}
+      richColors
+      closeButton
+      duration={4000}
+      toastOptions={{
+       style: { borderRadius: '12px' },
+      }}
+     />
+    </QueryClientProvider>
+   </CurrencyProvider>
   </HelmetProvider>
  );
 }
