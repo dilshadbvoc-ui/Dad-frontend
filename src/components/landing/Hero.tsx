@@ -136,7 +136,7 @@ export default function Hero() {
                 "linear-gradient(to bottom, transparent 0%, black 25%, black 75%, transparent 100%)",
             }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-[#f0abfc] via-[#8b5cf6] via-90% to-[#4c1d95] blur-sm" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#d6ebc6] via-[#69a63a] via-90% to-[#35531d] blur-sm" />
             <div
               className="absolute inset-0 opacity-70 mix-blend-overlay"
               style={{
