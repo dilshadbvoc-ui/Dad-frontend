@@ -119,6 +119,7 @@ const TrainingPage = lazy(() => import('./pages/Training'));
 
 const IssuesPage = lazy(() => import('./pages/issues'));
 const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
+const SuperAdminHelperLogsPage = lazy(() => import('./pages/super-admin/helper-logs'));
 
 const queryClient = new QueryClient({
  defaultOptions: {
@@ -388,6 +389,7 @@ function AppContent() {
        <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
        <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
        <Route path="/super-admin/issues" element={<SuperAdminIssuesPage />} />
+       <Route path="/super-admin/helper-logs" element={<SuperAdminHelperLogsPage />} />
        <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
        <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />
        <Route path="/settings/integrations" element={<IntegrationsSettingsPage />} />

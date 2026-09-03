@@ -342,6 +342,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/issues') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Reported Issues</span>}
               </Link>
+              <Link to="/super-admin/helper-logs" className={cn(
+                "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
+                pathname.startsWith('/super-admin/helper-logs') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/helper-logs') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Helper Logs</span>}
+              </Link>
               <Link to="/settings" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
                 pathname.startsWith('/settings') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
