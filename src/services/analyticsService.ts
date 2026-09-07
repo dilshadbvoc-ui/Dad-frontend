@@ -118,6 +118,24 @@ export const getBranchPerformance = async (): Promise<BranchPerformanceRow[]> =>
     }
 };
 
+export interface UserDealRankingRow {
+    userId: string;
+    agentName: string;
+    branch: string;
+    wonDeals: number;
+    wonValue: number;
+}
+
+export const getUserDealRanking = async (filters?: { period?: string; startDate?: string; endDate?: string; branchId?: string }): Promise<{ reportData: UserDealRankingRow[] }> => {
+    try {
+        const response = await api.get('/analytics/user-deal-ranking', { params: filters });
+        return response.data || { reportData: [] };
+    } catch (error) {
+        console.error('Error fetching user deal ranking:', error);
+        return { reportData: [] };
+    }
+};
+
 export const getDashboardStats = async (branchId?: string, month?: string, startDate?: string, endDate?: string) => {
     try {
         const params: any = {};

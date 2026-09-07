@@ -2,7 +2,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { Award, Shuffle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUserCallAnalytics } from "@/services/callService";
+import { getUserDealRanking } from "@/services/analyticsService";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import type { DateRangeValue } from "./DateRangeDropdown";
 
 const RANK_STYLES = [
   "bg-warning/20 text-warning",
@@ -10,14 +12,22 @@ const RANK_STYLES = [
   "bg-orange-500/20 text-orange-600",
 ];
 
-export function UserRankingCard() {
+export function UserRankingCard({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
+  const { formatCurrencyCompact } = useCurrency();
+
   const { data, isLoading } = useQuery({
-    queryKey: ["user-call-ranking", "week"],
-    queryFn: () => getUserCallAnalytics("week", "all"),
+    queryKey: ["user-deal-ranking", range.period, range.startDate, range.endDate, branchId],
+    queryFn: () =>
+      getUserDealRanking({
+        period: range.period,
+        startDate: range.period === "custom" ? range.startDate : undefined,
+        endDate: range.period === "custom" ? range.endDate : undefined,
+        branchId,
+      }),
   });
 
   const ranked = [...(data?.reportData ?? [])]
-    .sort((a, b) => b.connectedCalls - a.connectedCalls)
+    .sort((a, b) => b.wonDeals - a.wonDeals)
     .slice(0, 8);
 
   return (
@@ -28,7 +38,7 @@ export function UserRankingCard() {
           User Ranking
         </h3>
         <Link
-          to="/reports/call-analytics"
+          to="/reports/user-sales"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/5 border border-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/10 rounded-[10px] px-3 py-1.5 transition-colors"
         >
           <Shuffle className="h-3.5 w-3.5" />
@@ -44,31 +54,30 @@ export function UserRankingCard() {
           </div>
         ) : ranked.length === 0 ? (
           <div className="h-[160px] flex items-center justify-center text-sm text-muted-foreground">
-            No call activity in this range
+            No deals won in this range
           </div>
         ) : (
           <div className="space-y-3">
-            {ranked.map((u, index) => {
-              const rate = u.totalCalls > 0 ? Math.round((u.connectedCalls / u.totalCalls) * 100) : 0;
-              return (
-                <div key={u.userId} className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div
-                      className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 ${
-                        RANK_STYLES[index] || "text-muted-foreground"
-                      }`}
-                    >
-                      {index + 1}
-                    </div>
-                    <p className="text-sm font-medium text-foreground truncate">{u.agentName}</p>
+            {ranked.map((u, index) => (
+              <div key={u.userId} className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div
+                    className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold shrink-0 ${
+                      RANK_STYLES[index] || "text-muted-foreground"
+                    }`}
+                  >
+                    {index + 1}
                   </div>
-                  <div className="text-right shrink-0">
-                    <p className="text-sm font-medium font-poppins mb-1 text-[hsl(var(--chart-5))]">{u.connectedCalls} connected</p>
-                    <p className="text-xs font-poppins text-muted-foreground">{rate}% of {u.totalCalls} calls</p>
-                  </div>
+                  <p className="text-sm font-medium text-foreground truncate">{u.agentName}</p>
                 </div>
-              );
-            })}
+                <div className="text-right shrink-0">
+                  <p className="text-sm font-medium font-poppins mb-1 text-[hsl(var(--chart-5))]">
+                    {u.wonDeals} {u.wonDeals === 1 ? "deal" : "deals"} won
+                  </p>
+                  <p className="text-xs font-poppins text-muted-foreground">{formatCurrencyCompact(u.wonValue)}</p>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
