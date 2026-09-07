@@ -38,7 +38,13 @@ export function useLeadStatuses() {
 
     return {
         statuses: statuses.sort((a, b) => a.order - b.order),
-        selectableStatuses: statuses.filter(s => s.id !== 'shuffled_lead').sort((a, b) => a.order - b.order),
+        // 'won'/'lost' are outcome statuses that should only ever be set by the real
+        // conversion flow (ConvertLeadDialog / QuickConvertWon/LostDialog), which also
+        // creates the Account/Contact/Opportunity behind them — picking them here would
+        // just paint the lead green/red with nothing in the pipeline to back it up.
+        selectableStatuses: statuses
+            .filter(s => s.id !== 'shuffled_lead' && s.id !== 'won' && s.id !== 'lost')
+            .sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
         orgId: org?.id
@@ -71,6 +77,13 @@ export function useOpportunityLeadStatuses() {
 
     return {
         statuses: statuses.sort((a, b) => a.order - b.order),
+        // 'won'/'lost' here are just this soft "Lead Status" sub-field, separate from
+        // the Opportunity's real `stage` — picking them from this plain select doesn't
+        // go through CloseWonDialog/CloseLostDialog, so no payment/EMI capture happens.
+        // Keep them reachable only through the actual Close Won/Close Lost actions.
+        selectableStatuses: statuses
+            .filter(s => s.id !== 'won' && s.id !== 'lost')
+            .sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
         orgId: org?.id

@@ -7,10 +7,10 @@ import { getLeadsByStage } from "@/services/analyticsService";
 const MAX_WIDTH_PCT = 100;
 const MIN_WIDTH_PCT = 22;
 
-export function ConversionFunnelChart() {
+export function ConversionFunnelChart({ branchId }: { branchId?: string } = {}) {
   const { data, isLoading } = useQuery({
-    queryKey: ["conversion-funnel"],
-    queryFn: () => getLeadsByStage(),
+    queryKey: ["conversion-funnel", branchId],
+    queryFn: () => getLeadsByStage({ branchId }),
   });
 
   const stages = data?.stages ?? [];

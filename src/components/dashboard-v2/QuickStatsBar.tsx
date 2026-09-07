@@ -62,7 +62,7 @@ export function QuickStatsBar({ range, branchId }: { range: DateRangeValue; bran
     {
       label: "Exp. Revenue",
       value: formatCurrencyCompact(forecast?.totalPipeline || 0),
-      to: withDashboardFilters("/opportunities", { range, branchId }),
+      to: withDashboardFilters("/reports/expected-revenue", { range, branchId }),
       accent: "bg-[hsl(var(--chart-1))]",
     },
     {

@@ -68,7 +68,7 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
   const [deleteOpp, setDeleteOpp] = useState<Opportunity | null>(null);
 
   const queryClient = useQueryClient();
-  const { statuses: leadStatuses } = useOpportunityLeadStatuses();
+  const { selectableStatuses: leadStatuses, getStatusDetails } = useOpportunityLeadStatuses();
   const user = getUserInfo();
   const canDelete = isOrgAdmin(user);
 
@@ -328,29 +328,56 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
 
                           <div className="flex items-center gap-1.5 w-full mt-1 pt-1.5 border-t border-dashed border-border/60" onClick={(e) => e.stopPropagation()}>
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lead Status:</span>
-                            <Select
-                              value={opp.leadStatus || opp.lead?.status || ""}
-                              onValueChange={async (newStatus) => {
-                                try {
-                                  await api.put(`/opportunities/${opp.id}`, { leadStatus: newStatus });
-                                  queryClient.invalidateQueries({ queryKey: ["opportunities"] });
-                                  toast.success("Lead status updated successfully");
-                                } catch (error) {
-                                  toast.error("Failed to update lead status");
-                                }
-                              }}
-                            >
-                              <SelectTrigger className="h-6 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate">
-                                <SelectValue />
-                              </SelectTrigger>
-                              <SelectContent className="rounded-lg">
-                                {leadStatuses.map((ls) => (
-                                  <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
-                                    {ls.label || ls.id}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
+                            {opp.stage === 'closed_won' || opp.stage === 'closed_lost' ? (
+                              // Closed deals: leadStatus is set automatically to won/lost when
+                              // the deal closes (see updateOpportunity) — show it as a fixed
+                              // label instead of an editable Select, since 'won'/'lost' were
+                              // deliberately removed from the selectable options below and a
+                              // Select whose current value isn't one of its items renders blank.
+                              <span className="h-6 flex items-center text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate capitalize">
+                                {getStatusDetails(opp.leadStatus || (opp.stage === 'closed_won' ? 'won' : 'lost')).label}
+                              </span>
+                            ) : (() => {
+                              // leadStatus is often unset on older deals, and used to fall back to
+                              // opp.lead?.status — a Lead status (e.g. "interested") from a totally
+                              // different vocabulary that never matches an Opportunity-lead-status
+                              // option, rendering the Select blank. Don't guess/overwrite it: if the
+                              // current value isn't one of the real options, show it as its own item
+                              // (via getStatusDetails' synthesized fallback) so nothing looks empty
+                              // and nothing gets silently changed for existing data.
+                              const currentValue = opp.leadStatus || opp.lead?.status || "";
+                              const hasOption = !currentValue || leadStatuses.some(ls => ls.id === currentValue);
+                              return (
+                                <Select
+                                  value={currentValue}
+                                  onValueChange={async (newStatus) => {
+                                    try {
+                                      await api.put(`/opportunities/${opp.id}`, { leadStatus: newStatus });
+                                      queryClient.invalidateQueries({ queryKey: ["opportunities"] });
+                                      toast.success("Lead status updated successfully");
+                                    } catch (error) {
+                                      toast.error("Failed to update lead status");
+                                    }
+                                  }}
+                                >
+                                  <SelectTrigger className="h-6 text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 max-w-[145px] truncate">
+                                    <SelectValue placeholder="Select status" />
+                                  </SelectTrigger>
+                                  <SelectContent className="rounded-lg">
+                                    {!hasOption && (
+                                      <SelectItem value={currentValue} className="text-xs capitalize">
+                                        {getStatusDetails(currentValue).label}
+                                      </SelectItem>
+                                    )}
+                                    {leadStatuses.map((ls) => (
+                                      <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
+                                        {ls.label || ls.id}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              );
+                            })()}
                           </div>
 
                           <div className="flex items-end justify-between pt-2 border-t border-border mt-1">

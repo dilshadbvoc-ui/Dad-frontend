@@ -1,27 +1,25 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Activity } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCallActivityTrend } from "@/services/analyticsService";
-import { DateRangeDropdown, type DateRangeValue } from "./DateRangeDropdown";
+import type { DateRangeValue } from "./DateRangeDropdown";
 
 function formatDay(dateStr: string) {
   const d = new Date(dateStr);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
-export function CallActivityTrendChart() {
-  const [range, setRange] = useState<DateRangeValue>({ period: "week" });
-
+export function CallActivityTrendChart({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
   const { data = [], isLoading } = useQuery({
-    queryKey: ["call-activity-trend", range.period, range.startDate, range.endDate],
+    queryKey: ["call-activity-trend", range.period, range.startDate, range.endDate, branchId],
     queryFn: () =>
       getCallActivityTrend({
         period: range.period,
         startDate: range.period === "custom" ? range.startDate : undefined,
         endDate: range.period === "custom" ? range.endDate : undefined,
+        branchId,
       }),
   });
 
@@ -33,7 +31,6 @@ export function CallActivityTrendChart() {
         <CardTitle className="text-lg font-medium font-poppins text-black flex items-center gap-2">
           Call Activity Trend
         </CardTitle>
-        <DateRangeDropdown value={range} onChange={setRange} variant="accent" />
       </CardHeader>
       <CardContent>
         {isLoading ? (

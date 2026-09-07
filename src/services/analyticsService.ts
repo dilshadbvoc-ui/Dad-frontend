@@ -193,6 +193,42 @@ export const getSalesForecast = async (branchId?: string, month?: string, startD
     }
 };
 
+export interface ExpectedRevenueDeal {
+    id: string;
+    name: string;
+    customerName: string;
+    ownerName: string;
+    branchName: string;
+    stage: string;
+    amount: number;
+    probability: number;
+    closeDate: string | null;
+    status: 'current' | 'carried_forward' | 'upcoming' | 'no_date';
+}
+
+export interface ExpectedRevenueReport {
+    periodLabel: string;
+    periodStart: string;
+    periodEnd: string;
+    summary: {
+        totalExpectedRevenue: number;
+        currentPeriodAmount: number;
+        currentPeriodCount: number;
+        carriedForwardAmount: number;
+        carriedForwardCount: number;
+        upcomingAmount: number;
+        upcomingCount: number;
+        noCloseDateAmount: number;
+        noCloseDateCount: number;
+    };
+    deals: ExpectedRevenueDeal[];
+}
+
+export const getExpectedRevenueReport = async (filters?: { startDate?: string; endDate?: string; branchId?: string }): Promise<ExpectedRevenueReport> => {
+    const response = await api.get('/analytics/expected-revenue', { params: filters });
+    return response.data;
+};
+
 export const getLeadSourceAnalytics = async (branchId?: string) => {
     try {
         const params = branchId ? { branchId } : {};

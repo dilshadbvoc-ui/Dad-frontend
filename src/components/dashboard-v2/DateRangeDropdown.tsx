@@ -5,7 +5,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { CustomDateRangeCalendar } from "./CustomDateRangeCalendar";
 
-export type DateRangePeriod = "today" | "yesterday" | "thisMonth" | "week" | "last30" | "custom";
+export type DateRangePeriod = "today" | "yesterday" | "thisMonth" | "week" | "last30" | "custom" | "allTime";
 
 export interface DateRangeValue {
   period: DateRangePeriod;
@@ -22,9 +22,10 @@ const toDateStr = (d: Date) => {
   return `${year}-${month}-${day}`;
 };
 
-type PresetKey = "today" | "yesterday" | "week" | "thisMonth" | "lastMonth" | "custom";
+export type PresetKey = "allTime" | "today" | "yesterday" | "week" | "thisMonth" | "lastMonth" | "custom";
 
-const PRESETS: { key: PresetKey; label: string }[] = [
+const ALL_PRESETS: { key: PresetKey; label: string }[] = [
+  { key: "allTime", label: "All Time" },
   { key: "today", label: "Today" },
   { key: "yesterday", label: "Yesterday" },
   { key: "week", label: "7 Days" },
@@ -32,6 +33,9 @@ const PRESETS: { key: PresetKey; label: string }[] = [
   { key: "lastMonth", label: "Last Month" },
   { key: "custom", label: "Custom Range" },
 ];
+
+/** Dashboards keep their original preset set by default — "All Time" only shows up where explicitly requested via the `presets` prop. */
+const DEFAULT_PRESETS: PresetKey[] = ["today", "yesterday", "week", "thisMonth", "lastMonth", "custom"];
 
 /** The dashboard's default filter: the current calendar month up to today. */
 export function getDefaultDateRange(): DateRangeValue {
@@ -42,6 +46,8 @@ function resolvePreset(key: PresetKey): DateRangeValue | null {
   const now = new Date();
 
   switch (key) {
+    case "allTime":
+      return { period: "allTime" };
     case "today":
       return { period: "today", startDate: toDateStr(now), endDate: toDateStr(now) };
     case "yesterday": {
@@ -70,7 +76,8 @@ function resolvePreset(key: PresetKey): DateRangeValue | null {
 
 export function getDateRangeLabel(value: DateRangeValue): string {
   if (value.label) return value.label;
-  const preset = PRESETS.find((p) => {
+  if (value.period === "allTime") return "All Time";
+  const preset = ALL_PRESETS.find((p) => {
     const resolved = resolvePreset(p.key);
     return resolved && resolved.period === value.period && p.key !== "custom";
   });
@@ -85,13 +92,17 @@ export function DateRangeDropdown({
   value,
   onChange,
   variant = "default",
+  presets = DEFAULT_PRESETS,
 }: {
   value: DateRangeValue;
   onChange: (value: DateRangeValue) => void;
   variant?: "default" | "accent";
+  /** Which presets to show, in order. Defaults to the dashboard's original set (no "All Time"). */
+  presets?: PresetKey[];
 }) {
   const [open, setOpen] = useState(false);
   const [showCustom, setShowCustom] = useState(value.period === "custom" && !value.label);
+  const visiblePresets = ALL_PRESETS.filter((p) => presets.includes(p.key));
 
   const handleSelect = (key: PresetKey) => {
     if (key === "custom") {
@@ -113,6 +124,7 @@ export function DateRangeDropdown({
   const isSelected = (key: PresetKey) => {
     if (key === "custom") return value.period === "custom" && !value.label;
     if (key === "lastMonth") return value.label === "Last Month";
+    if (key === "allTime") return value.period === "allTime";
     const resolved = resolvePreset(key);
     return !!resolved && resolved.period === value.period && !value.label;
   };
@@ -142,7 +154,7 @@ export function DateRangeDropdown({
         className={cn(showCustom ? "w-auto p-3" : "w-64 p-2", isAccent ? "rounded-[10px]" : "rounded-xl")}
       >
         <div className="space-y-0.5">
-          {PRESETS.map((opt) => (
+          {visiblePresets.map((opt) => (
             <button
               key={opt.key}
               onClick={() => handleSelect(opt.key)}

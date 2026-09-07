@@ -7,11 +7,11 @@ import { getOpportunityPipelineValue } from "@/services/analyticsService";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { PIPELINE_BUCKET_COLORS } from "./chartColors";
 
-export function OpportunityPipelineChart() {
+export function OpportunityPipelineChart({ branchId }: { branchId?: string } = {}) {
   const { formatCurrencyCompact, formatCurrency } = useCurrency();
   const { data = [], isLoading } = useQuery({
-    queryKey: ["opportunity-pipeline-value"],
-    queryFn: () => getOpportunityPipelineValue(),
+    queryKey: ["opportunity-pipeline-value", branchId],
+    queryFn: () => getOpportunityPipelineValue({ branchId }),
   });
 
   const hasData = data.some((d) => d.count > 0);

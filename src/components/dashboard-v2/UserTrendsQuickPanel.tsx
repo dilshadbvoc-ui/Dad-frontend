@@ -27,14 +27,15 @@ function TrendIndicator({ changePct }: { changePct: number }) {
   );
 }
 
-export function UserTrendsQuickPanel({ range }: { range: DateRangeValue }) {
+export function UserTrendsQuickPanel({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
   const { data = [], isLoading } = useQuery({
-    queryKey: ["user-trends-summary", range.period, range.startDate, range.endDate],
+    queryKey: ["user-trends-summary", range.period, range.startDate, range.endDate, branchId],
     queryFn: () =>
       getUserTrendsSummary({
         period: range.period,
         startDate: range.period === "custom" ? range.startDate : undefined,
         endDate: range.period === "custom" ? range.endDate : undefined,
+        branchId,
       }),
   });
 

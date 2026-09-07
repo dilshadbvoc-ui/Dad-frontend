@@ -8,10 +8,10 @@ import { STATUS_COLORS } from "./chartColors";
 
 const STATUS_ORDER = ["not_started", "in_progress", "completed", "deferred"];
 
-export function TaskFollowUpStatusChart() {
+export function TaskFollowUpStatusChart({ branchId }: { branchId?: string } = {}) {
   const { data = [], isLoading } = useQuery({
-    queryKey: ["task-followup-completion"],
-    queryFn: () => getTaskFollowUpCompletion(),
+    queryKey: ["task-followup-completion", branchId],
+    queryFn: () => getTaskFollowUpCompletion({ branchId }),
   });
 
   const rows = [...data].sort(

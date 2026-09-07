@@ -84,6 +84,7 @@ const CreateWorkflowPage = lazy(() => import('./pages/automation/new'));
 const WorkflowDetailPage = lazy(() => import('./pages/automation/WorkflowDetail'));
 const SalesBookPage = lazy(() => import('./pages/reports/SalesBook'));
 const UserSalesPage = lazy(() => import('./pages/reports/UserSales'));
+const ExpectedRevenuePage = lazy(() => import('./pages/reports/ExpectedRevenue'));
 const AnalyticsPage = lazy(() => import('./pages/reports/analytics'));
 const CampaignReportsPage = lazy(() => import('./pages/reports/campaigns'));
 const FieldForceReportsPage = lazy(() => import('./pages/reports/field-force'));
@@ -375,6 +376,7 @@ function AppContent() {
        <Route path="/reports/analytics" element={<AnalyticsPage />} />
        <Route path="/reports/sales-book" element={<SalesBookPage />} />
        <Route path="/reports/user-sales" element={<UserSalesPage />} />
+       <Route path="/reports/expected-revenue" element={<ExpectedRevenuePage />} />
        <Route path="/reports/campaigns" element={<CampaignReportsPage />} />
        <Route path="/reports/field-force" element={<FieldForceReportsPage />} />
        <Route path="/reports/leads" element={<LeadReportsPage />} />

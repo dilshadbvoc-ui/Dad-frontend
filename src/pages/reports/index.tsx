@@ -1,6 +1,6 @@
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp, FileText, PhoneCall, Trophy } from "lucide-react";
+import { BarChart3, PieChart, Users, CalendarCheck, Phone, TrendingUp, FileText, PhoneCall, Trophy, DollarSign } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { isAdmin, isManager } from "@/lib/utils";
 
@@ -100,6 +100,18 @@ export default function ReportsPage() {
               </div>
               <CardTitle>Sales Book</CardTitle>
               <CardDescription>Detailed transaction log.</CardDescription>
+            </CardHeader>
+          </Card>
+        </Link>
+
+        <Link to="/reports/expected-revenue">
+          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mb-2">
+                <DollarSign className="text-primary h-5 w-5" />
+              </div>
+              <CardTitle>Expected Revenue</CardTitle>
+              <CardDescription>Open deals & carried-forward pipeline.</CardDescription>
             </CardHeader>
           </Card>
         </Link>

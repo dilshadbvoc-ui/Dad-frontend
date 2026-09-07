@@ -56,7 +56,7 @@ export default function OpportunitiesPage() {
   const initialEndDate = searchParams.get('endDate') || ''
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'board')
+  const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'list')
   const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')
   const [queryParams, setQueryParams] = useState({
     ownerId: '',

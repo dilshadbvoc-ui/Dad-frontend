@@ -47,7 +47,7 @@ interface Props {
 export function OpportunityMobileCard({ opportunity: opp }: Props) {
   const { formatCurrency } = useCurrency()
   const queryClient = useQueryClient()
-  const { statuses: leadStatuses } = useOpportunityLeadStatuses()
+  const { selectableStatuses: leadStatuses, getStatusDetails } = useOpportunityLeadStatuses()
   const user = getUserInfo()
   const canDelete = isOrgAdmin(user)
 
@@ -224,29 +224,47 @@ export function OpportunityMobileCard({ opportunity: opp }: Props) {
             {/* Row 3: Lead Status inline select */}
             <div className="flex items-center gap-2 rounded-lg bg-muted/40 border border-border/30 px-3 py-2" onClick={e => e.stopPropagation()}>
               <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider shrink-0">Lead Status</span>
-              <Select
-                value={opp.leadStatus || opp.lead?.status || ""}
-                onValueChange={async (val) => {
-                  try {
-                    await api.put(`/opportunities/${opp.id}`, { leadStatus: val })
-                    queryClient.invalidateQueries({ queryKey: ["opportunities"] })
-                    toast.success("Lead status updated")
-                  } catch {
-                    toast.error("Failed to update lead status")
-                  }
-                }}
-              >
-                <SelectTrigger className="h-7 text-[11px] font-semibold px-2 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-1 min-w-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-lg">
-                  {leadStatuses.map(ls => (
-                    <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
-                      {ls.label || ls.id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {opp.stage === 'closed_won' || opp.stage === 'closed_lost' ? (
+                <span className="h-7 flex items-center text-[11px] font-semibold px-2 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-1 min-w-0 truncate capitalize">
+                  {getStatusDetails(opp.leadStatus || (opp.stage === 'closed_won' ? 'won' : 'lost')).label}
+                </span>
+              ) : (() => {
+                // See KanbanBoard.tsx for why leadStatus needs this fallback-option handling
+                // instead of the old `|| opp.lead?.status` guess, which mixed vocabularies and
+                // rendered blank whenever the value didn't match an Opportunity-lead-status id.
+                const currentValue = opp.leadStatus || opp.lead?.status || "";
+                const hasOption = !currentValue || leadStatuses.some(ls => ls.id === currentValue);
+                return (
+                  <Select
+                    value={currentValue}
+                    onValueChange={async (val) => {
+                      try {
+                        await api.put(`/opportunities/${opp.id}`, { leadStatus: val })
+                        queryClient.invalidateQueries({ queryKey: ["opportunities"] })
+                        toast.success("Lead status updated")
+                      } catch {
+                        toast.error("Failed to update lead status")
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="h-7 text-[11px] font-semibold px-2 rounded bg-emerald-500/5 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 flex-1 min-w-0">
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-lg">
+                      {!hasOption && (
+                        <SelectItem value={currentValue} className="text-xs capitalize">
+                          {getStatusDetails(currentValue).label}
+                        </SelectItem>
+                      )}
+                      {leadStatuses.map(ls => (
+                        <SelectItem key={ls.id} value={ls.id} className="text-xs capitalize">
+                          {ls.label || ls.id}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                );
+              })()}
             </div>
 
             {/* Row 4: Value + probability + close date + owner */}
