@@ -5,13 +5,16 @@ import { getCallStats } from "@/services/callService";
 import type { DateRangeValue } from "./DateRangeDropdown";
 import { SemiCircleGauge } from "./SemiCircleGauge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { withDashboardFilters } from "./dashboardLinks";
 
-export function CallOverviewCard({ range }: { range: DateRangeValue }) {
+export function CallOverviewCard({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
   const { data, isLoading } = useQuery({
     queryKey: ["call-overview-stats", range.period, range.startDate, range.endDate],
     queryFn: () =>
       getCallStats(
-        range.period,
+        // This card is never fed an "allTime" range (dashboards don't offer that preset) —
+        // fall back to "month" defensively so the type stays narrow for getCallStats.
+        range.period === "allTime" ? "month" : range.period,
         undefined,
         range.period === "custom" && range.startDate && range.endDate
           ? { startDate: range.startDate, endDate: range.endDate }
@@ -31,7 +34,7 @@ export function CallOverviewCard({ range }: { range: DateRangeValue }) {
           Call Overview
         </h3>
         <Link
-          to="/reports/call-analytics"
+          to={withDashboardFilters("/reports/call-analytics", { branchId })}
           className="group inline-flex items-center gap-1.5 text-sm font-medium text-[hsl(var(--chart-5))] shrink-0"
         >
           View Report

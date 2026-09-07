@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getSalesBook } from "@/services/analyticsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,10 +25,15 @@ export default function SalesBookPage() {
 
   const isAdmin = checkIsAdmin(user);
 
+  // Carried over from the main Dashboard's branch/date filters (see
+  // dashboard-v2/dashboardLinks.ts) so opening this report from a dashboard tile
+  // shows the same slice of data instead of resetting to no filter.
+  const [searchParams] = useSearchParams();
+
   // State
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>(searchParams.get('startDate') || "");
+  const [endDate, setEndDate] = useState<string>(searchParams.get('endDate') || "");
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(searchParams.get('branchId'));
 
   // Fetch Branches (for admins)
   const { data: branches } = useQuery({

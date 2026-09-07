@@ -5,6 +5,7 @@ import { getDashboardStats, getSalesForecast } from "@/services/analyticsService
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { DateRangeValue } from "./DateRangeDropdown";
+import { withDashboardFilters } from "./dashboardLinks";
 
 interface DashboardStatsData {
   activeOpportunities: number;
@@ -39,17 +40,17 @@ function TrendBadge({ changePct }: { changePct: number }) {
   );
 }
 
-export function QuickStatsBar({ range }: { range: DateRangeValue }) {
+export function QuickStatsBar({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
   const { formatCurrencyCompact } = useCurrency();
 
   const { data: stats, isLoading: statsLoading } = useQuery<DashboardStatsData>({
-    queryKey: ["dashboard-v2-stats", range.startDate, range.endDate],
-    queryFn: () => getDashboardStats(undefined, undefined, range.startDate, range.endDate),
+    queryKey: ["dashboard-v2-stats", range.startDate, range.endDate, branchId],
+    queryFn: () => getDashboardStats(branchId, undefined, range.startDate, range.endDate),
   });
 
   const { data: forecast, isLoading: forecastLoading } = useQuery<SalesForecastData>({
-    queryKey: ["dashboard-v2-forecast", range.startDate, range.endDate],
-    queryFn: () => getSalesForecast(undefined, undefined, range.startDate, range.endDate),
+    queryKey: ["dashboard-v2-forecast", range.startDate, range.endDate, branchId],
+    queryFn: () => getSalesForecast(branchId, undefined, range.startDate, range.endDate),
   });
 
   const isLoading = statsLoading || forecastLoading;
@@ -61,37 +62,38 @@ export function QuickStatsBar({ range }: { range: DateRangeValue }) {
     {
       label: "Exp. Revenue",
       value: formatCurrencyCompact(forecast?.totalPipeline || 0),
-      to: "/opportunities",
+      to: withDashboardFilters("/opportunities", { range, branchId }),
       accent: "bg-[hsl(var(--chart-1))]",
     },
     {
       label: "Pipeline",
       value: stats?.activeOpportunities || 0,
-      to: "/opportunities",
+      to: withDashboardFilters("/opportunities", { range, branchId }),
       accent: "bg-[hsl(var(--chart-2))]",
     },
     {
       label: "Follow-ups",
       value: stats?.pendingFollowUps || 0,
-      to: "/follow-ups",
+      // FollowUpsPage's URL-driven filters use `branch`, not `branchId`.
+      to: withDashboardFilters("/follow-ups", { extraParams: branchId ? { branch: branchId } : undefined }),
       accent: "bg-[hsl(var(--chart-3))]",
     },
     {
       label: "Won",
       value: won,
-      to: "/opportunities?stage=closed_won",
+      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_won" } }),
       accent: "bg-emerald-500",
     },
     {
       label: "Lost Deals",
       value: lost,
-      to: "/opportunities?stage=closed_lost",
+      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_lost" } }),
       accent: "bg-destructive",
     },
     {
       label: "Revenue",
       value: formatCurrencyCompact(stats?.revenueThisMonth || 0),
-      to: "/reports/sales-book",
+      to: withDashboardFilters("/reports/sales-book", { range, branchId }),
       accent: "bg-[hsl(var(--chart-4))]",
       trend: stats?.trends?.revenue,
     },

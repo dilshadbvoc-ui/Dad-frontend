@@ -78,7 +78,7 @@ export default function DashboardV2() {
       <div className="bg-card overflow-hidden">
         <div className="grid lg:grid-cols-[auto_1fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
           <div className="p-4 sm:p-1 w-fit lg:pr-8 lg:pb-5">
-            <CallOverviewCard range={range} />
+            <CallOverviewCard range={range} branchId={selectedBranchId} />
           </div>
           <div className="p-4 sm:p-1 lg:pl-4 lg:pb-5">
             <LeadsByStageCard range={range} branchId={selectedBranchId} />

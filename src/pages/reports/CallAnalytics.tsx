@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { getUserCallAnalytics } from '@/services/callService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -13,9 +14,14 @@ import { jsPDF } from 'jspdf';
 import { toPng } from 'html-to-image';
 
 export default function CallAnalyticsPage() {
+  // Carried over from the main Dashboard's branch filter (see
+  // dashboard-v2/dashboardLinks.ts). The dashboard's date-range vocabulary
+  // (thisMonth/lastMonth/custom) doesn't map onto this page's period buttons
+  // (today/week/month), so only the branch is forwarded here.
+  const [searchParams] = useSearchParams();
   const [period, setPeriod] = useState('today');
   const [direction, setDirection] = useState('all');
-  const [selectedBranchId, setSelectedBranchId] = useState<string>("all");
+  const [selectedBranchId, setSelectedBranchId] = useState<string>(searchParams.get('branchId') || "all");
   const reportRef = useRef<HTMLDivElement>(null);
 
   const [user] = useState<{ role: string } | null>(() => {

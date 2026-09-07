@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getUserDealRanking } from "@/services/analyticsService";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import type { DateRangeValue } from "./DateRangeDropdown";
+import { withDashboardFilters } from "./dashboardLinks";
 
 const RANK_STYLES = [
   "bg-warning/20 text-warning",
@@ -38,7 +39,7 @@ export function UserRankingCard({ range, branchId }: { range: DateRangeValue; br
           User Ranking
         </h3>
         <Link
-          to="/reports/user-sales"
+          to={withDashboardFilters("/reports/user-sales", { range, branchId })}
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/5 border border-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/10 rounded-[10px] px-3 py-1.5 transition-colors"
         >
           <Shuffle className="h-3.5 w-3.5" />

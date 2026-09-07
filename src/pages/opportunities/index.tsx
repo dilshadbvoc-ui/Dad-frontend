@@ -39,8 +39,8 @@ import {
 } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { getUsers, getBranches } from "@/services/settingsService"
-import { Input } from "@/components/ui/input"
 import { isManager } from "@/lib/utils"
+import { DateRangeDropdown, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown"
 
 export default function OpportunitiesPage() {
   const { formatCurrency } = useCurrency()
@@ -49,6 +49,11 @@ export default function OpportunitiesPage() {
 
   const initialStage = searchParams.get('stage') as any
   const initialView = searchParams.get('view') as 'list' | 'board'
+  // Carried over from the main Dashboard's branch/date filters (see dashboard-v2/dashboardLinks.ts)
+  // so opening this page from a dashboard tile shows the same slice of data, not the page's own defaults.
+  const initialBranchId = searchParams.get('branchId') || 'all'
+  const initialStartDate = searchParams.get('startDate') || ''
+  const initialEndDate = searchParams.get('endDate') || ''
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'board')
@@ -57,12 +62,27 @@ export default function OpportunitiesPage() {
     ownerId: '',
     stage: initialStage || 'all',
     type: 'all',
-    branchId: 'all',
+    branchId: initialBranchId,
     leadSource: 'all',
     search: '',
-    startDate: '',
-    endDate: ''
+    startDate: initialStartDate,
+    endDate: initialEndDate
   })
+  // Defaults to "All Time" unless a dashboard tile passed a specific range along.
+  const [dateRange, setDateRange] = useState<DateRangeValue>(
+    initialStartDate && initialEndDate
+      ? { period: 'custom', startDate: initialStartDate, endDate: initialEndDate }
+      : { period: 'allTime' }
+  )
+
+  const handleDateRangeChange = (value: DateRangeValue) => {
+    setDateRange(value)
+    setQueryParams(prev => ({
+      ...prev,
+      startDate: value.period === 'allTime' ? '' : (value.startDate || ''),
+      endDate: value.period === 'allTime' ? '' : (value.endDate || '')
+    }))
+  }
 
   const userInfo = localStorage.getItem('userInfo')
   const currentUser = userInfo ? JSON.parse(userInfo) : null
@@ -157,6 +177,7 @@ export default function OpportunitiesPage() {
       endDate: ''
     })
     setFilterMode('all')
+    setDateRange({ period: 'allTime' })
   }
 
   const hasActiveFilters =
@@ -165,8 +186,6 @@ export default function OpportunitiesPage() {
     queryParams.type !== 'all' ||
     queryParams.branchId !== 'all' ||
     queryParams.leadSource !== 'all' ||
-    queryParams.startDate !== '' ||
-    queryParams.endDate !== '' ||
     filterMode === 'mine'
 
   if (isError) {
@@ -262,6 +281,13 @@ export default function OpportunitiesPage() {
               <LayoutGrid className="h-4 w-4" />
             </Button>
           </div>
+
+          {/* Date range */}
+          <DateRangeDropdown
+            value={dateRange}
+            onChange={handleDateRangeChange}
+            presets={['allTime', 'thisMonth', 'lastMonth', 'custom']}
+          />
 
           {/* Filter popover */}
           <Popover>
@@ -370,26 +396,6 @@ export default function OpportunitiesPage() {
                   </Select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/50">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Start Date</label>
-                    <Input
-                      type="date"
-                      value={queryParams.startDate}
-                      onChange={(e) => handleFilterChange('startDate', e.target.value)}
-                      className="h-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">End Date</label>
-                    <Input
-                      type="date"
-                      value={queryParams.endDate}
-                      onChange={(e) => handleFilterChange('endDate', e.target.value)}
-                      className="h-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary"
-                    />
-                  </div>
-                </div>
               </div>
             </PopoverContent>
           </Popover>

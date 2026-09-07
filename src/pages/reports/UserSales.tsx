@@ -1,4 +1,5 @@
 import { useState, useMemo, useRef } from "react";
+import { useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { getUserWiseSales, getSalesChartData } from "@/services/analyticsService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -58,10 +59,18 @@ export default function UserSalesPage() {
 
   const isAdmin = checkIsAdmin(user);
 
+  // Carried over from the main Dashboard's branch/date filters (see
+  // dashboard-v2/dashboardLinks.ts) so opening this report from the User Ranking
+  // card's "View All" link shows the same slice of data instead of resetting to
+  // this page's own this-month default.
+  const [searchParams] = useSearchParams();
+  const dashboardStartDate = searchParams.get('startDate');
+  const dashboardEndDate = searchParams.get('endDate');
+
   // Filter States
-  const [startDate, setStartDate] = useState<string>(format(startOfMonth(getISTNow()), "yyyy-MM-dd"));
-  const [endDate, setEndDate] = useState<string>(format(endOfMonth(getISTNow()), "yyyy-MM-dd"));
-  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(null);
+  const [startDate, setStartDate] = useState<string>(dashboardStartDate || format(startOfMonth(getISTNow()), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState<string>(dashboardEndDate || format(endOfMonth(getISTNow()), "yyyy-MM-dd"));
+  const [selectedBranchId, setSelectedBranchId] = useState<string | null>(searchParams.get('branchId'));
   const [selectedUserId, setSelectedUserId] = useState<string>("all");
   const [activePeriod, setActivePeriod] = useState<string>("month");
 
