@@ -13,6 +13,7 @@ import Terms from './pages/Terms';
 import DataDeletion from './pages/DataDeletion';
 import SharedProductPage from './pages/public/SharedProductPage';
 import LandingPageView from './pages/public/LandingPageView';
+import DailySummaryView from './pages/public/DailySummaryView';
 import { PageLoader } from './components/ui/page-loader';
 import { QueryClient, QueryClientProvider, useQueryClient } from '@tanstack/react-query';
 import { Toaster } from 'sonner'; 
@@ -406,6 +407,7 @@ function AppContent() {
       <Route path="/download" element={<DownloadApp />} />
       <Route path="/data-deletion" element={<DataDeletion />} />
       <Route path="/shared-product/:slug" element={<SharedProductPage />} />
+      <Route path="/daily-summary/:token" element={<DailySummaryView />} />
       <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
      </Routes>
     </Suspense>
