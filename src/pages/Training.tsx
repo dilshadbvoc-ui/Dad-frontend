@@ -16,14 +16,20 @@ import {
   BarChart3,
   MapPin,
   Shuffle,
-  KeyRound
+  KeyRound,
+  ChevronDown,
+  Rocket,
+  Wallet,
+  Lock,
+  AlertTriangle,
+  LayoutGrid
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { getUserInfo, isAdmin, isSuperAdmin } from '@/lib/utils';
+import { cn, getUserInfo, isAdmin, isSuperAdmin } from '@/lib/utils';
 
 interface Topic {
   title: string;
@@ -337,48 +343,237 @@ const TrainingPage = () => {
     }
   ], []);
 
-  const faqs = useMemo(() => [
-    {
-      q: 'How do I recover a deleted lead, contact, or deal?',
-      a: 'Deletion is not immediate — go to Settings > Trash within 7 days of deleting to restore it. After 7 days it is permanently purged and cannot be recovered.'
-    },
-    {
-      q: 'Why is a deal I closed still showing under "Expected"?',
-      a: 'This happens when a lead was converted to a pipeline deal twice by mistake (once to an open deal, once directly to Closed Won/Lost). Report the duplicate to your admin — closing a deal should always be done via the "Closed Won"/"Closed Lost" action on the existing deal, not by converting the lead again.'
-    },
-    {
-      q: 'Why don\'t I see "Won"/"Lost" as options in the status dropdown anymore?',
-      a: 'By design — those outcomes should only ever be set through the actual "Closed Won"/"Closed Lost" actions, which correctly capture payment or loss-reason details. Picking them from a plain dropdown used to create misleading records with no real deal behind them.'
-    },
-    {
-      q: 'Can I use WhatsApp for marketing messages?',
-      a: 'Yes — use an approved WhatsApp template message for bulk sends once your WhatsApp Business number is connected in Settings > Integrations. Business-initiated messages require an approved template; free-form replies only work within 24 hours of the customer\'s last message.'
-    },
-    {
-      q: 'Why is my lead score low?',
-      a: 'Lead scores rise with real engagement — calls connected, replies received, links clicked. Logging every interaction (not just calling) helps the score reflect reality.'
-    },
-    {
-      q: 'What\'s the difference between Assignment Rules and the Shuffler?',
-      a: 'Assignment Rules route brand-new incoming leads the moment they arrive (round-robin/territory-based). The Shuffler is separate — it periodically re-distributes leads that already exist and have gone cold, so no single rep ends up hoarding stale leads.',
-    },
-    {
-      q: 'Why does the Dashboard\'s "Won" count differ from the filtered Opportunities list?',
-      a: 'The Dashboard counts deals by their actual close date; make sure any list you\'re comparing it to is also filtered by close date and not creation date — the two can differ for a deal created one month and closed the next.'
-    },
-    {
-      q: 'How do EMI payments work?',
-      a: 'When closing a deal as an installment sale, set up an EMI schedule with due dates and amounts per installment. Each installment is marked paid/pending/overdue independently, and partial payments are tracked against the total.'
-    },
-    {
-      q: 'Can a manager see their whole team\'s data, or just their own?',
-      a: 'A manager sees their own records plus everyone who reports to them (directly or through the chain), plus anyone in a team/branch they manage. Admins and Super Admins see the entire organisation.'
-    },
-    {
-      q: 'How do I get notified about follow-ups and assignments?',
-      a: 'The notification bell shows real-time in-app alerts. Daily WhatsApp/email summary reports can also be scheduled from Settings > Organisation.'
-    }
+  const faqCategories = useMemo(() => [
+    { id: 'getting-started', label: 'Getting Started', icon: Rocket, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+    { id: 'leads', label: 'Leads & Distribution', icon: User, color: 'text-emerald-500', bg: 'bg-emerald-500/10' },
+    { id: 'sales', label: 'Sales & Payments', icon: Wallet, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+    { id: 'communication', label: 'Calls & Messaging', icon: PhoneCall, color: 'text-cyan-500', bg: 'bg-cyan-500/10' },
+    { id: 'marketing', label: 'Marketing', icon: Megaphone, color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { id: 'reports', label: 'Reports & Dashboard', icon: BarChart3, color: 'text-indigo-500', bg: 'bg-indigo-500/10' },
+    { id: 'automation', label: 'Automation & Admin', icon: Zap, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+    { id: 'roles', label: 'Roles & Data Access', icon: Lock, color: 'text-rose-500', bg: 'bg-rose-500/10' },
+    { id: 'troubleshooting', label: 'Troubleshooting', icon: AlertTriangle, color: 'text-red-500', bg: 'bg-red-500/10' },
   ], []);
+
+  const faqs = useMemo(() => [
+    // Getting Started
+    {
+      category: 'getting-started',
+      q: 'What is the fastest way to find a specific lead, contact, or page?',
+      a: 'Press Cmd+K (Mac) or Ctrl+K (Windows) anywhere in the app to open the Command Center — a global search that jumps straight to any lead, contact, account, opportunity, or settings page without touching the mouse.'
+    },
+    {
+      category: 'getting-started',
+      q: 'How do I change my profile details, password, or notification preferences?',
+      a: 'Go to Settings > Profile. Password changes also sign you out of every other device/session as a security measure — you\'ll need to log back in there afterward.'
+    },
+    {
+      category: 'getting-started',
+      q: 'What does the mobile Android app do that the web app can\'t?',
+      a: 'It records and auto-logs calls made from the phone, works with local sync when offline, sends native push notifications, and can capture the field rep\'s live location — none of which a browser can do on its own.'
+    },
+    {
+      category: 'getting-started',
+      q: 'Why did I get logged out of the app on all my devices?',
+      a: 'Any password change — by you, an admin resetting it, or via "Forgot Password" — immediately invalidates every other active session as a security measure. Just log back in with the new password.'
+    },
+
+    // Leads & Distribution
+    {
+      category: 'leads',
+      q: 'Where do leads come from besides manual entry?',
+      a: 'Leads flow in automatically from Meta/Facebook Lead Ads, inbound WhatsApp messages from unrecognized numbers, public web forms, and bulk CSV/Excel import — all landing in the same Leads list.'
+    },
+    {
+      category: 'leads',
+      q: 'What\'s the difference between Assignment Rules and the Shuffler?',
+      a: 'Assignment Rules route brand-new incoming leads the moment they arrive (round-robin, territory-based, or a rotation pool). The Shuffler is separate — it periodically re-distributes leads that already exist and have gone cold, so no single rep ends up permanently hoarding stale leads.'
+    },
+    {
+      category: 'leads',
+      q: 'Why is my lead score low?',
+      a: 'Lead/engagement scores rise from real activity — calls connected, replies received, links clicked. Logging every interaction (not just dialing) is what moves the score.'
+    },
+    {
+      category: 'leads',
+      q: 'A lead came back after being closed — do I edit the old record?',
+      a: 'No — mark it as a Re-Enquiry instead. This keeps the original lead\'s full history intact while tracking the new engagement separately, rather than overwriting what happened before.'
+    },
+    {
+      category: 'leads',
+      q: 'How does duplicate lead detection work?',
+      a: 'New leads are automatically checked against existing ones by phone number and email. A likely duplicate is flagged for review rather than silently created as a second copy.'
+    },
+    {
+      category: 'leads',
+      q: 'Can I bulk-update or bulk-assign many leads at once?',
+      a: 'Yes — select multiple leads in the list and use Bulk Status Change or Bulk Assign. Note this bypasses the usual per-lead audit trail, so use it deliberately.'
+    },
+
+    // Sales & Payments
+    {
+      category: 'sales',
+      q: 'Why is a deal I closed still showing under "Expected"?',
+      a: 'This happens when a lead was accidentally converted to a pipeline deal twice — once as an open deal, once directly to Closed Won/Lost. Report the duplicate to your admin for cleanup; going forward, always close an existing deal via its own "Closed Won"/"Closed Lost" action rather than converting the lead again.'
+    },
+    {
+      category: 'sales',
+      q: 'Why don\'t I see "Won"/"Lost" as options in the status dropdown anymore?',
+      a: 'By design — those outcomes are only ever set through the real "Closed Won"/"Closed Lost" actions, which correctly capture payment details or a required loss reason. Picking them from a plain dropdown used to create misleading records with no real deal behind them.'
+    },
+    {
+      category: 'sales',
+      q: 'How do EMI / installment payments work?',
+      a: 'When closing a deal as an installment sale, set up an EMI schedule with due dates and amounts per installment. Each installment tracks paid/pending/overdue independently, and partial payments are recorded against the running total.'
+    },
+    {
+      category: 'sales',
+      q: 'Where do Quotes and the Product catalog fit in?',
+      a: 'Build your Product catalog once (Products page); then generate a Quote directly from any Opportunity, pulling line items straight from that catalog instead of retyping them each time.'
+    },
+    {
+      category: 'sales',
+      q: 'How are sales commissions calculated?',
+      a: 'Each closed-won deal can be linked to a Commission record tracking the payout owed to the rep who closed it — reviewable per user in the Commissions module.'
+    },
+
+    // Calls & Messaging
+    {
+      category: 'communication',
+      q: 'Can I use WhatsApp for marketing messages?',
+      a: 'Yes — use an approved WhatsApp template message for bulk sends once your WhatsApp Business number is connected in Settings > Integrations. Business-initiated messages always require an approved template; free-form replies only work within 24 hours of the customer\'s last message.'
+    },
+    {
+      category: 'communication',
+      q: 'Are my calls automatically recorded?',
+      a: 'Calls made through the Android app are recorded and logged automatically if your organisation\'s Call Settings have recording enabled — the recording attaches directly to that lead\'s activity timeline.'
+    },
+    {
+      category: 'communication',
+      q: 'What happens if someone messages a number that isn\'t linked to any lead yet?',
+      a: 'An incoming WhatsApp message from an unrecognized number can automatically create a brand-new lead, so first contact never gets lost even before anyone manually adds it.'
+    },
+    {
+      category: 'communication',
+      q: 'Where can I see every interaction with a customer in one place?',
+      a: 'Every call, note, email, WhatsApp message, and status change appears in a single chronological Activity Timeline on that lead/contact\'s page.'
+    },
+
+    // Marketing
+    {
+      category: 'marketing',
+      q: 'How does the Meta Ads integration decide which leads sync into the CRM?',
+      a: 'You choose exactly which campaigns are allowed to sync in per connected ad account (Ads Manager > per-campaign toggle) — a connected account doesn\'t mean every campaign automatically feeds leads in.'
+    },
+    {
+      category: 'marketing',
+      q: 'Can I build a lead-capture form or landing page without a developer?',
+      a: 'Yes — Web Forms and Landing Pages are both built visually inside the CRM; submissions flow directly into Leads with no code required.'
+    },
+    {
+      category: 'marketing',
+      q: 'How do I track whether an email campaign actually worked?',
+      a: 'Email Campaigns report opens and clicks per recipient, scoped to whichever Email List segment you sent to.'
+    },
+
+    // Reports & Dashboard
+    {
+      category: 'reports',
+      q: 'Why does the Dashboard\'s "Won" count differ from the filtered Opportunities list?',
+      a: 'The Dashboard counts deals by their actual close date. Make sure any list you\'re comparing it to is also filtered by close date, not creation date — the two can differ for a deal created one month and closed the next.'
+    },
+    {
+      category: 'reports',
+      q: 'What does "Carried Forward" mean on the Expected Revenue report?',
+      a: 'It flags an open deal whose expected close date has already passed into an earlier month but is still sitting open — visibility into pipeline that would otherwise silently blend into one number.'
+    },
+    {
+      category: 'reports',
+      q: 'Can I filter the Dashboard by branch and see it apply everywhere?',
+      a: 'Yes — the Branch and Date Range filters at the top of the Dashboard are global: they scope every widget on the page (Quick Stats, Leads by Stage, Call Activity, User Rankings, and more), not just one card.'
+    },
+    {
+      category: 'reports',
+      q: 'Where do I get automated daily performance summaries?',
+      a: 'Settings > Organisation lets you set a daily report time; call and lead summaries are then sent automatically to admins via WhatsApp and/or email every day.'
+    },
+    {
+      category: 'reports',
+      q: 'Which report shows individual rep performance vs. team totals?',
+      a: 'User Sales and User Total give per-rep leaderboards; Sales Book lists every closed transaction individually for full traceability.'
+    },
+
+    // Automation & Admin
+    {
+      category: 'automation',
+      q: 'What can the Workflow Builder actually automate?',
+      a: '"If This, Then That" rules — e.g. auto-create a task when a lead reaches a certain status, or fire a notification the moment a lead is assigned. Steps can run immediately or after a configured delay.'
+    },
+    {
+      category: 'automation',
+      q: 'How do I connect an external tool like Zapier or a custom website to push leads in?',
+      a: 'Generate an API key in Settings > Developer, then use the public API (or a Zapier/Make integration) to create leads programmatically from any external system.'
+    },
+    {
+      category: 'automation',
+      q: 'Can I add fields specific to my business that aren\'t built in?',
+      a: 'Yes — Settings > Custom Fields lets you add org-specific fields to Leads, Contacts, Accounts, or Opportunities without any developer work.'
+    },
+    {
+      category: 'automation',
+      q: 'How do I recover a deleted lead, contact, or deal?',
+      a: 'Deletion is never instant — go to Settings > Trash within 7 days to restore it. After 7 days it\'s permanently purged and cannot be recovered, so check Trash promptly.'
+    },
+
+    // Roles & Data Access
+    {
+      category: 'roles',
+      q: 'Can a manager see their whole team\'s data, or just their own?',
+      a: 'A manager sees their own records plus everyone who reports to them (directly or through the full chain), plus anyone in a team or branch they manage. Admins and Super Admins see the entire organisation.'
+    },
+    {
+      category: 'roles',
+      q: 'How granular are permissions — can I stop a role from deleting or exporting data?',
+      a: 'Yes — custom roles set permissions per module and per action (view/edit/delete/export independently), not just a single "admin vs. rep" toggle.'
+    },
+    {
+      category: 'roles',
+      q: 'What\'s the difference between an org Admin and the Super Admin console?',
+      a: 'An Admin manages one organisation. Super Admin is platform-level and cross-tenant — it can suspend/restore any organisation, assign licenses, and broadcast notifications platform-wide. Regular org admins never see it.'
+    },
+
+    // Troubleshooting
+    {
+      category: 'troubleshooting',
+      q: 'I made more calls today than the app is showing — why?',
+      a: 'First compare against your phone\'s own native call log to confirm the gap is real. The most common cause is the mobile app\'s background sync failing silently (often after a password change invalidates its session) — fully closing and reopening the app forces a fresh sync.'
+    },
+    {
+      category: 'troubleshooting',
+      q: 'Leads are showing up in my CRM from a campaign I don\'t recognize — is that a bug?',
+      a: 'Usually not a bug: Meta routes leads by which Facebook Page an ad runs on, not by which ad account is connected in the CRM. If another advertiser has permission to run ads on your connected Page, their leads can land in your CRM too — check your Page\'s ad-permission list on Meta\'s side.'
+    },
+    {
+      category: 'troubleshooting',
+      q: 'A lead\'s status jumped between owners without anyone reassigning it — what happened?',
+      a: 'Check whether Auto-Shuffle is on for your org (Settings > Shuffler) — even leads that look untouched can be periodically redistributed on schedule. A one-time manual "Shuffle Now" can also move leads even while the automatic schedule is off.'
+    },
+  ], []);
+
+  const [activeFaqCategory, setActiveFaqCategory] = useState<string>('all');
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+  const [faqSearch, setFaqSearch] = useState('');
+
+  const visibleFaqs = useMemo(() => {
+    return faqs
+      .map((f, originalIndex) => ({ ...f, originalIndex }))
+      .filter(f => activeFaqCategory === 'all' || f.category === activeFaqCategory)
+      .filter(f =>
+        !faqSearch ||
+        f.q.toLowerCase().includes(faqSearch.toLowerCase()) ||
+        f.a.toLowerCase().includes(faqSearch.toLowerCase())
+      );
+  }, [faqs, activeFaqCategory, faqSearch]);
 
   const filteredModules = modules.filter(m =>
     m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -527,18 +722,84 @@ const TrainingPage = () => {
           </TabsContent>
         )}
 
-        <TabsContent value="faq" className="max-w-3xl mx-auto py-8">
-          <div className="space-y-6">
-            {faqs.map((item, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-card border border-border hover:border-border transition-colors">
-                <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-3">
-                  <Badge variant="secondary" className="bg-primary/20 text-primary">Q</Badge> {item.q}
-                </h3>
-                <p className="text-muted-foreground text-sm pl-11 leading-relaxed">
-                  {item.a}
-                </p>
+        <TabsContent value="faq" className="max-w-4xl mx-auto py-4 space-y-6">
+          {/* FAQ search */}
+          <div className="relative group max-w-md mx-auto">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input
+              placeholder="Search FAQs..."
+              className="bg-card border-border pl-10 h-11 rounded-xl focus-visible:ring-primary/50"
+              value={faqSearch}
+              onChange={(e) => { setFaqSearch(e.target.value); setOpenFaqIndex(null); }}
+            />
+          </div>
+
+          {/* Category filter chips */}
+          <div className="flex flex-wrap justify-center gap-2">
+            <button
+              onClick={() => { setActiveFaqCategory('all'); setOpenFaqIndex(null); }}
+              className={cn(
+                'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+                activeFaqCategory === 'all'
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+              )}
+            >
+              <LayoutGrid className="h-3.5 w-3.5" /> All ({faqs.length})
+            </button>
+            {faqCategories.map((cat) => {
+              const count = faqs.filter(f => f.category === cat.id).length;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => { setActiveFaqCategory(cat.id); setOpenFaqIndex(null); }}
+                  className={cn(
+                    'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-colors',
+                    activeFaqCategory === cat.id
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-card text-muted-foreground border-border hover:border-primary/40 hover:text-foreground'
+                  )}
+                >
+                  <cat.icon className="h-3.5 w-3.5" /> {cat.label} ({count})
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Accordion list */}
+          <div className="space-y-3">
+            {visibleFaqs.length === 0 ? (
+              <div className="text-center py-16 text-muted-foreground text-sm">
+                No FAQs match "{faqSearch}". Try a different search or category.
               </div>
-            ))}
+            ) : (
+              visibleFaqs.map((item) => {
+                const cat = faqCategories.find(c => c.id === item.category)!;
+                const isOpen = openFaqIndex === item.originalIndex;
+                return (
+                  <div
+                    key={item.originalIndex}
+                    className="rounded-2xl bg-card border border-border overflow-hidden transition-colors hover:border-primary/30"
+                  >
+                    <button
+                      onClick={() => setOpenFaqIndex(isOpen ? null : item.originalIndex)}
+                      className="w-full flex items-center gap-3 p-5 text-left"
+                    >
+                      <div className={cn('h-8 w-8 rounded-lg flex items-center justify-center shrink-0', cat.bg)}>
+                        <cat.icon className={cn('h-4 w-4', cat.color)} />
+                      </div>
+                      <h3 className="flex-1 text-sm md:text-base font-bold text-foreground">{item.q}</h3>
+                      <ChevronDown className={cn('h-4 w-4 text-muted-foreground shrink-0 transition-transform', isOpen && 'rotate-180')} />
+                    </button>
+                    {isOpen && (
+                      <div className="px-5 pb-5 pl-16">
+                        <p className="text-muted-foreground text-sm leading-relaxed">{item.a}</p>
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
           </div>
         </TabsContent>
       </Tabs>
