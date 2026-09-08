@@ -388,26 +388,26 @@ const TrainingPage = () => {
   return (
     <div className="flex-1 space-y-8 p-8 max-w-7xl mx-auto animate-in fade-in duration-500">
       {/* Hero Section */}
-      <div className="relative overflow-hidden rounded-3xl bg-neutral-900 border border-neutral-800 p-8 md:p-12 shadow-2xl">
+      <div className="relative overflow-hidden rounded-3xl bg-card border border-border p-8 md:p-12 shadow-2xl">
         <div className="absolute top-0 right-0 -m-12 h-64 w-64 rounded-full bg-primary/20 blur-3xl" />
         <div className="absolute bottom-0 left-0 -m-12 h-64 w-64 rounded-full bg-blue-500/10 blur-3xl" />
 
         <div className="relative z-10 max-w-2xl">
-          <Badge variant="outline" className="mb-4 border-primary/30 text-primary-foreground/80 px-4 py-1.5 uppercase tracking-widest text-[10px] font-bold">
+          <Badge variant="outline" className="mb-4 border-primary/30 text-primary px-4 py-1.5 uppercase tracking-widest text-[10px] font-bold">
             Learning Hub
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-black text-white mb-4 tracking-tighter">
+          <h1 className="text-4xl md:text-5xl font-black text-foreground mb-4 tracking-tighter">
             Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Sales DNA.</span>
           </h1>
-          <p className="text-neutral-400 text-lg mb-8 leading-relaxed">
+          <p className="text-muted-foreground text-lg mb-8 leading-relaxed">
             Explore comprehensive guides and tutorials for every feature. Transform leads into loyalty with expert knowledge.
           </p>
 
           <div className="relative group max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-neutral-500 group-focus-within:text-primary transition-colors" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
             <Input
               placeholder="Search for tutorials..."
-              className="bg-neutral-800/50 border-neutral-700 pl-10 h-12 rounded-xl focus-visible:ring-primary/50 text-white"
+              className="bg-muted/50 border-border pl-10 h-12 rounded-xl focus-visible:ring-primary/50 text-foreground"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
@@ -418,22 +418,22 @@ const TrainingPage = () => {
       {/* Main Content */}
       <Tabs defaultValue="modules" className="space-y-8">
         <div className="flex items-center justify-between">
-          <TabsList className="bg-neutral-900 border border-neutral-800 p-1 rounded-xl">
-            <TabsTrigger value="modules" className="data-[state=active]:bg-neutral-800 data-[state=active]:text-white rounded-lg px-6 py-2">
+          <TabsList className="bg-card border border-border p-1 rounded-xl">
+            <TabsTrigger value="modules" className="data-[state=active]:bg-muted data-[state=active]:text-foreground rounded-lg px-6 py-2">
               Core Modules
             </TabsTrigger>
             {userIsAdmin && (
-              <TabsTrigger value="advanced" className="data-[state=active]:bg-neutral-800 data-[state=active]:text-white rounded-lg px-6 py-2">
+              <TabsTrigger value="advanced" className="data-[state=active]:bg-muted data-[state=active]:text-foreground rounded-lg px-6 py-2">
                 Admin Workflow
               </TabsTrigger>
             )}
-            <TabsTrigger value="faq" className="data-[state=active]:bg-neutral-800 data-[state=active]:text-white rounded-lg px-6 py-2">
+            <TabsTrigger value="faq" className="data-[state=active]:bg-muted data-[state=active]:text-foreground rounded-lg px-6 py-2">
               FAQs
             </TabsTrigger>
           </TabsList>
 
           <div className="hidden md:flex gap-4">
-            <Button variant="outline" className="border-neutral-800 bg-neutral-900/50 hover:bg-neutral-800 rounded-xl gap-2 h-10">
+            <Button variant="outline" className="border-border bg-card/60 hover:bg-muted rounded-xl gap-2 h-10">
               <PlayCircle className="h-4 w-4" /> Video Guides
             </Button>
             <Button className="rounded-xl shadow-lg shadow-primary/20 gap-2 h-10">
@@ -445,24 +445,24 @@ const TrainingPage = () => {
         <TabsContent value="modules" className="space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredModules.map((module) => (
-              <Card key={module.id} className="bg-neutral-900 border-neutral-800 hover:border-neutral-700 transition-all duration-300 group overflow-hidden">
+              <Card key={module.id} className="bg-card border-border hover:border-border transition-all duration-300 group overflow-hidden">
                 <CardHeader>
                   <div className={`${module.bg} p-3 rounded-2xl w-fit mb-4 group-hover:scale-110 transition-transform`}>
                     <module.icon className={`h-6 w-6 ${module.color}`} />
                   </div>
-                  <CardTitle className="text-xl font-bold text-white group-hover:text-primary transition-colors">{module.title}</CardTitle>
-                  <CardDescription className="text-neutral-400 line-clamp-2">{module.description}</CardDescription>
+                  <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">{module.title}</CardTitle>
+                  <CardDescription className="text-muted-foreground line-clamp-2">{module.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {module.topics
                       .filter(t => !t.role || (t.role === 'admin' && userIsAdmin))
                       .map((topic, i) => (
-                      <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-neutral-800/50 transition-colors group/item">
+                      <div key={i} className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors group/item">
                         <CheckCircle2 className="h-4 w-4 text-primary shrink-0 mt-0.5" />
                         <div>
-                          <span className="text-sm text-neutral-200 font-semibold group-hover/item:text-white block">{topic.title}</span>
-                          <span className="text-xs text-neutral-500 leading-relaxed">{topic.content}</span>
+                          <span className="text-sm text-foreground font-semibold group-hover/item:text-foreground block">{topic.title}</span>
+                          <span className="text-xs text-muted-foreground leading-relaxed">{topic.content}</span>
                         </div>
                       </div>
                     ))}
@@ -476,18 +476,18 @@ const TrainingPage = () => {
         {userIsAdmin && (
           <TabsContent value="advanced" className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {adminWorkflowSections.map((section) => (
-              <Card key={section.title} className="bg-neutral-900 border-neutral-800">
+              <Card key={section.title} className="bg-card border-border">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <section.icon className={`h-5 w-5 ${section.color}`} /> {section.title}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-4">
                     {section.items.map((item) => (
-                      <div key={item.title} className="p-4 rounded-xl bg-neutral-800/30 border border-neutral-700/50">
-                        <h4 className="text-sm font-bold text-white mb-2">{item.title}</h4>
-                        <p className="text-xs text-neutral-400 leading-relaxed">
+                      <div key={item.title} className="p-4 rounded-xl bg-muted/40 border border-border">
+                        <h4 className="text-sm font-bold text-foreground mb-2">{item.title}</h4>
+                        <p className="text-xs text-muted-foreground leading-relaxed">
                           {item.content}
                         </p>
                       </div>
@@ -497,26 +497,26 @@ const TrainingPage = () => {
               </Card>
             ))}
             {userIsSuperAdmin && (
-              <Card className="bg-neutral-900 border-neutral-800 md:col-span-2">
+              <Card className="bg-card border-border md:col-span-2">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-white">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <KeyRound className="h-5 w-5 text-rose-500" /> Super Admin Console
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-sm text-neutral-400">
+                  <p className="text-sm text-muted-foreground">
                     Platform-level, cross-tenant administration — separate from any single organisation's settings.
                   </p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-neutral-800/30 border border-neutral-700/50">
-                      <h4 className="text-sm font-bold text-white mb-2">Organisation Management</h4>
-                      <p className="text-xs text-neutral-400 leading-relaxed">
+                    <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                      <h4 className="text-sm font-bold text-foreground mb-2">Organisation Management</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         View, suspend, restore, or permanently manage every organisation on the platform, and assign subscription plans/licenses.
                       </p>
                     </div>
-                    <div className="p-4 rounded-xl bg-neutral-800/30 border border-neutral-700/50">
-                      <h4 className="text-sm font-bold text-white mb-2">Broadcasts & Platform Content</h4>
-                      <p className="text-xs text-neutral-400 leading-relaxed">
+                    <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                      <h4 className="text-sm font-bold text-foreground mb-2">Broadcasts & Platform Content</h4>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
                         Push a broadcast notification to every organisation, and manage the public marketing site's FAQs and SEO settings.
                       </p>
                     </div>
@@ -530,11 +530,11 @@ const TrainingPage = () => {
         <TabsContent value="faq" className="max-w-3xl mx-auto py-8">
           <div className="space-y-6">
             {faqs.map((item, idx) => (
-              <div key={idx} className="p-6 rounded-2xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 transition-colors">
-                <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-3">
+              <div key={idx} className="p-6 rounded-2xl bg-card border border-border hover:border-border transition-colors">
+                <h3 className="text-lg font-bold text-foreground mb-3 flex items-center gap-3">
                   <Badge variant="secondary" className="bg-primary/20 text-primary">Q</Badge> {item.q}
                 </h3>
-                <p className="text-neutral-400 text-sm pl-11 leading-relaxed">
+                <p className="text-muted-foreground text-sm pl-11 leading-relaxed">
                   {item.a}
                 </p>
               </div>
@@ -544,19 +544,19 @@ const TrainingPage = () => {
       </Tabs>
 
       {/* Support Footer */}
-      <div className="flex flex-col md:flex-row items-center justify-between p-8 rounded-3xl bg-gradient-to-r from-neutral-900 to-neutral-800 border border-neutral-700 mt-12 gap-6">
+      <div className="flex flex-col md:flex-row items-center justify-between p-8 rounded-3xl bg-muted border border-border mt-12 gap-6">
         <div className="flex items-center gap-6">
           <div className="h-16 w-16 rounded-full bg-primary/20 flex items-center justify-center border border-primary/30 shrink-0">
             <Sparkles className="h-8 w-8 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-black text-white">Still have questions?</h3>
-            <p className="text-neutral-400 text-sm">Join our weekly training webinars or contact our success team.</p>
+            <h3 className="text-xl font-black text-foreground">Still have questions?</h3>
+            <p className="text-muted-foreground text-sm">Join our weekly training webinars or contact our success team.</p>
           </div>
         </div>
         <div className="flex gap-4">
           <Button className="rounded-xl px-8 h-12">Visit Community</Button>
-          <Button variant="outline" className="rounded-xl border-neutral-700 bg-transparent hover:bg-neutral-800 text-white px-8 h-12">Submit Ticket</Button>
+          <Button variant="outline" className="rounded-xl border-border bg-transparent hover:bg-muted text-foreground px-8 h-12">Submit Ticket</Button>
         </div>
       </div>
     </div>
