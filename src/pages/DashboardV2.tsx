@@ -76,7 +76,7 @@ export default function DashboardV2() {
 
       <QuickStatsBar range={range} branchId={selectedBranchId} />
 
-      <LeadHealthAlerts branchId={selectedBranchId} />
+      <LeadHealthAlerts range={range} branchId={selectedBranchId} />
 
       <div className="bg-card overflow-hidden">
         <div className="grid lg:grid-cols-[auto_1fr] divide-y lg:divide-y-0 lg:divide-x divide-border">

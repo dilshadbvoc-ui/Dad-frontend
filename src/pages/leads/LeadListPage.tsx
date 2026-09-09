@@ -1,11 +1,17 @@
 import { useQuery } from "@tanstack/react-query"
 import { type RowSelectionState } from "@tanstack/react-table"
 import { useState, type ReactNode } from "react"
+import { useSearchParams } from "react-router-dom"
 import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { LeadTableRow } from "./LeadTableRow"
 import { type Lead } from "@/services/leadService"
 import { LoadingCard } from "@/components/ui/loading-spinner"
+
+interface LeadListResponse {
+  leads: Lead[]
+  total?: number
+}
 
 interface LeadListPageProps {
   title: string
@@ -13,23 +19,35 @@ interface LeadListPageProps {
   icon: ReactNode
   /** Unique react-query key for this list. */
   queryKey: string
-  /** Fetches the full (large-page) lead list; same {leads,...} shape as GET /api/leads. */
-  queryFn: () => Promise<{ leads: Lead[] }>
+  /** Fetches the (large-page) lead list; same {leads, total, ...} shape as GET /api/leads. */
+  queryFn: (params: { branchId?: string; startDate?: string; endDate?: string }) => Promise<LeadListResponse>
   emptyMessage: string
 }
+
+const FETCH_CAP = 2000
 
 // Shared shell for the "needs attention" lead lists (Unattended, No Activity) —
 // same table/columns as the main Leads page, minus the heavy filter bar, since
 // these are already pre-filtered, single-purpose views.
 export function LeadListPage({ title, description, icon, queryKey, queryFn, emptyMessage }: LeadListPageProps) {
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({})
+  // Carried over from the Dashboard's branch filter (see dashboard-v2/dashboardLinks.ts) —
+  // without this, the count shown here would silently disagree with the Dashboard tile
+  // that linked here whenever a specific branch was selected there.
+  const [searchParams] = useSearchParams()
+  const branchId = searchParams.get('branchId') || undefined
+  const startDate = searchParams.get('startDate') || undefined
+  const endDate = searchParams.get('endDate') || undefined
 
   const { data, isLoading } = useQuery({
-    queryKey: [queryKey],
-    queryFn,
+    queryKey: [queryKey, branchId, startDate, endDate],
+    queryFn: () => queryFn({ branchId, startDate, endDate }),
   })
 
   const leads = data?.leads ?? []
+  // Use the server-reported total, not leads.length — the fetch is capped (see FETCH_CAP)
+  // so leads.length would silently under-report once a list grows past the cap.
+  const total = data?.total ?? leads.length
 
   return (
     <div className="flex flex-col gap-6 h-full min-h-0 pt-3">
@@ -41,10 +59,15 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
           <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
             {title}
             <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
-              {leads.length.toLocaleString()}
+              {total.toLocaleString()}
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{description}</p>
+          {total > leads.length && (
+            <p className="text-xs text-amber-600 mt-1">
+              Showing the first {leads.length.toLocaleString()} of {total.toLocaleString()} — narrow this down from the Dashboard's branch/date filters to see the rest.
+            </p>
+          )}
         </div>
       </div>
 
@@ -75,3 +98,5 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
     </div>
   )
 }
+
+export { FETCH_CAP }

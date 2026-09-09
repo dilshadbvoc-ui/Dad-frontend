@@ -310,9 +310,9 @@ export interface LeadHealth {
     noActivityLeads: number;
 }
 
-export const getLeadHealth = async (branchId?: string): Promise<LeadHealth> => {
+export const getLeadHealth = async (filters?: { branchId?: string; startDate?: string; endDate?: string }): Promise<LeadHealth> => {
     try {
-        const response = await api.get('/analytics/lead-health', { params: branchId ? { branchId } : undefined });
+        const response = await api.get('/analytics/lead-health', { params: filters });
         return response.data || { unattendedLeads: 0, noActivityLeads: 0 };
     } catch (error) {
         console.error('Error fetching lead health:', error);

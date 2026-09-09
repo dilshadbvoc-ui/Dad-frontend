@@ -3,11 +3,18 @@ import { Link } from "react-router-dom";
 import { UserX, MoonStar, ArrowRight } from "lucide-react";
 import { getLeadHealth } from "@/services/analyticsService";
 import { Skeleton } from "@/components/ui/skeleton";
+import { withDashboardFilters } from "./dashboardLinks";
+import type { DateRangeValue } from "./DateRangeDropdown";
 
-export function LeadHealthAlerts({ branchId }: { branchId?: string }) {
+export function LeadHealthAlerts({ range, branchId }: { range: DateRangeValue; branchId?: string }) {
   const { data, isLoading } = useQuery({
-    queryKey: ["lead-health", branchId],
-    queryFn: () => getLeadHealth(branchId),
+    queryKey: ["lead-health", range.startDate, range.endDate, branchId],
+    queryFn: () =>
+      getLeadHealth({
+        branchId,
+        startDate: range.period !== "allTime" ? range.startDate : undefined,
+        endDate: range.period !== "allTime" ? range.endDate : undefined,
+      }),
   });
 
   const tiles = [
@@ -17,7 +24,7 @@ export function LeadHealthAlerts({ branchId }: { branchId?: string }) {
       description: "Assigned but never contacted",
       value: data?.unattendedLeads ?? 0,
       icon: UserX,
-      to: "/leads/unattended",
+      to: withDashboardFilters("/leads/unattended", { range, branchId }),
     },
     {
       key: "no-activity",
@@ -25,7 +32,7 @@ export function LeadHealthAlerts({ branchId }: { branchId?: string }) {
       description: "No update in 30+ days",
       value: data?.noActivityLeads ?? 0,
       icon: MoonStar,
-      to: "/leads/no-activity",
+      to: withDashboardFilters("/leads/no-activity", { range, branchId }),
     },
   ];
 
