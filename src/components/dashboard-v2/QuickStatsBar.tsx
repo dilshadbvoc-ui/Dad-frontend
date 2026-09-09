@@ -68,7 +68,10 @@ export function QuickStatsBar({ range, branchId }: { range: DateRangeValue; bran
     {
       label: "Pipeline",
       value: stats?.activeOpportunities || 0,
-      to: withDashboardFilters("/opportunities", { range, branchId }),
+      // List view + stage=expected: the Dashboard's "Pipeline" figure is the open/expected
+      // deal count, so the linked page should land on exactly that filtered list, not the
+      // full Kanban board (which stays the sidebar nav's default, unaffected by this).
+      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "expected", view: "list" } }),
       accent: "bg-[hsl(var(--chart-2))]",
     },
     {
@@ -81,13 +84,13 @@ export function QuickStatsBar({ range, branchId }: { range: DateRangeValue; bran
     {
       label: "Won",
       value: won,
-      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_won" } }),
+      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_won", view: "list" } }),
       accent: "bg-emerald-500",
     },
     {
       label: "Lost Deals",
       value: lost,
-      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_lost" } }),
+      to: withDashboardFilters("/opportunities", { range, branchId, extraParams: { stage: "closed_lost", view: "list" } }),
       accent: "bg-destructive",
     },
     {
