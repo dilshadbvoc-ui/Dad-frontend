@@ -164,6 +164,16 @@ export const getReEnquiryLeads = async () => {
     return response.data;
 };
 
+export const getUnattendedLeads = async (params?: { page?: number; pageSize?: number; branchId?: string }) => {
+    const response = await api.get('/leads/unattended', { params });
+    return response.data;
+};
+
+export const getNoActivityLeads = async (params?: { page?: number; pageSize?: number; branchId?: string }) => {
+    const response = await api.get('/leads/no-activity', { params });
+    return response.data;
+};
+
 export const getDuplicateLeads = async () => {
     const response = await api.get('/leads/duplicates');
     return response.data;

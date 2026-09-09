@@ -31,6 +31,8 @@ const LeadDetailPage = lazy(() => import('./pages/leads/[id]'));
 const BulkImportLeadsPage = lazy(() => import('./pages/leads/import'));
 const ReEnquiriesPage = lazy(() => import('./pages/re-enquiries'));
 const DuplicatesPage = lazy(() => import('./pages/duplicates'));
+const UnattendedLeadsPage = lazy(() => import('./pages/leads/unattended'));
+const NoActivityLeadsPage = lazy(() => import('./pages/leads/no-activity'));
 const UserProfilePage = lazy(() => import('./pages/users/[id]'));
 const ContactsPage = lazy(() => import('./pages/contacts'));
 const ContactDetailPage = lazy(() => import('./pages/contacts/[id]'));
@@ -314,6 +316,8 @@ function AppContent() {
        <Route path="/leads/:id" element={<LeadDetailPage />} />
        <Route path="/re-enquiries" element={<ReEnquiriesPage />} />
        <Route path="/duplicates" element={<DuplicatesPage />} />
+       <Route path="/leads/unattended" element={<UnattendedLeadsPage />} />
+       <Route path="/leads/no-activity" element={<NoActivityLeadsPage />} />
        <Route path="/contacts" element={<ContactsPage />} />
        <Route path="/contacts/:id" element={<ContactDetailPage />} />
        <Route path="/accounts" element={<AccountsPage />} />

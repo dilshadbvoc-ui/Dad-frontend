@@ -17,10 +17,7 @@ export function LeadHealthAlerts({ branchId }: { branchId?: string }) {
       description: "Assigned but never contacted",
       value: data?.unattendedLeads ?? 0,
       icon: UserX,
-      // Uses the same per-user "Unattended" metric already shown on the
-      // Performance Report — no dedicated page exists yet, so this links to
-      // the closest real place that already surfaces this number.
-      to: "/reports/user-total",
+      to: "/leads/unattended",
     },
     {
       key: "no-activity",
@@ -28,8 +25,7 @@ export function LeadHealthAlerts({ branchId }: { branchId?: string }) {
       description: "No update in 30+ days",
       value: data?.noActivityLeads ?? 0,
       icon: MoonStar,
-      // The Leads page already has a dedicated "No Activity" quick view.
-      to: "/leads?view=no-activity-leads",
+      to: "/leads/no-activity",
     },
   ];
 
