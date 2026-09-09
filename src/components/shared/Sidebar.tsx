@@ -8,7 +8,7 @@ import {
   Target,
   CheckSquare,
   Megaphone,
-  User,
+  Presentation,
   Settings,
   LogOut,
   Zap,
@@ -18,14 +18,18 @@ import {
   PhoneCall,
   Package,
   FileText,
+  FileInput,
+  Mail,
   Trophy,
-  Calendar,
+  CalendarDays,
+  ListChecks,
+  Copy,
+  Network,
   Sparkles,
   ShieldCheck,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  MessageSquare,
   RefreshCw,
   AlertTriangle,
   Globe,
@@ -38,6 +42,7 @@ import {
   BookOpen,
   Trash2
 } from "lucide-react";
+import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
 import { memo, useState, useEffect } from "react";
 import { api } from "@/services/api";
@@ -55,9 +60,9 @@ const menuGroups = [
   {
     title: "Sales Engine",
     items: [
-      { title: "Leads", href: "/leads", icon: User },
+      { title: "Leads", href: "/leads", icon: Users },
       { title: "Re-Enquiries", href: "/re-enquiries", icon: RefreshCw, role: "admin" },
-      { title: "Duplicates", href: "/duplicates", icon: AlertTriangle, role: "admin" },
+      { title: "Duplicates", href: "/duplicates", icon: Copy, role: "admin" },
       { title: "Accounts", href: "/accounts", icon: Building },
       { title: "Opportunities", href: "/opportunities", icon: Target },
       { title: "Products", href: "/products", icon: Package },
@@ -70,12 +75,12 @@ const menuGroups = [
     title: "Marketing",
     items: [
       { title: "Campaigns", href: "/marketing", icon: Megaphone, role: "admin" },
-      { title: "Ads Manager", href: "/marketing/ads-manager", icon: Megaphone, role: "admin" },
-      { title: "WhatsApp", href: "/marketing/whatsapp", icon: MessageSquare, role: "admin" },
+      { title: "Ads Manager", href: "/marketing/ads-manager", icon: Presentation, role: "admin" },
+      { title: "WhatsApp", href: "/marketing/whatsapp", icon: WhatsAppLogo, role: "admin" },
       { title: "SMS", href: "/marketing/sms", icon: Smartphone, role: "admin" },
       { title: "Landing Pages", href: "/marketing/landing-pages", icon: Globe, role: "admin" },
-      { title: "Web Forms", href: "/marketing/forms", icon: FileText, role: "admin" },
-      { title: "Email Lists", href: "/marketing/lists", icon: Users, role: "admin" },
+      { title: "Web Forms", href: "/marketing/forms", icon: FileInput, role: "admin" },
+      { title: "Email Lists", href: "/marketing/lists", icon: Mail, role: "admin" },
     ]
   },
   {
@@ -94,8 +99,8 @@ const menuGroups = [
   {
     title: "Productivity",
     items: [
-      { title: "Follow-ups", href: "/follow-ups", icon: Calendar },
-      { title: "Calendar", href: "/calendar", icon: Calendar },
+      { title: "Follow-ups", href: "/follow-ups", icon: ListChecks },
+      { title: "Calendar", href: "/calendar", icon: CalendarDays },
       // { title: "Goals", href: "/goals", icon: Trophy, role: "org_admin" },
       { title: "Reports", href: "/reports", icon: FileText },
       // { title: "AI Writer", href: "/ai-writer", icon: Sparkles, role: "org_admin" },
@@ -107,7 +112,7 @@ const menuGroups = [
       { title: "Training", href: "/training", icon: BookOpen },
       { title: "Workflows", href: "/workflows", icon: GitBranch },
       { title: "Automation", href: "/automation", icon: Zap },
-      { title: "Hierarchy", href: "/organisation/hierarchy", icon: Users, role: "admin" },
+      { title: "Hierarchy", href: "/organisation/hierarchy", icon: Network, role: "admin" },
       { title: "Trash", href: "/trash", icon: Trash2, role: "org_admin" },
       { title: "Settings", href: "/settings", icon: Settings },
       { title: "Support", href: "/support", icon: LifeBuoy },
@@ -274,7 +279,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             onClick={() => setIsCollapsed(true)}
             className="h-8 w-8 text-sidebar-text bg-sidebar-hover/50 hover:text-sidebar-text hover:bg-sidebar-hover rounded-full"
           >
-            <ChevronLeft className="h-4 w-4 stroke-[3]" />
+            <ChevronLeft className="h-4 w-4 stroke-[2.5]" />
           </Button>
         )}
 
@@ -291,7 +296,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname === '/super-admin' ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname === '/super-admin' ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname === '/super-admin' ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Dashboard</span>}
               </Link>
               <Link to="/super-admin?tab=overview" className={cn(
@@ -299,7 +304,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Building className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Building className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Organisations</span>}
               </Link>
               <Link to="/super-admin?tab=plans" className={cn(
@@ -307,7 +312,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 location.search.includes('tab=plans') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <CreditCard className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=plans') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <CreditCard className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", location.search.includes('tab=plans') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>License Plans</span>}
               </Link>
               <Link to="/super-admin/seo" className={cn(
@@ -315,7 +320,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Globe className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/seo') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Globe className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/seo') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>SEO Panel</span>}
               </Link>
               <Link to="/super-admin?tab=roles" className={cn(
@@ -323,7 +328,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 location.search.includes('tab=roles') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=roles') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", location.search.includes('tab=roles') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>System Roles</span>}
               </Link>
               <Link to="/super-admin/restore" className={cn(
@@ -331,7 +336,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname.startsWith('/super-admin/restore') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
+                <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
                 {!isCollapsed && <span className="text-red-400 group-hover:text-red-500">Restore Data</span>}
               </Link>
               <Link to="/super-admin/issues" className={cn(
@@ -339,7 +344,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname.startsWith('/super-admin/issues') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/issues') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/issues') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Reported Issues</span>}
               </Link>
               <Link to="/super-admin/helper-logs" className={cn(
@@ -347,7 +352,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname.startsWith('/super-admin/helper-logs') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/helper-logs') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/helper-logs') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Helper Logs</span>}
               </Link>
               <Link to="/settings" className={cn(
@@ -355,7 +360,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 pathname.startsWith('/settings') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Settings className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/settings') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Settings className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/settings') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>General Settings</span>}
               </Link>
             </div>
@@ -388,7 +393,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   >
                     <div className="flex items-center gap-3">
                       <Settings className={cn(
-                        "h-5 w-5 shrink-0 transition-colors stroke-[3]",
+                        "h-5 w-5 shrink-0 transition-colors stroke-[2.5]",
                         isAnySystemActive ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text"
                       )} />
                       {!isCollapsed && <span>System</span>}
@@ -416,7 +421,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             )}
                           >
                             <item.icon className={cn(
-                              "h-4 w-4 shrink-0 transition-colors stroke-[3.5]",
+                              "h-4 w-4 shrink-0 transition-colors stroke-[2.5]",
                               isActive ? "text-white" : "text-sidebar-text/60 group-hover:text-sidebar-text"
                             )} />
                             <span>{item.title}</span>
@@ -449,7 +454,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       )}
                     >
                       <item.icon className={cn(
-                        "h-5 w-5 shrink-0 transition-colors stroke-[3]",
+                        "h-5 w-5 shrink-0 transition-colors stroke-[2.5]",
                         isActive ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text"
                       )} />
                       {!isCollapsed && <span>{item.title}</span>}
@@ -506,7 +511,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 onClick={handleLogout}
                 className="h-8 w-8 text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
               >
-                <LogOut className="h-4 w-4 stroke-[3]" />
+                <LogOut className="h-4 w-4 stroke-[2.5]" />
               </Button>
             </>
           )}
@@ -517,7 +522,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               onClick={handleLogout}
               className="h-8 w-8 mx-auto text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover shrink-0"
             >
-              <LogOut className="h-4 w-4 stroke-[3]" />
+              <LogOut className="h-4 w-4 stroke-[2.5]" />
             </Button>
           )}
         </div>
@@ -543,7 +548,7 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
           onClick={() => setIsCollapsed(false)}
           className="absolute -right-3 top-20 translate-y-2 h-6 w-6 rounded-full bg-sidebar-active text-white shadow-lg border-2 border-background hover:bg-sidebar-active/90 z-50 p-0.5"
         >
-          <ChevronRight className="h-3 w-3 stroke-[3]" />
+          <ChevronRight className="h-3 w-3 stroke-[2.5]" />
         </Button>
       )}
     </div>
