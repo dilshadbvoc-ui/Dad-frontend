@@ -164,12 +164,23 @@ export const getReEnquiryLeads = async () => {
     return response.data;
 };
 
-export const getUnattendedLeads = async (params?: { page?: number; pageSize?: number; branchId?: string; startDate?: string; endDate?: string }) => {
+export interface LeadHealthListParams {
+    page?: number;
+    pageSize?: number;
+    branchId?: string;
+    startDate?: string;
+    endDate?: string;
+    assignedTo?: string;
+    source?: string;
+    status?: string;
+}
+
+export const getUnattendedLeads = async (params?: LeadHealthListParams) => {
     const response = await api.get('/leads/unattended', { params });
     return response.data;
 };
 
-export const getNoActivityLeads = async (params?: { page?: number; pageSize?: number; branchId?: string; startDate?: string; endDate?: string }) => {
+export const getNoActivityLeads = async (params?: LeadHealthListParams) => {
     const response = await api.get('/leads/no-activity', { params });
     return response.data;
 };

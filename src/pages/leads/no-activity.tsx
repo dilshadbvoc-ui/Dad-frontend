@@ -9,8 +9,9 @@ export default function NoActivityLeadsPage() {
       description="Still open, but no update in 30+ days — gone cold."
       icon={<MoonStar className="h-6 w-6" />}
       queryKey="no-activity-leads"
-      queryFn={({ branchId, startDate, endDate }) => getNoActivityLeads({ pageSize: 2000, branchId, startDate, endDate })}
+      queryFn={(params) => getNoActivityLeads({ pageSize: 2000, ...params })}
       emptyMessage="Every open lead has had activity in the last 30 days. Nothing has gone cold."
+      showStageFilter
     />
   )
 }
