@@ -374,7 +374,9 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               );
               
               return (
-                <div key={groupIndex} className="space-y-1">
+                <div key={groupIndex}>
+                  {groupIndex > 0 && <div className="mx-3 my-2 border-t border-sidebar-border" />}
+                  <div className="space-y-1">
                   {/* Collapsible System Button Header */}
                   <button
                     onClick={() => {
@@ -430,12 +432,15 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       })}
                     </div>
                   )}
+                  </div>
                 </div>
               );
             }
 
             return (
-              <div key={groupIndex} className="space-y-1">
+              <div key={groupIndex}>
+                {groupIndex > 0 && <div className="mx-3 my-2 border-t border-sidebar-border" />}
+                <div className="space-y-1">
                 {!isCollapsed && (
                   <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
                     {group.title}
@@ -461,6 +466,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     </Link>
                   );
                 })}
+                </div>
               </div>
             );
           })}
