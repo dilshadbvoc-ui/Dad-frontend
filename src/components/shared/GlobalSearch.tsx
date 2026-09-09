@@ -153,7 +153,7 @@ export function GlobalSearch() {
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--chart-5))]" />
       <Input
         placeholder="Search leads, contacts, accounts..."
-        className="pl-9 h-10 rounded-full bg-[hsl(var(--chart-5))]/5 border-[hsl(var(--chart-5))]/15 ring-offset-background placeholder:text-muted-foreground focus-visible:ring-[hsl(var(--chart-5))]/30"
+        className="pl-9 h-10 rounded-full bg-[hsl(var(--chart-5))]/5 border-[hsl(var(--chart-5))]/15 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
         onFocus={() => {

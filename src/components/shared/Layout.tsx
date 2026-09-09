@@ -1,7 +1,7 @@
-import { Outlet, useLocation, useNavigate, useNavigationType } from 'react-router-dom';
+import { Outlet, useLocation, useNavigationType } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Menu, X } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Header } from './Header';
 import { ViolationAlert } from "@/components/shared/ViolationAlert";
@@ -20,7 +20,6 @@ import { BottomNav } from './BottomNav';
 
 export default function Layout() {
   const location = useLocation();
-  const navigate = useNavigate();
   const navType = useNavigationType();
   const mainRef = useRef<HTMLElement>(null);
   const isDashboard = location.pathname === '/dashboard';
@@ -318,15 +317,6 @@ export default function Layout() {
             ) : (
               <Menu className="h-6 w-6 transform rotate-0 transition-transform duration-300" />
             )}
-          </Button>
-          
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() => navigate(-1)}
-            className="h-10 w-10 text-muted-foreground hover:text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10 transition-colors shrink-0 rounded-full"
-          >
-            <ChevronLeft className="h-6 w-6" />
           </Button>
 
           <ErrorBoundary name="Header">
