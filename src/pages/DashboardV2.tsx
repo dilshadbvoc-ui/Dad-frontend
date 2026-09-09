@@ -17,6 +17,7 @@ import { BranchPerformanceChart } from "@/components/dashboard-v2/BranchPerforma
 import { UserTrendsQuickPanel } from "@/components/dashboard-v2/UserTrendsQuickPanel";
 import { UserRankingCard } from "@/components/dashboard-v2/UserRankingCard";
 import { QuickStatsBar } from "@/components/dashboard-v2/QuickStatsBar";
+import { LeadHealthAlerts } from "@/components/dashboard-v2/LeadHealthAlerts";
 import { MyTargetProgress } from "@/components/dashboard-v2/MyTargetProgress";
 import { TeamTargetsCard } from "@/components/dashboard-v2/TeamTargetsCard";
 import { MyRecentActivity } from "@/components/dashboard-v2/MyRecentActivity";
@@ -74,6 +75,8 @@ export default function DashboardV2() {
       </div>
 
       <QuickStatsBar range={range} branchId={selectedBranchId} />
+
+      <LeadHealthAlerts branchId={selectedBranchId} />
 
       <div className="bg-card overflow-hidden">
         <div className="grid lg:grid-cols-[auto_1fr] divide-y lg:divide-y-0 lg:divide-x divide-border">
