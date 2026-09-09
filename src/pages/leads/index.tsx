@@ -37,7 +37,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
-  Filter
+  Filter,
+  Globe
 } from "lucide-react"
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
@@ -167,6 +168,13 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
   </ResponsiveContainer>
 ));
 
+
+// Shared card-style look for the filter bar dropdowns (icon + label-above-value),
+// matching the rest of the app's rounded-[10px] / brand-green convention.
+const FILTER_CARD_CLASS = "flex items-center gap-2.5 rounded-[10px] border border-border bg-card px-3 py-2";
+const FILTER_ICON_CLASS = "h-4 w-4 text-[hsl(var(--chart-5))] shrink-0";
+const FILTER_LABEL_CLASS = "block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 leading-none mb-1";
+const FILTER_TRIGGER_CLASS = "h-auto w-full p-0 border-0 shadow-none bg-transparent focus:ring-0 focus:ring-offset-0 gap-1 font-bold text-sm justify-between [&>span]:line-clamp-1 [&>span]:text-left";
 
 const formatSourceLabel = (src: string) => {
   if (!src) return 'Unknown';
@@ -878,28 +886,26 @@ export default function LeadsPage() {
         {/* Header Area */}
         <div className="space-y-4 sm:px-0 pt-3">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
-              <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0 hidden sm:flex">
-                <LayoutGrid className="h-6 w-6" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="text-xl sm:text-3xl font-bold text-foreground capitalize tracking-tight flex items-center gap-2">
-                  {currentView.replace(/-/g, ' ')}
-                  <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-2.5 py-0.5 rounded-full text-xs font-bold border border-primary/20">
-                    {leadData?.total || 0}
-                  </div>
-                </h1>
-                <p className="text-[10px] sm:text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                  {isTaskView ? 'Manage follow-ups' : isAnalyticsView ? 'Performance' : 'Real-time'}
-                </p>
-              </div>
+            <div className="min-w-0">
+              <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground capitalize tracking-tight flex items-center gap-2.5">
+                {currentView.replace(/-/g, ' ')}
+                <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
+                  {(leadData?.total || 0).toLocaleString()}
+                </span>
+              </h1>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[hsl(var(--chart-5))] animate-pulse" />
+                <span className="font-semibold text-[hsl(var(--chart-5))]">
+                  {isTaskView ? 'Manage' : isAnalyticsView ? 'Performance' : 'Manage'}
+                </span>
+                {isTaskView ? ' your follow-ups in one place.' : isAnalyticsView ? ' insights, updated in real-time.' : ' and track all your leads in one place.'}
+              </p>
             </div>
 
             <div className="flex w-full md:w-auto items-center gap-2 sm:gap-3 justify-between md:justify-start mt-2 md:mt-0">
               {!isTaskView && !isChartView && !isAnalyticsView && (
                 <Link to="/leads/new" className="flex-1 md:flex-none">
-                  <Button className="w-full md:w-auto h-11 px-6 bg-primary text-primary-foreground shadow-xl shadow-primary/20 hover:shadow-primary/30 transition-all font-semibold rounded-xl">
+                  <Button className="w-full md:w-auto h-11 px-6 bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90 transition-all font-semibold rounded-[10px]">
                     <Plus className="h-5 w-5 mr-1 md:mr-2" />
                     New Lead
                   </Button>
@@ -909,17 +915,17 @@ export default function LeadsPage() {
                 variant="outline"
                 onClick={handleRefresh}
                 disabled={leadsFetching}
-                className="h-11 w-11 shrink-0 p-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm"
+                className="h-11 w-11 shrink-0 p-0 rounded-[10px] bg-background/50 backdrop-blur-sm"
                 title="Refresh Data"
               >
-                <RefreshCw className={`h-5 w-5 ${leadsFetching ? 'animate-spin text-primary' : ''}`} />
+                <RefreshCw className={`h-5 w-5 ${leadsFetching ? 'animate-spin text-[hsl(var(--chart-5))]' : ''}`} />
               </Button>
               <Button
                 variant="outline"
                 onClick={handleClearAllFilters}
-                className={`h-11 px-3 md:px-4 shrink-0 rounded-xl border-dashed bg-background/50 backdrop-blur-sm gap-1 md:gap-2 font-semibold text-xs transition-all ${
-                  hasActiveFilters 
-                    ? 'text-destructive border-destructive/50 hover:bg-destructive/10' 
+                className={`h-11 px-3 md:px-4 shrink-0 rounded-[10px] bg-background/50 backdrop-blur-sm gap-1 md:gap-2 font-semibold text-xs transition-all ${
+                  hasActiveFilters
+                    ? 'text-destructive border-destructive/50 hover:bg-destructive/10'
                     : 'text-muted-foreground/40 border-border/30 opacity-60 cursor-not-allowed'
                 }`}
                 disabled={!hasActiveFilters}
@@ -932,17 +938,19 @@ export default function LeadsPage() {
           </div>
 
           <div className={cn(
-            "gap-3 bg-muted/30 p-3 rounded-2xl border border-border/50",
+            "gap-3",
             isTaskView
               ? "grid grid-cols-2"
-              : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-8"
+              : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5"
           )}>
             {/* View Filter */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">View</label>
-              <Select value={currentView} onValueChange={handleViewChange}>
-                <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
-                  <SelectValue placeholder="Select View" />
+            <div className={FILTER_CARD_CLASS}>
+              <LayoutGrid className={FILTER_ICON_CLASS} />
+              <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>View</label>
+                <Select value={currentView} onValueChange={handleViewChange}>
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                    <SelectValue placeholder="Select View" />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl shadow-2xl border-border/50">
                   <SelectGroup>
@@ -958,15 +966,18 @@ export default function LeadsPage() {
                     <SelectItem value="no-activity-leads" className="rounded-lg">No Activity</SelectItem>
                   </SelectGroup>
                 </SelectContent>
-              </Select>
+                </Select>
+              </div>
             </div>
 
             {/* Stage Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Pipeline Stage</label>
+              <div className={FILTER_CARD_CLASS}>
+                <Filter className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Pipeline Stage</label>
                 <Select value={currentStatus} onValueChange={handleStatusChange}>
-                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
                     <SelectValue placeholder="All Stages" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
@@ -981,15 +992,18 @@ export default function LeadsPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
             )}
 
             {/* Owner Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Assigned To</label>
+              <div className={FILTER_CARD_CLASS}>
+                <Users className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Assigned To</label>
                 <Select value={currentOwner} onValueChange={handleOwnerChange}>
-                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
                     <SelectValue placeholder="All Owners" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
@@ -1011,15 +1025,18 @@ export default function LeadsPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
             )}
 
             {/* Branch Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Branch</label>
+              <div className={FILTER_CARD_CLASS}>
+                <Building className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Branch</label>
                 <Select value={currentBranch} onValueChange={handleBranchChange}>
-                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
                     <SelectValue placeholder="All Branches" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
@@ -1037,15 +1054,18 @@ export default function LeadsPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
             )}
 
             {/* Source Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Source</label>
+              <div className={FILTER_CARD_CLASS}>
+                <Globe className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Source</label>
                 <Select value={currentSource} onValueChange={handleSourceChange}>
-                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
                     <SelectValue placeholder="All Sources" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
@@ -1076,27 +1096,33 @@ export default function LeadsPage() {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
             )}
 
             {/* Date Filter */}
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Date Range</label>
-              <PremiumDateRangePicker 
-                startDate={dateFilter.from}
-                endDate={dateFilter.to}
-                onUpdate={(start, end) => {
-                  setDateFilter({ from: start, to: end });
-                }}
-              />
+            <div className={FILTER_CARD_CLASS}>
+              <Calendar className={FILTER_ICON_CLASS} />
+              <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Date Range</label>
+                <PremiumDateRangePicker
+                  startDate={dateFilter.from}
+                  endDate={dateFilter.to}
+                  onUpdate={(start, end) => {
+                    setDateFilter({ from: start, to: end });
+                  }}
+                />
+              </div>
             </div>
 
             {/* Sort Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Sorting</label>
+              <div className={FILTER_CARD_CLASS}>
+                <ArrowUpDown className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Sorting</label>
                 <Select value={currentSort} onValueChange={handleSortChange}>
-                  <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
                     <SelectValue placeholder="Sort by" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl shadow-2xl border-border/50">
@@ -1120,52 +1146,52 @@ export default function LeadsPage() {
                     </SelectItem>
                   </SelectContent>
                 </Select>
+                </div>
               </div>
             )}
 
-            {/* Actions Filter */}
+            {/* Page Size Filter */}
             {!isTaskView && !isChartView && (
-              <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 ml-1">Page Controls</label>
-                <div className="flex items-center gap-2">
-                  <div className="flex-1">
-                    <Select 
-                      value={pageSize === totalFilteredLeads ? 'all' : pageSize.toString()} 
-                      onValueChange={(val) => setPageSize(val === 'all' ? totalFilteredLeads : parseInt(val))}
-                    >
-                      <SelectTrigger className="h-10 bg-background border-border/50 rounded-lg shadow-sm">
-                        <SelectValue placeholder="Size" />
-                      </SelectTrigger>
-                      <SelectContent className="rounded-xl shadow-2xl border-border/50">
-                        <SelectItem value="20" className="rounded-lg">20 Per Page</SelectItem>
-                        <SelectItem value="50" className="rounded-lg">50 Per Page</SelectItem>
-                        <SelectItem value="100" className="rounded-lg">100 Per Page</SelectItem>
-                        <SelectItem value="all" className="rounded-lg">Show All</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <Button
-                    size="icon"
-                    variant="outline"
-                    onClick={handleExcelDownload}
-                    disabled={totalFilteredLeads === 0}
-                    className="h-10 w-10 border-border/50 bg-background shadow-sm hover:text-green-600 rounded-lg"
-                    title="Export to Excel"
+              <div className={FILTER_CARD_CLASS}>
+                <LayoutGrid className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                  <label className={FILTER_LABEL_CLASS}>Show</label>
+                  <Select
+                    value={pageSize === totalFilteredLeads ? 'all' : pageSize.toString()}
+                    onValueChange={(val) => setPageSize(val === 'all' ? totalFilteredLeads : parseInt(val))}
                   >
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  {hasActiveFilters && (
-                    <Button
-                      variant="ghost"
-                      onClick={handleClearAllFilters}
-                      className="h-10 px-3 text-xs text-destructive hover:bg-destructive/10 rounded-lg font-bold gap-1 shrink-0"
-                      title="Clear All Filters"
-                    >
-                      <X className="h-4 w-4" />
-                      Clear Filters
-                    </Button>
-                  )}
+                    <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                      <SelectValue placeholder="Size" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                      <SelectItem value="20" className="rounded-lg">20 Per Page</SelectItem>
+                      <SelectItem value="50" className="rounded-lg">50 Per Page</SelectItem>
+                      <SelectItem value="100" className="rounded-lg">100 Per Page</SelectItem>
+                      <SelectItem value="all" className="rounded-lg">Show All</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+            )}
+
+            {/* Reset */}
+            {!isTaskView && !isChartView && (
+              <div className="flex items-center justify-center md:justify-end">
+                <Button
+                  variant="ghost"
+                  onClick={handleClearAllFilters}
+                  disabled={!hasActiveFilters}
+                  className={cn(
+                    "h-9 px-3 text-xs font-bold gap-1.5 rounded-[10px]",
+                    hasActiveFilters
+                      ? "text-destructive hover:bg-destructive/10"
+                      : "text-muted-foreground/40 cursor-not-allowed"
+                  )}
+                  title="Reset all filters"
+                >
+                  <X className="h-3.5 w-3.5" />
+                  Reset
+                </Button>
               </div>
             )}
           </div>
@@ -1207,7 +1233,13 @@ export default function LeadsPage() {
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 min-h-0 bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm flex flex-col">
+        <div className={cn(
+          "flex-1 min-h-0 flex flex-col",
+          // The leads table (DataTable) already renders its own card/border/shadow around
+          // the search bar + table + pagination, so this wrapper only adds one for the
+          // chart/task views, which don't have their own.
+          (isChartView || isTaskView) && "bg-transparent lg:bg-card lg:rounded-xl lg:border lg:shadow-sm"
+        )}>
           {isLoading ? (
             <div className="flex items-center justify-center h-full p-6">
               <LoadingCard text="Loading leads..." />
@@ -1250,6 +1282,20 @@ export default function LeadsPage() {
                     data={sortedDisplayData as Lead[]}
                     searchKeys={["firstName", "lastName", "email", "phone", "company"]}
                     onSearchChange={setSearchTerm}
+                    searchPlaceholder="Search by name, phone, email..."
+                    resultsLabel="leads"
+                    toolbarExtra={
+                      <Button
+                        variant="outline"
+                        onClick={handleExcelDownload}
+                        disabled={totalFilteredLeads === 0}
+                        className="h-11 px-4 gap-2 rounded-[10px] border-border shrink-0 font-semibold text-sm"
+                        title="Export to Excel"
+                      >
+                        <Download className="h-4 w-4" />
+                        Export
+                      </Button>
+                    }
                     mobileCardRender={(lead) => <LeadCard lead={lead} />}
                     initialPageSize={50}
                     pageSize={pageSize}
@@ -1520,20 +1566,19 @@ function PremiumDateRangePicker({ startDate, endDate, onUpdate }: PremiumDateRan
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
-                    variant="outline"
-                    className={`w-full h-10 justify-start text-left font-normal bg-background border-border/50 rounded-full shadow-sm hover:bg-muted/50 transition-colors ${open ? 'border-primary ring-2 ring-primary/20' : ''} ${startDate || endDate ? 'text-primary border-primary/30 bg-primary/5' : 'text-muted-foreground'}`}
+                    variant="ghost"
+                    className={`w-full h-auto p-0 justify-start text-left font-bold text-sm bg-transparent hover:bg-transparent ${startDate || endDate ? 'text-[hsl(var(--chart-5))]' : 'text-foreground'}`}
                 >
-                    <Calendar className="mr-2 h-4 w-4 text-primary" />
                     {startDate ? (
                       endDate ? (
-                        <span className="truncate text-xs font-medium">
+                        <span className="truncate">
                           {formatIST(startDate, 'MMM d, yyyy')} - {formatIST(endDate, 'MMM d, yyyy')}
                         </span>
                       ) : (
-                        <span className="truncate text-xs font-medium">From {formatIST(startDate, 'MMM d, yyyy')}</span>
+                        <span className="truncate">From {formatIST(startDate, 'MMM d, yyyy')}</span>
                       )
                     ) : (
-                      <span className="text-xs">Filter by Date</span>
+                      <span>Filter by Date</span>
                     )}
                 </Button>
             </PopoverTrigger>

@@ -1,7 +1,6 @@
 import type { ColumnDef } from "@tanstack/react-table"
-import { ArrowUpDown, Phone, MessageCircle, ChevronDown, ChevronRight, Copy } from "lucide-react"
+import { ArrowUpDown, Phone, MessageCircle, ChevronDown, ChevronRight, Copy, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { type Lead } from "@/services/leadService"
 import { formatIST } from "@/lib/dateUtils"
@@ -12,6 +11,18 @@ import { isMobileApp, initiateCall as initiateCallBridge } from "@/utils/mobileB
 
 import { NameCell } from "./NameCell"
 import { StatusCell } from "./StatusCell"
+
+// Mirrors formatSourceLabel in index.tsx (used for the Source filter dropdown) so the
+// table cell and the filter options describe the same source the same way.
+const formatSourceLabel = (src: string) => {
+  if (!src) return 'Unknown';
+  if (src === 'meta_leadgen') return 'Meta Ads';
+  if (src === 'meta_ads') return 'Meta Ads (Custom)';
+  if (src === 'google_ads') return 'Google Ads';
+  if (src === 'facebook_payload') return 'Facebook Lead';
+  if (src === 'lead_squared') return 'LeadSquared';
+  return src.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+};
 
 export const columns: ColumnDef<Lead>[] = [
   {
@@ -61,7 +72,7 @@ export const columns: ColumnDef<Lead>[] = [
   },
   {
     accessorKey: "firstName",
-    size: 180,
+    size: 200,
     header: ({ column }) => {
       return (
         <Button
@@ -151,9 +162,9 @@ export const columns: ColumnDef<Lead>[] = [
       const displaySource = (source === 'api' && originalSource) ? originalSource : source;
 
       return (
-        <Badge variant="outline" className="capitalize bg-primary/10 text-primary border-primary/20">
-          {displaySource}
-        </Badge>
+        <span className="text-sm text-muted-foreground font-medium">
+          {formatSourceLabel(displaySource)}
+        </span>
       );
     }
   },
@@ -180,9 +191,15 @@ export const columns: ColumnDef<Lead>[] = [
     header: "Next Follow-up",
     cell: ({ row }) => {
       const date = row.getValue("nextFollowUp") as string
-      if (!date) return <div className="text-muted-foreground/30 text-xs italic">-</div>
+      if (!date) return (
+        <div className="flex items-center gap-1.5 text-muted-foreground/50 text-xs">
+          <Calendar className="h-3.5 w-3.5" />
+          Add
+        </div>
+      )
       return (
-        <div className="text-indigo-400 font-medium text-sm">
+        <div className="flex items-center gap-1.5 text-[hsl(var(--chart-5))] font-medium text-sm">
+          <Calendar className="h-3.5 w-3.5" />
           {formatIST(date, "MMM d, h:mm a")}
         </div>
       )
@@ -191,7 +208,7 @@ export const columns: ColumnDef<Lead>[] = [
   {
     accessorKey: "status",
     size: 120,
-    header: "Status",
+    header: "Stage",
     cell: ({ row }) => <StatusCell statusId={row.getValue("status")} />
   },
   {

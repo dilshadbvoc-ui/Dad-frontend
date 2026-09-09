@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Search, ChevronLeft, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface DataTableProps<TData, TValue> {
@@ -42,6 +43,12 @@ interface DataTableProps<TData, TValue> {
   initialPageSize?: number
   pageSize?: number
   onSearchChange?: (value: string) => void;
+  /** Placeholder text for the built-in search input (defaults to "Search..."). */
+  searchPlaceholder?: string;
+  /** Extra controls (e.g. an Export button) rendered inline next to the search input. */
+  toolbarExtra?: React.ReactNode;
+  /** Item-noun used in the "Showing X-Y of Z ..." pagination summary, e.g. "leads". */
+  resultsLabel?: string;
   rowSelection?: RowSelectionState
   onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
   isVirtual?: boolean
@@ -67,6 +74,9 @@ export function DataTable<TData, TValue>({
   initialPageSize,
   pageSize,
   onSearchChange,
+  searchPlaceholder,
+  toolbarExtra,
+  resultsLabel = "results",
   onRowSelectionChangeState,
   rowSelection,
   isVirtual = false,
@@ -259,18 +269,22 @@ export function DataTable<TData, TValue>({
   return (
     <div className="space-y-4">
       {(searchKey || searchKeys) && (
-        <div className="flex items-center sm:px-0">
-          <Input
-            placeholder="Search..."
-            value={globalFilter ?? ""}
-            onChange={(event) => {
-              setGlobalFilter(event.target.value);
-              if (onSearchChange) {
-                onSearchChange(event.target.value);
-              }
-            }}
-            className="max-w-sm h-10 shadow-sm"
-          />
+        <div className="flex items-center gap-3 sm:px-0">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--chart-5))] pointer-events-none" />
+            <Input
+              placeholder={searchPlaceholder || "Search..."}
+              value={globalFilter ?? ""}
+              onChange={(event) => {
+                setGlobalFilter(event.target.value);
+                if (onSearchChange) {
+                  onSearchChange(event.target.value);
+                }
+              }}
+              className="h-11 pl-10 rounded-[10px] bg-[hsl(var(--chart-5))]/5 border-[hsl(var(--chart-5))]/15 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0"
+            />
+          </div>
+          {toolbarExtra}
         </div>
       )}
 
@@ -292,25 +306,25 @@ export function DataTable<TData, TValue>({
       )}
 
       {/* Desktop Table View (visible on lg and above, or always if no mobileCardRender) */}
-      <div 
+      <div
         ref={tableContainerRef}
         className={cn(
-          "rounded-md border shadow-sm bg-card overflow-auto relative",
+          "rounded-[14px] border border-border shadow-sm bg-card overflow-auto relative",
           isVirtual ? "max-h-[600px]" : "w-full",
           mobileCardRender ? "hidden lg:block" : "block"
         )}
       >
         <div className="min-w-full inline-block align-middle">
           {/* Header */}
-          <div className="sticky top-0 z-10 bg-muted/50 border-b border-border flex shrink-0 min-w-full">
+          <div className="sticky top-0 z-10 bg-muted/40 border-b border-border flex shrink-0 min-w-full">
             {table.getHeaderGroups().map((headerGroup) => (
               <div key={headerGroup.id} className="flex flex-1 min-w-full items-center">
                 {headerGroup.headers.map((header) => {
                   const width = header.column.getSize();
                   return (
-                    <div 
-                      key={header.id} 
-                      className="font-semibold text-xs uppercase tracking-wider h-11 px-4 flex items-center text-muted-foreground/80 shrink-0"
+                    <div
+                      key={header.id}
+                      className="font-semibold text-[11px] uppercase tracking-wider h-11 px-4 flex items-center text-muted-foreground/80 shrink-0"
                       style={{ width: `${width}px` }}
                     >
                       {header.isPlaceholder
@@ -338,7 +352,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <div
                       key={virtualRow.key}
-                      className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10"
+                      className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/10 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/15"
                       data-state={row.getIsSelected() && "selected"}
                       style={{
                         height: `${virtualRow.size}px`,
@@ -381,7 +395,7 @@ export function DataTable<TData, TValue>({
                       data-state={row.getIsSelected() && "selected"}
                       onClick={(e) => handleRowClick(e, row)}
                       className={cn(
-                        "flex border-b border-border transition-colors hover:bg-muted/30 group data-[state=selected]:bg-yellow-200/50 dark:data-[state=selected]:bg-yellow-500/10 cursor-pointer",
+                        "flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/10 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/15 cursor-pointer",
                         dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
                       )}
                     >
@@ -440,49 +454,96 @@ export function DataTable<TData, TValue>({
         </div>
       </div>
 
-      <div className={cn(
-        "flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-0 py-2 mt-4"
-      )}>
-        <div className="text-xs text-muted-foreground">
-          Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              table.previousPage();
-              if (tableContainerRef.current) {
-                tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-              const main = document.querySelector('main');
-              if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            disabled={!table.getCanPreviousPage()}
-            className="h-8 touch-safe"
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              table.nextPage();
-              if (tableContainerRef.current) {
-                tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
-              }
-              const main = document.querySelector('main');
-              if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            disabled={!table.getCanNextPage()}
-            className="h-8 touch-safe"
-          >
-            Next
-          </Button>
-        </div>
-      </div>
+      {(() => {
+        const { pageIndex, pageSize: effectivePageSize } = table.getState().pagination;
+        const pageCount = table.getPageCount();
+        const totalRows = table.getFilteredRowModel().rows.length;
+        const rangeStart = totalRows === 0 ? 0 : pageIndex * effectivePageSize + 1;
+        const rangeEnd = Math.min((pageIndex + 1) * effectivePageSize, totalRows);
+
+        const scrollToTop = () => {
+          if (tableContainerRef.current) {
+            tableContainerRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+          const main = document.querySelector('main');
+          if (main) main.scrollTo({ top: 0, behavior: 'smooth' });
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        const goToPage = (index: number) => {
+          table.setPageIndex(index);
+          scrollToTop();
+        };
+
+        // Build the visible page-number set: first page, a window around the
+        // current page, and the last page, with "..." filling any gaps.
+        const pageNumbers: (number | 'ellipsis')[] = [];
+        if (pageCount > 0) {
+          const keep = new Set<number>();
+          [0, 1, 2, 3, 4].forEach((i) => i < pageCount && keep.add(i));
+          [pageIndex - 1, pageIndex, pageIndex + 1].forEach((i) => i >= 0 && i < pageCount && keep.add(i));
+          keep.add(pageCount - 1);
+
+          const sorted = Array.from(keep).sort((a, b) => a - b);
+          sorted.forEach((n, i) => {
+            if (i > 0 && n - sorted[i - 1] > 1) pageNumbers.push('ellipsis');
+            pageNumbers.push(n);
+          });
+        }
+
+        return (
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2 mt-4">
+            <div className="text-xs text-muted-foreground">
+              {totalRows === 0
+                ? `No ${resultsLabel} found`
+                : <>Showing {rangeStart.toLocaleString()}-{rangeEnd.toLocaleString()} of {totalRows.toLocaleString()} {resultsLabel}</>}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => { table.previousPage(); scrollToTop(); }}
+                disabled={!table.getCanPreviousPage()}
+                className="h-8 w-8 rounded-[10px] touch-safe"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+
+              {pageNumbers.map((p, i) =>
+                p === 'ellipsis' ? (
+                  <span key={`ellipsis-${i}`} className="px-1 text-xs text-muted-foreground">…</span>
+                ) : (
+                  <button
+                    key={p}
+                    onClick={() => goToPage(p)}
+                    className={cn(
+                      "h-8 min-w-8 px-2 rounded-[10px] text-xs font-semibold transition-colors",
+                      p === pageIndex
+                        ? "bg-[hsl(var(--chart-5))] text-white"
+                        : "text-muted-foreground hover:bg-[hsl(var(--chart-5))]/10 hover:text-[hsl(var(--chart-5))]"
+                    )}
+                  >
+                    {(p + 1).toLocaleString()}
+                  </button>
+                )
+              )}
+
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => { table.nextPage(); scrollToTop(); }}
+                disabled={!table.getCanNextPage()}
+                className="h-8 w-8 rounded-[10px] touch-safe"
+                aria-label="Next page"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   )
 }
