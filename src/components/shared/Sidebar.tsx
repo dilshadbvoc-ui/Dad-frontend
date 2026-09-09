@@ -286,7 +286,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </div>
 
       {/* Scrollable Navigation Area */}
-      <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-ocean overflow-x-hidden">
+      <nav className="flex-1 overflow-y-auto py-4 px-3 scrollbar-hide overflow-x-hidden">
         <div className="space-y-6">
           {/* Super Admin Section */}
           {userIsSuperAdmin && (
@@ -375,7 +375,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               
               return (
                 <div key={groupIndex}>
-                  {groupIndex > 0 && <div className="mx-3 my-2 border-t border-sidebar-border" />}
+                  {groupIndex > 0 && <div className="mx-3 mt-2 mb-3 border-t border-sidebar-text/15" />}
                   <div className="space-y-1">
                   {/* Collapsible System Button Header */}
                   <button
@@ -439,7 +439,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
             return (
               <div key={groupIndex}>
-                {groupIndex > 0 && <div className="mx-3 my-2 border-t border-sidebar-border" />}
+                {groupIndex > 0 && <div className="mx-3 mt-2 mb-3 border-t border-sidebar-text/15" />}
                 <div className="space-y-1">
                 {!isCollapsed && (
                   <div className="px-3 text-xs font-bold text-sidebar-text/70 uppercase tracking-wider mb-2 mt-2">
@@ -487,7 +487,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", teamExpanded && "rotate-180")} />
           </button>
           {teamExpanded && (
-            <div className="px-3 pb-3 space-y-1 max-h-60 overflow-y-auto scrollbar-ocean">
+            <div className="px-3 pb-3 space-y-1 max-h-60 overflow-y-auto scrollbar-hide">
               {teamData.team.map((member: any) => (
                 <TeamMemberItem key={member.id} member={member} />
               ))}

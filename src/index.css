@@ -334,6 +334,16 @@
     @apply bg-primary/30 rounded-full hover:bg-primary/50 transition-colors;
   }
 
+  /* Fully hidden scrollbar (still scrollable, just no visible track/thumb) */
+  .scrollbar-hide {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
 }
 
 @layer utilities {
