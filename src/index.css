@@ -83,8 +83,8 @@
     /* Sidebar */
     --sidebar-bg: 0 0% 100%;
     --sidebar-text: 222 47% 11%;
-    --sidebar-active: 222 47% 11%;
-    --sidebar-hover: 180 20% 95%;
+    --sidebar-active: 94 48% 44%;
+    --sidebar-hover: 94 48% 96%;
     --sidebar-border: 210 20% 90%;
 
     /* Chart Colors */
@@ -137,7 +137,7 @@
     /* Sidebar - Dark mode deep indigo */
     --sidebar-bg: 243 47% 20%;
     --sidebar-text: 0 0% 98%;
-    --sidebar-active: 217 91% 60%;
+    --sidebar-active: 94 48% 55%;
     --sidebar-hover: 243 47% 25%;
     --sidebar-border: 243 47% 25%;
 

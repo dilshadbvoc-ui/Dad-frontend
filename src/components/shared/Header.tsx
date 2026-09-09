@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Settings, Zap } from "lucide-react"
+import { Settings, Zap, HelpCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -80,7 +80,7 @@ export function Header({ className }: { className?: string }) {
           <QuickAddLeadDialog>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-9 w-9 text-warning hover:text-warning/80 hover:bg-warning/10">
+                <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90 hover:text-white">
                   <Zap className="h-5 w-5 fill-current" />
                 </Button>
               </TooltipTrigger>
@@ -94,6 +94,23 @@ export function Header({ className }: { className?: string }) {
               <NotificationPopover />
             </ErrorBoundary>
           </DropdownMenu>
+
+          {/* Help - Desktop Only */}
+          <div className="hidden md:block">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate('/support')}
+                  className="h-9 w-9"
+                >
+                  <HelpCircle className="h-5 w-5 text-foreground/70 hover:text-foreground" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Help &amp; Support</TooltipContent>
+            </Tooltip>
+          </div>
 
           {/* Settings - Desktop Only or through user menu on mobile if needed */}
           <div className="hidden md:block">
@@ -115,7 +132,7 @@ export function Header({ className }: { className?: string }) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-primary hover:ring-offset-2 p-0">
+            <Button variant="ghost" className="relative h-9 w-9 rounded-full ring-offset-background transition-all hover:ring-2 hover:ring-[hsl(var(--chart-5))] hover:ring-offset-2 p-0">
               <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-border">
                 <AvatarImage
                   src={getAssetUrl(userInfo.avatar?.includes('null') ? undefined : userInfo.avatar)}
@@ -124,7 +141,7 @@ export function Header({ className }: { className?: string }) {
                     e.currentTarget.style.display = 'none';
                   }}
                 />
-                <AvatarFallback className="bg-primary text-primary-foreground text-[10px] sm:text-xs font-bold">
+                <AvatarFallback className="bg-[hsl(var(--chart-5))] text-white text-[10px] sm:text-xs font-bold">
                   {userInitials}
                 </AvatarFallback>
               </Avatar>

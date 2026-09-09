@@ -288,47 +288,47 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <div className="mb-2 space-y-1">
               <Link to="/super-admin" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname === '/super-admin' ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname === '/super-admin' ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname === '/super-admin' ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname === '/super-admin' ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Dashboard</span>}
               </Link>
               <Link to="/super-admin?tab=overview" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview')) ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Building className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Building className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", (pathname === '/super-admin' && (!location.search || location.search.includes('tab=overview'))) ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Organisations</span>}
               </Link>
               <Link to="/super-admin?tab=plans" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                location.search.includes('tab=plans') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                location.search.includes('tab=plans') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <CreditCard className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=plans') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <CreditCard className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=plans') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>License Plans</span>}
               </Link>
               <Link to="/super-admin/seo" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname.startsWith('/super-admin/seo') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Globe className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/seo') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Globe className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/seo') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>SEO Panel</span>}
               </Link>
               <Link to="/super-admin?tab=roles" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                location.search.includes('tab=roles') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                location.search.includes('tab=roles') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=roles') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <ShieldCheck className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", location.search.includes('tab=roles') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>System Roles</span>}
               </Link>
               <Link to="/super-admin/restore" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname.startsWith('/super-admin/restore') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname.startsWith('/super-admin/restore') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
                 <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
@@ -336,26 +336,26 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </Link>
               <Link to="/super-admin/issues" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname.startsWith('/super-admin/issues') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname.startsWith('/super-admin/issues') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/issues') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Bug className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/issues') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Reported Issues</span>}
               </Link>
               <Link to="/super-admin/helper-logs" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname.startsWith('/super-admin/helper-logs') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname.startsWith('/super-admin/helper-logs') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/helper-logs') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <PhoneCall className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/super-admin/helper-logs') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>Helper Logs</span>}
               </Link>
               <Link to="/settings" className={cn(
                 "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                pathname.startsWith('/settings') ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                pathname.startsWith('/settings') ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                 isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
               )}>
-                <Settings className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/settings') ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                <Settings className={cn("h-5 w-5 shrink-0 transition-colors stroke-[3]", pathname.startsWith('/settings') ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>General Settings</span>}
               </Link>
             </div>
@@ -412,12 +412,12 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                             to={item.href}
                             className={cn(
                               "group flex items-center gap-3 rounded-full px-4 py-2.5 text-xs font-bold transition-all duration-200",
-                              isActive ? "bg-sidebar-active text-sidebar-bg shadow-sm" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover/40"
+                              isActive ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/70 hover:text-sidebar-text hover:bg-sidebar-hover/40"
                             )}
                           >
                             <item.icon className={cn(
                               "h-4 w-4 shrink-0 transition-colors stroke-[3.5]",
-                              isActive ? "text-sidebar-bg" : "text-sidebar-text/60 group-hover:text-sidebar-text"
+                              isActive ? "text-sidebar-active" : "text-sidebar-text/60 group-hover:text-sidebar-text"
                             )} />
                             <span>{item.title}</span>
                           </Link>
@@ -444,13 +444,13 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       to={item.href}
                       className={cn(
                         "group flex items-center gap-3 rounded-full px-4 py-3 text-sm font-bold transition-all duration-200",
-                        isActive ? "bg-sidebar-active text-sidebar-bg shadow-md" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                        isActive ? "bg-sidebar-active/10 text-sidebar-active" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
                         isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
                       )}
                     >
                       <item.icon className={cn(
                         "h-5 w-5 shrink-0 transition-colors stroke-[3]",
-                        isActive ? "text-sidebar-bg" : "text-sidebar-text/70 group-hover:text-sidebar-text"
+                        isActive ? "text-sidebar-active" : "text-sidebar-text/70 group-hover:text-sidebar-text"
                       )} />
                       {!isCollapsed && <span>{item.title}</span>}
                     </Link>
@@ -541,7 +541,7 @@ function SidebarComponent({ className, isCollapsed, setIsCollapsed }: SidebarPro
           variant="ghost"
           size="icon"
           onClick={() => setIsCollapsed(false)}
-          className="absolute -right-3 top-20 translate-y-2 h-6 w-6 rounded-full bg-primary text-primary-foreground shadow-lg border-2 border-background hover:bg-primary/90 z-50 p-0.5"
+          className="absolute -right-3 top-20 translate-y-2 h-6 w-6 rounded-full bg-sidebar-active text-white shadow-lg border-2 border-background hover:bg-sidebar-active/90 z-50 p-0.5"
         >
           <ChevronRight className="h-3 w-3 stroke-[3]" />
         </Button>

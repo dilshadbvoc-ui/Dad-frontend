@@ -150,10 +150,10 @@ export function GlobalSearch() {
 
   return (
     <div ref={wrapperRef} className="relative w-full max-w-sm">
-      <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[hsl(var(--chart-5))]" />
       <Input
         placeholder="Search leads, contacts, accounts..."
-        className="pl-8 bg-background border-input ring-offset-background placeholder:text-muted-foreground focus-visible:ring-ring"
+        className="pl-9 h-10 rounded-full bg-[hsl(var(--chart-5))]/5 border-[hsl(var(--chart-5))]/15 ring-offset-background placeholder:text-muted-foreground focus-visible:ring-[hsl(var(--chart-5))]/30"
         value={query}
         onChange={(e) => handleSearch(e.target.value)}
         onFocus={() => {

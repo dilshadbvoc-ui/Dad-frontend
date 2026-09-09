@@ -311,7 +311,7 @@ export default function Layout() {
             variant="ghost"
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden h-10 w-10 text-primary hover:bg-primary/10 transition-colors"
+            className="lg:hidden h-10 w-10 text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10 transition-colors"
           >
             {mobileMenuOpen ? (
               <X className="h-6 w-6 transform rotate-90 transition-transform duration-300" />
@@ -324,7 +324,7 @@ export default function Layout() {
             variant="ghost"
             size="icon"
             onClick={() => navigate(-1)}
-            className="h-10 w-10 text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors shrink-0 rounded-full"
+            className="h-10 w-10 text-muted-foreground hover:text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/10 transition-colors shrink-0 rounded-full"
           >
             <ChevronLeft className="h-6 w-6" />
           </Button>
