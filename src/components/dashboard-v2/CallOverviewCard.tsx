@@ -12,9 +12,7 @@ export function CallOverviewCard({ range, branchId }: { range: DateRangeValue; b
     queryKey: ["call-overview-stats", range.period, range.startDate, range.endDate],
     queryFn: () =>
       getCallStats(
-        // This card is never fed an "allTime" range (dashboards don't offer that preset) —
-        // fall back to "month" defensively so the type stays narrow for getCallStats.
-        range.period === "allTime" ? "month" : range.period,
+        range.period,
         undefined,
         range.period === "custom" && range.startDate && range.endDate
           ? { startDate: range.startDate, endDate: range.endDate }

@@ -69,7 +69,7 @@ export default function DashboardV2() {
             value={range}
             onChange={setRange}
             variant="accent"
-            presets={['thisMonth', 'lastMonth', 'custom']}
+            presets={['allTime', 'thisMonth', 'lastMonth', 'custom']}
           />
         </div>
       </div>

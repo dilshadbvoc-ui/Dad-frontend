@@ -63,7 +63,7 @@ export interface CallStats {
     period: string;
 }
 
-export type CallStatsPeriod = 'today' | 'yesterday' | 'week' | 'last30' | 'thisMonth' | 'custom';
+export type CallStatsPeriod = 'today' | 'yesterday' | 'week' | 'last30' | 'thisMonth' | 'custom' | 'allTime';
 
 export interface CallFilters {
     page?: number;
