@@ -18,6 +18,12 @@ import kotlinx.coroutines.launch
 import android.provider.Settings
 import android.text.TextUtils
 import com.pypecrm.app.services.CallRecordingAccessibilityService
+import com.pypecrm.app.services.UnifiedSyncWorker
+import androidx.work.Constraints
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.workDataOf
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -31,6 +37,25 @@ class CRMBridge(val context: Context) {
         
         val prefs = context.getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
         prefs.edit().putString("jwt_token", token).apply()
+
+        // The "Sync" button in the web app previously only refreshed the local leads
+        // cache — it didn't touch call-log/WhatsApp/recording sync at all, so a rep
+        // stuck behind a Doze-delayed or rate-limited periodic sync had no way to force
+        // a catch-up. Fire an immediate one-off UnifiedSyncWorker run alongside it.
+        //
+        // forceDeepScan=true: a manual tap re-scans the full 7-day lookback rather than
+        // just "since last checkpoint" — this is the recovery path for calls an older
+        // app version silently dropped (its fixed "last 2 hours" window). Safe to re-send
+        // already-synced calls; the server heals them by hardwareId instead of duplicating.
+        val syncWorkRequest = OneTimeWorkRequestBuilder<UnifiedSyncWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setInputData(workDataOf("forceDeepScan" to true))
+            .build()
+        WorkManager.getInstance(context).enqueue(syncWorkRequest)
 
         val client = OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)

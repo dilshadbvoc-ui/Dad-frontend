@@ -48,9 +48,13 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
             consolidateCallBuffer()
         }
 
-        // Also perform a "Self-Healing" scan of the system CallLog to catch anything missed (if token valid)
+        // Also perform a "Self-Healing" scan of the system CallLog to catch anything missed (if token valid).
+        // A manual "Sync" tap from the web app (see CRMBridge.syncLeads) passes forceDeepScan=true so
+        // it re-scans the full lookback window instead of just "since last checkpoint" — this is the
+        // user-facing recovery path for calls that were missed by earlier app versions or long Doze gaps.
         if (!hasAuthFailure) {
-            performSelfHealingCallLogSync()
+            val forceDeepScan = inputData.getBoolean("forceDeepScan", false)
+            performSelfHealingCallLogSync(forceDeepScan)
         }
         
         // Recover WhatsApp messages from SharedPreferences fallback
@@ -319,16 +323,52 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
         return success
     }
 
-    private fun performSelfHealingCallLogSync() {
-        // Self-Healing scan: Only looks at the last 2 HOURS (not 24h) to avoid ghost duplicates.
+    private fun performSelfHealingCallLogSync(forceDeepScan: Boolean = false) {
+        // Self-Healing scan: catches anything the real-time CallTrackerService missed.
         // The hardwareId from each log entry ensures the server's fuzzy-match or race-check
         // can merge it into an existing interaction rather than creating a ghost.
         // Calls that were already uploaded by CallTrackerService via /recordings will be
         // matched by hardwareId on the server and healed, not duplicated.
+        //
+        // Window logic: this used to be a fixed rolling "last 2 hours", which silently
+        // dropped calls forever whenever two successful syncs were more than 2h apart
+        // (server-side rate limiting or Doze-delayed WorkManager runs both do this in
+        // practice). Instead we persist the timestamp of the last successful sync and
+        // always scan from there — a gap just means the next successful sync covers a
+        // wider window, nothing ages out. On first run (no checkpoint yet — fresh install,
+        // or the app/helper was installed or updated partway through the day) we bootstrap
+        // to the start of the current calendar day, since the device's CallLog holds the
+        // full day's history regardless of when the app itself was installed.
+        //
+        // forceDeepScan (manual "Sync" button only — see CRMBridge.syncLeads): ignores the
+        // checkpoint entirely and re-scans the full 7-day safety-cap window. This is the
+        // recovery path for calls an *older* app version dropped (e.g. the old fixed
+        // "last 2 hours" bug) — those calls are still sitting in the device's CallLog, just
+        // never uploaded. Re-sending already-synced calls is harmless: the server matches
+        // them by hardwareId and heals the existing record instead of duplicating it.
         try {
             val (token, apiBase) = getAuthData() ?: return
-            val twoHoursAgo = System.currentTimeMillis() - (2 * 60 * 60 * 1000)
-            
+            val prefs = applicationContext.getSharedPreferences("crm_prefs", Context.MODE_PRIVATE)
+            val lastSyncTs = if (forceDeepScan) -1L else prefs.getLong(KEY_LAST_CALL_SYNC_TS, -1L)
+
+            val startOfToday = java.util.Calendar.getInstance().apply {
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }.timeInMillis
+
+            // Safety cap: never scan back further than 7 days even if the checkpoint is very
+            // stale (e.g. the device was offline/unused for a long time), to bound query size.
+            val maxLookback = System.currentTimeMillis() - (7 * 24 * 60 * 60 * 1000)
+
+            val windowStart = when {
+                forceDeepScan -> maxLookback
+                lastSyncTs < 0 -> startOfToday
+                lastSyncTs < maxLookback -> maxLookback
+                else -> lastSyncTs
+            }
+
             val cursor = applicationContext.contentResolver.query(
                 android.provider.CallLog.Calls.CONTENT_URI,
                 arrayOf(
@@ -339,7 +379,7 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
                     android.provider.CallLog.Calls._ID
                 ),
                 android.provider.CallLog.Calls.DATE + " > ?",
-                arrayOf(twoHoursAgo.toString()),
+                arrayOf(windowStart.toString()),
                 android.provider.CallLog.Calls.DATE + " DESC"
             )
 
@@ -363,25 +403,42 @@ class UnifiedSyncWorker(context: Context, workerParams: WorkerParameters) : Coro
                 }
             }
 
-            if (callsJson.length() == 0) return
+            // Capture "now" before the network call so the next window can't miss a call
+            // that lands in the CallLog while this request is in flight.
+            val syncedThrough = System.currentTimeMillis()
+
+            if (callsJson.length() == 0) {
+                // Nothing to send, but the window itself was clear — advance the
+                // checkpoint anyway so we don't keep re-querying the same empty range.
+                prefs.edit().putLong(KEY_LAST_CALL_SYNC_TS, syncedThrough).apply()
+                return
+            }
 
             val payload = JSONObject().apply { put("calls", callsJson) }
             val requestBody = RequestBody.create("application/json".toMediaTypeOrNull(), payload.toString())
-            
+
             val request = Request.Builder()
                 .url("$apiBase/api/android/bulk-sync")
                 .addHeader("Authorization", "Bearer $token")
                 .post(requestBody)
                 .build()
-                
-            executeRequest(request)
-            Log.d("UnifiedSync", "Self-healing bulk sync completed for ${callsJson.length()} logs (last 2h)")
+
+            val success = executeRequest(request)
+            if (success) {
+                // Only advance the checkpoint on confirmed success (2xx). A rate-limit
+                // (429), network error, or server failure leaves it untouched so the next
+                // attempt naturally re-covers this same window plus whatever's new since.
+                prefs.edit().putLong(KEY_LAST_CALL_SYNC_TS, syncedThrough).apply()
+            }
+            Log.d("UnifiedSync", "Self-healing bulk sync: ${callsJson.length()} logs since ${java.util.Date(windowStart)}, success=$success")
         } catch (e: Exception) {
             Log.e("UnifiedSync", "Self-healing sync failed", e)
         }
     }
 
     companion object {
+        private const val KEY_LAST_CALL_SYNC_TS = "last_call_sync_ts"
+
         fun schedule(context: Context) {
             val constraints = Constraints.Builder()
                 .setRequiredNetworkType(NetworkType.CONNECTED)
