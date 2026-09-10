@@ -304,6 +304,15 @@ export default function LeadDetailPage() {
     }
   }
 
+  // selectableStatuses deliberately excludes 'won'/'lost' so they can't be manually picked
+  // (see useLeadStatuses) — but once a deal actually closes, the backend sets the lead's
+  // status to exactly that, and Radix's Select can't display a value that isn't among its
+  // items, so the dropdown renders blank. Add the lead's own current status back in (disabled,
+  // so it still can't be picked) purely so the trigger has something to render.
+  const statusDropdownOptions = selectableStatuses.some((s) => s.id === lead.status)
+    ? selectableStatuses
+    : [...selectableStatuses, { ...getStatusDetails(lead.status), disabled: true }]
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -361,11 +370,11 @@ export default function LeadDetailPage() {
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
                   <SelectContent>
-                    {selectableStatuses.map((status) => (
-                      <SelectItem key={status.id} value={status.id}>
+                    {statusDropdownOptions.map((status) => (
+                      <SelectItem key={status.id} value={status.id} disabled={(status as { disabled?: boolean }).disabled}>
                         <div className="flex items-center gap-2">
-                          <div 
-                            className="w-2 h-2 rounded-full" 
+                          <div
+                            className="w-2 h-2 rounded-full"
                             style={{ backgroundColor: status.color }}
                           />
                           {status.label}
@@ -382,11 +391,11 @@ export default function LeadDetailPage() {
                 <SelectValue placeholder="Select Status" />
               </SelectTrigger>
               <SelectContent>
-                {selectableStatuses.map((status) => (
-                  <SelectItem key={status.id} value={status.id}>
+                {statusDropdownOptions.map((status) => (
+                  <SelectItem key={status.id} value={status.id} disabled={(status as { disabled?: boolean }).disabled}>
                     <div className="flex items-center gap-2">
-                      <div 
-                        className="w-2 h-2 rounded-full" 
+                      <div
+                        className="w-2 h-2 rounded-full"
                         style={{ backgroundColor: status.color }}
                       />
                       {status.label}
