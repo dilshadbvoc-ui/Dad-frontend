@@ -84,6 +84,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge"
 import { ResponsiveContainer, PieChart as RechartsPie, Pie, Cell, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts'
 import { LeadTableRow } from "./LeadTableRow"
+import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "./filterStyles"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { 
   Popover, 
@@ -168,13 +169,6 @@ const VerticalBarChart = React.memo(({ data }: { data: { name: string; value: nu
   </ResponsiveContainer>
 ));
 
-
-// Shared card-style look for the filter bar dropdowns (icon + label-above-value),
-// matching the rest of the app's rounded-[10px] / brand-green convention.
-const FILTER_CARD_CLASS = "flex items-center gap-2.5 rounded-[10px] border border-border bg-card px-3 py-2";
-const FILTER_ICON_CLASS = "h-4 w-4 text-[hsl(var(--chart-5))] shrink-0";
-const FILTER_LABEL_CLASS = "block text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/70 leading-none mb-1";
-const FILTER_TRIGGER_CLASS = "h-auto w-full p-0 border-0 shadow-none bg-transparent focus:ring-0 focus:ring-offset-0 gap-1 font-bold text-sm justify-between [&>span]:line-clamp-1 [&>span]:text-left";
 
 const formatSourceLabel = (src: string) => {
   if (!src) return 'Unknown';
@@ -874,22 +868,22 @@ export default function LeadsPage() {
   const isAnalyticsView = currentView === 'leads-analytics';
 
   return (
-    <div className="flex flex-col gap-6 h-full min-h-0">
+    <div className="bg-white flex flex-col gap-6 h-full min-h-0 p-6">
       {/* Main Content */}
       <div className="flex-1 flex flex-col space-y-6 min-w-0">
 
         {/* Environment Warning - Optional on mobile */}
-        <div className="hidden sm:block">
+        {/* <div className="hidden sm:block">
           <EnvironmentWarning />
-        </div>
+        </div> */}
 
         {/* Header Area */}
-        <div className="space-y-4 sm:px-0 pt-3">
+        <div className="space-y-4 sm:px-0">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="min-w-0">
-              <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground capitalize tracking-tight flex items-center gap-2.5">
+              <h1 className="text-2xl sm:text-3xl font-medium font-poppins text-black capitalize tracking-tight flex items-center gap-2.5">
                 {currentView.replace(/-/g, ' ')}
-                <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
+                <span className="bg-muted text-muted-foreground px-2.5 rounded-full text-sm font-bold">
                   {(leadData?.total || 0).toLocaleString()}
                 </span>
               </h1>
