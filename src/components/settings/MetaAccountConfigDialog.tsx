@@ -69,16 +69,26 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   type FormValues = {
     branchId: string
     syncEnabled: boolean
-    adAccountId: string
+    adAccountIds: string[]
     restrictCampaigns: boolean
     allowedCampaignIds: string[]
+  }
+
+  // A Page's leads can come from more than one ad account (e.g. two separate ad accounts
+  // both running campaigns through the same connected Page) — enabledLeadSyncAccounts is
+  // the full set, adAccountId is just the historical "primary" single value. Prefer the
+  // full set when it exists so an org that already picked multiple doesn't lose any on open.
+  const initialAdAccountIds = (acc: any): string[] => {
+    if (acc?.enabledLeadSyncAccounts?.length) return acc.enabledLeadSyncAccounts
+    if (acc?.adAccountId) return [acc.adAccountId]
+    return []
   }
 
   const form = useForm<FormValues>({
     defaultValues: {
       branchId: account?.branchId || "all_branches_placeholder",
       syncEnabled: account?.connected !== false,
-      adAccountId: account?.adAccountId || "no_ad_account_placeholder",
+      adAccountIds: initialAdAccountIds(account),
       restrictCampaigns: !!(account?.allowedCampaignIds?.length > 0),
       allowedCampaignIds: account?.allowedCampaignIds || []
     }
@@ -89,26 +99,43 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       form.reset({
         branchId: account.branchId || "all_branches_placeholder",
         syncEnabled: account.connected !== false,
-        adAccountId: account.adAccountId || "no_ad_account_placeholder",
+        adAccountIds: initialAdAccountIds(account),
         restrictCampaigns: !!(account.allowedCampaignIds?.length > 0),
         allowedCampaignIds: account.allowedCampaignIds || []
       })
     }
   }, [open, account, form])
 
-  const watchedAdAccountId = form.watch("adAccountId")
+  const watchedAdAccountIds = form.watch("adAccountIds") || []
   const restrictCampaigns = form.watch("restrictCampaigns")
   const allowedCampaignIds = form.watch("allowedCampaignIds") || []
 
-  // Campaigns under the account this Page is currently mapped to — the list a "sync only
-  // these campaigns" allowlist gets picked from. Only fetched once the allowlist section is
-  // actually open, since it's a real ad-account API call, not free.
+  const toggleAdAccount = (accountId: string, checked: boolean) => {
+    const current = form.getValues("adAccountIds") || []
+    form.setValue(
+      "adAccountIds",
+      checked ? [...current, accountId] : current.filter((id) => id !== accountId)
+    )
+  }
+
+  // Campaigns across every ad account selected above — the pool a "sync only these
+  // campaigns" allowlist gets picked from. Only fetched once the allowlist section is
+  // actually open, since each of these is a real ad-account API call, not free.
   const { data: campaignsData, isLoading: campaignsLoading } = useQuery({
-    queryKey: ["meta-campaigns-for-allowlist", watchedAdAccountId],
-    queryFn: () => getMetaCampaigns(watchedAdAccountId),
-    enabled: open && restrictCampaigns && !!watchedAdAccountId && watchedAdAccountId !== "no_ad_account_placeholder",
+    queryKey: ["meta-campaigns-for-allowlist", watchedAdAccountIds],
+    queryFn: async () => {
+      const results = await Promise.all(watchedAdAccountIds.map((id) => getMetaCampaigns(id)))
+      const merged: Campaign[] = []
+      for (const res of results) {
+        for (const camp of (res?.data || []) as Campaign[]) {
+          if (!merged.some((c) => c.id === camp.id)) merged.push(camp)
+        }
+      }
+      return merged
+    },
+    enabled: open && restrictCampaigns && watchedAdAccountIds.length > 0,
   })
-  const campaignOptions: Campaign[] = campaignsData?.data || []
+  const campaignOptions: Campaign[] = campaignsData || []
 
   const toggleCampaign = (campaignId: string, checked: boolean) => {
     const current = form.getValues("allowedCampaignIds") || []
@@ -121,13 +148,17 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   const mutation = useMutation({
     mutationFn: (data: FormValues) => {
       const allAccounts = integrations.metaAccounts || [];
-      const selectedAdAccount = adAccountOptions.find(a => a.id === data.adAccountId);
-      const adAccountId = data.adAccountId === "no_ad_account_placeholder" ? null : data.adAccountId;
-      const adAccountName = data.adAccountId === "no_ad_account_placeholder" ? null : (selectedAdAccount?.name ?? account?.adAccountName ?? null);
-      // Only clear the "needs selection" flag once a real ad account is actually chosen —
-      // saving with "None" still selected should keep prompting rather than silently
-      // treating the pending connection as resolved.
-      const resolvedSelection = data.adAccountId !== "no_ad_account_placeholder";
+      // adAccountId stays the single "primary" account (used for branch resolution and as
+      // the default in the Ads Manager campaign browser) — the first one picked here.
+      // enabledLeadSyncAccounts carries the FULL set, which is what actually gates lead sync
+      // (see metaLeadService's ad-account whitelist), so every selected account is honored.
+      const primaryAdAccountId = data.adAccountIds[0] || null;
+      const selectedAdAccount = adAccountOptions.find(a => a.id === primaryAdAccountId);
+      const adAccountName = primaryAdAccountId ? (selectedAdAccount?.name ?? account?.adAccountName ?? null) : null;
+      // Only clear the "needs selection" flag once at least one real ad account is chosen —
+      // saving with none selected should keep prompting rather than silently treating the
+      // pending connection as resolved.
+      const resolvedSelection = data.adAccountIds.length > 0;
       // Empty array (not just "off") means "no restriction" to the backend — turning the
       // toggle off must actually clear the list, not just hide it, so switching it back on
       // later starts from a clean slate rather than resurrecting a stale selection.
@@ -140,8 +171,9 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
             ...acc,
             branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
             connected: data.syncEnabled,
-            adAccountId,
+            adAccountId: primaryAdAccountId,
             adAccountName,
+            enabledLeadSyncAccounts: data.adAccountIds,
             allowedCampaignIds,
             needsAdAccountSelection: resolvedSelection ? false : acc.needsAdAccountSelection
           }
@@ -156,8 +188,9 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
           ...updatedMeta,
           branchId: data.branchId === "all_branches_placeholder" ? null : data.branchId,
           connected: data.syncEnabled,
-          adAccountId,
+          adAccountId: primaryAdAccountId,
           adAccountName,
+          enabledLeadSyncAccounts: data.adAccountIds,
           allowedCampaignIds,
           needsAdAccountSelection: resolvedSelection ? false : updatedMeta.needsAdAccountSelection
         };
@@ -219,55 +252,63 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="adAccountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ad Account</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    value={field.value}
+            <FormItem>
+              <FormLabel>Ad Account(s)</FormLabel>
+              <FormDescription>
+                Select every ad account whose leads should flow through this Page — most
+                Pages only need one, but a Page can be shared by more than one ad account.
+              </FormDescription>
+              <div className="rounded-lg border p-2 space-y-1 max-h-40 overflow-y-auto">
+                {adAccountOptions.length === 0 && !adAccountsError && (
+                  <p className="text-sm text-muted-foreground px-2 py-1">Loading ad accounts...</p>
+                )}
+                {adAccountOptions.map((acc) => (
+                  <label
+                    key={acc.id}
+                    className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent text-sm cursor-pointer"
                   >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select an ad account" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="no_ad_account_placeholder">None</SelectItem>
-                      {adAccountOptions.map((acc) => (
-                        <SelectItem key={acc.id} value={acc.id}>
-                          {acc.name}
-                        </SelectItem>
-                      ))}
-                      {/* Keep the currently-saved ad account selectable even if it didn't come back
-                          in this fetch (e.g. token temporarily invalid) so saving other fields
-                          doesn't silently wipe out the existing selection. */}
-                      {account?.adAccountId && !adAccountOptions.some(a => a.id === account.adAccountId) && (
-                        <SelectItem value={account.adAccountId}>
-                          {account.adAccountName || account.adAccountId} (currently saved)
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  {adAccountsError && (
-                    <FormDescription className="flex items-center gap-1 text-warning">
-                      <AlertTriangle className="h-3.5 w-3.5" />
-                      Couldn't load ad accounts right now — reconnect Meta if this persists.
-                    </FormDescription>
-                  )}
-                  {!adAccountsError && adAccountOptions.length > 1 && (
-                    <FormDescription>
-                      This Facebook user has access to multiple ad accounts — pick the one that
-                      actually belongs to this business.
-                    </FormDescription>
-                  )}
-                  <FormMessage />
-                </FormItem>
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                      checked={watchedAdAccountIds.includes(acc.id)}
+                      onChange={(e) => toggleAdAccount(acc.id, e.target.checked)}
+                    />
+                    <span className="truncate">{acc.name}</span>
+                  </label>
+                ))}
+                {/* Keep any currently-saved ad account checkable even if it didn't come back in
+                    this fetch (e.g. token temporarily invalid) so saving other fields doesn't
+                    silently drop it from the selection. */}
+                {watchedAdAccountIds
+                  .filter((id) => !adAccountOptions.some((a) => a.id === id))
+                  .map((id) => (
+                    <label
+                      key={id}
+                      className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent text-sm cursor-pointer"
+                    >
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                        checked={true}
+                        onChange={(e) => toggleAdAccount(id, e.target.checked)}
+                      />
+                      <span className="truncate">{account?.adAccountName || id} (currently saved)</span>
+                    </label>
+                  ))}
+              </div>
+              {adAccountsError && (
+                <FormDescription className="flex items-center gap-1 text-warning">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  Couldn't load ad accounts right now — reconnect Meta if this persists.
+                </FormDescription>
               )}
-            />
+              {watchedAdAccountIds.length === 0 && (
+                <FormDescription className="flex items-center gap-1 text-warning">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  No ad account selected — this Page won't sync any leads until you pick at least one.
+                </FormDescription>
+              )}
+            </FormItem>
             <FormField
               control={form.control}
               name="branchId"
@@ -325,8 +366,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
             {restrictCampaigns && (
               <div className="rounded-lg border p-3 space-y-2">
                 <FormLabel>Allowed Campaigns</FormLabel>
-                {watchedAdAccountId === "no_ad_account_placeholder" ? (
-                  <FormDescription>Select an ad account above to choose its campaigns.</FormDescription>
+                {watchedAdAccountIds.length === 0 ? (
+                  <FormDescription>Select at least one ad account above to choose its campaigns.</FormDescription>
                 ) : campaignsLoading ? (
                   <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
                     <Loader2 className="h-4 w-4 animate-spin" /> Loading campaigns...
