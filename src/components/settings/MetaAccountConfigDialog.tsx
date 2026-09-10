@@ -9,6 +9,7 @@ import type { AxiosError } from "axios"
 
 import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
   Dialog,
   DialogContent,
@@ -34,7 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { updateOrganisation, getBranches } from "@/services/settingsService"
-import { getAdAccounts } from "@/services/marketingService"
+import { getAdAccounts, getMetaCampaigns, type Campaign } from "@/services/marketingService"
 
 interface MetaAccountConfigDialogProps {
   open: boolean
@@ -65,11 +66,21 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
   });
   const adAccountOptions: { id: string; name: string }[] = adAccountsData?.data?.data || adAccountsData?.data || [];
 
-  const form = useForm<{ branchId: string; syncEnabled: boolean; adAccountId: string }>({
+  type FormValues = {
+    branchId: string
+    syncEnabled: boolean
+    adAccountId: string
+    restrictCampaigns: boolean
+    allowedCampaignIds: string[]
+  }
+
+  const form = useForm<FormValues>({
     defaultValues: {
       branchId: account?.branchId || "all_branches_placeholder",
       syncEnabled: account?.connected !== false,
-      adAccountId: account?.adAccountId || "no_ad_account_placeholder"
+      adAccountId: account?.adAccountId || "no_ad_account_placeholder",
+      restrictCampaigns: !!(account?.allowedCampaignIds?.length > 0),
+      allowedCampaignIds: account?.allowedCampaignIds || []
     }
   })
 
@@ -78,13 +89,37 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       form.reset({
         branchId: account.branchId || "all_branches_placeholder",
         syncEnabled: account.connected !== false,
-        adAccountId: account.adAccountId || "no_ad_account_placeholder"
+        adAccountId: account.adAccountId || "no_ad_account_placeholder",
+        restrictCampaigns: !!(account.allowedCampaignIds?.length > 0),
+        allowedCampaignIds: account.allowedCampaignIds || []
       })
     }
   }, [open, account, form])
 
+  const watchedAdAccountId = form.watch("adAccountId")
+  const restrictCampaigns = form.watch("restrictCampaigns")
+  const allowedCampaignIds = form.watch("allowedCampaignIds") || []
+
+  // Campaigns under the account this Page is currently mapped to — the list a "sync only
+  // these campaigns" allowlist gets picked from. Only fetched once the allowlist section is
+  // actually open, since it's a real ad-account API call, not free.
+  const { data: campaignsData, isLoading: campaignsLoading } = useQuery({
+    queryKey: ["meta-campaigns-for-allowlist", watchedAdAccountId],
+    queryFn: () => getMetaCampaigns(watchedAdAccountId),
+    enabled: open && restrictCampaigns && !!watchedAdAccountId && watchedAdAccountId !== "no_ad_account_placeholder",
+  })
+  const campaignOptions: Campaign[] = campaignsData?.data || []
+
+  const toggleCampaign = (campaignId: string, checked: boolean) => {
+    const current = form.getValues("allowedCampaignIds") || []
+    form.setValue(
+      "allowedCampaignIds",
+      checked ? [...current, campaignId] : current.filter((id) => id !== campaignId)
+    )
+  }
+
   const mutation = useMutation({
-    mutationFn: (data: { branchId: string; syncEnabled: boolean; adAccountId: string }) => {
+    mutationFn: (data: FormValues) => {
       const allAccounts = integrations.metaAccounts || [];
       const selectedAdAccount = adAccountOptions.find(a => a.id === data.adAccountId);
       const adAccountId = data.adAccountId === "no_ad_account_placeholder" ? null : data.adAccountId;
@@ -93,6 +128,10 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       // saving with "None" still selected should keep prompting rather than silently
       // treating the pending connection as resolved.
       const resolvedSelection = data.adAccountId !== "no_ad_account_placeholder";
+      // Empty array (not just "off") means "no restriction" to the backend — turning the
+      // toggle off must actually clear the list, not just hide it, so switching it back on
+      // later starts from a clean slate rather than resurrecting a stale selection.
+      const allowedCampaignIds = data.restrictCampaigns ? data.allowedCampaignIds : [];
 
       // update the specific account in the array using pageId
       const updatedAccounts = allAccounts.map((acc: any) => {
@@ -103,6 +142,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
             connected: data.syncEnabled,
             adAccountId,
             adAccountName,
+            allowedCampaignIds,
             needsAdAccountSelection: resolvedSelection ? false : acc.needsAdAccountSelection
           }
         }
@@ -118,6 +158,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
           connected: data.syncEnabled,
           adAccountId,
           adAccountName,
+          allowedCampaignIds,
           needsAdAccountSelection: resolvedSelection ? false : updatedMeta.needsAdAccountSelection
         };
       }
@@ -141,7 +182,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     },
   })
 
-  function onSubmit(values: { branchId: string; syncEnabled: boolean; adAccountId: string }) {
+  function onSubmit(values: FormValues) {
     mutation.mutate(values)
   }
 
@@ -259,6 +300,67 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="restrictCampaigns"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between rounded-lg border p-3 shadow-sm bg-card">
+                  <div className="space-y-0.5">
+                    <FormLabel>Only Sync Selected Campaigns</FormLabel>
+                    <FormDescription>
+                      Use this when this Page&apos;s ad account also runs unrelated campaigns
+                      for other businesses — only checked campaigns below will create leads
+                      here; everything else (including new campaigns) is blocked by default.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            {restrictCampaigns && (
+              <div className="rounded-lg border p-3 space-y-2">
+                <FormLabel>Allowed Campaigns</FormLabel>
+                {watchedAdAccountId === "no_ad_account_placeholder" ? (
+                  <FormDescription>Select an ad account above to choose its campaigns.</FormDescription>
+                ) : campaignsLoading ? (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+                    <Loader2 className="h-4 w-4 animate-spin" /> Loading campaigns...
+                  </div>
+                ) : campaignOptions.length === 0 ? (
+                  <FormDescription>No campaigns found for this ad account.</FormDescription>
+                ) : (
+                  <ScrollArea className="h-48 pr-2">
+                    <div className="space-y-1">
+                      {campaignOptions.map((camp) => (
+                        <label
+                          key={camp.id}
+                          className="flex items-center gap-2 px-2 py-1.5 rounded-sm hover:bg-accent text-sm cursor-pointer"
+                        >
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+                            checked={allowedCampaignIds.includes(camp.id)}
+                            onChange={(e) => toggleCampaign(camp.id, e.target.checked)}
+                          />
+                          <span className="truncate">{camp.name}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+                {allowedCampaignIds.length === 0 && (
+                  <FormDescription className="flex items-center gap-1 text-warning">
+                    <AlertTriangle className="h-3.5 w-3.5" />
+                    No campaigns selected — no leads will sync from this account until you pick at least one.
+                  </FormDescription>
+                )}
+              </div>
+            )}
             <DialogFooter>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
