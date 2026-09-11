@@ -18,8 +18,15 @@ const Checkbox = React.forwardRef<
     )}
     {...props}
   >
+    {/* Explicit `text-primary-foreground` rather than `text-current` — the
+        checkmark previously relied on inheriting its color from the Root's
+        `data-[state=checked]:text-primary-foreground`, which is fragile
+        (any style-order/portal quirk breaks the inheritance silently): the
+        box still fills with the checked background color, but the
+        checkmark itself renders invisible against it, reading as
+        "not checked" even though the underlying state is correct. */}
     <CheckboxPrimitive.Indicator
-      className={cn("flex items-center justify-center text-current")}
+      className={cn("flex items-center justify-center text-primary-foreground")}
     >
       <Check className="h-4 w-4" />
     </CheckboxPrimitive.Indicator>
