@@ -276,7 +276,7 @@
 
   /* Enhanced Table Row */
   .table-row-ocean {
-    @apply border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-primary/5;
+    @apply border-b border-border transition-colors hover:bg-muted/50 data-[state=selected]:bg-[#69A63B]/40;
   }
 
   /* AddProductToLeadDialog Layout Helper */

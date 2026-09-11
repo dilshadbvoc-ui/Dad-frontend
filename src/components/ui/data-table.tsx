@@ -352,7 +352,7 @@ export function DataTable<TData, TValue>({
                   return (
                     <div
                       key={virtualRow.key}
-                      className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/10 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/15"
+                      className="absolute left-0 top-0 w-full flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[#69A63B]/40"
                       data-state={row.getIsSelected() && "selected"}
                       style={{
                         height: `${virtualRow.size}px`,
@@ -395,7 +395,7 @@ export function DataTable<TData, TValue>({
                       data-state={row.getIsSelected() && "selected"}
                       onClick={(e) => handleRowClick(e, row)}
                       className={cn(
-                        "flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/10 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/15 cursor-pointer",
+                        "flex border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[#69A63B]/40 cursor-pointer",
                         dragOverRowId === row.id && onRowDrop && 'bg-accent border-primary'
                       )}
                     >
