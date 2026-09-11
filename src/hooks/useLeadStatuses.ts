@@ -61,6 +61,13 @@ export const DEFAULT_OPPORTUNITY_LEAD_STATUSES: LeadStatus[] = [
     { id: 'lost', label: 'Lost', color: '#ef4444', isSystem: true, order: 6 }
 ];
 
+// Edufolio explicitly wants their custom "Lead Status" Won/Lost entries pickable here,
+// separate from actually closing the deal via Close Won/Close Lost — they track a soft
+// won/lost signal on the opportunity independent of when/whether it's formally closed.
+// Scoped to just this org so every other org keeps the default (Won/Lost reachable only
+// through the real Close Won/Close Lost actions).
+const ORGS_ALLOWING_MANUAL_WON_LOST_LEAD_STATUS = ['85cc3715-7f8d-4f22-b0b0-a40a502bc6fa'];
+
 export function useOpportunityLeadStatuses() {
     const { data: org, isLoading } = useQuery({
         queryKey: ['organisation'],
@@ -69,6 +76,7 @@ export function useOpportunityLeadStatuses() {
     });
 
     const statuses: LeadStatus[] = org?.opportunityLeadStatuses || DEFAULT_OPPORTUNITY_LEAD_STATUSES;
+    const allowManualWonLost = !!org?.id && ORGS_ALLOWING_MANUAL_WON_LOST_LEAD_STATUS.includes(org.id);
 
     const getStatusDetails = (id: string) => {
         const status = statuses.find(s => s.id === id);
@@ -80,9 +88,9 @@ export function useOpportunityLeadStatuses() {
         // 'won'/'lost' here are just this soft "Lead Status" sub-field, separate from
         // the Opportunity's real `stage` — picking them from this plain select doesn't
         // go through CloseWonDialog/CloseLostDialog, so no payment/EMI capture happens.
-        // Keep them reachable only through the actual Close Won/Close Lost actions.
-        selectableStatuses: statuses
-            .filter(s => s.id !== 'won' && s.id !== 'lost')
+        // Keep them reachable only through the actual Close Won/Close Lost actions,
+        // except for orgs in ORGS_ALLOWING_MANUAL_WON_LOST_LEAD_STATUS above.
+        selectableStatuses: (allowManualWonLost ? statuses : statuses.filter(s => s.id !== 'won' && s.id !== 'lost'))
             .sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
