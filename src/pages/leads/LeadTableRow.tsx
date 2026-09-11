@@ -35,7 +35,7 @@ const LeadTableRowComponent = ({
         }
       }}
       className={cn(
-        "flex w-full border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/25 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/30 shrink-0 cursor-pointer",
+        "flex w-full border-b border-border transition-colors hover:bg-[hsl(var(--chart-5))]/5 group data-[state=selected]:bg-[hsl(var(--chart-5))]/45 dark:data-[state=selected]:bg-[hsl(var(--chart-5))]/50 shrink-0 cursor-pointer",
         dragOverRowId === row.id && "bg-accent border-primary"
       )}
     >
