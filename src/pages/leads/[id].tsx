@@ -304,11 +304,10 @@ export default function LeadDetailPage() {
     }
   }
 
-  // selectableStatuses deliberately excludes 'won'/'lost' so they can't be manually picked
-  // (see useLeadStatuses) — but once a deal actually closes, the backend sets the lead's
-  // status to exactly that, and Radix's Select can't display a value that isn't among its
-  // items, so the dropdown renders blank. Add the lead's own current status back in (disabled,
-  // so it still can't be picked) purely so the trigger has something to render.
+  // Defensive fallback: Radix's Select can't display a value that isn't among its items
+  // (renders blank instead) — if a lead's status somehow isn't in the org's configured
+  // list at all (e.g. a stale/removed custom status), add it back in as a disabled item
+  // purely so the trigger has something to render.
   const statusDropdownOptions = selectableStatuses.some((s) => s.id === lead.status)
     ? selectableStatuses
     : [...selectableStatuses, { ...getStatusDetails(lead.status), disabled: true }]

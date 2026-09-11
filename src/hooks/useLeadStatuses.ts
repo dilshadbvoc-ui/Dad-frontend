@@ -38,12 +38,11 @@ export function useLeadStatuses() {
 
     return {
         statuses: statuses.sort((a, b) => a.order - b.order),
-        // 'won'/'lost' are outcome statuses that should only ever be set by the real
-        // conversion flow (ConvertLeadDialog / QuickConvertWon/LostDialog), which also
-        // creates the Account/Contact/Opportunity behind them — picking them here would
-        // just paint the lead green/red with nothing in the pipeline to back it up.
+        // 'shuffled_lead' is a system-only marker set by the round-robin shuffler, not
+        // something a user should manually pick. 'won'/'lost', if an org has configured
+        // them as custom statuses, are pickable like any other custom status.
         selectableStatuses: statuses
-            .filter(s => s.id !== 'shuffled_lead' && s.id !== 'won' && s.id !== 'lost')
+            .filter(s => s.id !== 'shuffled_lead')
             .sort((a, b) => a.order - b.order),
         getStatusDetails,
         isLoading,
