@@ -126,13 +126,13 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] lg:min-h-screen grid lg:grid-cols-2 bg-[hsl(var(--muted))] lg:p-6 gap-6">
+    <div className="min-h-[100dvh] font-poppins! lg:min-h-screen grid lg:grid-cols-2 bg-[#F9FAEF] lg:p-0 gap-6">
       <SEO
         title="Login"
         description="Securely access your Pype CRM account. Manage your sales pipeline and leads with ease."
       />
       {/* Visual Section — brand-green panel */}
-      <div className="hidden lg:flex relative h-full overflow-hidden rounded-[32px] bg-gradient-to-br from-[hsl(var(--chart-5))] to-[hsl(94_48%_34%)] flex-col justify-between p-12 text-white">
+      <div className="hidden lg:flex relative h-full overflow-hidden rounded-[0px] bg-gradient-to-br from-[hsl(var(--chart-5))] to-[hsl(94_48%_34%)] flex-col justify-between p-12 text-white">
         {/* Decorative rounded squares */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <div className="absolute top-10 left-10 w-16 h-16 rounded-2xl bg-white/10 rotate-12" />
@@ -151,32 +151,32 @@ const Login = () => {
           <Logo size="md" showText variant="onColor" />
         </div>
 
-        <div className="relative z-10 space-y-5 max-w-md">
-          <p className="text-xs font-poppins font-semibold tracking-[0.2em] uppercase text-white/70">
+        <div className="relative z-10 space-y-3 max-w-md">
+          <p className="text-[13px] ml-0.5 font-poppins font-semibold tracking-[0.2em] uppercase text-white/70">
             Sales &bull; Automation &bull; Growth
           </p>
-          <h2 className="text-5xl font-poppins! font-normal! tracking-tight leading-[1.1]">
+          <h2 className="text-5xl font-poppins! font-semibold! text-white tracking-tight leading-[1.1]">
             Build Stronger<br />
             Customer<br />
-            <span className="text-white/70">Relationships.</span>
+            <span className="text-white/80">Relationships.</span>
           </h2>
-          <p className="text-white/85 text-base leading-relaxed max-w-sm">
-            A simple, powerful CRM to manage leads, automate follow-ups and drive more revenue — all in one place.
+          <p className="text-white ml-0.5 font-poppins text-[15px] leading-relaxed max-w-[20rem]">
+            A simple, powerful CRM to manage leads, automate follow-ups and drive more revenue - all in one place.
           </p>
-          <div className="w-10 h-px bg-white/40" />
-          <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/70">
+          <div className="w-10 ml-1 h-px bg-white/40" />
+          <p className="text-[13px] ml-0.5 font-poppins font-semibold tracking-[0.2em] uppercase text-white">
             Organize &bull; Automate &bull; Grow
           </p>
         </div>
 
-        <div className="relative z-10 text-xs text-white/60">
+        <div className="relative font-poppins z-10 text-xs text-white">
           © 2026 Pype CRM. All rights reserved.
         </div>
       </div>
 
       {/* Form Section */}
       <div className="flex min-h-[100dvh] lg:min-h-full items-center justify-center px-4 py-6 lg:p-12">
-        <Card className="w-full max-w-[420px] shadow-xl border-0 bg-card rounded-[28px]">
+        <Card className="w-full max-w-[420px] border border-[#79bc46]/40 bg-white rounded-[12px]!">
           <CardHeader className="space-y-2 text-center px-8 pt-10">
             <div className="flex justify-center mb-2">
               <Logo size="md" showText />
@@ -203,7 +203,7 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white dark:bg-background pl-10 h-11 rounded-[10px]"
+                    className="border border-input bg-white pl-10 h-11 rounded-[10px] focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-[#79bc46]/40 transition-colors"
                   />
                 </div>
               </div>
@@ -224,7 +224,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white dark:bg-background pl-10 pr-10 h-11 rounded-[10px]"
+                    className="border border-input bg-white pl-10 pr-10 h-11 rounded-[10px] focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 focus:border-[#79bc46]/40 transition-colors"
                   />
                   <button
                     type="button"
