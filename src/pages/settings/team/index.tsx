@@ -327,7 +327,7 @@ export default function TeamSettings() {
   const [moveBack, setMoveBack] = useState(true)
   const queryClient = useQueryClient()
 
-  const { data: userData, isLoading } = useQuery({
+  const { data: userData, isLoading, isError: isUsersError, error: usersError } = useQuery({
     queryKey: ['users'],
     queryFn: async () => {
       const res = await api.get('/users')
@@ -633,6 +633,12 @@ export default function TeamSettings() {
                     Loading team members...
                   </TableCell>
                 </TableRow>
+              ) : isUsersError ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-destructive">
+                    Couldn't load the team list — {(usersError as any)?.response?.data?.message || (usersError as Error)?.message || 'please try again or contact support.'}
+                  </TableCell>
+                </TableRow>
               ) : filteredMembers.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -804,6 +810,21 @@ export default function TeamSettings() {
         <div className="rounded-md border border-border bg-card p-2">
           {isLoading ? (
             <div className="text-center py-12 text-muted-foreground">Loading hierarchy...</div>
+          ) : isUsersError ? (
+            <div className="text-center py-12 text-destructive">
+              Couldn't load the hierarchy — {(usersError as any)?.response?.data?.message || (usersError as Error)?.message || 'please try again or contact support.'}
+            </div>
+          ) : hierarchyTree.length === 0 && members.length > 0 ? (
+            // Members exist but none resolved to a root — almost always a circular
+            // reportsTo chain (A -> B -> A) rather than a genuinely empty team, since
+            // that leaves every member in the loop parented under someone else and
+            // none of them ever qualifies as a root. Say so instead of implying the
+            // team has no members at all.
+            <div className="text-center py-12 text-muted-foreground">
+              Team members exist, but the hierarchy couldn't be built — this usually means two or more
+              people have been set to report to each other. Check the "Reports To" field on team members
+              in the table view above.
+            </div>
           ) : hierarchyTree.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">No team members found.</div>
           ) : (
