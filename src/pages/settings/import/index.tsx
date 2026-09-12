@@ -103,6 +103,7 @@ const CRM_FIELDS = [
   { label: "Company", value: "company", required: false },
   { label: "Job Title", value: "jobTitle", required: false },
   { label: "Lead Source", value: "source", required: false },
+  { label: "Campaign Name", value: "campaignName", required: false },
   { label: "Lead Status", value: "status", required: false },
   { label: "Pipeline Stage", value: "stage", required: false },
   { label: "Owner Email", value: "ownerEmail", required: false },
