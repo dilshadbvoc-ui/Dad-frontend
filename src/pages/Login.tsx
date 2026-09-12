@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import Logo from '@/components/shared/Logo';
 import SEO from '@/components/shared/SEO';
-import { Sparkles, Check, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { saveAndroidToken, saveAndroidApiUrl } from '@/utils/androidBridge';
 import { API_URL } from '@/config';
@@ -126,96 +126,86 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] lg:min-h-screen grid lg:grid-cols-2">
+    <div className="min-h-[100dvh] lg:min-h-screen grid lg:grid-cols-2 bg-[hsl(var(--muted))] lg:p-6 gap-6">
       <SEO
         title="Login"
         description="Securely access your Pype CRM account. Manage your sales pipeline and leads with ease."
       />
-      {/* Visual Section - CSS Mesh Gradient & Animated Elements */}
-      <div className="hidden lg:flex relative h-full overflow-hidden bg-[#0A0C10] flex-col justify-between p-12 text-white">
-        {/* Dynamic Mesh Gradient Background */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[70%] h-[70%] rounded-full bg-indigo-600/20 blur-[120px] animate-pulse-soft" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[60%] h-[60%] rounded-full bg-purple-600/20 blur-[120px] animate-pulse-soft" style={{ animationDelay: '-5s' }} />
-          <div className="absolute top-[20%] right-[10%] w-[40%] h-[40%] rounded-full bg-blue-600/10 blur-[100px] animate-pulse-soft" style={{ animationDelay: '-10s' }} />
+      {/* Visual Section — brand-green panel */}
+      <div className="hidden lg:flex relative h-full overflow-hidden rounded-[32px] bg-gradient-to-br from-[hsl(var(--chart-5))] to-[hsl(94_48%_34%)] flex-col justify-between p-12 text-white">
+        {/* Decorative rounded squares */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="absolute top-10 left-10 w-16 h-16 rounded-2xl bg-white/10 rotate-12" />
+          <div className="absolute top-24 left-32 w-10 h-10 rounded-xl bg-white/10 -rotate-6" />
+          <div className="absolute top-16 right-16 w-8 h-8 rounded-lg bg-white/10 rotate-45" />
+          <div className="absolute bottom-40 right-10 w-20 h-20 rounded-2xl bg-white/10 rotate-12" />
+          <div className="absolute bottom-24 left-8 w-24 h-24 rounded-3xl bg-white/10 -rotate-12" />
+          <div className="absolute bottom-56 left-24 w-9 h-9 rounded-lg bg-white/10 rotate-6" />
+          {/* Wavy connecting lines */}
+          <svg className="absolute inset-0 w-full h-full opacity-25" viewBox="0 0 500 700" fill="none" preserveAspectRatio="none">
+            <path d="M40 60 C 200 140, 120 260, 320 220 S 420 420, 250 480 S 60 600, 180 660" stroke="white" strokeWidth="1.5" />
+          </svg>
         </div>
 
-        {/* Decorative Elements */}
-        <div className="absolute inset-0 z-0 opacity-30">
-          <div className="absolute top-[15%] left-[10%] w-64 h-64 rounded-full border border-white/10 animate-float" />
-          <div className="absolute bottom-[20%] right-[15%] w-96 h-96 rounded-full border border-white/5 animate-float" style={{ animationDelay: '-7s' }} />
-          <div className="absolute top-[40%] right-[20%] w-32 h-32 rounded-full bg-gradient-to-br from-indigo-500/10 to-transparent animate-float" style={{ animationDelay: '-12s' }} />
+        <div className="relative z-10">
+          <Logo size="md" showText variant="onColor" />
         </div>
 
-        {/* Grid Overlay */}
-        <div className="absolute inset-0 z-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=%220 0 200 200%22 xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter id=%22noiseFilter%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.65%22 numOctaves=%223%22 stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-20 mix-blend-overlay" />
-        <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
-
-        <div className="relative z-10 flex items-center gap-2">
-          <Logo size="lg" className="text-white" />
+        <div className="relative z-10 space-y-5 max-w-md">
+          <p className="text-xs font-poppins font-semibold tracking-[0.2em] uppercase text-white/70">
+            Sales &bull; Automation &bull; Growth
+          </p>
+          <h2 className="text-5xl font-poppins! font-normal! tracking-tight leading-[1.1]">
+            Build Stronger<br />
+            Customer<br />
+            <span className="text-white/70">Relationships.</span>
+          </h2>
+          <p className="text-white/85 text-base leading-relaxed max-w-sm">
+            A simple, powerful CRM to manage leads, automate follow-ups and drive more revenue — all in one place.
+          </p>
+          <div className="w-10 h-px bg-white/40" />
+          <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/70">
+            Organize &bull; Automate &bull; Grow
+          </p>
         </div>
 
-        <div className="relative z-10 space-y-8 max-w-lg">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm text-xs font-medium text-indigo-200">
-              <Sparkles className="w-3.5 h-3.5" />
-              Next-Gen Sales Intelligence
-            </div>
-            <h2 className="text-5xl font-bold tracking-tight leading-[1.1]">
-              Accelerate your <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400">Sales Velocity.</span>
-            </h2>
-          </div>
-
-          <div className="p-8 rounded-3xl bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl space-y-4">
-            <blockquote className="text-lg font-medium text-slate-200 leading-relaxed italic">
-              "The transition from spreadsheets to Pype CRM was the single best decision for our sales team's productivity."
-            </blockquote>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-500" />
-              <div>
-                <div className="text-sm font-bold text-white">Sarah Jenkins</div>
-                <div className="text-xs text-slate-400">Head of Sales @ GrowthScale</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative z-10 flex items-center justify-between text-xs text-slate-500 uppercase tracking-widest font-bold">
-          <span>© 2026 PYPE CRM</span>
-          <div className="flex gap-6">
-            <span className="hover:text-white cursor-pointer transition-colors">Privacy</span>
-            <span className="hover:text-white cursor-pointer transition-colors">Terms</span>
-          </div>
+        <div className="relative z-10 text-xs text-white/60">
+          © 2026 Pype CRM. All rights reserved.
         </div>
       </div>
 
       {/* Form Section */}
-      <div className="flex min-h-[100dvh] lg:min-h-screen items-center justify-center px-4 py-6 lg:p-12 bg-background">
-        <Card className="w-full max-w-[400px] shadow-lg border-0 bg-card shadow-sm">
-          <CardHeader className="space-y-1 text-center lg:text-left px-6 pt-6">
+      <div className="flex min-h-[100dvh] lg:min-h-full items-center justify-center px-4 py-6 lg:p-12">
+        <Card className="w-full max-w-[420px] shadow-xl border-0 bg-card rounded-[28px]">
+          <CardHeader className="space-y-2 text-center px-8 pt-10">
+            <div className="flex justify-center mb-2">
+              <Logo size="md" showText />
+            </div>
             <CardTitle className="text-3xl font-bold tracking-tight">
-              <span className="bg-gradient-to-r from-primary to-violet-500 bg-clip-text text-transparent">Welcome Back</span>
+              Welcome <span className="text-[hsl(var(--chart-5))]">Back</span>
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Enter your credentials to access your account
+              Sign in to continue to your account
             </p>
           </CardHeader>
-          <CardContent className="space-y-4 px-6 pb-6">
+          <CardContent className="space-y-4 px-8 pb-10">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="name@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  className="bg-white dark:bg-background"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="Enter your email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    className="bg-white dark:bg-background pl-10 h-11 rounded-[10px]"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -224,15 +214,17 @@ const Login = () => {
                 {/* Hidden field for accessibility/password managers - moved before password for better browser detection */}
                 <input type="text" name="username" value={email} readOnly style={{ position: 'absolute', opacity: 0, height: 0, width: 0, zIndex: -1 }} tabIndex={-1} autoComplete="username" aria-hidden="true" />
                 <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="password"
                     name="password"
                     type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
+                    placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white dark:bg-background pr-10"
+                    className="bg-white dark:bg-background pl-10 pr-10 h-11 rounded-[10px]"
                   />
                   <button
                     type="button"
@@ -241,9 +233,9 @@ const Login = () => {
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? (
-                      <EyeOff className="w-6 h-6" />
+                      <EyeOff className="w-5 h-5" />
                     ) : (
-                      <Eye className="w-6 h-6" />
+                      <Eye className="w-5 h-5" />
                     )}
                   </button>
                 </div>
@@ -256,10 +248,10 @@ const Login = () => {
                 </div>
               )}
 
-              <div className="flex items-center space-x-2 py-2">
+              <div className="flex items-center space-x-2 py-1">
                 <Checkbox
                   id="autoLogin"
-                  className="min-h-5! min-w-5! md:min-h-4! md:min-w-4!"
+                  className="min-h-5! min-w-5! md:min-h-4! md:min-w-4! data-[state=checked]:bg-[hsl(var(--chart-5))] data-[state=checked]:border-[hsl(var(--chart-5))]"
                   checked={autoLogin}
                   onCheckedChange={(checked) => setAutoLogin(checked as boolean)}
                 />
@@ -272,11 +264,16 @@ const Login = () => {
               </div>
 
               <Button
-                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all duration-300"
+                className="w-full h-11 rounded-[10px] bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(94_48%_38%)] transition-all duration-300 gap-2 font-semibold"
                 type="submit"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLoading ? 'Signing in...' : (
+                  <>
+                    Sign In
+                    <ArrowRight className="w-4 h-4" />
+                  </>
+                )}
               </Button>
             </form>
           </CardContent>
