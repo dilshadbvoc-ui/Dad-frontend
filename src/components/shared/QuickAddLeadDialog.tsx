@@ -31,6 +31,7 @@ import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
 import { Globe } from "lucide-react"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
+import { getUserInfo, checkRole } from "@/lib/utils"
 
 // interface for Form Data
 interface QuickLeadFormData {
@@ -65,6 +66,11 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
   const { statuses, selectableStatuses } = useLeadStatuses()
   const queryClient = useQueryClient()
 
+  // Individual-contributor reps have no one to assign leads to besides themselves —
+  // hide the picker entirely for them and auto-assign to self on submit instead.
+  const currentUser = getUserInfo()
+  const isSalesRep = checkRole(currentUser, 'sales_rep')
+
   const form = useForm<QuickLeadFormData>({
     defaultValues: {
       firstName: "",
@@ -95,7 +101,8 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
 
   const { data: usersData } = useQuery({
     queryKey: ['users'],
-    queryFn: getUsers
+    queryFn: getUsers,
+    enabled: !isSalesRep,
   })
   const users = (usersData?.users || []).filter((u: any) => u.isActive !== false)
 
@@ -139,7 +146,10 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
     if (values.enquiryAbout && values.enquiryAbout.trim()) {
       payload.enquiryAbout = values.enquiryAbout.trim();
     }
-    if (values.assignedTo && values.assignedTo !== "unassigned") {
+    if (isSalesRep) {
+      // No assignment picker is shown to them — always their own lead.
+      if (currentUser?.id) payload.assignedTo = currentUser.id;
+    } else if (values.assignedTo && values.assignedTo !== "unassigned") {
       payload.assignedTo = values.assignedTo;
     }
     if (Object.keys(customFieldValues).length > 0) {
@@ -413,31 +423,33 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="assignedTo"
-                  render={({ field }) => (
-                    <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="h-10">
-                            <SelectValue placeholder="Unassigned" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="unassigned">Unassigned</SelectItem>
-                          {users.map((user: { id: string; firstName: string; lastName: string }) => (
-                            <SelectItem key={user.id} value={user.id}>
-                              {user.firstName} {user.lastName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!isSalesRep && (
+                  <FormField
+                    control={form.control}
+                    name="assignedTo"
+                    render={({ field }) => (
+                      <FormItem className="space-y-1">
+                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Unassigned" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {users.map((user: { id: string; firstName: string; lastName: string }) => (
+                              <SelectItem key={user.id} value={user.id}>
+                                {user.firstName} {user.lastName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
               </div>
             </div>
 
