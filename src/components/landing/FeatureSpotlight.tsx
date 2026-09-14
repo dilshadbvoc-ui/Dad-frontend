@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 
 const rowGroupClass =
   "grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 bg-gray-200 md:divide-x divide-gray-200 dark:divide-gray-800";
-const textCellClass = "flex flex-col bg-white justify-center rounded-[6px] gap-4 py-10 md:py-16 md:px-12 lg:px-16";
+const textCellClass = "flex flex-col justify-center bg-white rounded-[6px] gap-4 py-10 md:py-16 md:px-12 lg:px-16";
 const imageCellClass = "flex items-center";
 
 export default function FeatureSpotlight() {
@@ -49,7 +49,7 @@ export default function FeatureSpotlight() {
               <img
                 src="/AI-Powered%20CRM%20Lead%20Insights.png"
                 alt="AI-powered CRM lead insights"
-                className="w-full rounded-[6px] object-cover"
+                className="h-full rounded-[6px] object-cover"
               />
             </div>
           </div>
@@ -59,7 +59,7 @@ export default function FeatureSpotlight() {
               <img
                 src="/Collaborative%20CRM.png"
                 alt="Collaborative CRM activity feed"
-                className="w-full rounded-[6px] object-cover"
+                className="h-full rounded-[6px] object-cover"
               />
             </div>
 
