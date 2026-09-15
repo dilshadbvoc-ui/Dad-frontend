@@ -76,10 +76,36 @@ export default function IntegrationsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [orgData]);
 
-  const handleConnectMeta = async () => {
+  // Surface the result of the Meta OAuth redirect (Facebook Leads or WhatsApp
+  // connect) - previously silent, which made a failed/no-op connection
+  // indistinguishable from a successful one.
+  useEffect(() => {
+    const error = searchParams.get('error');
+    const whatsappResult = searchParams.get('whatsapp');
+    const success = searchParams.get('success');
+
+    if (error) {
+      toast.error(searchParams.get('message') || 'Failed to connect to Meta');
+    } else if (whatsappResult === 'connected') {
+      toast.success('WhatsApp number connected successfully');
+    } else if (whatsappResult === 'no_account_found') {
+      toast.error('No WhatsApp Business Account found for that Facebook login. Make sure the number is registered under your Business Manager before connecting.');
+    } else if (success && searchParams.get('meta') === 'connected') {
+      toast.success('Facebook account connected successfully');
+    }
+
+    if (error || whatsappResult || success) {
+      const next = new URLSearchParams(searchParams);
+      ['error', 'message', 'whatsapp', 'success', 'meta'].forEach(k => next.delete(k));
+      setSearchParams(next, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleConnectMeta = async (type: 'meta' | 'whatsapp' = 'meta') => {
     try {
       const { api } = await import('@/services/api');
-      const { data } = await api.get('/meta/auth');
+      const { data } = await api.get('/meta/auth', { params: { type } });
       if (data.url) window.location.href = data.url;
     } catch (error: unknown) {
       const err = error as { response?: { data?: { message?: string } } };
@@ -113,7 +139,7 @@ export default function IntegrationsPage() {
       iconColor: 'text-blue-600',
       connected: integrations.meta?.connected || (integrations.metaAccounts?.length > 0),
       accounts: integrations.metaAccounts || [],
-      onEnable: handleConnectMeta,
+      onEnable: () => handleConnectMeta('meta'),
       onDisable: handleDisconnectMeta,
       hasSettings: true,
       settingsType: 'meta' as const,
@@ -137,7 +163,7 @@ export default function IntegrationsPage() {
       icon: WhatsAppLogo,
       iconColor: 'text-green-500',
       connected: integrations.whatsapp?.connected,
-      onEnable: handleConnectMeta,
+      onEnable: () => handleConnectMeta('whatsapp'),
       hasSettings: true,
       settingsType: 'whatsapp' as const,
       isPlaceholder: false
@@ -409,7 +435,7 @@ export default function IntegrationsPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={handleConnectMeta}
+                    onClick={() => handleConnectMeta('meta')}
                   >
                     Add Another Account
                   </Button>
