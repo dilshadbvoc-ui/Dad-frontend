@@ -126,7 +126,7 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
   const effectivePageSize = pageSize === 'all' ? Math.max(leads.length, 1) : parseInt(pageSize, 10)
 
   return (
-    <div className="flex flex-col gap-4 h-full min-h-0 pt-3">
+    <div className="flex flex-col gap-4 h-full min-h-0 p-5">
       <div className="flex items-center gap-4">
         <div className="h-12 w-12 rounded-[10px] bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
           {icon}
@@ -147,7 +147,10 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
         </div>
       </div>
 
-      <div className={`grid grid-cols-2 sm:grid-cols-3 gap-3 ${showStageFilter ? "lg:grid-cols-7" : "lg:grid-cols-6"}`}>
+      {/* auto-fit/minmax instead of fixed breakpoint column counts: each filter card gets
+          a sensible minimum width and the grid reflows smoothly at every viewport size,
+          instead of jumping straight from 2/3 columns to 6/7 at the lg breakpoint. */}
+      <div className="grid grid-cols-2 sm:grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3">
         <div className={FILTER_CARD_CLASS}>
           <Building className={FILTER_ICON_CLASS} />
           <div className="min-w-0 flex-1">
