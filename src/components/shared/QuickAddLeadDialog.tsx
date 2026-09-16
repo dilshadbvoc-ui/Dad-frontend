@@ -31,7 +31,7 @@ import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
 import { Globe } from "lucide-react"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
-import { getUserInfo, checkRole } from "@/lib/utils"
+import { getUserInfo } from "@/lib/utils"
 
 // interface for Form Data
 interface QuickLeadFormData {
@@ -66,10 +66,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
   const { statuses, selectableStatuses } = useLeadStatuses()
   const queryClient = useQueryClient()
 
-  // Individual-contributor reps have no one to assign leads to besides themselves —
-  // hide the picker entirely for them and auto-assign to self on submit instead.
   const currentUser = getUserInfo()
-  const isSalesRep = checkRole(currentUser, 'sales_rep')
 
   const form = useForm<QuickLeadFormData>({
     defaultValues: {
@@ -102,9 +99,14 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
   const { data: usersData } = useQuery({
     queryKey: ['users'],
     queryFn: getUsers,
-    enabled: !isSalesRep,
   })
   const users = (usersData?.users || []).filter((u: any) => u.isActive !== false)
+  // The backend already scopes this list to the caller's visible hierarchy
+  // (self + subordinates). A plain individual-contributor with no reports
+  // only ever gets themself back — hide the picker for them and auto-assign
+  // to self on submit instead. Anyone with at least one subordinate (any
+  // role, not just "manager"-named ones) sees the picker.
+  const canAssign = users.length > 1
 
   const mutation = useMutation({
     mutationFn: createLead,
@@ -146,7 +148,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
     if (values.enquiryAbout && values.enquiryAbout.trim()) {
       payload.enquiryAbout = values.enquiryAbout.trim();
     }
-    if (isSalesRep) {
+    if (!canAssign) {
       // No assignment picker is shown to them — always their own lead.
       if (currentUser?.id) payload.assignedTo = currentUser.id;
     } else if (values.assignedTo && values.assignedTo !== "unassigned") {
@@ -423,7 +425,7 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                     </FormItem>
                   )}
                 />
-                {!isSalesRep && (
+                {canAssign && (
                   <FormField
                     control={form.control}
                     name="assignedTo"
