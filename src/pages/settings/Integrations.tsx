@@ -35,6 +35,15 @@ interface MetaAccount {
   needsAdAccountSelection?: boolean;
 }
 
+interface WhatsAppAccount {
+  phoneNumberId?: string;
+  wabaId?: string;
+  displayPhoneNumber?: string;
+  verifiedName?: string;
+  connected?: boolean;
+  connectedAt?: string;
+}
+
 export default function IntegrationsPage() {
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -162,8 +171,19 @@ export default function IntegrationsPage() {
       description: 'With this feature, leads from WhatsApp are automatically synced to Workpex, saving you from manual data entry.',
       icon: WhatsAppLogo,
       iconColor: 'text-green-500',
-      connected: integrations.whatsapp?.connected,
+      connected: (integrations.whatsappAccounts?.length > 0) || integrations.whatsapp?.connected,
+      accounts: integrations.whatsappAccounts || [],
       onEnable: () => handleConnectMeta('whatsapp'),
+      onDisable: async () => {
+        try {
+          const { api } = await import('@/services/api');
+          await api.post('/meta/disconnect', { type: 'whatsapp' });
+          queryClient.invalidateQueries({ queryKey: ['organisation'] });
+          toast.success('Disconnected from WhatsApp');
+        } catch {
+          toast.error('Failed to disconnect');
+        }
+      },
       hasSettings: true,
       settingsType: 'whatsapp' as const,
       isPlaceholder: false
@@ -438,6 +458,61 @@ export default function IntegrationsPage() {
                     onClick={() => handleConnectMeta('meta')}
                   >
                     Add Another Account
+                  </Button>
+                </div>
+              ) : integration.id === 'whatsapp' && integration.accounts && integration.accounts.length > 0 ? (
+                <div className="space-y-4">
+                  {integration.accounts.map((acc: WhatsAppAccount, idx: number) => (
+                    <div key={acc.phoneNumberId || idx} className={`flex items-center justify-between p-3 rounded-lg border ${
+                      acc.connected !== false
+                        ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30"
+                        : "bg-slate-50/30 dark:bg-slate-900/5 border-slate-100 dark:border-slate-900/10 opacity-70"
+                    }`}>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{acc.displayPhoneNumber || acc.phoneNumberId || 'Number'}</span>
+                          {acc.connected !== false ? (
+                            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 text-[10px] py-0 px-1.5 h-4">
+                              Active
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="bg-slate-100 text-slate-600 border-slate-200 dark:bg-slate-900/20 dark:text-slate-400 dark:border-slate-800 text-[10px] py-0 px-1.5 h-4">
+                              Inactive
+                            </Badge>
+                          )}
+                        </div>
+                        <span className="text-xs text-muted-foreground">
+                          {acc.verifiedName || 'No business name set'}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                          onClick={async () => {
+                            try {
+                              const { api } = await import('@/services/api');
+                              await api.post('/meta/disconnect', { type: 'whatsapp', phoneNumberId: acc.phoneNumberId });
+                              queryClient.invalidateQueries({ queryKey: ['organisation'] });
+                              toast.success(`Disconnected ${acc.displayPhoneNumber || 'number'}`);
+                            } catch {
+                              toast.error('Failed to disconnect');
+                            }
+                          }}
+                        >
+                          <Unplug className="h-3 w-3 mr-1" />
+                          Disconnect
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleConnectMeta('whatsapp')}
+                  >
+                    Add Another Number
                   </Button>
                 </div>
               ) : integration.connected ? (
