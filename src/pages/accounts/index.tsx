@@ -3,6 +3,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns } from "./columns"
 import { getAccounts } from "@/services/accountService"
 import { Button } from "@/components/ui/button"
+import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 
 import { Link } from "react-router-dom"
 import {
@@ -19,6 +20,7 @@ export default function AccountsPage() {
   })
 
   const accounts = data?.accounts || []
+  const accountsTotalCount = useEntityTotalCount('accounts', '/accounts')
 
   if (isError) {
     return (
@@ -60,7 +62,7 @@ export default function AccountsPage() {
         </div>
       ) : (
         <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-          <DataTable columns={columns} data={accounts} searchKeys={["name", "industry", "website", "phone"]} />
+          <DataTable columns={columns} data={accounts} searchKeys={["name", "industry", "website", "phone"]} resultsLabel="accounts" totalCount={accountsTotalCount} />
         </div>
       )}
     </div>

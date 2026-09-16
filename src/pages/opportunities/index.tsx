@@ -4,6 +4,7 @@ import { DataTable } from "@/components/ui/data-table"
 import { cn } from "@/lib/utils"
 import { createOpportunityColumns } from "./columns"
 import { getOpportunities, type Opportunity } from "@/services/opportunityService"
+import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 import { Button } from "@/components/ui/button"
 import { KanbanBoard } from "./KanbanBoard"
 import { OpportunityMobileCard } from "./OpportunityMobileCard"
@@ -127,6 +128,8 @@ export default function OpportunitiesPage() {
 
   const allOpportunities = data?.opportunities || []
   const filteredOpportunities = allOpportunities
+
+  const opportunitiesTotalCount = useEntityTotalCount('opportunities', '/opportunities')
 
   const handleFilterChange = (key: string, value: string) => {
     setQueryParams(prev => ({ ...prev, [key]: value }))
@@ -448,7 +451,7 @@ export default function OpportunitiesPage() {
               </div>
               {/* Desktop table (lg and above) */}
               <div className="hidden lg:block rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-                <DataTable columns={columns} data={filteredOpportunities} searchKeys={["name", "stage", "description"]} />
+                <DataTable columns={columns} data={filteredOpportunities} searchKeys={["name", "stage", "description"]} resultsLabel="opportunities" totalCount={opportunitiesTotalCount} />
               </div>
             </>
           ) : (

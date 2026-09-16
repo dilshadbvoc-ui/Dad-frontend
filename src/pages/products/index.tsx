@@ -21,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 
 export default function ProductsPage() {
   const user = getUserInfo();
@@ -54,6 +55,7 @@ export default function ProductsPage() {
   })
 
   const products = data?.products || []
+  const productsTotalCount = useEntityTotalCount('products', '/products')
 
   const createMutation = useMutation({
     mutationFn: (data: CreateProductData) => createProduct(data),
@@ -470,6 +472,14 @@ export default function ProductsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input placeholder="Search products..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-10" />
             </div>
+            {!isLoading && (
+              <p className="text-xs text-muted-foreground">
+                Showing {products.length.toLocaleString()} products
+                {typeof productsTotalCount === 'number' && productsTotalCount !== products.length && (
+                  <> ({productsTotalCount.toLocaleString()} total)</>
+                )}
+              </p>
+            )}
 
             {/* Products Grid */}
             {

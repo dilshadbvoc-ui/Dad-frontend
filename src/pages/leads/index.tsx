@@ -8,6 +8,7 @@ import { getTasks, type Task } from "@/services/taskService"
 import { getFollowUps } from "@/services/followUpService"
 import { FollowUpMobileCard } from "@/pages/follow-ups/FollowUpMobileCard"
 import { getUsers } from "@/services/userService"
+import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 import { getBranches } from "@/services/settingsService"
 import { EnvironmentWarning } from "@/components/shared/EnvironmentWarning"
 import { LoadingCard } from "@/components/ui/loading-spinner"
@@ -501,6 +502,8 @@ export default function LeadsPage() {
     }),
     placeholderData: keepPreviousData,
   });
+
+  const leadsTotalCount = useEntityTotalCount('leads', '/leads');
 
   const { data: sourceStats } = useQuery({
     queryKey: ['lead-sources'],
@@ -1278,6 +1281,7 @@ export default function LeadsPage() {
                     onSearchChange={setSearchTerm}
                     searchPlaceholder="Search by name, phone, email..."
                     resultsLabel="leads"
+                    totalCount={leadsTotalCount}
                     toolbarExtra={
                       <Button
                         variant="outline"

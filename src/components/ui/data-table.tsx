@@ -49,6 +49,14 @@ interface DataTableProps<TData, TValue> {
   toolbarExtra?: React.ReactNode;
   /** Item-noun used in the "Showing X-Y of Z ..." pagination summary, e.g. "leads". */
   resultsLabel?: string;
+  /**
+   * Org-wide unfiltered count for this entity, if the page has one available
+   * (e.g. from a lightweight `countOnly` request). When provided and it
+   * differs from the current filtered row count, an extra "(N total)" is
+   * appended to the pagination summary so filtered-vs-default is visible at
+   * a glance. Omit if the page has no cheap way to get this number.
+   */
+  totalCount?: number;
   rowSelection?: RowSelectionState
   onRowSelectionChangeState?: (state: RowSelectionState | ((old: RowSelectionState) => RowSelectionState)) => void
   isVirtual?: boolean
@@ -77,6 +85,7 @@ export function DataTable<TData, TValue>({
   searchPlaceholder,
   toolbarExtra,
   resultsLabel = "results",
+  totalCount,
   onRowSelectionChangeState,
   rowSelection,
   isVirtual = false,
@@ -496,7 +505,12 @@ export function DataTable<TData, TValue>({
             <div className="text-xs text-muted-foreground">
               {totalRows === 0
                 ? `No ${resultsLabel} found`
-                : <>Showing {rangeStart.toLocaleString()}-{rangeEnd.toLocaleString()} of {totalRows.toLocaleString()} {resultsLabel}</>}
+                : <>
+                    Showing {rangeStart.toLocaleString()}-{rangeEnd.toLocaleString()} of {totalRows.toLocaleString()} {resultsLabel}
+                    {typeof totalCount === 'number' && totalCount !== totalRows && (
+                      <> ({totalCount.toLocaleString()} total)</>
+                    )}
+                  </>}
             </div>
 
             <div className="flex items-center gap-1.5">

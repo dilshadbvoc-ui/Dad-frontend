@@ -4,6 +4,7 @@ import { columns } from "./columns"
 import { getContacts } from "@/services/contactService"
 import { Button } from "@/components/ui/button"
 import { LoadingCard } from "@/components/ui/loading-spinner"
+import { useEntityTotalCount } from "@/hooks/useEntityTotalCount"
 
 import { Link } from "react-router-dom"
 import {
@@ -20,6 +21,7 @@ export default function ContactsPage() {
   })
 
   const contacts = (data?.contacts || []).filter((c: unknown) => c && typeof c === 'object');
+  const contactsTotalCount = useEntityTotalCount('contacts', '/contacts')
 
   if (isError) {
     return (
@@ -55,7 +57,7 @@ export default function ContactsPage() {
         <LoadingCard text="Loading contacts..." className="m-6" />
       ) : (
         <div className="rounded-xl border border-border bg-card text-card-foreground shadow-sm overflow-hidden">
-          <DataTable columns={columns} data={contacts} searchKeys={["firstName", "lastName", "email", "phone", "title"]} />
+          <DataTable columns={columns} data={contacts} searchKeys={["firstName", "lastName", "email", "phone", "title"]} resultsLabel="contacts" totalCount={contactsTotalCount} />
         </div>
       )}
     </div>
