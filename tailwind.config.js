@@ -21,6 +21,12 @@ export default {
         },
         extend: {
             fontFamily: {
+                // Poppins is now the app-wide default (not just an opt-in `font-poppins`
+                // utility) — every element that doesn't declare its own font-family
+                // (i.e. almost everything, since Tailwind's own `font-sans` default was
+                // a generic system stack, not the Poppins/Jakarta fonts actually loaded
+                // in index.html) now renders in Poppins automatically.
+                sans: ["'Poppins'", "sans-serif"],
                 poppins: ["'Poppins'", "sans-serif"],
             },
             colors: {

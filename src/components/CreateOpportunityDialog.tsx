@@ -183,7 +183,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
                   placeholder={`e.g. ${labels.itemLabel}`}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="grid gap-2">
                   <Label>{labels.quantityLabel}</Label>
                   <Input
@@ -220,7 +220,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="amount">Amount</Label>
               <Input
@@ -264,7 +264,7 @@ export function CreateOpportunityDialog({ open, onOpenChange, defaultValues, onS
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="grid gap-2">
               <Label htmlFor="closeDate">Close Date</Label>
               <Input

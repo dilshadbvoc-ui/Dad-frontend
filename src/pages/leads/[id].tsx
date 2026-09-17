@@ -45,9 +45,9 @@ const DraggableActivity = ({ type, icon: Icon, label, onDragStart, onClick }: { 
     draggable
     onDragStart={(e) => onDragStart(e, type)}
     onClick={() => onClick(type)}
-    className="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 border rounded-md shadow-sm cursor-grab active:cursor-grabbing hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+    className="flex items-center gap-2 p-2 bg-card border-border border rounded-md shadow-sm cursor-grab active:cursor-grabbing hover:bg-muted/60 transition-colors"
   >
-    <GripVertical className="h-4 w-4 text-gray-400" />
+    <GripVertical className="h-4 w-4 text-muted-foreground" />
     <Icon className="h-4 w-4 text-primary" />
     <span className="text-sm font-medium">{label}</span>
   </div>
@@ -741,14 +741,14 @@ export default function LeadDetailPage() {
 
             <TabsContent value="whatsapp-calls" className="space-y-4">
               {/* WhatsApp Call Analytics Summary Banner */}
-              <div className="grid grid-cols-3 gap-4 p-4 rounded-xl border bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-100 dark:border-emerald-900/50">
+              <div className="grid grid-cols-3 gap-2 sm:gap-4 p-4 rounded-xl border bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/20 border-emerald-100 dark:border-emerald-900/50">
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Calls</p>
-                  <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalWaCalls}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">{totalWaCalls}</p>
                 </div>
                 <div className="text-center border-x border-emerald-100 dark:border-emerald-900/30">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Total Talk-Time</p>
-                  <p className="text-2xl font-bold text-teal-600 dark:text-teal-400">{formatDuration(totalWaDuration)}</p>
+                  <p className="text-lg sm:text-2xl font-bold text-teal-600 dark:text-teal-400">{formatDuration(totalWaDuration)}</p>
                 </div>
                 <div className="text-center">
                   <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wider mb-1">Last Contacted</p>

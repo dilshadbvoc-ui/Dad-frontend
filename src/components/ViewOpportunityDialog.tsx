@@ -195,7 +195,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
           {children}
         </DialogTrigger>
       )}
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl">{displayOpportunity.name}</DialogTitle>
           <DialogDescription>
@@ -214,14 +214,14 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
               <TabsTrigger value="timeline">Timeline & Files</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="details" className="grid gap-6 py-4 max-h-[60vh] overflow-y-auto pr-2">
+            <TabsContent value="details" className="grid gap-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-500">Stage</span>
+                <span className="text-sm font-medium text-muted-foreground">Stage</span>
                 <Badge variant="secondary" className="mt-1 capitalize w-fit">{displayOpportunity.stage.replace('_', ' ')}</Badge>
               </div>
               <div className="flex flex-col items-end">
-                <span className="text-sm font-medium text-gray-500">Probability</span>
+                <span className="text-sm font-medium text-muted-foreground">Probability</span>
                 <span className="text-lg font-bold flex items-center mt-1">
                   <Target className="w-4 h-4 mr-1 text-blue-500" />
                   {displayOpportunity.probability}%
@@ -229,23 +229,23 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="p-3 sm:p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <DollarSign className="w-4 h-4 text-green-600" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Value</span>
+                  <span className="text-sm font-medium text-muted-foreground">Value</span>
                 </div>
-                <span className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                <span className="text-2xl font-bold text-foreground">
                   {formatCurrency(displayOpportunity.amount)}
                 </span>
               </div>
 
-              <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+              <div className="p-3 sm:p-4 bg-muted rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Calendar className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Close Date</span>
+                  <span className="text-sm font-medium text-muted-foreground">Close Date</span>
                 </div>
-                <span className="text-lg font-medium text-gray-900 dark:text-gray-100">
+                <span className="text-lg font-medium text-foreground">
                   {displayOpportunity.closeDate ? formatIST(displayOpportunity.closeDate, 'MMM d, yyyy') : 'N/A'}
                 </span>
               </div>
@@ -256,10 +256,10 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
               <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 rounded-lg border border-blue-200 dark:border-blue-800">
                 <div className="flex items-center gap-2 mb-3">
                   <User className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Opportunity Owner</span>
+                  <span className="text-sm font-medium text-muted-foreground">Opportunity Owner</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
+                  <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
                     <AvatarImage
                       src={getAssetUrl(displayOpportunity.owner.profileImage)}
                       onError={(e) => {
@@ -271,11 +271,11 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="font-semibold text-gray-900 dark:text-gray-100">
+                    <div className="font-semibold text-foreground">
                       {displayOpportunity.owner.firstName} {displayOpportunity.owner.lastName}
                     </div>
                     {displayOpportunity.owner.email && (
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         {displayOpportunity.owner.email}
                       </div>
                     )}
@@ -296,10 +296,10 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                 <div className="flex items-center justify-between mb-3" onClick={(e) => e.stopPropagation()}>
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-green-600" />
-                    <span className="text-sm font-medium text-gray-600 dark:text-gray-400">Linked Lead</span>
+                    <span className="text-sm font-medium text-muted-foreground">Linked Lead</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold text-gray-500">Status:</span>
+                    <span className="text-xs font-semibold text-muted-foreground">Status:</span>
                     {displayOpportunity.stage === 'closed_won' || displayOpportunity.stage === 'closed_lost' ? (
                       <span className="h-7 flex items-center text-xs font-semibold px-2 py-0.5 rounded bg-white text-emerald-600 border border-green-200 w-[120px] truncate capitalize">
                         {getStatusDetails(displayOpportunity.leadStatus || (displayOpportunity.stage === 'closed_won' ? 'won' : 'lost')).label}
@@ -348,7 +348,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                 </div>
                 {displayOpportunity.lead.assignedTo ? (
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-10 w-10 border-2 border-white dark:border-gray-800 shadow-sm">
+                    <Avatar className="h-10 w-10 border-2 border-background shadow-sm">
                       <AvatarImage
                         src={getAssetUrl(displayOpportunity.lead.assignedTo.profileImage)}
                         onError={(e) => {
@@ -360,17 +360,17 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <div className="font-semibold text-gray-900 dark:text-gray-100 flex items-center gap-2">
+                      <div className="font-semibold text-foreground flex items-center gap-2">
                         {displayOpportunity.lead.firstName} {displayOpportunity.lead.lastName}
                         <Badge variant="outline" className="text-[10px] h-4 px-1 bg-white/50">Lead</Badge>
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <div className="text-xs text-muted-foreground">
                         Owner: {displayOpportunity.lead.assignedTo.firstName} {displayOpportunity.lead.assignedTo.lastName}
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="text-sm font-semibold text-foreground">
                     {displayOpportunity.lead.firstName} {displayOpportunity.lead.lastName} (Unassigned)
                   </div>
                 )}
@@ -379,9 +379,9 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
 
             {/* Opportunity ID */}
             <div>
-              <span className="text-sm font-medium text-gray-500 mb-2 block">Opportunity ID</span>
+              <span className="text-sm font-medium text-muted-foreground mb-2 block">Opportunity ID</span>
               <div className="flex items-center gap-2">
-                <code className="text-sm font-mono bg-gray-100 dark:bg-gray-800 px-3 py-2 rounded font-semibold text-blue-600 dark:text-blue-400 select-all">
+                <code className="text-sm font-mono bg-muted px-3 py-2 rounded font-semibold text-blue-600 dark:text-blue-400 select-all">
                   {getReadableId()}
                 </code>
               </div>
@@ -463,7 +463,7 @@ export function ViewOpportunityDialog({ children, open, onOpenChange, opportunit
             />
             </TabsContent>
 
-            <TabsContent value="timeline" className="max-h-[60vh] overflow-y-auto pr-2 space-y-4">
+            <TabsContent value="timeline" className="space-y-4">
               <div className="flex flex-col gap-2 p-3 bg-muted/40 rounded-lg border border-border/50">
                 <Textarea 
                   placeholder="Add a note to this deal..." 

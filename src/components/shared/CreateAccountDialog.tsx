@@ -1,72 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { api } from '@/services/api';
+import { createAccount, type CreateAccountData } from '@/services/accountService';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import DynamicCustomFields from '@/components/forms/DynamicCustomFields';
 
-interface EditAccountDialogProps {
+interface CreateAccountDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  account: {
-    id: string;
-    name: string;
-    industry?: string;
-    type?: string;
-    website?: string;
-    phone?: string;
-    address?: {
-      street?: string;
-      city?: string;
-      state?: string;
-      zip?: string;
-      zipCode?: string; // Handle legacy prop name if needed, or stick to one
-      country?: string;
-    };
-  };
-  onSuccess: () => void;
+  onSuccess: (accountId: string) => void;
 }
 
-export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: EditAccountDialogProps) {
+const EMPTY_FORM = {
+  name: '',
+  website: '',
+  industry: 'Other',
+  type: 'Customer',
+  address: {
+    street: '',
+    city: '',
+    state: '',
+    zipCode: '',
+    country: ''
+  }
+};
+
+export function CreateAccountDialog({ open, onOpenChange, onSuccess }: CreateAccountDialogProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [customFieldValues, setCustomFieldValues] = useState<Record<string, unknown>>({});
-  const [formData, setFormData] = useState({
-    name: '',
-    website: '',
-    industry: '',
-    type: '',
-    address: {
-      street: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      country: ''
-    }
-  });
-
-  useEffect(() => {
-    if (account) {
-      setFormData({
-        name: account.name || '',
-        website: account.website || '',
-        industry: account.industry || 'Other',
-        type: account.type || 'Customer',
-        address: {
-          street: account.address?.street || '',
-          city: account.address?.city || '',
-          state: account.address?.state || '',
-          zipCode: account.address?.zipCode || '',
-          country: account.address?.country || ''
-        }
-      });
-      // Load existing custom field values
-      setCustomFieldValues((account as { customFields?: Record<string, unknown> }).customFields || {});
-    }
-  }, [account]);
+  const [formData, setFormData] = useState(EMPTY_FORM);
 
   const handleChange = (field: string, value: string) => {
     if (field.includes('.')) {
@@ -83,22 +49,33 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
     }
   };
 
+  const resetAndClose = () => {
+    setFormData(EMPTY_FORM);
+    setCustomFieldValues({});
+    onOpenChange(false);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.name.trim()) {
+      toast.error('Account name is required');
+      return;
+    }
     setIsLoading(true);
 
     try {
-      const payload = {
+      const payload: CreateAccountData = {
         ...formData,
+        type: formData.type as CreateAccountData['type'],
         customFields: Object.keys(customFieldValues).length > 0 ? customFieldValues : undefined
-      };
-      await api.put(`/accounts/${account.id}`, payload);
-      toast.success('Account updated successfully');
-      onSuccess();
-      onOpenChange(false);
+      } as CreateAccountData;
+      const account = await createAccount(payload);
+      toast.success('Account created successfully');
+      onSuccess(account.id);
+      resetAndClose();
     } catch (error: unknown) {
       console.error(error);
-      toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to update account');
+      toast.error((error as { response?: { data?: { message?: string } } }).response?.data?.message || 'Failed to create account');
     } finally {
       setIsLoading(false);
     }
@@ -112,22 +89,22 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) resetAndClose(); else onOpenChange(next); }}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit Account</DialogTitle>
-          <DialogDescription>Make changes to account details here. Click save when you're done.</DialogDescription>
+          <DialogTitle>New Account</DialogTitle>
+          <DialogDescription>Add a new business account or customer to your CRM.</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">Account Name</Label>
-              <Input id="name" value={formData.name} onChange={(e) => handleChange('name', e.target.value)} required />
+              <Input id="name" value={formData.name} onChange={(e) => handleChange('name', e.target.value)} required autoFocus />
             </div>
             <div className="space-y-2">
               <Label htmlFor="website">Website</Label>
-              <Input id="website" value={formData.website} onChange={(e) => handleChange('website', e.target.value)} />
+              <Input id="website" value={formData.website} onChange={(e) => handleChange('website', e.target.value)} placeholder="example.com" />
             </div>
           </div>
 
@@ -161,7 +138,7 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
           </div>
 
           <div className="space-y-2">
-            <Label>Address</Label>
+            <Label>Address <span className="text-muted-foreground font-normal">(optional)</span></Label>
             <Input placeholder="Street" value={formData.address.street} onChange={(e) => handleChange('address.street', e.target.value)} className="mb-2" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               <Input placeholder="City" value={formData.address.city} onChange={(e) => handleChange('address.city', e.target.value)} />
@@ -173,7 +150,6 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
             </div>
           </div>
 
-          {/* Custom Fields */}
           <DynamicCustomFields
             entityType="Account"
             values={customFieldValues}
@@ -181,10 +157,10 @@ export function EditAccountDialog({ open, onOpenChange, account, onSuccess }: Ed
           />
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={resetAndClose}>Cancel</Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Save Changes
+              Create Account
             </Button>
           </DialogFooter>
         </form>

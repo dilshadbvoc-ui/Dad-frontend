@@ -1,4 +1,5 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import { differenceInDays } from "date-fns"
 import { formatIST } from "@/lib/dateUtils"
 import {
@@ -45,6 +46,7 @@ interface Props {
 }
 
 export function OpportunityMobileCard({ opportunity: opp }: Props) {
+  const navigate = useNavigate()
   const { formatCurrency } = useCurrency()
   const queryClient = useQueryClient()
   const { selectableStatuses: leadStatuses, getStatusDetails } = useOpportunityLeadStatuses()
@@ -102,11 +104,13 @@ export function OpportunityMobileCard({ opportunity: opp }: Props) {
 
   return (
     <>
-      <Card className={cn(
-        "border-border/60 bg-card shadow-sm overflow-hidden rounded-xl transition-all",
-        isStagnant && "border-l-4 border-l-destructive",
-        isWarning && !isStagnant && "border-l-4 border-l-yellow-500"
-      )}>
+      <Card
+        onClick={() => navigate(`/opportunities/${opp.id}`)}
+        className={cn(
+          "border-border/60 bg-card shadow-sm overflow-hidden rounded-xl transition-all cursor-pointer active:scale-[0.99]",
+          isStagnant && "border-l-4 border-l-destructive",
+          isWarning && !isStagnant && "border-l-4 border-l-yellow-500"
+        )}>
         <CardContent className="p-0">
           <div className="p-4 space-y-3">
 
@@ -144,11 +148,11 @@ export function OpportunityMobileCard({ opportunity: opp }: Props) {
                 {/* Actions menu — always visible on mobile (no opacity-0) */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-border/60 shrink-0">
+                    <Button variant="outline" size="icon" onClick={(e) => e.stopPropagation()} className="h-8 w-8 rounded-lg border-border/60 shrink-0">
                       <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-52 rounded-xl">
+                  <DropdownMenuContent align="end" className="w-52 rounded-xl" onClick={(e) => e.stopPropagation()}>
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem className="h-10 text-sm gap-2" onClick={() => setShowView(true)}>

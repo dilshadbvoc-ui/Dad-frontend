@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { type Opportunity, updateOpportunity } from "@/services/opportunityService";
 import { CloseWonDialog } from "@/components/CloseWonDialog";
 import { CloseLostDialog } from "@/components/CloseLostDialog";
@@ -56,6 +57,7 @@ const STAGES: { id: string; label: string; color: string; mergedFrom?: string[] 
 ];
 
 export function KanbanBoard({ opportunities }: KanbanBoardProps) {
+  const navigate = useNavigate();
   const { formatCurrency } = useCurrency();
   // Removed local state that was preventing updates from props. 
   // We can use the props directly since OpportunitiesPage already manages the data.
@@ -161,17 +163,17 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
           return (
             <div
               key={stage.id}
-              className="flex-shrink-0 w-[280px] sm:w-80 bg-muted/50 rounded-xl border border-border flex flex-col snap-center first:ml-2 last:mr-2"
+              className="flex-shrink-0 w-[280px] sm:w-80 bg-background rounded-xl border border-border flex flex-col snap-center first:ml-2 last:mr-2"
               onDragOver={handleDragOver}
               onDrop={(e) => handleDrop(e, stage.id)}
             >
-              <div className="p-3 border-b border-border flex flex-col gap-2 bg-background/50 backdrop-blur-sm sticky top-0 rounded-t-xl z-10">
+              <div className="p-3 border-b border-border flex flex-col gap-2 bg-background/95 backdrop-blur-sm sticky top-0 rounded-t-xl z-10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className={`${stage.color} font-semibold`}>
                       {stage.label}
                     </Badge>
-                    <span className="text-xs text-muted-foreground font-medium bg-background px-1.5 py-0.5 rounded-md border border-border">
+                    <span className="text-xs text-muted-foreground font-medium bg-card px-1.5 py-0.5 rounded-md border border-border">
                       {stageOpps.length}
                     </span>
                   </div>
@@ -195,7 +197,8 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                         key={opp.id}
                         draggable={!isTerminal}
                         onDragStart={(e) => !isTerminal && handleDragStart(e, opp.id)}
-                        className={`${!isTerminal ? 'cursor-move hover:shadow-md' : 'cursor-not-allowed opacity-90'} transition-all duration-200 border-border bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
+                        onClick={() => navigate(`/opportunities/${opp.id}`)}
+                        className={`${!isTerminal ? 'cursor-move hover:shadow-md' : 'cursor-not-allowed opacity-90'} transition-all duration-200 border-border shadow-sm bg-card group ${isStagnant ? 'border-l-4 border-l-destructive' : isWarning ? 'border-l-4 border-l-warning' : ''
                           }`}
                       >
                         <CardContent className="p-3 space-y-3">
@@ -239,12 +242,13 @@ export function KanbanBoard({ opportunities }: KanbanBoardProps) {
                                 <Button
                                   variant="ghost"
                                   size="sm"
+                                  onClick={(e) => e.stopPropagation()}
                                   className="h-7 w-7 p-0 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity rounded-lg border border-border/40 bg-background/60"
                                 >
                                   <MoreHorizontal className="h-4 w-4 text-muted-foreground" />
                                 </Button>
                               </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
+                              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
                                 <DropdownMenuItem onClick={() => setViewDetailsOpp(opp)}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details

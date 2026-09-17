@@ -20,7 +20,8 @@ import {
   LayoutGrid,
   Users,
   User,
-  X
+  X,
+  Plus
 } from "lucide-react"
 
 import { useState } from "react"
@@ -55,9 +56,14 @@ export default function OpportunitiesPage() {
   const initialBranchId = searchParams.get('branchId') || 'all'
   const initialStartDate = searchParams.get('startDate') || ''
   const initialEndDate = searchParams.get('endDate') || ''
+  // A dashboard tile always deep-links with one of these params (e.g. ?stage=closed_won) to
+  // show a specific filtered slice — that flow should keep landing on the list view exactly
+  // as before. A bare sidebar click (no params at all) is the only case that should default
+  // to the board/Kanban view instead.
+  const cameFromDashboardTile = !!(searchParams.get('stage') || searchParams.get('branchId') || searchParams.get('startDate') || searchParams.get('endDate'))
 
   const [isCreateOpen, setIsCreateOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || 'list')
+  const [viewMode, setViewMode] = useState<'list' | 'board'>(initialView || (cameFromDashboardTile ? 'list' : 'board'))
   const [filterMode, setFilterMode] = useState<'all' | 'mine'>('all')
   const [queryParams, setQueryParams] = useState({
     ownerId: '',
@@ -201,26 +207,36 @@ export default function OpportunitiesPage() {
   }
 
   return (
-    <div className="h-full flex flex-col bg-background/50">
+    <div className="h-full flex flex-col bg-white">
 
       {/* ── Header ── */}
       <div className="flex-none px-4 sm:px-6 pt-4 sm:pt-6 pb-2 space-y-3">
 
         {/* Title row */}
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-foreground">Opportunities</h1>
-            <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm hidden sm:block">
-              Track your deals and sales pipeline.
-            </p>
+          <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+              <Target className="h-5 w-5 sm:h-6 sm:w-6" />
+            </div>
+            <div className="min-w-0">
+              <h1 className="text-xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
+                Opportunities
+                <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold hidden sm:inline">
+                  {opportunitiesTotalCount ?? allOpportunities.length}
+                </span>
+              </h1>
+              <p className="text-muted-foreground mt-0.5 text-xs sm:text-sm hidden sm:block">
+                Track your deals and sales pipeline.
+              </p>
+            </div>
           </div>
           {/* Create button — always visible */}
           <Button
             size="sm"
             onClick={() => setIsCreateOpen(true)}
-            className="h-9 sm:h-10 px-3 sm:px-4 bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/25 rounded-xl gap-1.5 text-xs sm:text-sm font-semibold shrink-0"
+            className="h-9 sm:h-10 px-3 sm:px-4 bg-[hsl(var(--chart-5))] text-white hover:bg-[hsl(var(--chart-5))]/90 shadow-lg shadow-[hsl(var(--chart-5))]/20 rounded-xl gap-1.5 text-xs sm:text-sm font-semibold shrink-0"
           >
-            <Target className="h-4 w-4" />
+            <Plus className="h-4 w-4" />
             <span className="hidden xs:inline">Create</span>
             <span className="hidden sm:inline"> Opportunity</span>
           </Button>
@@ -231,13 +247,13 @@ export default function OpportunitiesPage() {
 
           {/* Team / Mine toggle — only shown to users who actually have a team to view */}
           {showTeamTab && (
-            <div className="flex bg-muted p-1 rounded-xl shrink-0">
+            <div className="flex bg-muted/60 p-1 rounded-[10px] shrink-0">
               <Button
                 variant="ghost"
                 size="sm"
                 type="button"
                 onClick={() => { setFilterMode('all'); handleFilterChange('ownerId', '') }}
-                className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'all' && !queryParams.ownerId ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <Users className="h-3.5 w-3.5" />
                 Team
@@ -247,7 +263,7 @@ export default function OpportunitiesPage() {
                 size="sm"
                 type="button"
                 onClick={() => setFilterMode('mine')}
-                className={`rounded-lg h-8 px-2.5 text-xs font-medium transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                className={`rounded-[8px] h-8 px-2.5 text-xs font-semibold transition-all gap-1.5 ${filterMode === 'mine' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 <User className="h-3.5 w-3.5" />
                 Mine
@@ -256,15 +272,15 @@ export default function OpportunitiesPage() {
           )}
 
           {/* List / Board view toggle */}
-          <div className="flex bg-muted p-1 rounded-xl shrink-0">
+          <div className="flex bg-muted/60 p-1 rounded-[10px] shrink-0">
             <Button
               variant="ghost"
               size="sm"
               type="button"
               onClick={() => setViewMode('list')}
               className={cn(
-                "rounded-lg h-8 px-2.5 transition-all",
-                viewMode === 'list' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                "rounded-[8px] h-8 px-2.5 transition-all",
+                viewMode === 'list' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
               title="List view"
             >
@@ -276,8 +292,8 @@ export default function OpportunitiesPage() {
               type="button"
               onClick={() => setViewMode('board')}
               className={cn(
-                "rounded-lg h-8 px-2.5 transition-all",
-                viewMode === 'board' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                "rounded-[8px] h-8 px-2.5 transition-all",
+                viewMode === 'board' ? 'bg-white text-[hsl(var(--chart-5))] shadow-sm' : 'text-muted-foreground hover:text-foreground'
               )}
               title="Board view"
             >
@@ -299,14 +315,16 @@ export default function OpportunitiesPage() {
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "rounded-xl transition-all h-9 gap-1.5 shrink-0",
-                  hasActiveFilters && "border-primary text-primary bg-primary/5"
+                  "rounded-[10px] transition-all h-9 gap-1.5 shrink-0 border-border",
+                  hasActiveFilters
+                    ? "border-[hsl(var(--chart-5))]/30 text-[hsl(var(--chart-5))] bg-[hsl(var(--chart-5))]/5"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Filter className="h-4 w-4" />
-                <span className="text-xs font-medium">Filter</span>
+                <span className="text-xs font-semibold">Filter</span>
                 {hasActiveFilters && (
-                  <Badge className="h-4 w-4 p-0 flex items-center justify-center bg-primary text-white text-[10px] rounded-full ml-0.5">
+                  <Badge className="h-4 w-4 p-0 flex items-center justify-center bg-[hsl(var(--chart-5))] text-white text-[10px] rounded-full ml-0.5">
                     !
                   </Badge>
                 )}
@@ -320,7 +338,7 @@ export default function OpportunitiesPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h4 className="font-bold text-sm">Filters</h4>
-                  <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2 text-xs text-primary hover:text-primary hover:bg-primary/5">
+                  <Button variant="ghost" size="sm" onClick={resetFilters} className="h-7 px-2 text-xs text-[hsl(var(--chart-5))] hover:text-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/5">
                     Reset
                   </Button>
                 </div>
@@ -429,7 +447,7 @@ export default function OpportunitiesPage() {
       {isLoading ? (
         <div className="flex-1 flex items-center justify-center p-12">
           <div className="flex flex-col items-center gap-3">
-            <div className="h-10 w-10 rounded-full border-4 border-primary border-t-transparent animate-spin" />
+            <div className="h-10 w-10 rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent animate-spin" />
             <p className="text-sm text-muted-foreground">Loading opportunities...</p>
           </div>
         </div>

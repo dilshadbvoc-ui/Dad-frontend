@@ -21,7 +21,12 @@ export const createOpportunityColumns = (formatCurrency: (amount: number) => str
       )
     },
     cell: ({ row }) => {
-      return <div className="font-medium">{row.getValue("name")}</div>
+      const id = row.original.id
+      return (
+        <div onClick={() => window.location.href = `/opportunities/${id}`} className="font-medium cursor-pointer hover:underline text-blue-600">
+          {row.getValue("name")}
+        </div>
+      )
     }
   },
   {

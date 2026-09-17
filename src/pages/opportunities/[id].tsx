@@ -115,14 +115,17 @@ export default function OpportunityDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-5 p-5">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+      <div className="flex items-start gap-4 flex-wrap">
+        <Button variant="outline" size="icon" className="h-10 w-10 rounded-[10px] shrink-0" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
+        <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+          <Target className="h-6 w-6" />
+        </div>
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl font-bold truncate">{opportunity.name}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold font-poppins text-foreground truncate">{opportunity.name}</h1>
           <p className="text-sm text-muted-foreground font-mono">{getReadableId()}</p>
         </div>
         <Badge variant="secondary" className="capitalize shrink-0">
@@ -156,7 +159,7 @@ export default function OpportunityDetailPage() {
           </div>
 
           {/* Value & Close Date */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <DollarSign className="w-4 h-4 text-green-600" />
