@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query"
 import { type RowSelectionState } from "@tanstack/react-table"
 import { useMemo, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router-dom"
-import { Building, Users, Globe, ArrowUpDown, LayoutGrid, X, GitBranch, CalendarRange } from "lucide-react"
+import * as XLSX from "xlsx"
+import { Building, Users, Globe, ArrowUpDown, LayoutGrid, X, GitBranch, CalendarRange, Download } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue, SelectGroup } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
@@ -16,6 +17,7 @@ import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { LoadingCard } from "@/components/ui/loading-spinner"
 import { DateRangeDropdown, type DateRangeValue } from "@/components/dashboard-v2/DateRangeDropdown"
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from "./filterStyles"
+import { formatIST } from "@/lib/dateUtils"
 
 interface LeadListResponse {
   leads: Lead[]
@@ -125,26 +127,66 @@ export function LeadListPage({ title, description, icon, queryKey, queryFn, empt
 
   const effectivePageSize = pageSize === 'all' ? Math.max(leads.length, 1) : parseInt(pageSize, 10)
 
+  const handleExcelDownload = () => {
+    if (leads.length === 0) return
+
+    const excelData = leads.map((lead: Lead) => ({
+      'First Name': lead.firstName || '',
+      'Last Name': lead.lastName || '',
+      'Email': lead.email || '',
+      'Phone': lead.phone || '',
+      'Company': lead.company || '',
+      'Status': lead.status || '',
+      'Source': lead.source || '',
+      'Assigned To': lead.assignedTo ? `${lead.assignedTo.firstName} ${lead.assignedTo.lastName}` : '',
+      'Created At': lead.createdAt ? formatIST(lead.createdAt, 'yyyy-MM-dd HH:mm:ss') : '',
+    }))
+
+    const worksheet = XLSX.utils.json_to_sheet(excelData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, title.replace(/\s+/g, '_'))
+
+    const maxWidth = 50
+    const colWidths = Object.keys(excelData[0] || {}).map((key) => ({
+      wch: Math.min(Math.max(key.length, 10), maxWidth)
+    }))
+    worksheet['!cols'] = colWidths
+
+    const fileName = `${title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`
+    XLSX.writeFile(workbook, fileName)
+  }
+
   return (
     <div className="flex flex-col gap-4 h-full min-h-0 p-5">
-      <div className="flex items-center gap-4">
-        <div className="h-12 w-12 rounded-[10px] bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
-          {icon}
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-12 w-12 rounded-[10px] bg-amber-500/10 flex items-center justify-center text-amber-600 shrink-0">
+            {icon}
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
+              {title}
+              <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
+                {total.toLocaleString()}
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{description}</p>
+            {total > leads.length && (
+              <p className="text-xs text-amber-600 mt-1">
+                Showing the first {leads.length.toLocaleString()} of {total.toLocaleString()} — narrow this down with the filters below to see the rest.
+              </p>
+            )}
+          </div>
         </div>
-        <div className="min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
-            {title}
-            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
-              {total.toLocaleString()}
-            </span>
-          </h1>
-          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">{description}</p>
-          {total > leads.length && (
-            <p className="text-xs text-amber-600 mt-1">
-              Showing the first {leads.length.toLocaleString()} of {total.toLocaleString()} — narrow this down with the filters below to see the rest.
-            </p>
-          )}
-        </div>
+        <Button
+          onClick={handleExcelDownload}
+          disabled={leads.length === 0}
+          variant="outline"
+          className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium shrink-0"
+        >
+          <Download className="h-3.5 w-3.5" />
+          Export
+        </Button>
       </div>
 
       {/* auto-fit/minmax instead of fixed breakpoint column counts: each filter card gets
