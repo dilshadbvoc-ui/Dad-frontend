@@ -29,8 +29,13 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> <!-- To force speakerphone -->
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <!-- Android 13+ (API 33+) split media access into granular permissions — READ_EXTERNAL_STORAGE
+         no longer grants access to MediaStore.Audio, which is what NativeRecordingScanner queries to
+         find stock/OEM call-recorder output files. Without this, that query silently returns zero
+         rows (or throws SecurityException, caught and swallowed) on any modern device. -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
     
     <!-- Optional: Read phone state to know caller ID natively if needed in future -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
