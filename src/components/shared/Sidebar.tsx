@@ -39,7 +39,8 @@ import {
   Bug,
   UsersRound,
   BookOpen,
-  Trash2
+  Trash2,
+  PlayCircle
 } from "lucide-react";
 import { WhatsAppLogo } from "@/components/icons/BrandLogos";
 import Logo from "./Logo";
@@ -312,6 +313,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               )}>
                 <CreditCard className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", location.search.includes('tab=plans') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
                 {!isCollapsed && <span>License Plans</span>}
+              </Link>
+              <Link to="/super-admin?tab=training" className={cn(
+                "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold transition-all duration-200",
+                location.search.includes('tab=training') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <PlayCircle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", location.search.includes('tab=training') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Training Videos</span>}
               </Link>
               <Link to="/super-admin/seo" className={cn(
                 "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold transition-all duration-200",
