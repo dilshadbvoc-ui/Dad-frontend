@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bot, Send, X, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { api } from '@/services/api';
 
 interface ChatMessage {
   id: number;
@@ -9,18 +10,49 @@ interface ChatMessage {
   text: string;
 }
 
-// Rotates through a couple of canned replies so it doesn't feel like the exact
-// same string every time — still fully client-side/local, no backend call.
-// This is a placeholder shell: swap `sendPlaceholderReply` for a real API call
-// (e.g. to a support-bot endpoint) when that's ready, and everything else
-// (message list, input, open/close state) stays the same.
-const CANNED_REPLIES = [
-  "Thanks for asking! I'm still in training myself \u{1F916} — full AI-powered answers are coming soon. In the meantime, check the FAQ tab below or use \"Submit Ticket\" for a real person.",
-  "Good question! This assistant isn't connected to live answers yet, but it will be soon. Try the FAQ search above, or reach out to support for now.",
-  "I've noted that down! Real-time answers from me are on the roadmap — for anything urgent right now, please contact support directly.",
-];
+// Lightweight renderer for the small subset of markdown the assistant uses
+// (bold, numbered/bulleted lists, paragraph breaks) — avoids pulling in a
+// full markdown library just for chat-bubble formatting.
+function renderBold(line: string, keyPrefix: string) {
+  const parts = line.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') ? (
+      <strong key={`${keyPrefix}-${i}`}>{part.slice(2, -2)}</strong>
+    ) : (
+      <span key={`${keyPrefix}-${i}`}>{part}</span>
+    )
+  );
+}
 
-let replyIndex = 0;
+function formatAssistantText(text: string) {
+  const lines = text.split('\n').filter((l, i, arr) => !(l.trim() === '' && arr[i - 1]?.trim() === ''));
+  return lines.map((line, i) => {
+    const trimmed = line.trim();
+    const orderedMatch = trimmed.match(/^(\d+)\.\s+(.*)/);
+    const bulletMatch = trimmed.match(/^[-*]\s+(.*)/);
+
+    if (orderedMatch) {
+      return (
+        <div key={i} className="flex gap-1.5 pl-0.5">
+          <span className="text-muted-foreground shrink-0">{orderedMatch[1]}.</span>
+          <span>{renderBold(orderedMatch[2], `l${i}`)}</span>
+        </div>
+      );
+    }
+    if (bulletMatch) {
+      return (
+        <div key={i} className="flex gap-1.5 pl-0.5">
+          <span className="text-muted-foreground shrink-0">•</span>
+          <span>{renderBold(bulletMatch[1], `l${i}`)}</span>
+        </div>
+      );
+    }
+    if (trimmed === '') {
+      return <div key={i} className="h-1.5" />;
+    }
+    return <div key={i}>{renderBold(line, `l${i}`)}</div>;
+  });
+}
 
 export function TrainingAssistantWidget() {
   const [isOpen, setIsOpen] = useState(false);
@@ -30,7 +62,7 @@ export function TrainingAssistantWidget() {
     {
       id: 0,
       role: 'assistant',
-      text: "Hi! I'm your Training Assistant \u{1F44B} — ask me anything about the CRM. (Heads up: I'm a preview build right now, so my answers are canned while the real AI gets wired up.)",
+      text: "Hi! I'm your Training Assistant \u{1F44B} — ask me anything about the CRM, including how our integrations (Meta, WhatsApp, Twilio, and more) actually work.",
     },
   ]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -39,22 +71,28 @@ export function TrainingAssistantWidget() {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmed = input.trim();
-    if (!trimmed) return;
+    if (!trimmed || isTyping) return;
 
+    const history = messages.map((m) => ({ role: m.role, text: m.text }));
     const userMessage: ChatMessage = { id: Date.now(), role: 'user', text: trimmed };
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
 
-    // Placeholder "thinking" delay — replace with the real request/response cycle later.
-    setTimeout(() => {
-      const reply = CANNED_REPLIES[replyIndex % CANNED_REPLIES.length];
-      replyIndex += 1;
+    try {
+      const res = await api.post('/training/chat', { message: trimmed, history });
+      const reply = res.data?.reply || "Sorry, I didn't get a response — please try again.";
       setMessages((prev) => [...prev, { id: Date.now() + 1, role: 'assistant', text: reply }]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now() + 1, role: 'assistant', text: "I couldn't reach the assistant right now — please try again in a moment." },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 700);
+    }
   };
 
   return (
@@ -86,7 +124,7 @@ export function TrainingAssistantWidget() {
                 <p className="text-sm font-semibold truncate">Training Assistant</p>
                 <p className="text-[10px] text-white/80 flex items-center gap-1">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-300 inline-block" />
-                  Preview — canned replies
+                  AI-powered — answers may occasionally be inaccurate
                 </p>
               </div>
             </div>
@@ -101,13 +139,13 @@ export function TrainingAssistantWidget() {
               <div key={m.id} className={cn('flex', m.role === 'user' ? 'justify-end' : 'justify-start')}>
                 <div
                   className={cn(
-                    'max-w-[85%] rounded-[10px] px-3 py-2 text-xs leading-relaxed',
+                    'max-w-[85%] rounded-[10px] px-3 py-2 text-xs leading-relaxed space-y-0.5',
                     m.role === 'user'
                       ? 'bg-[hsl(var(--chart-5))] text-white rounded-br-sm'
                       : 'bg-card border border-border text-foreground rounded-bl-sm'
                   )}
                 >
-                  {m.text}
+                  {m.role === 'assistant' ? formatAssistantText(m.text) : m.text}
                 </div>
               </div>
             ))}
@@ -129,12 +167,13 @@ export function TrainingAssistantWidget() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="Ask a question..."
-              className="flex-1 h-9 rounded-[10px] border border-border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--chart-5))]/30"
+              disabled={isTyping}
+              className="flex-1 h-9 rounded-[10px] border border-border bg-background px-3 text-xs outline-none focus:ring-2 focus:ring-[hsl(var(--chart-5))]/30 disabled:opacity-60"
             />
             <Button
               size="icon"
               onClick={handleSend}
-              disabled={!input.trim()}
+              disabled={!input.trim() || isTyping}
               className="h-9 w-9 shrink-0 rounded-[10px] bg-[hsl(var(--chart-5))] hover:bg-[hsl(var(--chart-5))]/90 text-white"
             >
               <Send className="h-4 w-4" />
