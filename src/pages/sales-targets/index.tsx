@@ -22,7 +22,6 @@ import { Progress } from "@/components/ui/progress"
 import {
   Plus,
   Target,
-  TrendingUp,
   Trophy,
   Users,
   Calendar,
@@ -58,9 +57,12 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { toast } from "sonner"
 import { useCurrency } from "@/contexts/CurrencyContext"
+import { cn } from "@/lib/utils"
+import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import * as XLSX from "xlsx"
+import { Download } from "lucide-react"
 
 // Tree Node interface for hierarchical display
 interface TargetTreeNode extends SalesTarget {
@@ -92,7 +94,7 @@ const buildTargetTree = (targets: SalesTarget[]): TargetTreeNode[] => {
 };
 
 // Target Tree Node Component
-const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNode; level?: number; onDelete: (id: string) => void; onEdit: (target: SalesTarget) => void }) => {
+const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNode; level?: number; onDelete: (target: SalesTarget) => void; onEdit: (target: SalesTarget) => void }) => {
   const { formatCurrency } = useCurrency();
   const [expanded, setExpanded] = useState(true);
   const hasChildren = node.children.length > 0;
@@ -101,26 +103,26 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
     : 0;
 
   return (
-    <div className={`${level > 0 ? 'ml-8 border-l-2 border-dashed border-border pl-4' : ''}`}>
-      <div className="p-4 rounded-xl border bg-card hover:shadow-md transition-all mb-3 text-card-foreground">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
+    <div className={level > 0 ? 'ml-4 sm:ml-8 border-l-2 border-dashed border-border pl-3 sm:pl-4' : ''}>
+      <div className="p-4 rounded-[10px] border border-border bg-card hover:shadow-md transition-all mb-3 text-card-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-3 min-w-0">
             {hasChildren && (
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-6 w-6"
+                className="h-6 w-6 shrink-0"
                 onClick={() => setExpanded(!expanded)}
               >
                 {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
               </Button>
             )}
-            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${node.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'}`}>
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center shrink-0 ${node.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]'}`}>
               <User className="h-5 w-5" />
             </div>
-            <div>
-              <p className="font-semibold text-foreground">{node.assignedTo.firstName} {node.assignedTo.lastName}</p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="min-w-0">
+              <p className="font-semibold text-foreground truncate">{node.assignedTo.firstName} {node.assignedTo.lastName}</p>
+              <div className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
                 {node.autoDistributed && <Badge variant="outline" className="text-xs">Auto-distributed</Badge>}
                 <Badge variant={node.status === 'completed' ? 'default' : 'secondary'} className="text-xs">
                   {node.status}
@@ -139,15 +141,15 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="font-bold text-lg text-foreground">
-                {node.metric === 'units' 
-                  ? node.achievedValue.toLocaleString() 
-                  : formatCurrency(node.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
-                <span className="text-muted-foreground font-normal">/</span> 
-                {node.metric === 'units' 
-                  ? ` ${node.targetValue.toLocaleString()} units` 
+          <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0">
+            <div className="text-left sm:text-right">
+              <p className="font-bold text-base sm:text-lg text-foreground">
+                {node.metric === 'units'
+                  ? node.achievedValue.toLocaleString()
+                  : formatCurrency(node.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                <span className="text-muted-foreground font-normal">/</span>
+                {node.metric === 'units'
+                  ? ` ${node.targetValue.toLocaleString()} units`
                   : ` ${formatCurrency(node.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
               </p>
               <p className="text-sm text-muted-foreground">{achievementPercent}% achieved</p>
@@ -160,7 +162,7 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
                 <DropdownMenuItem onClick={() => onEdit(node)}>
                   <Pencil className="h-4 w-4 mr-2" />Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600" onClick={() => onDelete(node.id)}>
+                <DropdownMenuItem className="text-destructive focus:text-destructive focus:bg-destructive/10" onClick={() => onDelete(node)}>
                   <Trash2 className="h-4 w-4 mr-2" />Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -183,6 +185,8 @@ const TargetNode = ({ node, level = 0, onDelete, onEdit }: { node: TargetTreeNod
 
 export default function SalesTargetsPage() {
   const { formatCurrency } = useCurrency()
+  const [activeTab, setActiveTab] = useState<'my' | 'team'>('my')
+  const [deletingTarget, setDeletingTarget] = useState<SalesTarget | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [selectedSubordinate, setSelectedSubordinate] = useState("")
   const [targetValue, setTargetValue] = useState("")
@@ -262,6 +266,7 @@ export default function SalesTargetsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales-targets'] })
       toast.success("Target deleted")
+      setDeletingTarget(null)
     }
   })
 
@@ -319,6 +324,38 @@ export default function SalesTargetsPage() {
     setIsEditOpen(true)
   }
 
+  const flattenTree = (nodes: TargetTreeNode[], depth = 0): { target: TargetTreeNode; depth: number }[] =>
+    nodes.flatMap(n => [{ target: n, depth }, ...flattenTree(n.children, depth + 1)])
+
+  const handleExport = () => {
+    const rows = activeTab === 'my'
+      ? myTargets.map((t: SalesTarget) => ({
+        'Period': t.period,
+        'Metric': t.metric,
+        'Target': t.targetValue,
+        'Achieved': t.achievedValue,
+        'Status': t.status,
+        'Product': t.product?.name || '',
+        'End Date': t.endDate ? new Date(t.endDate).toISOString().slice(0, 10) : '',
+      }))
+      : flattenTree(targetTree).map(({ target: t, depth }) => ({
+        'Team Member': `${'— '.repeat(depth)}${t.assignedTo.firstName} ${t.assignedTo.lastName}`,
+        'Period': t.period,
+        'Metric': t.metric,
+        'Target': t.targetValue,
+        'Achieved': t.achievedValue,
+        'Status': t.status,
+        'Product': t.product?.name || '',
+      }))
+
+    if (rows.length === 0) return
+
+    const worksheet = XLSX.utils.json_to_sheet(rows)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sales Targets')
+    XLSX.writeFile(workbook, `sales_targets_${activeTab}_${new Date().toISOString().slice(0, 10)}.xlsx`)
+  }
+
   // Stats (Summing only revenue targets to prevent mixing metrics)
   const revenueTargets = myTargets.filter(t => t.metric !== 'units')
   const totalTargetValue = revenueTargets.reduce((sum, t) => sum + t.targetValue, 0)
@@ -327,34 +364,45 @@ export default function SalesTargetsPage() {
   const activeCount = teamTargets.filter(t => t.status === 'active').length
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50 dark:bg-gray-950">
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex justify-between items-center">
-              <div>
-                <h1 className="text-3xl font-bold text-foreground">
-                  Sales Targets
-                </h1>
-                <p className="text-muted-foreground">Manage hierarchical sales targets for your team</p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => recalcMutation.mutate()}
-                  disabled={recalcMutation.isPending}
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${recalcMutation.isPending ? 'animate-spin' : ''}`} />
-                  Recalculate
-                </Button>
+    <div className="flex flex-col gap-5 p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+            <Target className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight">
+              Sales Targets
+            </h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Manage hierarchical sales targets for your team</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            onClick={handleExport}
+            variant="outline"
+            className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium"
+          >
+            <Download className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Export</span>
+          </Button>
+          <Button
+            variant="outline"
+            onClick={() => recalcMutation.mutate()}
+            disabled={recalcMutation.isPending}
+            className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium"
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${recalcMutation.isPending ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Recalculate</span>
+          </Button>
                 <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="shadow-lg shadow-primary/25">
-                      <Plus className="h-4 w-4 mr-2" />Assign Target
+                    <Button className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-semibold bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
+                      <Plus className="h-3.5 w-3.5" />Assign Target
                     </Button>
                   </DialogTrigger>
-                  <DialogContent aria-describedby="assign-target-desc">
+                  <DialogContent aria-describedby="assign-target-desc" className="max-h-[90vh] overflow-y-auto">
                     <form onSubmit={handleSubmit}>
                       <DialogHeader>
                         <DialogTitle>Assign Sales Target</DialogTitle>
@@ -503,8 +551,8 @@ export default function SalesTargetsPage() {
                           />
                         </div>
                         {editingTarget?.product && (
-                          <div className="text-sm text-gray-500">
-                            Product: <span className="font-medium text-gray-900 dark:text-gray-100">{editingTarget.product.name}</span>
+                          <div className="text-sm text-muted-foreground">
+                            Product: <span className="font-medium text-foreground">{editingTarget.product.name}</span>
                           </div>
                         )}
                       </div>
@@ -519,62 +567,53 @@ export default function SalesTargetsPage() {
               </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid gap-4 md:grid-cols-4">
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                    <Target className="h-5 w-5 text-blue-600" />
+            {/* Stats row */}
+            <div className="rounded-[10px] bg-card border border-border overflow-hidden">
+              <div className="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 divide-x divide-border">
+                {[
+                  { label: "My Total Target", value: formatCurrency(totalTargetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 }), accent: "bg-[hsl(var(--chart-5))]" },
+                  { label: "My Achieved", value: formatCurrency(totalAchieved, { minimumFractionDigits: 0, maximumFractionDigits: 0 }), accent: "bg-[hsl(var(--chart-2))]" },
+                  { label: "Team Completed", value: completedCount, accent: "bg-purple-500" },
+                  { label: "Active Targets", value: activeCount, accent: "bg-amber-500" },
+                ].map((tile) => (
+                  <div key={tile.label} className="relative flex flex-col items-center justify-center gap-1 px-4 py-4">
+                    <span className={`absolute top-0 left-0 right-0 h-0.5 ${tile.accent} opacity-70`} />
+                    <span className="text-xs font-poppins text-muted-foreground text-center">{tile.label}</span>
+                    <span className="text-lg sm:text-xl font-medium font-poppins text-black truncate max-w-full">{tile.value}</span>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{formatCurrency(totalTargetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-                    <p className="text-xs text-muted-foreground">My Total Target</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{formatCurrency(totalAchieved, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</p>
-                    <p className="text-xs text-muted-foreground">My Achieved</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                    <Trophy className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{completedCount}</p>
-                    <p className="text-xs text-muted-foreground">Team Completed</p>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className="h-10 w-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                    <Users className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-foreground">{activeCount}</p>
-                    <p className="text-xs text-muted-foreground">Active Targets</p>
-                  </div>
-                </CardContent>
-              </Card>
+                ))}
+              </div>
             </div>
 
             {/* Tabs for My Targets and Team View */}
-            <Tabs defaultValue="my" className="w-full">
-              <TabsList>
-                <TabsTrigger value="my">My Targets</TabsTrigger>
-                <TabsTrigger value="team">Team Hierarchy</TabsTrigger>
-              </TabsList>
+            <div className="flex bg-muted/60 p-1 rounded-[10px] shrink-0 w-fit">
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => setActiveTab('my')}
+                className={cn(
+                  "rounded-[8px] h-8 px-3 text-xs font-semibold transition-all",
+                  activeTab === 'my' ? "bg-white text-[hsl(var(--chart-5))] shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My Targets
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                type="button"
+                onClick={() => setActiveTab('team')}
+                className={cn(
+                  "rounded-[8px] h-8 px-3 text-xs font-semibold transition-all",
+                  activeTab === 'team' ? "bg-white text-[hsl(var(--chart-5))] shadow-sm" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Team Hierarchy
+              </Button>
+            </div>
 
-              <TabsContent value="my">
+            {activeTab === 'my' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>My Sales Targets</CardTitle>
@@ -582,10 +621,10 @@ export default function SalesTargetsPage() {
                   <CardContent>
                     {isLoadingMy ? (
                       <div className="flex justify-center p-12">
-                        <div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+                        <div className="h-8 w-8 rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent animate-spin" />
                       </div>
                     ) : myTargets.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-muted-foreground">
                         <Target className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No targets assigned to you yet</p>
                       </div>
@@ -599,14 +638,14 @@ export default function SalesTargetsPage() {
 
                           return (
                             <div key={target.id} className="p-4 rounded-xl border hover:bg-muted/30 transition-colors">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${target.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-blue-500/10 text-blue-600'}`}>
+                              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${target.status === 'completed' ? 'bg-green-500/10 text-green-600' : 'bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))]'}`}>
                                     {target.status === 'completed' ? <Trophy className="h-5 w-5" /> : <Target className="h-5 w-5" />}
                                   </div>
-                                  <div>
+                                  <div className="min-w-0">
                                     <p className="font-semibold capitalize text-foreground">{target.period} Target</p>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
                                       <Badge variant="outline">{target.period}</Badge>
                                       <Calendar className="h-3 w-3" />
                                       <span>{daysLeft > 0 ? `${daysLeft} days left` : 'Ended'}</span>
@@ -619,15 +658,15 @@ export default function SalesTargetsPage() {
                                     )}
                                   </div>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                  <div className="text-right">
-                                    <p className="font-bold text-lg text-foreground">
-                                      {target.metric === 'units' 
-                                        ? target.achievedValue.toLocaleString() 
-                                        : formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })} 
-                                      <span className="text-muted-foreground font-normal"> / </span> 
-                                      {target.metric === 'units' 
-                                        ? `${target.targetValue.toLocaleString()} units` 
+                                <div className="flex items-center gap-4 shrink-0">
+                                  <div className="text-left sm:text-right">
+                                    <p className="font-bold text-base sm:text-lg text-foreground">
+                                      {target.metric === 'units'
+                                        ? target.achievedValue.toLocaleString()
+                                        : formatCurrency(target.achievedValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                                      <span className="text-muted-foreground font-normal"> / </span>
+                                      {target.metric === 'units'
+                                        ? `${target.targetValue.toLocaleString()} units`
                                         : formatCurrency(target.targetValue, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                                     </p>
                                     <p className="text-sm text-muted-foreground">{percent}% achieved</p>
@@ -643,9 +682,9 @@ export default function SalesTargetsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
+            )}
 
-              <TabsContent value="team">
+            {activeTab === 'team' && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Team Target Hierarchy</CardTitle>
@@ -653,10 +692,10 @@ export default function SalesTargetsPage() {
                   <CardContent>
                     {isLoadingTeam ? (
                       <div className="flex justify-center p-12">
-                        <div className="h-8 w-8 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
+                        <div className="h-8 w-8 rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent animate-spin" />
                       </div>
                     ) : targetTree.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-muted-foreground">
                         <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No team targets yet</p>
                         <p className="text-sm mt-1">Assign targets to your subordinates to see the hierarchy</p>
@@ -667,7 +706,7 @@ export default function SalesTargetsPage() {
                           <TargetNode
                             key={node.id}
                             node={node}
-                            onDelete={(id) => deleteMutation.mutate(id)}
+                            onDelete={(target) => setDeletingTarget(target)}
                             onEdit={openEditDialog}
                           />
                         ))}
@@ -675,11 +714,17 @@ export default function SalesTargetsPage() {
                     )}
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </main>
-      </div>
+            )}
+
+      <DeleteConfirmationDialog
+        open={!!deletingTarget}
+        onOpenChange={(open) => { if (!open) setDeletingTarget(null) }}
+        onConfirm={() => deletingTarget && deleteMutation.mutate(deletingTarget.id)}
+        title="Delete Sales Target"
+        description={`Are you sure you want to delete this target for ${deletingTarget?.assignedTo.firstName} ${deletingTarget?.assignedTo.lastName}? This action cannot be undone.`}
+        confirmText="Delete Target"
+        isDeleting={deleteMutation.isPending}
+      />
     </div>
   )
 }

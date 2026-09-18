@@ -54,6 +54,7 @@ import { EditOrganisationDialog } from '@/components/super-admin/EditOrganisatio
 import { PlansManagement } from '@/components/super-admin/PlansManagement';
 import { GlobalRolesManagement } from '@/components/super-admin/GlobalRolesManagement';
 import { FAQManagement } from '@/components/super-admin/FAQManagement';
+import { TrainingVideoManagement } from '@/components/super-admin/TrainingVideoManagement';
 import { formatCurrency } from "@/lib/utils";
 import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { Globe } from 'lucide-react';
@@ -223,6 +224,7 @@ export default function SuperAdminDashboard() {
           <TabsTrigger value="overview" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Overview</TabsTrigger>
           <TabsTrigger value="plans" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">License Plans</TabsTrigger>
           <TabsTrigger value="landing-page" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Landing Page</TabsTrigger>
+          <TabsTrigger value="training" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Training</TabsTrigger>
           <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">System Roles</TabsTrigger>
           <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Database</TabsTrigger>
           <TabsTrigger value="broadcast" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Broadcast</TabsTrigger>
@@ -465,6 +467,10 @@ export default function SuperAdminDashboard() {
 
         <TabsContent value="landing-page">
           <FAQManagement />
+        </TabsContent>
+
+        <TabsContent value="training">
+          <TrainingVideoManagement />
         </TabsContent>
 
         <TabsContent value="roles">

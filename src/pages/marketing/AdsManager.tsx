@@ -7,7 +7,8 @@ import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
 import { toast } from 'sonner';
-import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Filter } from 'lucide-react';
+import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Filter, Building2 } from 'lucide-react';
+import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from '@/pages/leads/filterStyles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrganisation } from '../../services/settingsService';
 import { useNavigate } from 'react-router-dom';
@@ -284,7 +285,7 @@ const AdsManager: React.FC = () => {
       case 'CAMPAIGN_PAUSED':
       case 'ADSET_PAUSED': return 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400';
       case 'ARCHIVED':
-      case 'DELETED': return 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400';
+      case 'DELETED': return 'bg-muted text-muted-foreground';
       case 'DISAPPROVED':
       case 'WITH_ISSUES': return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
       case 'PENDING_REVIEW':
@@ -333,117 +334,124 @@ const AdsManager: React.FC = () => {
   }, [campaigns, campaignInsights, statusFilter, sortBy, sortDir]);
 
   return (
-    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Ads Manager</h1>
-          <p className="text-muted-foreground mt-1">Monitor and sync your Facebook ad campaigns</p>
+    <div className="flex flex-col gap-5 p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-4 min-w-0">
+          <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+            <Target className="h-6 w-6" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight">Ads Manager</h1>
+            <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Monitor and sync your Facebook ad campaigns</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"
             onClick={() => selectedAccount && fetchInsights(selectedAccount)}
             disabled={insightsLoading}
+            className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-medium"
           >
-            <RefreshCcw className={`h-4 w-4 mr-2 ${insightsLoading ? 'animate-spin' : ''}`} />
+            <RefreshCcw className={`h-3.5 w-3.5 ${insightsLoading ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <a href="https://adsmanager.facebook.com" target="_blank" rel="noreferrer">
-            <Button variant="default">
+            <Button className="h-9 rounded-[10px] gap-2 text-xs sm:text-sm font-semibold bg-[hsl(var(--chart-5))] text-white shadow-lg shadow-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/90">
               Open Meta Ads Manager
             </Button>
           </a>
         </div>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4 flex items-start gap-3" role="alert">
-        <div className="bg-blue-100 dark:bg-blue-800 p-1 rounded-full mt-0.5">
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-[10px] p-4 flex items-start gap-3" role="alert">
+        <div className="bg-blue-100 dark:bg-blue-800 p-1 rounded-full mt-0.5 shrink-0">
           <Target className="h-4 w-4 text-blue-600 dark:text-blue-300" />
         </div>
         <div>
           <p className="font-semibold text-blue-800 dark:text-blue-300">Campaign Management</p>
           <p className="text-blue-700 dark:text-blue-400 text-sm mt-1">
-            Campaigns and ads are now managed directly in your <strong>Meta Ads Manager</strong> account. 
+            Campaigns and ads are now managed directly in your <strong>Meta Ads Manager</strong> account.
             Incoming leads will automatically sync to your CRM leads list.
           </p>
         </div>
       </div>
 
       {!metaConnected && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-xl p-4" role="alert">
-          <p className="font-semibold text-yellow-800 dark:text-yellow-300">Meta Account Not Connected</p>
-          <p className="text-yellow-700 dark:text-yellow-400 text-sm mt-1">Please connect your Facebook account in Settings → Integrations to manage ads.</p>
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-[10px] p-4" role="alert">
+          <p className="font-semibold text-amber-800 dark:text-amber-300">Meta Account Not Connected</p>
+          <p className="text-amber-700 dark:text-amber-400 text-sm mt-1">Please connect your Facebook account in Settings → Integrations to manage ads.</p>
         </div>
       )}
 
       {tokenExpired && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between" role="alert">
+        <div className="bg-destructive/10 border border-destructive/30 rounded-[10px] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3" role="alert">
           <div>
-            <p className="font-semibold text-red-800 dark:text-red-300">Meta Connection Expired</p>
-            <p className="text-red-700 dark:text-red-400 text-sm mt-1">Your Meta access token has expired or been revoked. Please reconnect to continue managing ads.</p>
+            <p className="font-semibold text-destructive">Meta Connection Expired</p>
+            <p className="text-destructive/80 text-sm mt-1">Your Meta access token has expired or been revoked. Please reconnect to continue managing ads.</p>
           </div>
-          <Button variant="destructive" size="sm" onClick={() => navigate('/settings/integrations')}>
+          <Button variant="destructive" size="sm" className="rounded-[10px] shrink-0" onClick={() => navigate('/settings/integrations')}>
             Reconnect Now
           </Button>
         </div>
       )}
 
       {/* Connection Info / Notice */}
-      {metaConnected && (
-        <div className="flex flex-col gap-2">
-          {organisation?.integrations?.facebook_payload?.connected && organisation?.integrations?.facebook_payload?.connectionMode === 'webhook' && (
-            <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
-              <p className="font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-2">
-                <RefreshCcw className="h-4 w-4" />
-                Push-only Webhook Active
-              </p>
-              <p className="text-indigo-700 dark:text-indigo-400 text-sm mt-1">
-                You are currently using the <strong>Direct Webhook URL</strong> to receive leads. 
-                In this mode, real-time analytics like reach and impressions are not available because no Meta Access Token is provided. 
-                <br />
-                <Button variant="link" className="p-0 h-auto text-xs text-indigo-600 underline" onClick={() => navigate('/settings/integrations')}>
-                  Switch to API Sync to see analytics
-                </Button>
-              </p>
-            </div>
-          )}
+      {metaConnected && organisation?.integrations?.facebook_payload?.connected && organisation?.integrations?.facebook_payload?.connectionMode === 'webhook' && (
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-[10px] p-4">
+          <p className="font-semibold text-indigo-800 dark:text-indigo-300 flex items-center gap-2">
+            <RefreshCcw className="h-4 w-4" />
+            Push-only Webhook Active
+          </p>
+          <p className="text-indigo-700 dark:text-indigo-400 text-sm mt-1">
+            You are currently using the <strong>Direct Webhook URL</strong> to receive leads.
+            In this mode, real-time analytics like reach and impressions are not available because no Meta Access Token is provided.
+            <br />
+            <Button variant="link" className="p-0 h-auto text-xs text-indigo-600 underline" onClick={() => navigate('/settings/integrations')}>
+              Switch to API Sync to see analytics
+            </Button>
+          </p>
         </div>
       )}
 
       {/* Account Selector & Sync Toggle */}
       {metaConnected && (
-        <div className="flex flex-col md:flex-row items-end gap-4">
-          <div className="w-full max-w-sm">
-            <Label className="text-sm font-medium mb-1.5 block">Ad Account</Label>
-            <Select value={selectedAccount} onValueChange={setSelectedAccount}>
-              <SelectTrigger className="bg-white dark:bg-gray-900">
-                <SelectValue placeholder="Select Account" />
-              </SelectTrigger>
-              <SelectContent>
-                {adAccounts.map(acc => (
-                  <SelectItem key={acc.id} value={acc.id}>
-                    {acc.name} ({acc.account_id})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+        <div className="grid grid-cols-1 sm:grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+          <div className={FILTER_CARD_CLASS}>
+            <Building2 className={FILTER_ICON_CLASS} />
+            <div className="min-w-0 flex-1">
+              <label className={FILTER_LABEL_CLASS}>Ad Account</label>
+              <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+                <SelectTrigger className={FILTER_TRIGGER_CLASS}><SelectValue placeholder="Select Account" /></SelectTrigger>
+                <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                  {adAccounts.map(acc => (
+                    <SelectItem key={acc.id} value={acc.id} className="rounded-lg">
+                      {acc.name} ({acc.account_id})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-          
+
           {selectedAccount && (
-            <div className="flex items-center gap-3 bg-white dark:bg-gray-900 border rounded-lg px-4 h-10">
-              <span className="text-sm font-medium">Auto-Sync Leads</span>
-              <div className="flex items-center gap-2">
+            <div className={FILTER_CARD_CLASS}>
+              <RefreshCcw className={FILTER_ICON_CLASS} />
+              <div className="min-w-0 flex-1 flex items-center justify-between gap-2">
+                <div>
+                  <label className={FILTER_LABEL_CLASS}>Auto-Sync Leads</label>
+                  <span className="text-sm font-bold">
+                    {(organisation?.integrations as any)?.meta?.enabledLeadSyncAccounts?.includes(selectedAccount) ? 'Enabled' : 'Disabled'}
+                  </span>
+                </div>
                 <input
                   type="checkbox"
                   id="sync-toggle"
-                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="w-4 h-4 rounded border-border text-[hsl(var(--chart-5))] focus:ring-[hsl(var(--chart-5))] shrink-0"
                   checked={(organisation?.integrations as any)?.meta?.enabledLeadSyncAccounts?.includes(selectedAccount) || false}
                   onChange={(e) => handleToggleLeadSync(selectedAccount, e.target.checked)}
                 />
-                <Label htmlFor="sync-toggle" className="text-xs text-muted-foreground cursor-pointer">
-                  {(organisation?.integrations as any)?.meta?.enabledLeadSyncAccounts?.includes(selectedAccount) ? 'Enabled' : 'Disabled'}
-                </Label>
               </div>
             </div>
           )}
@@ -478,85 +486,50 @@ const AdsManager: React.FC = () => {
             </div>
           ) : accountInsights ? (
             <>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-950/40 dark:to-blue-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Eye className="h-4 w-4 text-blue-600" />
-                      <span className="text-xs font-medium text-blue-600 dark:text-blue-400 uppercase tracking-wide">Impressions</span>
+              <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+                {[
+                  { label: 'Impressions', value: formatNumber(accountInsights.impressions), icon: Eye, gradient: 'from-blue-500/5', badge: 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' },
+                  { label: 'Reach', value: formatNumber(accountInsights.reach), icon: Users, gradient: 'from-green-500/5', badge: 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400' },
+                  { label: 'Clicks', value: formatNumber(accountInsights.clicks), icon: MousePointerClick, gradient: 'from-purple-500/5', badge: 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400' },
+                  { label: 'CTR', value: formatPercent(accountInsights.ctr), icon: TrendingUp, gradient: 'from-amber-500/5', badge: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' },
+                  { label: 'Spend', value: formatCurrency(accountInsights.spend), icon: DollarSign, gradient: 'from-red-500/5', badge: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' },
+                  { label: 'Leads', value: getLeadCount(accountInsights.actions), icon: Target, gradient: 'from-teal-500/5', badge: 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400' },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="block relative overflow-hidden rounded-[0.8rem] md:rounded-[2rem] bg-card p-4 sm:p-6 shadow-sm border-0 transition-all hover:shadow-md hover:-translate-y-1 group"
+                  >
+                    <div className={`absolute inset-0 bg-gradient-to-br ${stat.gradient} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                    <div className="relative flex flex-col items-center justify-center space-y-2 sm:space-y-3">
+                      <div className={`flex h-9 w-9 sm:h-12 sm:w-12 items-center justify-center rounded-xl group-hover:scale-110 transition-transform ${stat.badge}`}>
+                        <stat.icon className="h-5 w-5 sm:h-6 sm:w-6" />
+                      </div>
+                      <h3 className="text-[9px] sm:text-sm font-bold text-muted-foreground text-center uppercase tracking-tight sm:normal-case sm:tracking-normal">{stat.label}</h3>
+                      <div className="text-lg sm:text-2xl font-extrabold text-card-foreground truncate max-w-full">{stat.value}</div>
                     </div>
-                    <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">{formatNumber(accountInsights.impressions)}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-green-50 to-green-100 dark:from-green-950/40 dark:to-green-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-4 w-4 text-green-600" />
-                      <span className="text-xs font-medium text-green-600 dark:text-green-400 uppercase tracking-wide">Reach</span>
-                    </div>
-                    <p className="text-2xl font-bold text-green-900 dark:text-green-100">{formatNumber(accountInsights.reach)}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/40 dark:to-purple-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <MousePointerClick className="h-4 w-4 text-purple-600" />
-                      <span className="text-xs font-medium text-purple-600 dark:text-purple-400 uppercase tracking-wide">Clicks</span>
-                    </div>
-                    <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">{formatNumber(accountInsights.clicks)}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/40 dark:to-amber-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <TrendingUp className="h-4 w-4 text-amber-600" />
-                      <span className="text-xs font-medium text-amber-600 dark:text-amber-400 uppercase tracking-wide">CTR</span>
-                    </div>
-                    <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">{formatPercent(accountInsights.ctr)}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100 dark:from-red-950/40 dark:to-red-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <DollarSign className="h-4 w-4 text-red-600" />
-                      <span className="text-xs font-medium text-red-600 dark:text-red-400 uppercase tracking-wide">Spend</span>
-                    </div>
-                    <p className="text-2xl font-bold text-red-900 dark:text-red-100">{formatCurrency(accountInsights.spend)}</p>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-sm bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-950/40 dark:to-teal-900/20">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="h-4 w-4 text-teal-600" />
-                      <span className="text-xs font-medium text-teal-600 dark:text-teal-400 uppercase tracking-wide">Leads</span>
-                    </div>
-                    <p className="text-2xl font-bold text-teal-900 dark:text-teal-100">{getLeadCount(accountInsights.actions)}</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                ))}
               </div>
 
               {/* Secondary metrics row */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-                  <p className="text-xs text-muted-foreground">Cost per Click</p>
-                  <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpc)}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-                  <p className="text-xs text-muted-foreground">CPM</p>
-                  <p className="text-lg font-semibold">{formatCurrency(accountInsights.cpm)}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-                  <p className="text-xs text-muted-foreground">Unique Clicks</p>
-                  <p className="text-lg font-semibold">{formatNumber(accountInsights.unique_clicks)}</p>
-                </div>
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
-                  <p className="text-xs text-muted-foreground">Date Range</p>
-                  <p className="text-sm font-medium">{accountInsights.date_start} – {accountInsights.date_stop}</p>
+              <div className="rounded-[10px] bg-card border border-border overflow-hidden mt-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 divide-x divide-border">
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground">Cost per Click</p>
+                    <p className="text-lg font-semibold text-foreground">{formatCurrency(accountInsights.cpc)}</p>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground">CPM</p>
+                    <p className="text-lg font-semibold text-foreground">{formatCurrency(accountInsights.cpm)}</p>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground">Unique Clicks</p>
+                    <p className="text-lg font-semibold text-foreground">{formatNumber(accountInsights.unique_clicks)}</p>
+                  </div>
+                  <div className="p-3">
+                    <p className="text-xs text-muted-foreground">Date Range</p>
+                    <p className="text-sm font-medium text-foreground">{accountInsights.date_start} – {accountInsights.date_stop}</p>
+                  </div>
                 </div>
               </div>
             </>
@@ -566,7 +539,7 @@ const AdsManager: React.FC = () => {
 
       {/* Create Campaign Form */}
       {showCreateForm && (
-        <Card className="border-primary/20 shadow-md">
+        <Card className="border-[hsl(var(--chart-5))]/20 shadow-md rounded-[10px]">
           <CardHeader>
             <CardTitle className="text-lg">Create New Campaign</CardTitle>
           </CardHeader>
@@ -605,7 +578,7 @@ const AdsManager: React.FC = () => {
       )}
 
       {/* ============= CAMPAIGNS WITH INSIGHTS ============= */}
-      <Card>
+      <Card className="rounded-[10px]">
         <CardHeader className="flex flex-col gap-4">
           <div className="flex flex-row items-center justify-between gap-3">
             <div>
@@ -616,9 +589,9 @@ const AdsManager: React.FC = () => {
                 </p>
               )}
             </div>
-            <Badge variant="secondary" className="shrink-0">
+            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-xs font-bold shrink-0">
               {statusFilter === 'all' ? `${campaigns.length} total` : `${displayedCampaigns.length} of ${campaigns.length}`}
-            </Badge>
+            </span>
           </div>
 
           {/* Sort & Filter controls */}
@@ -628,36 +601,36 @@ const AdsManager: React.FC = () => {
               <span className="hidden sm:inline">Filter</span>
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="h-8 w-[140px] text-xs bg-white dark:bg-gray-900">
+              <SelectTrigger className="h-8 w-[140px] text-xs bg-card rounded-[8px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="all" className="rounded-lg">All statuses</SelectItem>
                 {availableStatuses.map(s => (
-                  <SelectItem key={s} value={s}>{humanizeStatus(s)}</SelectItem>
+                  <SelectItem key={s} value={s} className="rounded-lg">{humanizeStatus(s)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="h-8 w-[150px] text-xs bg-white dark:bg-gray-900">
+              <SelectTrigger className="h-8 w-[150px] text-xs bg-card rounded-[8px]">
                 <SelectValue placeholder="Sort by" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="name">Name</SelectItem>
-                <SelectItem value="status">Status</SelectItem>
-                <SelectItem value="impressions">Impressions</SelectItem>
-                <SelectItem value="clicks">Clicks</SelectItem>
-                <SelectItem value="spend">Spend</SelectItem>
-                <SelectItem value="ctr">CTR</SelectItem>
-                <SelectItem value="leads">Leads</SelectItem>
+              <SelectContent className="rounded-xl">
+                <SelectItem value="name" className="rounded-lg">Name</SelectItem>
+                <SelectItem value="status" className="rounded-lg">Status</SelectItem>
+                <SelectItem value="impressions" className="rounded-lg">Impressions</SelectItem>
+                <SelectItem value="clicks" className="rounded-lg">Clicks</SelectItem>
+                <SelectItem value="spend" className="rounded-lg">Spend</SelectItem>
+                <SelectItem value="ctr" className="rounded-lg">CTR</SelectItem>
+                <SelectItem value="leads" className="rounded-lg">Leads</SelectItem>
               </SelectContent>
             </Select>
 
             <Button
               variant="outline"
               size="sm"
-              className="h-8 px-2.5"
+              className="h-8 px-2.5 rounded-[8px]"
               onClick={() => setSortDir(sortDir === 'asc' ? 'desc' : 'asc')}
               title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
             >
@@ -668,7 +641,7 @@ const AdsManager: React.FC = () => {
         <CardContent>
           {loading ? (
             <div className="flex justify-center py-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+              <div className="h-8 w-8 animate-spin rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent" />
             </div>
           ) : campaigns.length === 0 ? (
             <p className="text-muted-foreground text-center py-8">No campaigns found.</p>
@@ -683,7 +656,7 @@ const AdsManager: React.FC = () => {
                 return (
                   <div
                     key={camp.id}
-                    className="border rounded-xl overflow-hidden hover:shadow-md transition-shadow bg-white dark:bg-gray-900"
+                    className="border border-border rounded-[10px] overflow-hidden hover:shadow-md transition-shadow bg-card"
                   >
                     {/* Campaign Header */}
                     <div
@@ -738,14 +711,14 @@ const AdsManager: React.FC = () => {
 
                     {/* Expanded Campaign Insights */}
                     {isExpanded && !insight && (
-                      <div className="border-t bg-gray-50 dark:bg-gray-950/50 p-4">
+                      <div className="border-t border-border bg-muted/40 p-4">
                         <p className="text-sm text-muted-foreground text-center py-2">
                           No performance data for this campaign in the selected date range.
                         </p>
                       </div>
                     )}
                     {isExpanded && insight && (
-                      <div className="border-t bg-gray-50 dark:bg-gray-950/50 p-4">
+                      <div className="border-t border-border bg-muted/40 p-4">
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
                           {[
                             { label: 'Impressions', value: formatNumber(insight.impressions), icon: Eye, color: 'text-blue-500' },
@@ -758,7 +731,7 @@ const AdsManager: React.FC = () => {
                             { label: 'Unique Clicks', value: formatNumber(insight.unique_clicks), icon: MousePointerClick, color: 'text-purple-400' },
                             { label: 'Leads', value: getLeadCount(insight.actions), icon: Target, color: 'text-teal-500' },
                           ].map((stat) => (
-                            <div key={stat.label} className="bg-white dark:bg-gray-900 rounded-lg border p-3">
+                            <div key={stat.label} className="bg-card rounded-lg border border-border p-3">
                               <div className="flex items-center gap-1.5 mb-1">
                                 <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
                                 <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide">{stat.label}</p>
@@ -766,7 +739,7 @@ const AdsManager: React.FC = () => {
                               <p className="text-lg font-bold">{stat.value}</p>
                             </div>
                           ))}
-                          <div className="bg-white dark:bg-gray-900 rounded-lg border p-3 col-span-2">
+                          <div className="bg-card rounded-lg border border-border p-3 col-span-2">
                             <p className="text-xs text-muted-foreground font-medium uppercase tracking-wide mb-1">Period</p>
                             <p className="text-sm font-medium">{insight.date_start} – {insight.date_stop}</p>
                           </div>

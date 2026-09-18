@@ -1,50 +1,58 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useState } from "react"
+import { Mail, Facebook, MessageCircle, Megaphone } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 import { EmailCampaigns } from "./components/EmailCampaigns"
 import { MetaCampaigns } from "./components/MetaCampaigns"
 import { WhatsAppCampaigns } from "./components/WhatsAppCampaigns"
 
+type Channel = "email" | "meta" | "whatsapp"
+
+const CHANNELS: { id: Channel; label: string; icon: typeof Mail }[] = [
+  { id: "email", label: "Email Campaigns", icon: Mail },
+  { id: "meta", label: "Meta Ads", icon: Facebook },
+  { id: "whatsapp", label: "WhatsApp", icon: MessageCircle },
+]
+
 export default function MarketingPage() {
+  const [activeChannel, setActiveChannel] = useState<Channel>("email")
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Marketing Studio</h1>
-        <p className="text-indigo-300/60 mt-1">Multi-channel campaign management and automation.</p>
+    <div className="flex flex-col gap-5 p-5">
+      {/* Header */}
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+          <Megaphone className="h-6 w-6" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight">Marketing Studio</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">Multi-channel campaign management and automation</p>
+        </div>
       </div>
 
-      <Tabs defaultValue="email" className="space-y-6">
-        <TabsList className="bg-[#1e1b4b] border border-indigo-900/50 p-1 rounded-xl shadow-lg shadow-indigo-950/20">
-          <TabsTrigger
-            value="email"
-            className="rounded-lg data-[state=active]:bg-indigo-500 data-[state=active]:text-white text-indigo-300 transition-all"
+      {/* Channel tabs */}
+      <div className="flex bg-muted/60 p-1 rounded-[10px] shrink-0 w-fit max-w-full overflow-x-auto">
+        {CHANNELS.map((channel) => (
+          <Button
+            key={channel.id}
+            variant="ghost"
+            size="sm"
+            type="button"
+            onClick={() => setActiveChannel(channel.id)}
+            className={cn(
+              "rounded-[8px] h-8 px-3 text-xs font-semibold transition-all gap-1.5 shrink-0",
+              activeChannel === channel.id ? "bg-white text-[hsl(var(--chart-5))] shadow-sm" : "text-muted-foreground hover:text-foreground"
+            )}
           >
-            Email Campaigns
-          </TabsTrigger>
-          <TabsTrigger
-            value="meta"
-            className="rounded-lg data-[state=active]:bg-[#1877F2] data-[state=active]:text-white text-indigo-300 transition-all"
-          >
-            Meta Ads
-          </TabsTrigger>
-          <TabsTrigger
-            value="whatsapp"
-            className="rounded-lg data-[state=active]:bg-[#25D366] data-[state=active]:text-white text-indigo-300 transition-all"
-          >
-            WhatsApp
-          </TabsTrigger>
-        </TabsList>
+            <channel.icon className="h-3.5 w-3.5" />
+            {channel.label}
+          </Button>
+        ))}
+      </div>
 
-        <TabsContent value="email" className="outline-none focus-visible:ring-0">
-          <EmailCampaigns />
-        </TabsContent>
-
-        <TabsContent value="meta" className="outline-none focus-visible:ring-0">
-          <MetaCampaigns />
-        </TabsContent>
-
-        <TabsContent value="whatsapp" className="outline-none focus-visible:ring-0">
-          <WhatsAppCampaigns />
-        </TabsContent>
-      </Tabs>
+      {activeChannel === "email" && <EmailCampaigns />}
+      {activeChannel === "meta" && <MetaCampaigns />}
+      {activeChannel === "whatsapp" && <WhatsAppCampaigns />}
     </div>
   )
 }

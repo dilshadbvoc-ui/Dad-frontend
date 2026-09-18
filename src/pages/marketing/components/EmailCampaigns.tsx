@@ -29,7 +29,7 @@ export function EmailCampaigns() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h3 className="text-lg font-medium">Email Campaigns</h3>
           <p className="text-sm text-muted-foreground">Manage your newsletters and automated sequences.</p>
@@ -43,7 +43,7 @@ export function EmailCampaigns() {
       </div>
 
       {/* Stats Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Sent</CardTitle>
@@ -55,6 +55,28 @@ export function EmailCampaigns() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Opened</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {campaigns?.reduce((acc: number, c: Campaign) => acc + (c.stats?.opened || 0), 0) || 0}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Clicked</CardTitle>
+            <Mail className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              {campaigns?.reduce((acc: number, c: Campaign) => acc + (c.stats?.clicked || 0), 0) || 0}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <div>
@@ -62,24 +84,24 @@ export function EmailCampaigns() {
           <div className="flex items-center justify-center p-12">
             <div className="flex flex-col items-center gap-3">
               <div className="h-10 w-10 rounded-full border-4 border-blue-500 border-t-transparent animate-spin" />
-              <p className="text-sm text-gray-500">Loading campaigns...</p>
+              <p className="text-sm text-muted-foreground">Loading campaigns...</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
             {campaigns?.map((campaign: Campaign) => (
               <Card key={campaign.id}>
-                <CardContent className="p-6 flex items-center justify-between">
-                  <div className="space-y-1">
-                    <div className="font-semibold flex items-center space-x-2">
-                      <span>{campaign.name}</span>
+                <CardContent className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1 min-w-0">
+                    <div className="font-semibold flex items-center gap-2 flex-wrap">
+                      <span className="truncate">{campaign.name}</span>
                       <Badge variant={campaign.status === 'sent' ? 'secondary' : 'outline'}>
                         {campaign.status}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground">{campaign.subject}</p>
+                    <p className="text-sm text-muted-foreground truncate">{campaign.subject}</p>
                   </div>
-                  <div className="flex items-center space-x-8 text-sm">
+                  <div className="flex items-center gap-6 sm:gap-8 text-sm shrink-0">
                     <div className="text-center">
                       <p className="font-bold">{campaign.stats?.sent || 0}</p>
                       <p className="text-muted-foreground">Sent</p>
@@ -98,12 +120,12 @@ export function EmailCampaigns() {
               </Card>
             ))}
             {campaigns.length === 0 && (
-              <div className="text-center py-12 bg-white dark:bg-gray-900 rounded-xl border border-dashed border-gray-300 dark:border-gray-700">
+              <div className="text-center py-12 bg-card rounded-xl border border-dashed border-border">
                 <div className="h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-400">
                   <Mail className="h-6 w-6" />
                 </div>
                 <h3 className="text-lg font-medium mb-1">No campaigns yet</h3>
-                <p className="text-gray-500 mb-4">Create your first email campaign to get started.</p>
+                <p className="text-muted-foreground mb-4">Create your first email campaign to get started.</p>
                 <Link to="/marketing/campaigns/new">
                   <Button variant="outline">
                     Create Campaign

@@ -83,7 +83,7 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
       case 'pending':
         return <AlertCircle className="h-4 w-4 text-yellow-500" />
       default:
-        return <Calendar className="h-4 w-4 text-gray-400" />
+        return <Calendar className="h-4 w-4 text-muted-foreground" />
     }
   }
 
@@ -108,7 +108,7 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
 
         <div className="space-y-6">
           {/* Summary */}
-          <div className="grid grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-muted rounded-lg">
             <div>
               <p className="text-sm text-muted-foreground">Total Amount</p>
               <p className="text-2xl font-bold">₹{schedule.totalAmount.toLocaleString('en-IN')}</p>
@@ -132,15 +132,15 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
                   key={installment.id}
                   className="border rounded-lg p-4 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div className="flex items-start gap-3 flex-1 min-w-0">
                       {getStatusIcon(installment.status)}
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="font-semibold">Installment #{installment.installmentNumber}</span>
                           {getStatusBadge(installment.status)}
                         </div>
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm text-muted-foreground">
                           <div>Due Date: {formatIST(installment.dueDate, "MMM d, yyyy")}</div>
                           <div>Amount: ₹{installment.amount.toLocaleString('en-IN')}</div>
                           {installment.paidAmount > 0 && (
@@ -157,9 +157,9 @@ export function EMIDetailsDialog({ schedule, open, onOpenChange }: EMIDetailsDia
 
                     {/* Actions */}
                     {installment.status !== 'paid' && (
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
                         {selectedInstallment === installment.id ? (
-                          <div className="flex gap-2 items-center">
+                          <div className="flex gap-2 items-center flex-wrap">
                             <Input
                               type="number"
                               placeholder="Amount"

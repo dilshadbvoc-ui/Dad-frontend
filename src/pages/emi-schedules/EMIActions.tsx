@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { MoreHorizontal, Eye, CreditCard } from "lucide-react"
+import { MoreHorizontal, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
