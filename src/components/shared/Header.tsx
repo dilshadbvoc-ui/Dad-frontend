@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { ErrorBoundary } from "@/components/ui/error-boundary"
-import { Settings, Zap, HelpCircle } from "lucide-react"
+import { Settings, Zap, BookOpen } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Tooltip,
@@ -95,20 +95,20 @@ export function Header({ className }: { className?: string }) {
             </ErrorBoundary>
           </DropdownMenu>
 
-          {/* Help - Desktop Only */}
+          {/* Training & Help - Desktop Only */}
           <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  onClick={() => navigate('/support')}
+                  onClick={() => navigate('/training')}
                   className="h-9 w-9"
                 >
-                  <HelpCircle className="h-5 w-5 text-foreground/70 hover:text-foreground" />
+                  <BookOpen className="h-5 w-5 text-foreground/70 hover:text-foreground" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Help &amp; Support</TooltipContent>
+              <TooltipContent>Training &amp; Help</TooltipContent>
             </Tooltip>
           </div>
 

@@ -36,7 +36,6 @@ import {
   CreditCard,
   Smartphone,
   Percent,
-  LifeBuoy,
   Bug,
   UsersRound,
   BookOpen,
@@ -115,7 +114,6 @@ const menuGroups = [
       { title: "Hierarchy", href: "/organisation/hierarchy", icon: Network, role: "admin" },
       { title: "Trash", href: "/trash", icon: Trash2, role: "org_admin" },
       { title: "Settings", href: "/settings", icon: Settings },
-      { title: "Support", href: "/support", icon: LifeBuoy },
       { title: "Report Issue", href: "/issues", icon: Bug },
     ]
   }
@@ -224,7 +222,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   // Auto-expand System group if active page is under System
   useEffect(() => {
-    const isSystemRoute = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support', '/issues'].some(
+    const isSystemRoute = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/issues'].some(
       route => pathname === route || pathname.startsWith(route + '/')
     );
     if (isSystemRoute) {
@@ -369,7 +367,7 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
           {/* Filtered Grouped Menu */}
           {filteredGroups.map((group, groupIndex) => {
             if (group.title === "System") {
-              const isAnySystemActive = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/support', '/issues'].some(
+              const isAnySystemActive = ['/training', '/workflows', '/automation', '/organisation/hierarchy', '/trash', '/settings', '/issues'].some(
                 route => pathname === route || pathname.startsWith(route + '/')
               );
               

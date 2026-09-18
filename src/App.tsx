@@ -54,7 +54,6 @@ const AutomationPage = lazy(() => import('./pages/automation'));
 const ProductsPage = lazy(() => import('./pages/products'));
 const QuotesPage = lazy(() => import('./pages/quotes'));
 const FieldForcePage = lazy(() => import('./pages/field-force'));
-const SupportPage = lazy(() => import('./pages/support'));
 const GoalsPage = lazy(() => import('./pages/goals'));
 const SalesTargetsPage = lazy(() => import('./pages/sales-targets'));
 const CommissionsPage = lazy(() => import('./pages/sales/commissions'));
@@ -370,7 +369,6 @@ function AppContent() {
        <Route path="/products" element={<ProductsPage />} />
        <Route path="/quotes" element={<QuotesPage />} />
        <Route path="/field-force" element={<FieldForcePage />} />
-       <Route path="/support" element={<SupportPage />} />
        <Route path="/issues" element={<IssuesPage />} />
        <Route path="/training" element={<TrainingPage />} />
        <Route path="/trash" element={<TrashPage />} />
