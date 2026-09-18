@@ -620,21 +620,8 @@ const TrainingPage = () => {
     m.topics.some(t => t.title.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
-  // Dummy per-module video guide — one per module, all placeholder/"Coming Soon"
-  // until a Super Admin adds real ones (Super Admin > Training tab). Durations
-  // are illustrative only. Used as a fallback below whenever the real list is empty.
-  const videoGuides = useMemo(() => modules.map((m, i) => ({
-    id: m.id,
-    title: `${m.title}: Full Walkthrough`,
-    module: m.title,
-    icon: m.icon,
-    color: m.color,
-    bg: m.bg,
-    duration: ['4:32', '6:15', '3:48', '8:02', '5:20', '7:11', '4:55'][i % 7],
-  })), [modules]);
-
-  // Real video guides added by a Super Admin — once any exist, they replace the
-  // dummy placeholder cards above and actually open the configured video URL.
+  // Video guides added by a Super Admin (Super Admin > Training tab) — these
+  // actually open the configured video URL.
   const { data: realVideoGuides } = useQuery<ApiTrainingVideo[]>({
     queryKey: ['public-training-videos'],
     queryFn: async () => (await api.get('/public/training-videos')).data.videos,
@@ -790,11 +777,9 @@ const TrainingPage = () => {
 
       {/* ============ VIDEO GUIDES ============ */}
       {activeTab === 'videos' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {hasRealVideoGuides ? (
-            // Real videos added by a Super Admin (Super Admin > Training tab) — these
-            // actually open the configured video URL instead of showing a "coming soon" toast.
-            realVideoGuides!.map((video) => {
+        hasRealVideoGuides ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {realVideoGuides!.map((video) => {
               // Fall back to YouTube's own thumbnail when the admin didn't set one
               // explicitly — computed at render time so it stays correct even if
               // the video URL is edited later.
@@ -826,34 +811,19 @@ const TrainingPage = () => {
                 </CardContent>
               </Card>
               );
-            })
-          ) : (
-            // Dummy placeholders — shown until a Super Admin adds real video guides.
-            videoGuides.map((video) => (
-              <Card
-                key={video.id}
-                className="rounded-[10px] overflow-hidden hover:shadow-md transition-all cursor-pointer group"
-                onClick={notComingYet}
-              >
-                <div className={`relative aspect-video ${video.bg} flex items-center justify-center`}>
-                  <div className="h-12 w-12 rounded-full bg-white/90 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                    <Play className={`h-5 w-5 ${video.color} fill-current ml-0.5`} />
-                  </div>
-                  <span className="absolute bottom-2 right-2 text-[10px] font-semibold bg-black/60 text-white px-1.5 py-0.5 rounded">
-                    {video.duration}
-                  </span>
-                  <Badge className="absolute top-2 left-2 bg-amber-500 text-white text-[9px] uppercase tracking-wide">
-                    Coming Soon
-                  </Badge>
-                </div>
-                <CardContent className="p-3.5">
-                  <h3 className="text-sm font-semibold text-foreground truncate">{video.title}</h3>
-                  <p className="text-[11px] text-muted-foreground mt-0.5">{video.module}</p>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+            })}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <Play className="h-5 w-5 text-muted-foreground" />
+            </div>
+            <p className="text-sm font-medium text-foreground">No video guides yet</p>
+            <p className="text-xs text-muted-foreground max-w-xs">
+              Check back soon, or use the FAQ tab and Training Assistant in the meantime.
+            </p>
+          </div>
+        )
       )}
 
       {/* ============ ADMIN WORKFLOW ============ */}
