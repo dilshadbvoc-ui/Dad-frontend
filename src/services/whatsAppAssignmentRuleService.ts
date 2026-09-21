@@ -1,5 +1,5 @@
-import api from './api';
-import { WhatsAppAssignmentRule } from './whatsAppAccountService';
+import { api } from './api';
+import type { WhatsAppAssignmentRule } from './whatsAppAccountService';
 
 export const whatsAppAssignmentRuleService = {
     getRules: async (): Promise<WhatsAppAssignmentRule[]> => {

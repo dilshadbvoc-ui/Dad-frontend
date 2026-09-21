@@ -27,7 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch"
 
 import { whatsAppAssignmentRuleService } from "@/services/whatsAppAssignmentRuleService"
-import { WhatsAppAssignmentRule } from "@/services/whatsAppAccountService"
+import type { WhatsAppAssignmentRule } from "@/services/whatsAppAccountService"
 import { getUsers } from "@/services/settingsService"
 
 interface WhatsAppAssignmentRuleDialogProps {

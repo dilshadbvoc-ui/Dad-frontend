@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-import { whatsAppAccountService, WhatsAppAccount } from "@/services/whatsAppAccountService"
+import { whatsAppAccountService } from "@/services/whatsAppAccountService"
+import type { WhatsAppAccount } from "@/services/whatsAppAccountService"
 import { AddWhatsAppAccountDialog } from "@/components/WhatsApp/AddWhatsAppAccountDialog"
 import { WhatsAppAssignmentRuleDialog } from "@/components/WhatsApp/WhatsAppAssignmentRuleDialog"
 

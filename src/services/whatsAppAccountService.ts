@@ -1,4 +1,4 @@
-import api from './api';
+import { api } from './api';
 
 export interface WhatsAppAccount {
     id: string;
@@ -7,6 +7,7 @@ export interface WhatsAppAccount {
     provider: string;
     phoneNumberId?: string;
     wabaId?: string;
+    accessToken?: string;
     status: string;
     isDefault: boolean;
     _count?: {

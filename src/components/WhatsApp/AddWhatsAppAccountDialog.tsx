@@ -27,7 +27,8 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 
-import { whatsAppAccountService, WhatsAppAccount } from "@/services/whatsAppAccountService"
+import { whatsAppAccountService } from "@/services/whatsAppAccountService"
+import type { WhatsAppAccount } from "@/services/whatsAppAccountService"
 
 interface AddWhatsAppAccountDialogProps {
   children?: React.ReactNode
