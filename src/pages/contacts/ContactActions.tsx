@@ -4,6 +4,7 @@ import { deleteContact, type Contact } from "@/services/contactService"
 import { toast } from "sonner"
 import { Trash2, MoreHorizontal } from "lucide-react"
 import { DeleteConfirmationDialog } from "@/components/shared/DeleteConfirmationDialog"
+import { EditContactDialog } from "@/components/shared/EditContactDialog"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -17,6 +18,7 @@ import { copyToClipboard, isAdmin, getUserInfo } from "@/lib/utils";
 
 export function ContactActions({ contact }: { contact: Contact }) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [showEditDialog, setShowEditDialog] = useState(false)
   const queryClient = useQueryClient()
 
   const user = getUserInfo();
@@ -50,7 +52,7 @@ export function ContactActions({ contact }: { contact: Contact }) {
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => window.location.href = `/contacts/${contact.id}`}>View Details</DropdownMenuItem>
-          <DropdownMenuItem>Edit Contact</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowEditDialog(true)}>Edit Contact</DropdownMenuItem>
           {canDelete && (
             <>
               <DropdownMenuSeparator />
@@ -74,6 +76,13 @@ export function ContactActions({ contact }: { contact: Contact }) {
         description={`Are you sure you want to delete ${contact.firstName} ${contact.lastName}? This action cannot be undone.`}
         confirmText="Delete Contact"
         isDeleting={deleteMutation.isPending}
+      />
+
+      <EditContactDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        contact={{ ...contact, email: contact.email || '' }}
+        onSuccess={() => queryClient.invalidateQueries({ queryKey: ["contacts"] })}
       />
     </>
   )
