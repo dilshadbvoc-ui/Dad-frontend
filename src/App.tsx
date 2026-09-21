@@ -114,6 +114,7 @@ const GmailCallbackPage = lazy(() => import('./pages/settings/gmail-callback'));
 const LeadStatusesSettingsPage = lazy(() => import('./pages/settings/lead-statuses'));
 const BroadcastSettingsPage = lazy(() => import('./pages/settings/broadcast'));
 const SSOLogin = lazy(() => import('./pages/SSOLogin'));
+const WhatsAppAccountsSettingsPage = lazy(() => import('./pages/settings/whatsapp-accounts'));
 
 const ShufflerSettingsPage = lazy(() => import('./pages/settings/shuffler'));
 const TrashPage = lazy(() => import('./pages/trash'));
@@ -401,6 +402,7 @@ function AppContent() {
        <Route path="/settings/notifications" element={<NotificationsSettingsPage />} />
        <Route path="/settings/lead-statuses" element={<LeadStatusesSettingsPage />} />
        <Route path="/settings/gmail-callback" element={<GmailCallbackPage />} />
+       <Route path="/settings/whatsapp-accounts" element={<WhatsAppAccountsSettingsPage />} />
        <Route path="/notifications" element={<NotificationsPage />} />
       </Route>
 
