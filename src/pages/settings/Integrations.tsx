@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Settings, CheckCircle2, Unplug } from "lucide-react";
+import { Settings, CheckCircle2, Unplug, Plug } from "lucide-react";
 import {
   FacebookLogo,
   WhatsAppLogo,
@@ -301,39 +301,52 @@ export default function IntegrationsPage() {
     item.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const connectedCount = filteredIntegrations.filter(i => i.connected).length;
+
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-5 p-5">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-violet-400 bg-clip-text text-transparent">Integrations</h1>
-        <p className="text-indigo-300/70 mt-1">Manage webhooks, APIs, and third-party integrations.</p>
+      <div className="flex items-center gap-4">
+        <div className="h-12 w-12 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+          <Plug className="h-6 w-6" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold font-poppins text-foreground tracking-tight flex items-center gap-2.5">
+            Integrations
+            <span className="bg-muted text-muted-foreground px-2.5 py-0.5 rounded-full text-sm font-bold">
+              {connectedCount}/{filteredIntegrations.length}
+            </span>
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-0.5">
+            Manage webhooks, APIs, and third-party integrations
+          </p>
+        </div>
       </div>
 
       {/* Personal Email Integration */}
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-white">Your Email</h2>
-        <p className="text-sm text-indigo-300/70">Connect your personal Gmail to send emails from the CRM.</p>
+      <div className="rounded-[10px] border border-border bg-card p-4 space-y-3">
+        <div>
+          <h2 className="text-base font-semibold text-foreground">Your Email</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Connect your personal Gmail to send emails from the CRM.</p>
+        </div>
         <div className="max-w-md">
           <GmailConnect />
         </div>
       </div>
 
-      <hr className="border-indigo-900/50" />
-
       {/* Organisation Integrations */}
       <div>
-        <h2 className="text-lg font-semibold text-white mb-1">Organisation Integrations</h2>
-        <p className="text-sm text-indigo-300/70 mb-4">Manage webhooks, APIs, and third-party integrations.</p>
+        <h2 className="text-base font-semibold text-foreground mb-1">Organisation Integrations</h2>
+        <p className="text-sm text-muted-foreground mb-4">Manage webhooks, APIs, and third-party integrations.</p>
       </div>
-
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {filteredIntegrations.map((integration) => (
-          <Card key={integration.id} className={integration.connected ? "border-green-200 dark:border-green-800" : ""}>
+          <Card key={integration.id} className={`rounded-[10px] ${integration.connected ? "border-green-200 dark:border-green-800" : ""}`}>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${integration.id === 'facebook' ? 'bg-gradient-to-br from-blue-600 to-blue-800' :
+                  <div className={`w-10 h-10 rounded-[10px] flex items-center justify-center ${integration.id === 'facebook' ? 'bg-gradient-to-br from-blue-600 to-blue-800' :
                       integration.id === 'webform' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700' :
                         integration.id === 'whatsapp' ? 'bg-gradient-to-br from-green-500 to-green-700' :
                           integration.id === 'happilee' ? 'bg-gradient-to-br from-sky-400 to-sky-600' :
@@ -389,7 +402,7 @@ export default function IntegrationsPage() {
                 <div className="space-y-4">
 
                   {integration.accounts.map((acc: MetaAccount, idx: number) => (
-                    <div key={acc.pageId || acc.adAccountId || idx} className={`flex items-center justify-between p-3 rounded-lg border ${
+                    <div key={acc.pageId || acc.adAccountId || idx} className={`flex items-center justify-between p-3 rounded-[8px] border ${
                       acc.needsAdAccountSelection
                         ? "bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30"
                         : acc.connected !== false
@@ -469,7 +482,7 @@ export default function IntegrationsPage() {
               ) : integration.id === 'whatsapp' && integration.accounts && integration.accounts.length > 0 ? (
                 <div className="space-y-4">
                   {integration.accounts.map((acc: WhatsAppAccount, idx: number) => (
-                    <div key={acc.phoneNumberId || idx} className={`flex items-center justify-between p-3 rounded-lg border ${
+                    <div key={acc.phoneNumberId || idx} className={`flex items-center justify-between p-3 rounded-[8px] border ${
                       acc.connected !== false
                         ? "bg-green-50/50 dark:bg-green-900/10 border-green-100 dark:border-green-900/30"
                         : "bg-slate-50/30 dark:bg-slate-900/5 border-slate-100 dark:border-slate-900/10 opacity-70"
