@@ -130,7 +130,7 @@ export function MetaCampaigns() {
                 <CardTitle>Active Campaigns</CardTitle>
                 <CardDescription>Real-time performance of your Meta ads</CardDescription>
               </div>
-              <Button variant="outline" onClick={() => navigate('/marketing/ads')} className="shrink-0">
+              <Button variant="outline" onClick={() => navigate('/marketing/ads-manager')} className="shrink-0">
                 View All Campaigns
               </Button>
             </CardHeader>

@@ -1,13 +1,18 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getAdAccounts, getMetaCampaigns, createMetaCampaign, getAccountInsights, getCampaignInsights, type Campaign, type AdInsight } from '../../services/marketingService';
+import {
+  getAdAccounts, getMetaCampaigns, createMetaCampaign, getAccountInsights, getCampaignInsights,
+  updateCampaignStatus, getAdSets, getAds, updateAdSetStatus, updateAdSetBudget,
+  type Campaign, type AdInsight, type AdSet, type Ad
+} from '../../services/marketingService';
 import { Button } from '../../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { Badge } from '../../components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../../components/ui/dialog';
 import { toast } from 'sonner';
-import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Filter, Building2 } from 'lucide-react';
+import { Eye, MousePointerClick, DollarSign, Target, TrendingUp, Users, BarChart3, RefreshCcw, ChevronDown, ChevronUp, ArrowUp, ArrowDown, Filter, Building2, Pause, Play, Pencil, Check, X, ImageOff } from 'lucide-react';
 import { FILTER_CARD_CLASS, FILTER_ICON_CLASS, FILTER_LABEL_CLASS, FILTER_TRIGGER_CLASS } from '@/pages/leads/filterStyles';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getOrganisation } from '../../services/settingsService';
@@ -37,6 +42,16 @@ const AdsManager: React.FC = () => {
   const [insightsLoading, setInsightsLoading] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [expandedCampaign, setExpandedCampaign] = useState<string | null>(null);
+
+  // Ad Sets / Ads drill-down for the expanded campaign — fetched lazily per
+  // campaign (not all up front) since each is its own Graph API round trip.
+  const [campaignAdSets, setCampaignAdSets] = useState<Record<string, AdSet[]>>({});
+  const [campaignAds, setCampaignAds] = useState<Record<string, Ad[]>>({});
+  const [drillDownLoading, setDrillDownLoading] = useState<string | null>(null);
+  const [statusUpdating, setStatusUpdating] = useState<string | null>(null);
+  const [editingBudgetAdSetId, setEditingBudgetAdSetId] = useState<string | null>(null);
+  const [budgetDraft, setBudgetDraft] = useState('');
+  const [previewCreative, setPreviewCreative] = useState<Ad['creative'] | null>(null);
 
   // Shared date range — drives both the account overview and every campaign's
   // expanded analytics, since campaignInsights is fetched with the same range.
@@ -151,6 +166,92 @@ const AdsManager: React.FC = () => {
       setShowCreateForm(false);
     } catch {
       toast.error('Failed to create campaign');
+    }
+  };
+
+  const fetchCampaignDrillDown = async (campaignId: string) => {
+    if (!selectedAccount || campaignAdSets[campaignId] || campaignAds[campaignId]) return;
+    setDrillDownLoading(campaignId);
+    try {
+      const [adSetsRes, adsRes] = await Promise.all([
+        getAdSets(selectedAccount, campaignId).catch(() => ({ data: [] })),
+        getAds(selectedAccount, campaignId).catch(() => ({ data: [] })),
+      ]);
+      setCampaignAdSets(prev => ({ ...prev, [campaignId]: adSetsRes.data || [] }));
+      setCampaignAds(prev => ({ ...prev, [campaignId]: adsRes.data || [] }));
+    } finally {
+      setDrillDownLoading(null);
+    }
+  };
+
+  const toggleExpandCampaign = (campaignId: string) => {
+    const next = expandedCampaign === campaignId ? null : campaignId;
+    setExpandedCampaign(next);
+    if (next) fetchCampaignDrillDown(next);
+  };
+
+  const handleToggleCampaignStatus = async (camp: Campaign) => {
+    if (!selectedAccount) return;
+    const current = (camp.effective_status || camp.status || '').toUpperCase();
+    const nextStatus = current === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    setStatusUpdating(camp.id);
+    try {
+      await updateCampaignStatus(selectedAccount, camp.id, nextStatus);
+      setCampaigns(prev => prev.map(c => c.id === camp.id ? { ...c, status: nextStatus, effective_status: nextStatus } : c));
+      toast.success(nextStatus === 'ACTIVE' ? 'Campaign resumed' : 'Campaign paused');
+    } catch {
+      toast.error('Failed to update campaign status');
+    } finally {
+      setStatusUpdating(null);
+    }
+  };
+
+  const handleToggleAdSetStatus = async (campaignId: string, adSet: AdSet) => {
+    if (!selectedAccount) return;
+    const current = (adSet.effective_status || adSet.status || '').toUpperCase();
+    const nextStatus = current === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    setStatusUpdating(adSet.id);
+    try {
+      await updateAdSetStatus(selectedAccount, adSet.id, nextStatus);
+      setCampaignAdSets(prev => ({
+        ...prev,
+        [campaignId]: (prev[campaignId] || []).map(a => a.id === adSet.id ? { ...a, status: nextStatus, effective_status: nextStatus } : a)
+      }));
+      toast.success(nextStatus === 'ACTIVE' ? 'Ad set resumed' : 'Ad set paused');
+    } catch {
+      toast.error('Failed to update ad set status');
+    } finally {
+      setStatusUpdating(null);
+    }
+  };
+
+  const startEditBudget = (adSet: AdSet) => {
+    setEditingBudgetAdSetId(adSet.id);
+    const current = adSet.daily_budget || adSet.lifetime_budget;
+    setBudgetDraft(current ? (parseInt(current) / 100).toString() : '');
+  };
+
+  const handleSaveBudget = async (campaignId: string, adSet: AdSet) => {
+    if (!selectedAccount) return;
+    const amount = parseFloat(budgetDraft);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Enter a valid budget amount');
+      return;
+    }
+    const isLifetime = !!adSet.lifetime_budget && !adSet.daily_budget;
+    try {
+      await updateAdSetBudget(selectedAccount, adSet.id, isLifetime ? { lifetimeBudget: amount } : { dailyBudget: amount });
+      const minorUnits = String(Math.round(amount * 100));
+      setCampaignAdSets(prev => ({
+        ...prev,
+        [campaignId]: (prev[campaignId] || []).map(a => a.id === adSet.id
+          ? { ...a, ...(isLifetime ? { lifetime_budget: minorUnits } : { daily_budget: minorUnits }) }
+          : a)
+      }));
+      toast.success('Budget updated');
+      setEditingBudgetAdSetId(null);
+    } catch {
+      toast.error('Failed to update budget');
     }
   };
 
@@ -661,7 +762,7 @@ const AdsManager: React.FC = () => {
                     {/* Campaign Header */}
                     <div
                       className="flex items-center justify-between p-4 cursor-pointer"
-                      onClick={() => setExpandedCampaign(isExpanded ? null : camp.id)}
+                      onClick={() => toggleExpandCampaign(camp.id)}
                     >
                       <div className="flex items-center gap-3 flex-1 min-w-0">
                         <input
@@ -705,6 +806,19 @@ const AdsManager: React.FC = () => {
                           {camp.objective?.replace('OUTCOME_', '') || 'N/A'}
                         </Badge>
 
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 px-2 rounded-[8px]"
+                          disabled={statusUpdating === camp.id}
+                          onClick={(e) => { e.stopPropagation(); handleToggleCampaignStatus(camp); }}
+                          title={(camp.effective_status || camp.status)?.toUpperCase() === 'ACTIVE' ? 'Pause campaign' : 'Resume campaign'}
+                        >
+                          {(camp.effective_status || camp.status)?.toUpperCase() === 'ACTIVE'
+                            ? <Pause className="h-3.5 w-3.5" />
+                            : <Play className="h-3.5 w-3.5" />}
+                        </Button>
+
                         {isExpanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
                       </div>
                     </div>
@@ -746,6 +860,125 @@ const AdsManager: React.FC = () => {
                         </div>
                       </div>
                     )}
+
+                    {/* Ad Sets & Ads drill-down */}
+                    {isExpanded && (
+                      <div className="border-t border-border p-4 space-y-4">
+                        {drillDownLoading === camp.id ? (
+                          <div className="flex justify-center py-4">
+                            <div className="h-6 w-6 animate-spin rounded-full border-4 border-[hsl(var(--chart-5))] border-t-transparent" />
+                          </div>
+                        ) : (
+                          <>
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                                Ad Sets {campaignAdSets[camp.id] ? `(${campaignAdSets[camp.id].length})` : ''}
+                              </p>
+                              {(campaignAdSets[camp.id] || []).length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No ad sets found.</p>
+                              ) : (
+                                <div className="space-y-2">
+                                  {campaignAdSets[camp.id].map((adSet) => {
+                                    const isEditingBudget = editingBudgetAdSetId === adSet.id;
+                                    const budgetLabel = adSet.daily_budget
+                                      ? `₹${(parseInt(adSet.daily_budget) / 100).toFixed(2)} / day`
+                                      : adSet.lifetime_budget
+                                        ? `₹${(parseInt(adSet.lifetime_budget) / 100).toFixed(2)} lifetime`
+                                        : 'No budget set';
+                                    return (
+                                      <div key={adSet.id} className="flex items-center justify-between gap-3 bg-muted/40 rounded-[8px] p-2.5">
+                                        <div className="min-w-0 flex-1">
+                                          <p className="text-sm font-medium truncate">{adSet.name}</p>
+                                          <p className="text-xs text-muted-foreground">
+                                            {adSet.start_time ? formatIST(adSet.start_time, 'MMM d, yyyy') : ''}
+                                          </p>
+                                        </div>
+                                        {isEditingBudget ? (
+                                          <div className="flex items-center gap-1.5 shrink-0">
+                                            <span className="text-xs text-muted-foreground">₹</span>
+                                            <Input
+                                              type="number"
+                                              value={budgetDraft}
+                                              onChange={(e) => setBudgetDraft(e.target.value)}
+                                              className="h-7 w-24 text-sm"
+                                              autoFocus
+                                            />
+                                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => handleSaveBudget(camp.id, adSet)}>
+                                              <Check className="h-3.5 w-3.5 text-green-600" />
+                                            </Button>
+                                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => setEditingBudgetAdSetId(null)}>
+                                              <X className="h-3.5 w-3.5 text-muted-foreground" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <div className="flex items-center gap-1.5 shrink-0">
+                                            <span className="text-xs text-muted-foreground">{budgetLabel}</span>
+                                            <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => startEditBudget(adSet)} title="Edit budget">
+                                              <Pencil className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Badge className={getStatusColor(adSet.effective_status || adSet.status)}>
+                                              {humanizeStatus(adSet.effective_status || adSet.status)}
+                                            </Badge>
+                                            <Button
+                                              size="sm"
+                                              variant="ghost"
+                                              className="h-7 w-7 p-0"
+                                              disabled={statusUpdating === adSet.id}
+                                              onClick={() => handleToggleAdSetStatus(camp.id, adSet)}
+                                              title={(adSet.effective_status || adSet.status)?.toUpperCase() === 'ACTIVE' ? 'Pause ad set' : 'Resume ad set'}
+                                            >
+                                              {(adSet.effective_status || adSet.status)?.toUpperCase() === 'ACTIVE'
+                                                ? <Pause className="h-3.5 w-3.5" />
+                                                : <Play className="h-3.5 w-3.5" />}
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+
+                            <div>
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-2">
+                                Ads {campaignAds[camp.id] ? `(${campaignAds[camp.id].length})` : ''}
+                              </p>
+                              {(campaignAds[camp.id] || []).length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No ads found.</p>
+                              ) : (
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+                                  {campaignAds[camp.id].map((ad) => (
+                                    <button
+                                      key={ad.id}
+                                      type="button"
+                                      onClick={() => setPreviewCreative(ad.creative || null)}
+                                      className="text-left bg-muted/40 rounded-[8px] p-2 hover:bg-muted transition-colors"
+                                    >
+                                      <div className="aspect-video rounded-[6px] bg-muted overflow-hidden mb-1.5 flex items-center justify-center">
+                                        {ad.creative?.thumbnail_url || ad.creative?.image_url ? (
+                                          <img
+                                            src={ad.creative.thumbnail_url || ad.creative.image_url}
+                                            alt={ad.name}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        ) : (
+                                          <ImageOff className="h-5 w-5 text-muted-foreground" />
+                                        )}
+                                      </div>
+                                      <p className="text-xs font-medium truncate">{ad.name}</p>
+                                      <Badge className={`${getStatusColor(ad.effective_status || ad.status)} mt-1 text-[10px] py-0`}>
+                                        {humanizeStatus(ad.effective_status || ad.status)}
+                                      </Badge>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -753,6 +986,29 @@ const AdsManager: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Creative Preview */}
+      <Dialog open={!!previewCreative} onOpenChange={(open) => !open && setPreviewCreative(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{previewCreative?.title || 'Ad Creative'}</DialogTitle>
+          </DialogHeader>
+          {previewCreative?.image_url || previewCreative?.thumbnail_url ? (
+            <img
+              src={previewCreative.image_url || previewCreative.thumbnail_url}
+              alt={previewCreative.title || 'Ad creative'}
+              className="w-full rounded-[10px] border border-border"
+            />
+          ) : (
+            <div className="flex items-center justify-center py-10 text-muted-foreground">
+              <ImageOff className="h-8 w-8" />
+            </div>
+          )}
+          {previewCreative?.body && (
+            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{previewCreative.body}</p>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

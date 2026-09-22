@@ -42,7 +42,6 @@ const OpportunitiesPage = lazy(() => import('./pages/opportunities'));
 const OpportunityDetailPage = lazy(() => import('./pages/opportunities/[id]'));
 const EMISchedulesPage = lazy(() => import('./pages/emi-schedules'));
 const MarketingPage = lazy(() => import('./pages/marketing'));
-const AdsDashboard = lazy(() => import('./pages/marketing/ads'));
 const AdsManager = lazy(() => import('./pages/marketing/AdsManager'));
 const CreateCampaignPage = lazy(() => import('./pages/marketing/new-campaign'));
 const CommunicationsPage = lazy(() => import('./pages/communications'));
@@ -327,7 +326,8 @@ function AppContent() {
        <Route path="/opportunities/:id" element={<OpportunityDetailPage />} />
        <Route path="/emi-schedules" element={<EMISchedulesPage />} />
        <Route path="/marketing" element={<MarketingPage />} />
-       <Route path="/marketing/ads" element={<AdsDashboard />} />
+       {/* Old Ads dashboard retired - Ad Sets/Ads/creative drill-down were folded into AdsManager */}
+       <Route path="/marketing/ads" element={<Navigate to="/marketing/ads-manager" replace />} />
        <Route path="/marketing/ads-manager" element={<AdsManager />} />
        <Route path="/marketing/sms" element={<SMSCampaignsPage />} />
        <Route path="/marketing/landing-pages" element={<LandingPagesManager />} />

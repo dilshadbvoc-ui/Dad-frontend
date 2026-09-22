@@ -46,6 +46,55 @@ export const createMetaCampaign = async (adAccountId: string, data: Partial<Camp
     return response.data;
 };
 
+export const updateCampaignStatus = async (adAccountId: string, campaignId: string, status: 'ACTIVE' | 'PAUSED') => {
+    const response = await api.patch(`/marketing/${adAccountId}/campaigns/${campaignId}`, { status });
+    return response.data;
+};
+
+export interface AdSet {
+    id: string;
+    name: string;
+    status: string;
+    effective_status?: string;
+    daily_budget?: string;
+    lifetime_budget?: string;
+    start_time?: string;
+}
+
+export interface Ad {
+    id: string;
+    name: string;
+    status: string;
+    effective_status?: string;
+    creative?: {
+        id: string;
+        thumbnail_url?: string;
+        image_url?: string;
+        body?: string;
+        title?: string;
+    };
+}
+
+export const getAdSets = async (adAccountId: string, campaignId: string) => {
+    const response = await api.get(`/marketing/${adAccountId}/campaigns/${campaignId}/adsets`);
+    return response.data;
+};
+
+export const getAds = async (adAccountId: string, campaignId: string) => {
+    const response = await api.get(`/marketing/${adAccountId}/campaigns/${campaignId}/ads`);
+    return response.data;
+};
+
+export const updateAdSetStatus = async (adAccountId: string, adSetId: string, status: 'ACTIVE' | 'PAUSED') => {
+    const response = await api.patch(`/marketing/${adAccountId}/adsets/${adSetId}/status`, { status });
+    return response.data;
+};
+
+export const updateAdSetBudget = async (adAccountId: string, adSetId: string, budget: { dailyBudget?: number; lifetimeBudget?: number }) => {
+    const response = await api.patch(`/marketing/${adAccountId}/adsets/${adSetId}/budget`, budget);
+    return response.data;
+};
+
 export const createEmailCampaign = async (data: Partial<Campaign> & Record<string, unknown>) => {
     const response = await api.post('/campaigns', data);
     return response.data;
