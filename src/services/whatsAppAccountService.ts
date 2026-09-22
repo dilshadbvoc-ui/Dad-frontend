@@ -77,7 +77,7 @@ export const whatsAppAccountService = {
     },
 
     getWhatsAppIntegrationReport: async (): Promise<WhatsAppIntegrationReport> => {
-        const response = await api.get('/whatsapp-accounts/report/integration');
+        const response = await api.get('/whatsapp-accounts/report');
         return response.data;
     }
 };

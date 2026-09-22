@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Plus, Edit2, Trash2, ShieldAlert, BarChart, Settings } from "lucide-react"
+import { useSearchParams } from "react-router-dom"
+import { Plus, Edit2, Trash2, ShieldAlert, BarChart, Settings, Unplug } from "lucide-react"
 import { toast } from "sonner"
-import { Link } from "react-router-dom"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,14 +13,60 @@ import { whatsAppAccountService } from "@/services/whatsAppAccountService"
 import type { WhatsAppAccount } from "@/services/whatsAppAccountService"
 import { AddWhatsAppAccountDialog } from "@/components/WhatsApp/AddWhatsAppAccountDialog"
 import { WhatsAppAssignmentRuleDialog } from "@/components/WhatsApp/WhatsAppAssignmentRuleDialog"
+import { api } from "@/services/api"
 
 export default function WhatsAppAccountsPage() {
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [accountToEdit, setAccountToEdit] = useState<WhatsAppAccount | null>(null)
-  
+
   const [isRuleDialogOpen, setIsRuleDialogOpen] = useState(false)
   const [ruleAccountContext, setRuleAccountContext] = useState<WhatsAppAccount | null>(null)
+
+  // Surface the result of the Meta OAuth redirect back to this page (see
+  // handleConnectMeta below) - mirrors the same handling on the Integrations page.
+  useEffect(() => {
+    const error = searchParams.get('error')
+    const whatsappResult = searchParams.get('whatsapp')
+
+    if (error) {
+      toast.error(searchParams.get('message') || 'Failed to connect to Meta')
+    } else if (whatsappResult === 'connected') {
+      toast.success('WhatsApp number connected successfully')
+      queryClient.invalidateQueries({ queryKey: ['whatsapp-accounts'] })
+    } else if (whatsappResult === 'no_account_found') {
+      toast.error('No WhatsApp Business Account found for that Facebook login. Make sure the number is registered under your Business Manager before connecting.')
+    }
+
+    if (error || whatsappResult) {
+      const next = new URLSearchParams(searchParams)
+      ;['error', 'message', 'whatsapp'].forEach((k) => next.delete(k))
+      setSearchParams(next, { replace: true })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const handleConnectMeta = async () => {
+    try {
+      const { data } = await api.get('/meta/auth', { params: { type: 'whatsapp', returnPath: '/settings/whatsapp-accounts' } })
+      if (data.url) window.location.href = data.url
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { message?: string } } }
+      toast.error(err.response?.data?.message || 'Failed to initiate connection')
+    }
+  }
+
+  const disconnectMetaMutation = useMutation({
+    mutationFn: (phoneNumberId: string) => api.post('/meta/disconnect', { type: 'whatsapp', phoneNumberId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-accounts"] })
+      toast.success("Number disconnected")
+    },
+    onError: () => {
+      toast.error("Failed to disconnect number")
+    }
+  })
 
   const { data: report, isLoading } = useQuery({
     queryKey: ['whatsapp-accounts', 'report'],
@@ -62,9 +108,14 @@ export default function WhatsAppAccountsPage() {
           <h1 className="text-3xl font-bold tracking-tight">WhatsApp Accounts</h1>
           <p className="text-muted-foreground">Manage your WhatsApp numbers, assign rules, and view performance.</p>
         </div>
-        <Button onClick={() => { setAccountToEdit(null); setIsAddDialogOpen(true); }}>
-          <Plus className="mr-2 h-4 w-4" /> Add Account
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={handleConnectMeta}>
+            Connect via Meta
+          </Button>
+          <Button onClick={() => { setAccountToEdit(null); setIsAddDialogOpen(true); }}>
+            <Plus className="mr-2 h-4 w-4" /> Add Account
+          </Button>
+        </div>
       </div>
 
       {summary && (
@@ -171,12 +222,30 @@ export default function WhatsAppAccountsPage() {
                         </Button>
                       </TableCell>
                       <TableCell className="text-right space-x-2">
-                        <Button variant="ghost" size="icon" onClick={() => { setAccountToEdit(account); setIsAddDialogOpen(true); }}>
-                          <Edit2 className="h-4 w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(account.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        {account.provider === 'meta' ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-xs text-destructive hover:text-destructive"
+                            disabled={disconnectMetaMutation.isPending}
+                            onClick={() => {
+                              if (account.phoneNumberId && window.confirm("Disconnect this number from Meta? Any automations/rules for it will be deactivated.")) {
+                                disconnectMetaMutation.mutate(account.phoneNumberId)
+                              }
+                            }}
+                          >
+                            <Unplug className="h-3.5 w-3.5 mr-1" /> Disconnect
+                          </Button>
+                        ) : (
+                          <>
+                            <Button variant="ghost" size="icon" onClick={() => { setAccountToEdit(account); setIsAddDialogOpen(true); }}>
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" className="text-destructive" onClick={() => handleDelete(account.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
                       </TableCell>
                     </TableRow>
                   )
