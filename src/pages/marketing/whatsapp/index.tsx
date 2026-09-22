@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Bot, Plus, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { formatIST } from "@/lib/dateUtils";
 import {
   Dialog,
@@ -79,6 +80,13 @@ export default function WhatsAppCampaignsPage() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-green-500 to-emerald-700 bg-clip-text text-transparent">WhatsApp Campaigns</h1>
           <p className="text-gray-500 mt-1">Send bulk WhatsApp messages to your leads.</p>
         </div>
+        <div className="flex items-center gap-2">
+        <Button variant="outline" asChild>
+          <Link to="/marketing/whatsapp/automations">
+            <Bot className="h-4 w-4 mr-2" />
+            Automations
+          </Link>
+        </Button>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button className="bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg shadow-green-500/25 rounded-xl">
@@ -141,6 +149,7 @@ export default function WhatsAppCampaignsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        </div>
       </div>
 
       <Card>

@@ -3,7 +3,7 @@ import { api } from './api';
 export interface WorkflowCondition {
     field: string;
     operator: string;
-    value: string | number | boolean;
+    value: string | number | boolean | string[];
 }
 
 export interface WorkflowAction {
