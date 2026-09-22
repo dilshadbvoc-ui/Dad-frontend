@@ -33,6 +33,7 @@ interface MetaAccount {
   branchId?: string;
   connected?: boolean;
   needsAdAccountSelection?: boolean;
+  pixelId?: string;
 }
 
 interface WhatsAppAccount {
@@ -417,6 +418,11 @@ export default function IntegrationsPage() {
                             ? 'This Facebook user has multiple ad accounts — select which one to use'
                             : acc.adAccountName ? `Ad Account: ${acc.adAccountName}` : 'No ad account linked'}
                         </span>
+                        {!acc.needsAdAccountSelection && (
+                          <span className={`text-[11px] ${acc.pixelId ? 'text-green-600 dark:text-green-500' : 'text-muted-foreground'}`}>
+                            Conversions API: {acc.pixelId ? 'Connected' : 'Not connected — add a Pixel ID in Config'}
+                          </span>
+                        )}
                       </div>
                       <div className="flex gap-1">
                         <Button

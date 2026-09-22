@@ -34,6 +34,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 import { updateOrganisation, getBranches } from "@/services/settingsService"
 import { getAdAccounts, getMetaCampaigns, type Campaign } from "@/services/marketingService"
 
@@ -72,6 +73,7 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
     adAccountIds: string[]
     restrictCampaigns: boolean
     allowedCampaignIds: string[]
+    pixelId: string
   }
 
   // A Page's leads can come from more than one ad account (e.g. two separate ad accounts
@@ -90,7 +92,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       syncEnabled: account?.connected !== false,
       adAccountIds: initialAdAccountIds(account),
       restrictCampaigns: !!(account?.allowedCampaignIds?.length > 0),
-      allowedCampaignIds: account?.allowedCampaignIds || []
+      allowedCampaignIds: account?.allowedCampaignIds || [],
+      pixelId: account?.pixelId || ""
     }
   })
 
@@ -101,7 +104,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
         syncEnabled: account.connected !== false,
         adAccountIds: initialAdAccountIds(account),
         restrictCampaigns: !!(account.allowedCampaignIds?.length > 0),
-        allowedCampaignIds: account.allowedCampaignIds || []
+        allowedCampaignIds: account.allowedCampaignIds || [],
+        pixelId: account.pixelId || ""
       })
     }
   }, [open, account, form])
@@ -164,6 +168,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
       // later starts from a clean slate rather than resurrecting a stale selection.
       const allowedCampaignIds = data.restrictCampaigns ? data.allowedCampaignIds : [];
 
+      const pixelId = data.pixelId.trim() || undefined;
+
       // update the specific account in the array using pageId
       const updatedAccounts = allAccounts.map((acc: any) => {
         if (acc.pageId === account.pageId) {
@@ -175,7 +181,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
             adAccountName,
             enabledLeadSyncAccounts: data.adAccountIds,
             allowedCampaignIds,
-            needsAdAccountSelection: resolvedSelection ? false : acc.needsAdAccountSelection
+            needsAdAccountSelection: resolvedSelection ? false : acc.needsAdAccountSelection,
+            pixelId
           }
         }
         return acc
@@ -192,7 +199,8 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
           adAccountName,
           enabledLeadSyncAccounts: data.adAccountIds,
           allowedCampaignIds,
-          needsAdAccountSelection: resolvedSelection ? false : updatedMeta.needsAdAccountSelection
+          needsAdAccountSelection: resolvedSelection ? false : updatedMeta.needsAdAccountSelection,
+          pixelId
         };
       }
 
@@ -402,6 +410,25 @@ export function MetaAccountConfigDialog({ open, onOpenChange, account, integrati
                 )}
               </div>
             )}
+            <FormField
+              control={form.control}
+              name="pixelId"
+              render={({ field }) => (
+                <FormItem className="rounded-lg border p-3 shadow-sm bg-card">
+                  <FormLabel>Conversions API — Pixel ID</FormLabel>
+                  <FormDescription>
+                    Lets PypeCRM report lead/deal events back to this Meta Pixel
+                    server-side, separate from lead sync above. Find it in Meta Events
+                    Manager under this ad account's Pixel. Uses the same access token
+                    already connected for this account — nothing else to add.
+                  </FormDescription>
+                  <FormControl>
+                    <Input placeholder="e.g. 1234567890123456" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter>
               <Button type="submit" disabled={mutation.isPending}>
                 {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
