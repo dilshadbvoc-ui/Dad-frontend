@@ -39,7 +39,7 @@ export function GmailConnect() {
 
   if (isLoading) {
     return (
-      <Card>
+      <Card className="rounded-[10px]">
         <CardContent className="py-6 flex items-center justify-center">
           <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </CardContent>
@@ -50,11 +50,11 @@ export function GmailConnect() {
   const isConnected = status?.connected
 
   return (
-    <Card className={isConnected ? "border-green-200 dark:border-green-800" : ""}>
+    <Card className={`rounded-[10px] ${isConnected ? "border-green-200 dark:border-green-800" : ""}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-white border border-border flex items-center justify-center">
+            <div className="w-10 h-10 rounded-[10px] bg-white border border-border flex items-center justify-center">
               <GmailLogo className="w-5 h-5 text-[#EA4335]" />
             </div>
             <div>
@@ -79,7 +79,7 @@ export function GmailConnect() {
       <CardContent>
         {isConnected ? (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 p-3 bg-green-50/50 dark:bg-green-900/10 rounded-lg border border-green-100 dark:border-green-900/30">
+            <div className="flex items-center gap-2 p-3 bg-green-50/50 dark:bg-green-900/10 rounded-[8px] border border-green-100 dark:border-green-900/30">
               <Mail className="w-4 h-4 text-green-600" />
               <span className="text-sm font-medium">{status.email}</span>
             </div>
