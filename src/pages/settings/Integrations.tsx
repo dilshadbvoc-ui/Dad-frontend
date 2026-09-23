@@ -23,6 +23,7 @@ import {
 import { IntegrationConfigDialog } from "@/components/settings/IntegrationConfigDialog";
 import { MetaAccountConfigDialog } from "@/components/settings/MetaAccountConfigDialog";
 import { GmailConnect } from "@/components/settings/GmailConnect";
+import { CustomEmailConnect } from "@/components/settings/CustomEmailConnect";
 import { formatIST } from "@/lib/dateUtils";
 
 interface MetaAccount {
@@ -327,10 +328,13 @@ export default function IntegrationsPage() {
       <div className="rounded-[10px] border border-border bg-card p-4 space-y-3">
         <div>
           <h2 className="text-base font-semibold text-foreground">Your Email</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Connect your personal Gmail to send emails from the CRM.</p>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Connect your own mailbox to send emails from the CRM — any provider works, not just Gmail.
+          </p>
         </div>
-        <div className="max-w-md">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-3xl">
           <GmailConnect />
+          <CustomEmailConnect />
         </div>
       </div>
 
