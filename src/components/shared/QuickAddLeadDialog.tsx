@@ -29,7 +29,7 @@ import { getUsers } from "@/services/settingsService"
 import { useQuery } from "@tanstack/react-query"
 import DynamicCustomFields from "@/components/forms/DynamicCustomFields"
 import { countryCodes, identifyCountryFromPhone } from "@/lib/countryCodes"
-import { Globe } from "lucide-react"
+import { UserPlus, Contact, ClipboardList } from "lucide-react"
 import { useLeadStatuses } from "@/hooks/useLeadStatuses"
 import { getUserInfo } from "@/lib/utils"
 
@@ -173,28 +173,39 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-[425px] p-4 sm:p-6 rounded-xl sm:rounded-lg">
-        <DialogHeader className="text-left">
-          <DialogTitle className="text-xl font-bold">Quick Add Lead</DialogTitle>
-          <DialogDescription className="text-sm">
-            Add a new lead to your pipeline quickly.
-          </DialogDescription>
+      <DialogContent className="w-[95vw] max-w-[620px] p-0 rounded-[16px] max-h-[90vh] overflow-hidden flex flex-col gap-0">
+        <DialogHeader className="text-left px-6 sm:px-8 pt-6 sm:pt-8 pb-5 border-b border-border shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-11 h-11 rounded-[10px] bg-[hsl(var(--chart-5))]/10 flex items-center justify-center text-[hsl(var(--chart-5))] shrink-0">
+              <UserPlus className="w-5 h-5" />
+            </div>
+            <div>
+              <DialogTitle className="text-lg font-semibold">Add New Lead</DialogTitle>
+              <DialogDescription className="text-sm">
+                Add a new lead to your pipeline quickly.
+              </DialogDescription>
+            </div>
+          </div>
         </DialogHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col flex-1 min-h-0">
+            <div className="flex-1 overflow-y-auto px-6 sm:px-8 py-6 space-y-8">
             {/* Contact Details Section */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-foreground border-b pb-2">Contact Details</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-center gap-2 text-[hsl(var(--chart-5))]">
+                <Contact className="w-4 h-4" />
+                <h4 className="text-sm font-semibold">Contact Details</h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
                   name="firstName"
                   rules={{ required: "First name is required", minLength: { value: 2, message: "Min 2 chars" } }}
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">First Name <span className="text-red-500">*</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">First Name <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="John" className="h-10" {...field} />
+                        <Input placeholder="John" className="h-11 rounded-[10px]" {...field} />
                       </FormControl>
                       <FormMessage className="text-[10px]" />
                     </FormItem>
@@ -205,16 +216,16 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   name="lastName"
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Last Name <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Last Name <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" className="h-10" {...field} />
+                        <Input placeholder="Doe" className="h-11 rounded-[10px]" {...field} />
                       </FormControl>
                       <FormMessage className="text-[10px]" />
                     </FormItem>
                   )}
                 />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
                   name="email"
@@ -226,9 +237,9 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   }}
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Email <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Email <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                       <FormControl>
-                        <Input placeholder="john@example.com" className="h-10" {...field} />
+                        <Input placeholder="john@example.com" className="h-11 rounded-[10px]" {...field} />
                       </FormControl>
                       <FormMessage className="text-[10px]" />
                     </FormItem>
@@ -240,10 +251,10 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   name="phoneCountryCode"
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Code</FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Code</FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-10 px-2">
+                          <SelectTrigger className="h-11 rounded-[10px] px-2">
                             <SelectValue>
                               {field.value}
                             </SelectValue>
@@ -277,12 +288,12 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   }}
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Phone <span className="text-red-500">*</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Phone <span className="text-red-500">*</span></FormLabel>
                       <FormControl>
                         <Input
                           placeholder="9876543210"
                           {...field}
-                          className="h-10"
+                          className="h-11 rounded-[10px]"
                           onChange={(e) => {
                             const rawValue = e.target.value;
                             // Auto-identify country if it starts with +
@@ -316,13 +327,13 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   }}
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Alt Phone <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Alt Phone <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                       <FormControl>
                         <Input
                           placeholder="9876543211"
                           {...field}
                           maxLength={10}
-                          className="h-10"
+                          className="h-11 rounded-[10px]"
                           onChange={(e) => {
                             const value = e.target.value.replace(/\D/g, '');
                             field.onChange(value);
@@ -338,15 +349,18 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
 
             {/* Lead Info Section */}
             <div className="space-y-4">
-              <h4 className="text-sm font-medium text-foreground border-b pb-2">Lead Info</h4>
+              <div className="flex items-center gap-2 text-[hsl(var(--chart-5))]">
+                <ClipboardList className="w-4 h-4" />
+                <h4 className="text-sm font-semibold">Lead Info</h4>
+              </div>
               <FormField
                 control={form.control}
                 name="company"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Company <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground">Company <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                     <FormControl>
-                      <Input placeholder="Acme Inc" className="h-10" {...field} />
+                      <Input placeholder="Acme Inc" className="h-11 rounded-[10px]" {...field} />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
                   </FormItem>
@@ -357,24 +371,24 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                 name="enquiryAbout"
                 render={({ field }) => (
                   <FormItem className="space-y-1">
-                    <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Enquiry About <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                    <FormLabel className="text-sm font-medium text-foreground">Enquiry About <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                     <FormControl>
-                      <Input placeholder="Course, service..." className="h-10" {...field} />
+                      <Input placeholder="Course, service..." className="h-11 rounded-[10px]" {...field} />
                     </FormControl>
                     <FormMessage className="text-[10px]" />
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <FormField
                   control={form.control}
                   name="source"
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Source <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Source <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-10">
+                          <SelectTrigger className="h-11 rounded-[10px]">
                             <SelectValue placeholder="Select source" />
                           </SelectTrigger>
                         </FormControl>
@@ -400,10 +414,10 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                   name="status"
                   render={({ field }) => (
                     <FormItem className="space-y-1">
-                      <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                      <FormLabel className="text-sm font-medium text-foreground">Status <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
-                          <SelectTrigger className="h-10">
+                          <SelectTrigger className="h-11 rounded-[10px]">
                             <SelectValue placeholder="Select status" />
                           </SelectTrigger>
                         </FormControl>
@@ -431,10 +445,10 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
                     name="assignedTo"
                     render={({ field }) => (
                       <FormItem className="space-y-1">
-                        <FormLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Assign To <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
+                        <FormLabel className="text-sm font-medium text-foreground">Assign To <span className="text-muted-foreground font-normal normal-case">(optional)</span></FormLabel>
                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                           <FormControl>
-                            <SelectTrigger className="h-10">
+                            <SelectTrigger className="h-11 rounded-[10px]">
                               <SelectValue placeholder="Unassigned" />
                             </SelectTrigger>
                           </FormControl>
@@ -456,28 +470,27 @@ export function QuickAddLeadDialog({ children, open, onOpenChange }: QuickAddLea
             </div>
 
             {/* Custom Fields Section */}
-            <div className="space-y-2">
-              {/* Only show header if there are custom fields, but logic is inside component. 
-                We can wrap it or just separate it visually. 
-                DynamicCustomFields usually handles its own rendering. 
-                Adding a wrapper for spacing. */}
-              <DynamicCustomFields
-                entityType="Lead"
-                values={customFieldValues}
-                onChange={handleCustomFieldChange}
-              />
+            <DynamicCustomFields
+              entityType="Lead"
+              values={customFieldValues}
+              onChange={handleCustomFieldChange}
+            />
             </div>
 
-            <DialogFooter className="pt-4 flex-col sm:flex-row gap-2">
+            <DialogFooter className="px-6 sm:px-8 py-5 border-t border-border flex-col sm:flex-row gap-2 shrink-0">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => finalOnOpenChange?.(false)}
-                className="h-10 flex-1 sm:flex-none"
+                className="h-11 rounded-[10px] flex-1 sm:flex-none"
               >
                 Cancel
               </Button>
-              <Button type="submit" isLoading={mutation.isPending} className="h-10 flex-1 sm:flex-none">
+              <Button
+                type="submit"
+                isLoading={mutation.isPending}
+                className="h-11 rounded-[10px] flex-1 sm:flex-none bg-[hsl(var(--chart-5))] hover:bg-[hsl(94_48%_38%)] text-white"
+              >
                 Create Lead
               </Button>
             </DialogFooter>

@@ -133,7 +133,7 @@ export default function PricingTable() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Link to={`/register?plan=${plan.id}`} className="w-full">
+                  <Link to={`/enquire?plan=${plan.id}`} className="w-full">
                     <Button
                       className={`w-full font-bold ${plan.popular ? 'bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/25' : ''}`}
                       variant={plan.popular ? 'default' : 'outline'}

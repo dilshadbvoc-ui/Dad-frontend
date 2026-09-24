@@ -17,7 +17,7 @@ export default function CTASection() {
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
-          <Link to="/register">
+          <Link to="/enquire">
             <Button size="lg" className="h-14 px-8 text-lg rounded-full bg-white text-blue-600 hover:bg-gray-100 shadow-xl transition-all hover:scale-105 font-bold">
               Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

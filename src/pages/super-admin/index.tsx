@@ -55,6 +55,7 @@ import { PlansManagement } from '@/components/super-admin/PlansManagement';
 import { GlobalRolesManagement } from '@/components/super-admin/GlobalRolesManagement';
 import { FAQManagement } from '@/components/super-admin/FAQManagement';
 import { TrainingVideoManagement } from '@/components/super-admin/TrainingVideoManagement';
+import { UserPasswords } from '@/components/super-admin/UserPasswords';
 import { formatCurrency } from "@/lib/utils";
 import { formatIST, toISTDateString } from "@/lib/dateUtils";
 import { Globe } from 'lucide-react';
@@ -227,6 +228,7 @@ export default function SuperAdminDashboard() {
           <TabsTrigger value="training" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Training</TabsTrigger>
           <TabsTrigger value="roles" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">System Roles</TabsTrigger>
           <TabsTrigger value="database" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Database</TabsTrigger>
+          <TabsTrigger value="passwords" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Passwords</TabsTrigger>
           <TabsTrigger value="broadcast" className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white text-muted-foreground">Broadcast</TabsTrigger>
         </TabsList>
 
@@ -662,6 +664,10 @@ export default function SuperAdminDashboard() {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="passwords">
+          <UserPasswords />
         </TabsContent>
 
         <TabsContent value="broadcast" className="space-y-6">

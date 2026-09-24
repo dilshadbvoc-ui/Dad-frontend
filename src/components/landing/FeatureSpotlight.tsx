@@ -37,7 +37,7 @@ export default function FeatureSpotlight() {
                 fills in the details so your team can skip the setup and get straight to selling.
               </p>
               <div>
-                <Link to="/register">
+                <Link to="/enquire">
                   <Button variant="secondary" size="sm">
                     Get started <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Button>
@@ -73,7 +73,7 @@ export default function FeatureSpotlight() {
                 slips through.
               </p>
               <div>
-                <Link to="/register">
+                <Link to="/enquire">
                   <Button variant="secondary" size="sm">
                     Get started <ArrowRight className="ml-1.5 h-4 w-4" />
                   </Button>

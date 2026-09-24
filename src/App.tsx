@@ -1,7 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Suspense, lazy, useEffect, useState } from 'react';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import Enquire from './pages/Enquire';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
 import LandingPage from './pages/LandingPage';
@@ -127,6 +127,7 @@ const DocArticlePage = lazy(() => import('./pages/docs/[slug]'));
 
 const IssuesPage = lazy(() => import('./pages/issues'));
 const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
+const SuperAdminEnquiriesPage = lazy(() => import('./pages/super-admin/enquiries'));
 const SuperAdminHelperLogsPage = lazy(() => import('./pages/super-admin/helper-logs'));
 
 const queryClient = new QueryClient({
@@ -304,7 +305,7 @@ function AppContent() {
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       <Route path="/sso-login" element={<Suspense fallback={<PageLoader text="Loading SSO" />}><PublicRoute><SSOLogin /></PublicRoute></Suspense>} />
       <Route path="/sso-callback" element={<SSOCallback />} />
-      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+      <Route path="/enquire" element={<PublicRoute><Enquire /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
       <Route path="/reset-password/:resetToken" element={<ResetPassword />} />
       <Route path="/pages/:slug" element={<LandingPageView />} />
@@ -405,6 +406,7 @@ function AppContent() {
        <Route path="/super-admin/seo" element={<SeoSettingsPage />} />
        <Route path="/super-admin/restore" element={<SuperAdminRestorePage />} />
        <Route path="/super-admin/issues" element={<SuperAdminIssuesPage />} />
+       <Route path="/super-admin/enquiries" element={<SuperAdminEnquiriesPage />} />
        <Route path="/super-admin/helper-logs" element={<SuperAdminHelperLogsPage />} />
        <Route path="/settings/lead-scoring" element={<LeadScoringSettingsPage />} />
        <Route path="/settings/assignment-rules" element={<AssignmentRulesPage />} />

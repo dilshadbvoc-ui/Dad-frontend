@@ -32,20 +32,14 @@ export default function LandingNavbar() {
           </Link>
 
           <div className="flex items-center gap-3 md:gap-6">
-            <Link
-              to="/register"
-              className="hidden md:inline-block text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
-            >
-              Get a Demo
-            </Link>
             <Link to="/login">
               <Button size="sm" className="border-none bg-gray-200! text-black! shadow-none px-4 md:h-10 md:px-5">
                 Login
               </Button>
             </Link>
-            <Link to="/register">
+            <Link to="/enquire">
               <Button size="sm" className="px-4 md:h-10 md:px-5">
-                Sign Up
+                Enquire
               </Button>
             </Link>
           </div>

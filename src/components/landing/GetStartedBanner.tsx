@@ -46,7 +46,7 @@ export default function GetStartedBanner() {
                 statuses, and automations as your sales team grows.
               </p>
               <div>
-                <Link to="/register">
+                <Link to="/enquire">
                   <Button variant="secondary" size="lg">
                     Get started <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>

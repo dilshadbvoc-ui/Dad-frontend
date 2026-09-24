@@ -148,9 +148,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                       ? 'HAL API Integration'
                       : integrationType === 'gallabox'
                         ? 'Gallabox Integration'
-                          : integrationType === 'zapier'
-                            ? 'Zapier Integration'
-                            : 'Single Sign-On (SAML)'
+                        : integrationType === 'zapier'
+                          ? 'Zapier Integration'
+                          : 'Single Sign-On (SAML)'
 
   const description = integrationType === 'meta'
     ? 'Connect your Facebook/Instagram account to sync leads.'
@@ -174,9 +174,9 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
                       ? 'Integrate HAL API for appointments.'
                       : integrationType === 'gallabox'
                         ? 'Connect Gallabox for WhatsApp lead sync.'
-                          : integrationType === 'zapier'
-                            ? 'Connect Facebook Lead Ads via Zapier webhook.'
-                            : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
+                        : integrationType === 'zapier'
+                          ? 'Connect Facebook Lead Ads via Zapier webhook.'
+                          : 'Configure SAML 2.0 Identity Provider (Okta, Azure AD, etc)'
 
   return (
     <Dialog open={finalOpen} onOpenChange={finalOnOpenChange}>
@@ -338,19 +338,98 @@ export function IntegrationConfigDialog({ children, open, onOpenChange, integrat
 
             {/* Fields for WhatsApp */}
             {integrationType === 'whatsapp' && isConnected && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-                <p className="mb-2 font-medium">WhatsApp Configuration has moved!</p>
-                <p className="mb-4">
-                  We've upgraded our WhatsApp integration to support multiple numbers and advanced routing rules. 
-                  You can now manage all your WhatsApp connections from a dedicated dashboard.
-                </p>
-                <a 
-                  href="/settings/whatsapp-accounts" 
-                  className="inline-flex items-center justify-center rounded-md bg-amber-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-amber-700"
-                >
-                  Go to WhatsApp Accounts
-                </a>
-              </div>
+              <>
+                <FormField
+                  control={form.control}
+                  name="accessToken"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Access Token</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Enter WhatsApp Access Token" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        System User Access Token from Meta Business.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="phoneNumberId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Phone Number ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="WhatsApp Phone Number ID" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        From WhatsApp Business Platform &gt; API Setup.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="wabaId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>WABA ID</FormLabel>
+                      <FormControl>
+                        <Input placeholder="WhatsApp Business Account ID" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Required for templates and advanced features.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="appId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>App ID (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Meta App ID" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="appSecret"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>App Secret (Optional)</FormLabel>
+                      <FormControl>
+                        <Input type="password" placeholder="Meta App Secret" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="configId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Configuration ID (Optional)</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Meta Configuration ID" {...field} value={field.value as string || ''} />
+                      </FormControl>
+                      <FormDescription className="text-xs">
+                        Required for WhatsApp Embedded Signup.
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
             )}
 
             {/* Fields for Meta - Updated to remove WhatsApp fields */}

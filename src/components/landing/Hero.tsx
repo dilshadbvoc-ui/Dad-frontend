@@ -83,7 +83,7 @@ export default function Hero() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <Link to="/register">
+              <Link to="/enquire">
                 <Button size="lg" className="h-14 px-8 text-lg shadow-none transition-transform">
                   Start Free Trial <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>

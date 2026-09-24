@@ -37,6 +37,7 @@ import {
   Smartphone,
   Percent,
   Bug,
+  MailQuestion,
   Contact as ContactIcon,
   UsersRound,
   BookOpen,
@@ -347,6 +348,14 @@ export function SidebarContent({ isCollapsed, setIsCollapsed }: SidebarProps) {
               )}>
                 <AlertTriangle className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/restore') ? "text-sidebar-bg text-red-500" : "text-red-400 group-hover:text-red-500")} />
                 {!isCollapsed && <span className="text-red-400 group-hover:text-red-500">Restore Data</span>}
+              </Link>
+              <Link to="/super-admin/enquiries" className={cn(
+                "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold transition-all duration-200",
+                pathname.startsWith('/super-admin/enquiries') ? "bg-sidebar-active text-white" : "text-sidebar-text/80 hover:text-sidebar-text hover:bg-sidebar-hover",
+                isCollapsed && "justify-center px-0 w-12 h-12 mx-auto"
+              )}>
+                <MailQuestion className={cn("h-5 w-5 shrink-0 transition-colors stroke-[2.5]", pathname.startsWith('/super-admin/enquiries') ? "text-white" : "text-sidebar-text/70 group-hover:text-sidebar-text")} />
+                {!isCollapsed && <span>Enquiries</span>}
               </Link>
               <Link to="/super-admin/issues" className={cn(
                 "group flex items-center gap-3 rounded-[10px] px-4 py-3 text-sm font-bold transition-all duration-200",
