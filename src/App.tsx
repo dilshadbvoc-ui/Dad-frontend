@@ -63,6 +63,8 @@ const LandingPagesManager = lazy(() => import('./pages/marketing/landing-pages')
 const WebFormsPage = lazy(() => import('./pages/marketing/forms'));
 const WhatsAppCampaignsPage = lazy(() => import('./pages/marketing/whatsapp'));
 const WhatsAppAutomationsPage = lazy(() => import('./pages/marketing/whatsapp/automations'));
+const WhatsAppFlowsPage = lazy(() => import('./pages/marketing/whatsapp/flows'));
+const WhatsAppFlowEditorPage = lazy(() => import('./pages/marketing/whatsapp/flows/[id]'));
 const EmailListsPage = lazy(() => import('./pages/marketing/lists'));
 
 // Settings sub-pages
@@ -336,6 +338,8 @@ function AppContent() {
        <Route path="/marketing/lists" element={<EmailListsPage />} />
        <Route path="/marketing/whatsapp" element={<WhatsAppCampaignsPage />} />
        <Route path="/marketing/whatsapp/automations" element={<WhatsAppAutomationsPage />} />
+       <Route path="/marketing/whatsapp/flows" element={<WhatsAppFlowsPage />} />
+       <Route path="/marketing/whatsapp/flows/:id" element={<WhatsAppFlowEditorPage />} />
        {/* <Route path="/communications" element={<CommunicationsPage />} /> */}
        <Route path="/whatsapp/inbox" element={<WhatsAppInbox />} />
        <Route path="/calendar" element={<CalendarPage />} />

@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Bot, Plus, Trash2 } from "lucide-react";
+import { Bot, GitBranch, Plus, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatIST } from "@/lib/dateUtils";
 import {
@@ -81,6 +81,12 @@ export default function WhatsAppCampaignsPage() {
           <p className="text-gray-500 mt-1">Send bulk WhatsApp messages to your leads.</p>
         </div>
         <div className="flex items-center gap-2">
+        <Button variant="outline" asChild>
+          <Link to="/marketing/whatsapp/flows">
+            <GitBranch className="h-4 w-4 mr-2" />
+            Flows
+          </Link>
+        </Button>
         <Button variant="outline" asChild>
           <Link to="/marketing/whatsapp/automations">
             <Bot className="h-4 w-4 mr-2" />
