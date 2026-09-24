@@ -28,6 +28,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { whatsAppFlowService } from "@/services/whatsAppFlowService";
 
 export default function WhatsAppCampaignsPage() {
   const queryClient = useQueryClient();
@@ -36,7 +38,8 @@ export default function WhatsAppCampaignsPage() {
     name: "",
     message: "",
     testNumber: "",
-    scheduledAt: ""
+    scheduledAt: "",
+    flowId: ""
   });
 
   const { data: campaigns = [], isLoading } = useQuery({
@@ -44,12 +47,17 @@ export default function WhatsAppCampaignsPage() {
     queryFn: getWhatsAppCampaigns
   });
 
+  const { data: flows = [] } = useQuery({
+    queryKey: ['whatsapp-flows'],
+    queryFn: whatsAppFlowService.getFlows
+  });
+
   const createMutation = useMutation({
     mutationFn: createWhatsAppCampaign,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-campaigns'] });
       setIsDialogOpen(false);
-      setFormData({ name: "", message: "", testNumber: "", scheduledAt: "" });
+      setFormData({ name: "", message: "", testNumber: "", scheduledAt: "", flowId: "" });
       toast.success("Campaign created successfully");
     },
     onError: (error: { response?: { data?: { message?: string } } }) => {
@@ -70,7 +78,7 @@ export default function WhatsAppCampaignsPage() {
 
   const handleSubmit = () => {
     if (!formData.name || !formData.message) return;
-    createMutation.mutate(formData);
+    createMutation.mutate({ ...formData, flowId: formData.flowId || undefined });
   };
 
   return (
@@ -129,6 +137,26 @@ export default function WhatsAppCampaignsPage() {
                 <p className="text-xs text-muted-foreground">Tip: Use placeholders like {'{{1}}'} for dynamic content.</p>
               </div>
               <div className="grid gap-2">
+                <Label>Reply Flow (Optional)</Label>
+                <Select
+                  value={formData.flowId || "none"}
+                  onValueChange={(v) => setFormData({ ...formData, flowId: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No flow - replies go to inbox as usual" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    {flows.map((flow) => (
+                      <SelectItem key={flow.id} value={flow.id}>{flow.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  When someone replies to this campaign, this Flow starts automatically - even before any keyword match.
+                </p>
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="testNumber">Test Number (Optional)</Label>
                 <Input
                   id="testNumber"
@@ -173,6 +201,7 @@ export default function WhatsAppCampaignsPage() {
                   <TableHead>Status</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Message Preview</TableHead>
+                  <TableHead>Reply Flow</TableHead>
                   <TableHead>Created Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -201,6 +230,16 @@ export default function WhatsAppCampaignsPage() {
                         </div>
                       </TableCell>
                       <TableCell>
+                        {item.flowId ? (
+                          <Badge variant="outline" className="gap-1">
+                            <GitBranch className="h-3 w-3" />
+                            {flows.find((f) => f.id === item.flowId)?.name || "Flow"}
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">None</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         {formatIST(item.createdAt, 'MMM d, yyyy')}
                       </TableCell>
                       <TableCell className="text-right">
@@ -212,7 +251,7 @@ export default function WhatsAppCampaignsPage() {
                   ))
                 ) : (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       No campaigns found.
                     </TableCell>
                   </TableRow>

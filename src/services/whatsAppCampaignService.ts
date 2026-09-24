@@ -12,6 +12,8 @@ export interface WhatsAppCampaign {
     testNumber?: string;
     stats?: Record<string, number>;
     createdAt: string;
+    whatsappAccountId?: string | null;
+    flowId?: string | null;
 }
 
 export interface CreateWhatsAppCampaignData {
@@ -20,6 +22,8 @@ export interface CreateWhatsAppCampaignData {
     templateId?: string;
     scheduledAt?: string;
     testNumber?: string;
+    whatsappAccountId?: string | null;
+    flowId?: string | null;
 }
 
 export const getWhatsAppCampaigns = async () => {
