@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import {
   BookOpen,
   User,
@@ -29,6 +30,7 @@ import {
   Flame,
   Play,
   Circle,
+  ArrowUpRight,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,6 +57,7 @@ interface Topic {
   title: string;
   content: string;
   role?: string;
+  docSlug?: string;
 }
 
 interface Module {
@@ -203,10 +206,12 @@ const TrainingPage = () => {
         {
           title: 'WhatsApp Inbox',
           content: 'A live, threaded WhatsApp conversation view per lead/contact, connected through Meta\'s WhatsApp Cloud API (or Gallabox, if configured) — incoming messages from unrecognized numbers can even auto-create a new lead.',
+          docSlug: 'whatsapp-integration-overview',
         },
         {
           title: 'WhatsApp & SMS Campaigns',
-          content: 'Send templated bulk WhatsApp or SMS messages to a filtered segment of leads/contacts for announcements or promotions.',
+          content: 'Send templated bulk WhatsApp or SMS messages to a filtered segment of leads/contacts for announcements or promotions. Connect multiple numbers, assign agents, build keyword automations, or design full multi-step Flows with buttons and branching.',
+          docSlug: 'whatsapp-campaigns',
         },
         {
           title: 'Follow-ups, Tasks & Calendar',
@@ -752,6 +757,15 @@ const TrainingPage = () => {
                         <div className="min-w-0">
                           <span className="text-xs text-foreground font-semibold block">{topic.title}</span>
                           <span className="text-[11px] text-muted-foreground leading-relaxed">{topic.content}</span>
+                          {topic.docSlug && (
+                            <Link
+                              to={`/docs/${topic.docSlug}`}
+                              className="inline-flex items-center gap-0.5 text-[11px] font-medium text-primary hover:underline mt-1"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              Read full guide <ArrowUpRight className="h-3 w-3" />
+                            </Link>
+                          )}
                         </div>
                       </div>
                     ))}

@@ -122,6 +122,8 @@ const ShufflerSettingsPage = lazy(() => import('./pages/settings/shuffler'));
 const TrashPage = lazy(() => import('./pages/trash'));
 
 const TrainingPage = lazy(() => import('./pages/Training'));
+const DocsIndexPage = lazy(() => import('./pages/docs'));
+const DocArticlePage = lazy(() => import('./pages/docs/[slug]'));
 
 const IssuesPage = lazy(() => import('./pages/issues'));
 const SuperAdminIssuesPage = lazy(() => import('./pages/super-admin/issues'));
@@ -378,6 +380,8 @@ function AppContent() {
        <Route path="/field-force" element={<FieldForcePage />} />
        <Route path="/issues" element={<IssuesPage />} />
        <Route path="/training" element={<TrainingPage />} />
+       <Route path="/docs" element={<DocsIndexPage />} />
+       <Route path="/docs/:slug" element={<DocArticlePage />} />
        <Route path="/trash" element={<TrashPage />} />
        {/* <Route path="/goals" element={<GoalsPage />} /> */}
        <Route path="/sales-targets" element={<SalesTargetsPage />} />
