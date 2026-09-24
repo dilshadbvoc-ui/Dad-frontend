@@ -45,9 +45,9 @@ export default function DocArticlePage() {
               key={a.slug}
               to={`/docs/${a.slug}`}
               className={cn(
-                "block rounded-md px-2 py-1.5 text-sm transition-colors",
+                "block rounded-[8px] px-2 py-1.5 text-sm transition-colors",
                 a.slug === article.slug
-                  ? "bg-primary/10 text-primary font-medium"
+                  ? "bg-[hsl(var(--chart-5))]/10 text-[hsl(var(--chart-5))] font-medium"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground"
               )}
             >
@@ -63,12 +63,12 @@ export default function DocArticlePage() {
             <ArrowLeft className="h-3.5 w-3.5" /> All Docs
           </Link>
 
-          <div className="flex items-center gap-2 text-muted-foreground text-sm mb-2">
+          <div className="flex items-center gap-2 text-[hsl(var(--chart-5))] text-sm font-semibold mb-2">
             <BookOpen className="h-4 w-4" /> {article.category}
           </div>
           <h1 className="text-3xl font-bold mb-2">{article.title}</h1>
           <p className="text-muted-foreground mb-3">{article.summary}</p>
-          <Badge variant="outline" className="gap-1 text-xs font-normal text-muted-foreground mb-8">
+          <Badge variant="outline" className="gap-1 text-xs font-normal text-muted-foreground mb-8 rounded-[6px]">
             <Clock className="h-3 w-3" /> {article.readTime}
           </Badge>
 
@@ -103,7 +103,7 @@ export default function DocArticlePage() {
                   <Link
                     key={a!.slug}
                     to={`/docs/${a!.slug}`}
-                    className="text-sm rounded-lg border p-3 hover:border-primary/50 hover:bg-muted/50 transition-colors"
+                    className="text-sm rounded-[10px] border p-3 hover:border-[hsl(var(--chart-5))]/40 hover:bg-muted/50 transition-colors"
                   >
                     {a!.title}
                   </Link>

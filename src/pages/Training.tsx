@@ -715,6 +715,11 @@ const TrainingPage = () => {
         </div>
 
         <div className="hidden md:flex gap-2">
+          <Button variant="outline" className="rounded-[10px] gap-2 h-9 text-xs sm:text-sm font-medium" asChild>
+            <Link to="/docs">
+              <BookOpen className="h-3.5 w-3.5" /> Documentation
+            </Link>
+          </Button>
           <Button variant="outline" className="rounded-[10px] gap-2 h-9 text-xs sm:text-sm font-medium" onClick={() => setActiveTab('videos')}>
             <PlayCircle className="h-3.5 w-3.5" /> Video Guides
           </Button>
@@ -729,6 +734,22 @@ const TrainingPage = () => {
 
       {/* ============ CORE MODULES ============ */}
       {activeTab === 'modules' && (
+        <>
+        <Link
+          to="/docs"
+          className="flex items-center justify-between gap-4 rounded-[10px] p-4 mb-4 bg-[hsl(var(--chart-5))]/10 border border-[hsl(var(--chart-5))]/20 hover:bg-[hsl(var(--chart-5))]/15 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <div className="bg-[hsl(var(--chart-5))]/15 p-2.5 rounded-[10px]">
+              <BookOpen className="h-5 w-5 text-[hsl(var(--chart-5))]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-foreground">Full Product Documentation</p>
+              <p className="text-xs text-muted-foreground">Detailed setup guides, starting with WhatsApp integration — numbers, campaigns, automations, and flows.</p>
+            </div>
+          </div>
+          <ArrowUpRight className="h-4 w-4 text-[hsl(var(--chart-5))] shrink-0" />
+        </Link>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredModules.map((module) => {
             const isComplete = completedModuleIds.has(module.id);
@@ -787,6 +808,7 @@ const TrainingPage = () => {
             );
           })}
         </div>
+        </>
       )}
 
       {/* ============ VIDEO GUIDES ============ */}
