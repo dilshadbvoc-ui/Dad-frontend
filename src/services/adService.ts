@@ -61,6 +61,23 @@ export const getMetaCampaigns = async () => {
     }
 };
 
+export interface LeadCampaignOption {
+    id: string;
+    name: string;
+}
+
+// Active Meta ad campaigns that have actually produced leads for this org -
+// powers the Leads list's campaign filter (shown once Source = Meta Ads).
+export const getActiveLeadCampaigns = async (): Promise<LeadCampaignOption[]> => {
+    try {
+        const response = await api.get('/ads/meta/lead-campaigns');
+        return Array.isArray(response.data) ? response.data : [];
+    } catch (error) {
+        console.error('Error fetching active lead campaigns:', error);
+        return [];
+    }
+};
+
 export const getMetaAdSets = async (campaignId?: string) => {
     try {
         const response = await api.get('/ads/meta/adsets', { params: { campaignId } });

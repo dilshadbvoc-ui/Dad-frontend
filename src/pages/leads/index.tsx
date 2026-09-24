@@ -39,7 +39,8 @@ import {
   ChevronRight,
   Calendar,
   Filter,
-  Globe
+  Globe,
+  Megaphone
 } from "lucide-react"
 import { BulkActionsToolbar } from "@/components/shared/BulkActionsToolbar"
 import { BulkAssignDialog } from "./BulkAssignDialog"
@@ -349,6 +350,7 @@ export default function LeadsPage() {
   const currentOwner = searchParams.get('owner') || 'all';
   const currentBranch = searchParams.get('branch') || 'all';
   const currentSource = searchParams.get('source') || 'all';
+  const currentCampaign = searchParams.get('campaignId') || 'all';
   const currentStatus = searchParams.get('status') || 'all';
 
   // Save active filters to sessionStorage whenever they change
@@ -404,10 +406,11 @@ export default function LeadsPage() {
       currentOwner !== 'all' ||
       currentBranch !== 'all' ||
       currentSource !== 'all' ||
+      currentCampaign !== 'all' ||
       dateFrom !== '' ||
       dateTo !== ''
     );
-  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, dateFrom, dateTo]);
+  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, currentCampaign, dateFrom, dateTo]);
 
 
   const handleClearAllFilters = () => {
@@ -489,18 +492,29 @@ export default function LeadsPage() {
   // --- Data Fetching ---
   // 1. Leads
   const { data: leadData, isLoading: leadsLoading, isFetching: leadsFetching } = useQuery({
-    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource, currentStatus, backendDateFilter, debouncedSearchTerm],
-    queryFn: () => getLeads({ 
+    queryKey: ['leads', 'all', currentOwner, currentBranch, currentSource, currentCampaign, currentStatus, backendDateFilter, debouncedSearchTerm],
+    queryFn: () => getLeads({
       pageSize: 1000,
       search: debouncedSearchTerm || undefined,
       assignedTo: currentOwner === 'all' ? undefined : currentOwner,
       branchId: currentBranch === 'all' ? undefined : currentBranch,
       source: currentSource === 'all' ? undefined : currentSource,
+      campaignId: currentSource === 'meta_leadgen' && currentCampaign !== 'all' ? currentCampaign : undefined,
       status: currentStatus === 'all' ? undefined : currentStatus,
       startDate: backendDateFilter.from || undefined,
       endDate: backendDateFilter.to || undefined
     }),
     placeholderData: keepPreviousData,
+  });
+
+  const { data: activeCampaigns = [] } = useQuery({
+    queryKey: ['active-lead-campaigns'],
+    queryFn: async () => {
+      const { getActiveLeadCampaigns } = await import('@/services/adService');
+      return getActiveLeadCampaigns();
+    },
+    enabled: currentSource === 'meta_leadgen',
+    staleTime: 5 * 60 * 1000,
   });
 
   const leadsTotalCount = useEntityTotalCount('leads', '/leads');
@@ -649,10 +663,19 @@ export default function LeadsPage() {
       list.push({
         key: 'source',
         label: `Source: ${currentSource.charAt(0).toUpperCase() + currentSource.slice(1)}`,
-        clear: () => updateSearchParams({ source: 'all' })
+        clear: () => updateSearchParams({ source: 'all', campaignId: undefined })
       });
     }
-    
+
+    if (currentSource === 'meta_leadgen' && currentCampaign !== 'all') {
+      const found = activeCampaigns.find((c) => c.id === currentCampaign);
+      list.push({
+        key: 'campaign',
+        label: `Campaign: ${found?.name || currentCampaign}`,
+        clear: () => updateSearchParams({ campaignId: undefined })
+      });
+    }
+
     if (dateFrom || dateTo) {
       let label = '';
       if (dateFrom && dateTo) {
@@ -670,7 +693,7 @@ export default function LeadsPage() {
     }
     
     return list;
-  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, dateFrom, dateTo, statuses, users, branches, updateSearchParams]);
+  }, [currentView, currentStatus, currentOwner, currentBranch, currentSource, currentCampaign, activeCampaigns, dateFrom, dateTo, statuses, users, branches, updateSearchParams]);
 
   // Sort function
   const sortLeads = (leadsToSort: Lead[]) => {
@@ -827,7 +850,14 @@ export default function LeadsPage() {
   };
 
   const handleSourceChange = (source: string) => {
-    updateSearchParams({ source });
+    // Always clear any previously selected campaign on a source change - a
+    // campaign chosen for one source (or the prior meta_leadgen selection)
+    // isn't meaningful for a different one.
+    updateSearchParams({ source, campaignId: undefined });
+  };
+
+  const handleCampaignChange = (campaignId: string) => {
+    updateSearchParams({ campaignId: campaignId === 'all' ? undefined : campaignId });
   };
 
   // Excel download function
@@ -1089,6 +1119,33 @@ export default function LeadsPage() {
                           <SelectItem value="google_ads" className="rounded-lg">Google Ads</SelectItem>
                           <SelectItem value="other" className="rounded-lg">Other</SelectItem>
                         </>
+                      )}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                </div>
+              </div>
+            )}
+
+            {/* Campaign Filter - only meaningful once Source is scoped to Meta Ads */}
+            {!isTaskView && !isChartView && currentSource === 'meta_leadgen' && (
+              <div className={FILTER_CARD_CLASS}>
+                <Megaphone className={FILTER_ICON_CLASS} />
+                <div className="min-w-0 flex-1">
+                <label className={FILTER_LABEL_CLASS}>Campaign</label>
+                <Select value={currentCampaign} onValueChange={handleCampaignChange}>
+                  <SelectTrigger className={FILTER_TRIGGER_CLASS}>
+                    <SelectValue placeholder="All Campaigns" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl shadow-2xl border-border/50">
+                    <SelectItem value="all" className="rounded-lg italic">All Campaigns</SelectItem>
+                    <SelectGroup>
+                      {activeCampaigns.length > 0 ? activeCampaigns.map((c) => (
+                        <SelectItem key={c.id} value={c.id} className="rounded-lg">
+                          {c.name}
+                        </SelectItem>
+                      )) : (
+                        <div className="px-2 py-2 text-xs text-muted-foreground italic">No active campaigns with leads found</div>
                       )}
                     </SelectGroup>
                   </SelectContent>

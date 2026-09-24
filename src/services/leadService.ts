@@ -68,6 +68,7 @@ export interface Lead {
 export interface LeadQueryParams {
     status?: string;
     source?: string;
+    campaignId?: string;
     assignedTo?: string;
     search?: string;
     page?: number;
